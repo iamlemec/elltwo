@@ -1,6 +1,7 @@
 from datetime import datetime
 from functools import partial
 from sqlalchemy import create_engine, or_, and_
+from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
 
 from db_setup import Base, Article, Paragraph, Paralink
@@ -86,12 +87,16 @@ def get_pids(aid, time=None):
     return list(link_sort(links))
 
 def get_paras(aid, pids=None, time=None):
+    if time is None:
+        time = datetime.utcnow()
+
     if pids is None:
         pids = get_pids(aid, time=time)
 
     query = (session
         .query(Paragraph)
         .filter_by(aid=aid)
+        .filter(partime(time))
         .filter(Paragraph.pid.in_(pids))
     )
     paras = query.all()
@@ -103,8 +108,10 @@ def get_text(aid, time=None):
     paras = get_paras(aid, time=time)
     return '\n\n'.join([p.text for p in paras])
 
-def get_para(pid):
-    return session.query(Paragraph).filter_by(pid=pid).one_or_none()
+def get_para(pid, time=None):
+    if time is None:
+        time = datetime.utcnow()
+    return session.query(Paragraph).filter_by(pid=pid).filter(partime(time)).one_or_none()
 
 def get_link(pid, time=None):
     if time is None:
@@ -118,30 +125,21 @@ def get_link(pid, time=None):
 def update_para(pid, text):
     now = datetime.utcnow()
 
-    if (par := get_para(pid)) is None:
+    if (par := get_para(pid, now)) is None:
         return
-    if (lin := get_link(pid, now)) is None:
-        return
-
-    linp = get_link(lin.prev, now)
-    linn = get_link(lin.next, now)
 
     par.delete_time = now
-    par1 = Paragraph(aid=par.aid, create_time=now, text=text)
+
+    par1 = Paragraph(aid=par.aid, pid=par.pid, create_time=now, text=text)
     session.add(par1)
-    session.commit()
-
-    lin1 = splice_link(lin, now, pid=par1.pid)
-    session.add(lin1)
-
-    if linp is not None:
-        linp1 = splice_link(linp, now, next=par1.pid)
-        session.add(linp1)
-    if linn is not None:
-        linn1 = splice_link(linn, now, prev=par1.pid)
-        session.add(linn1)
 
     session.commit()
+
+def create_pid():
+    if (pmax := session.query(func.max(Paragraph.pid)).scalar()) != None:
+        return pmax + 1
+    else:
+        return 0
 
 def insert_after(pid, text):
     now = datetime.utcnow()
@@ -153,9 +151,9 @@ def insert_after(pid, text):
 
     linn = get_link(lin.next, now)
 
-    par1 = Paragraph(aid=par.aid, text=text, create_time=now)
+    pid1 = create_pid()
+    par1 = Paragraph(aid=par.aid, pid=pid1, text=text, create_time=now)
     session.add(par1)
-    session.commit()
 
     lin0 = Paralink(aid=par.aid, pid=par1.pid, prev=pid, next=lin.next, create_time=now)
     session.add(lin0)
@@ -179,9 +177,9 @@ def insert_before(pid, text):
 
     linp = get_link(lin.prev, now)
 
-    par1 = Paragraph(aid=par.aid, text=text, create_time=now)
+    pid1 = create_pid()
+    par1 = Paragraph(aid=par.aid, pid=pid1, text=text, create_time=now)
     session.add(par1)
-    session.commit()
 
     lin0 = Paralink(aid=par.aid, pid=par1.pid, prev=lin.prev, next=pid, create_time=now)
     session.add(lin0)

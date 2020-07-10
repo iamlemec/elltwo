@@ -19,7 +19,8 @@ class Article(Base):
 class Paragraph(Base):
     __tablename__ = 'paragraph'
 
-    pid = Column(Integer, primary_key=True)
+    rid = Column(Integer, primary_key=True)
+    pid = Column(Integer)
     aid = Column(Integer, ForeignKey('article.aid'))
     text = Column(String(), nullable=False)
     create_time = Column(DateTime, default=datetime.utcnow)
