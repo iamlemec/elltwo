@@ -4,12 +4,10 @@ from functools import partial
 from sqlalchemy import create_engine, or_, and_
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
+from math import ceil
 
-from db_setup import Base, Article, Paragraph, Paralink
-
-engine = create_engine('sqlite:///axiom.db')
-Session = sessionmaker(bind=engine)
-session = Session()
+from db_setup import db, Article, Paragraph, Paralink
+session = db.session
 
 ##
 ## diagnostic tools
@@ -105,7 +103,7 @@ def get_paras(aid, pids=None, time=None):
     index = {p.pid: p for p in paras}
     return [index[p] for p in pids]
 
-def get_text(aid, time=None):
+def get_art(aid, time=None):
     paras = get_paras(aid, time=time)
     return '\n\n'.join([p.text for p in paras])
 
@@ -222,7 +220,7 @@ def delete_para(pid):
 ##
 
 def urlify(s):
-    return re.sub(r'\W', '_', s)
+    return re.sub(r'\W', '_', s).lower()
 
 def first_para(aid):
     return session.query(Paralink).filter_by(aid=aid).filter_by(prev=None).one_or_none()
@@ -265,3 +263,21 @@ def insert_end(aid, text):
         init_article(aid)
     else:
         insert_after(par.pid, text)
+
+##
+## query methods
+##
+
+def get_short(short):
+    short_match = urlify(short)
+    art = session.query(Article).filter_by(short_title=short_match).one_or_none()
+    return [p.text for p in get_paras(art.aid)]
+
+def fuzzy_query(words, err=0.3):
+    toks = words.split()
+    dist = [ceil(err*len(s)) for s in toks]
+    return ' '.join([f'{s}~{e}' for s, e in zip(toks, dist)])
+
+def search_title(words, err=0.3):
+    quer = fuzzy_query(words, err=err)
+    return Article.query.msearch(quer, fields=['title']).all()
