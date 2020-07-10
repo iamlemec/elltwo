@@ -10,7 +10,7 @@ session = Session()
 
 now = datetime.utcnow()
 
-art = Article(aid=0, title='Abraham Lincoln', create_time=now)
+art = Article(aid=0, title='Abraham Lincoln', short_title='abraham_lincoln', create_time=now)
 par0 = Paragraph(aid=0, pid=0, text='# Abraham Lincoln', create_time=now)
 par1 = Paragraph(aid=0, pid=1, text='He was a dude.', create_time=now)
 par2 = Paragraph(aid=0, pid=2, text='He got shot.', create_time=now)

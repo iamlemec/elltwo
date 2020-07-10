@@ -10,11 +10,12 @@ class Article(Base):
 
     aid = Column(Integer, primary_key=True)
     title = Column(String(), nullable=False)
+    short_title = Column(String(), nullable=False)
     create_time = Column(DateTime, default=datetime.utcnow)
     delete_time = Column(DateTime)
 
     def __repr__(self):
-        return f'{self.aid} [{self.create_time} → {self.delete_time}]: {self.title}'
+        return f'{self.aid} [{self.create_time} → {self.delete_time}]: {self.title} ({self.short_title})'
 
 class Paragraph(Base):
     __tablename__ = 'paragraph'

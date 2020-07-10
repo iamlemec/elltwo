@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from functools import partial
 from sqlalchemy import create_engine, or_, and_
@@ -122,6 +123,12 @@ def get_link(pid, time=None):
 ## editing methods
 ##
 
+def create_pid():
+    if (pmax := session.query(func.max(Paragraph.pid)).scalar()) != None:
+        return pmax + 1
+    else:
+        return 0
+
 def update_para(pid, text):
     now = datetime.utcnow()
 
@@ -134,12 +141,6 @@ def update_para(pid, text):
     session.add(par1)
 
     session.commit()
-
-def create_pid():
-    if (pmax := session.query(func.max(Paragraph.pid)).scalar()) != None:
-        return pmax + 1
-    else:
-        return 0
 
 def insert_after(pid, text):
     now = datetime.utcnow()
@@ -215,3 +216,52 @@ def delete_para(pid):
         session.add(linn1)
 
     session.commit()
+
+##
+## article methods
+##
+
+def urlify(s):
+    return re.sub(r'\W', '_', s)
+
+def first_para(aid):
+    return session.query(Paralink).filter_by(aid=aid).filter_by(prev=None).one_or_none()
+
+def last_para(aid):
+    return session.query(Paralink).filter_by(aid=aid).filter_by(next=None).one_or_none()
+
+def create_article(title, short_title=None, init=True):
+    now = datetime.utcnow()
+
+    if short_title is None:
+        short_title = urlify(title)
+
+    art = Article(title=title, short_title=short_title, create_time=now)
+    session.add(art)
+    session.commit()
+
+    if init:
+        init_article(art.aid, text=f'# {title}', time=now)
+
+def init_article(aid, text, time=None):
+    if time is None:
+        time = datetime.utcnow()
+
+    pid = create_pid()
+    par = Paragraph(aid=aid, pid=pid, text=text, create_time=time)
+    lin = Paralink(aid=aid, pid=pid, prev=None, next=None, create_time=time)
+
+    session.add_all([par, lin])
+    session.commit()
+
+def insert_begin(aid, text):
+    if (par := first_para(aid)) is None:
+        init_article(aid)
+    else:
+        insert_before(par.pid, text)
+
+def insert_end(aid, text):
+    if (par := last_para(aid)) is None:
+        init_article(aid)
+    else:
+        insert_after(par.pid, text)
