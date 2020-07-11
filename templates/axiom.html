@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd"
+    >
+<html lang="en">
+<head>
+    {% block head %}
+    <link type="text/css" rel="stylesheet" href={{url_for('static', filename='styles/core.css')}} />
+    <script src="https://code.jquery.com/jquery-3.5.0.min.js" integrity="sha384-LVoNJ6yst/aLxKvxwp6s2GAabqPczfWh6xzm38S/YtjUyZ+3aTKOnD/OJVGYLZDl" crossorigin="anonymous"></script>
+<!--     <script src={{ url_for('static', filename='js/core.js') }} language="Javascript" type="text/javascript"></script>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.js"></script>  -->   
+    {% endblock %}
+    <title> {% block title %}{% endblock %} </title>
+
+</head>
+
+<body>
+  <div id="bg">
+    {% block header %}{% endblock %}
+
+    <div id="content">
+      {% block content %}{% endblock %}
+    </div>
+
+    <div id="foot">[201p // iamlemec]{% block foot %}{% endblock %}</div>
+
+	</div>
+</body>
+</html>
+
+    

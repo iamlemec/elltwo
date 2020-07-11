@@ -267,6 +267,10 @@ def insert_end(aid, text):
 ##
 ## query methods
 ##
+def get_art_short(short):
+    short_match = urlify(short)
+    art = session.query(Article).filter_by(short_title=short_match).one_or_none()
+    return art
 
 def get_short(short):
     short_match = urlify(short)
