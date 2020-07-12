@@ -1,14 +1,18 @@
-
-
 {% extends "axiom.html" %}
+
 {% block head %}
   {{ super() }}
   <!-- <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='styles/article.css') }} /> -->
-   <script src={{ url_for('static', filename='js/render.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='js/marked3.js') }} language="Javascript" type="text/javascript"></script>
+   <script src={{ url_for('static', filename='js/socket.io.js') }} language="Javascript" type="text/javascript"></script>
+   <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
+   <script src={{ url_for('static', filename='js/render.js') }} language="Javascript" type="text/javascript"></script>
 {% endblock %}
-{% block title %}{{title}}{% endblock %} 
+
+{% block title %}{{title}}{% endblock %}
+
 {% block header %}<div id='head'>{{title}}</div>{% endblock %}
+
 {% block content %}
     <div id=content_inner>
       <div id=para_holder>
@@ -19,13 +23,14 @@
                 ...
               </div>
             </div>
-        {% endfor%} 
+        {% endfor%}
 
       </div>
     </div>
-
 {% endblock %}
+
 {% block foot %}
+<script language="Javascript" type="text/javascript">
+    title = "{{title}}";
+</script>
 {% endblock %}
-
-

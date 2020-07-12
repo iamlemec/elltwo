@@ -140,7 +140,7 @@ def update_para(pid, text):
 
     session.commit()
 
-def insert_after(pid, text):
+def insert_after(pid, text=''):
     now = datetime.utcnow()
 
     if (par := get_para(pid)) is None:
@@ -166,7 +166,7 @@ def insert_after(pid, text):
 
     session.commit()
 
-def insert_before(pid, text):
+def insert_before(pid, text=''):
     now = datetime.utcnow()
 
     if (par := get_para(pid)) is None:
@@ -241,6 +241,8 @@ def create_article(title, short_title=None, init=True):
     if init:
         init_article(art.aid, text=f'# {title}', time=now)
 
+    return art
+
 def init_article(aid, text, time=None):
     if time is None:
         time = datetime.utcnow()
@@ -267,6 +269,7 @@ def insert_end(aid, text):
 ##
 ## query methods
 ##
+
 def get_art_short(short):
     short_match = urlify(short)
     art = session.query(Article).filter_by(short_title=short_match).one_or_none()

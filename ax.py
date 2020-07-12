@@ -1,4 +1,5 @@
 from flask import Flask, request, redirect, url_for, render_template, jsonify, make_response
+from flask_socketio import SocketIO, send, emit
 #app = Flask(__name__)
 
 import os, re, datetime, time, json
@@ -9,14 +10,17 @@ from sqlalchemy.orm import sessionmaker
 # from sqlalchemy.sql import func
 # from random import randint
 
-#import DM models 
+#import DM models
 from db_setup import Article, Paragraph, Paralink, db, app
 
 #import article mgmt
 import db_query as dbq
- 
+
 session = db.session
 
+# socket setup
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app)
 
 #function to contruct URL names (Article.short_title)
 
@@ -61,14 +65,45 @@ def RenderArticle(short):
         title=art.title,
         paras=paras)
 
+##
+## socketio handler
+##
 
+def send_command(cmd, data=None):
+    emit('json', {'cmd': cmd, 'data': data})
+
+@socketio.on('connect')
+def test_connect():
+    print('Client connected')
+    send_command('status', 'connected')
+
+@socketio.on('disconnect')
+def test_disconnect():
+    print('Client disconnected')
+
+@socketio.on('json')
+def test_json(json):
+    cmd = json['cmd']
+    data = json['data']
+    print(f'received [{cmd}]: {data}')
+
+    if cmd == 'create_art':
+        art = dbq.create_article(data['title'])
+        send_command('create', art.short_title)
+    elif cmd == 'update_para':
+        dbq.update_para(data['pid'], data['text'])
+    elif cmd == 'delete_para':
+        dbq.delete_para(data['pid'])
+    elif cmd == 'insert_after':
+        text = data.get('text', '')
+        dbq.insert_after(data['pid'], text)
+    elif cmd == 'insert_before':
+        text = data.get('text', '')
+        dbq.insert_before(data['pid'], text)
+    else:
+        print(f'Unknown command: {cmd}')
 
 
 if __name__ == '__main__':
     app.debug = True
-    app.run(host='0.0.0.0', port=5000)
-
-
-
-
-
+    socketio.run(app, host='0.0.0.0', port=5000)
