@@ -72,16 +72,17 @@ def send_command(cmd, data=None):
     emit('json', {'cmd': cmd, 'data': data})
 
 @socketio.on('connect')
-def test_connect():
+def socket_connect():
     print('Client connected')
-    send_command('status', 'connected')
+    emit('status', 'connected')
 
 @socketio.on('disconnect')
-def test_disconnect():
+def socket_disconnect():
     print('Client disconnected')
+    emit('status', 'disconnected')
 
 @socketio.on('json')
-def test_json(json):
+def socket_json(json):
     cmd = json['cmd']
     data = json['data']
     print(f'received [{cmd}]: {data}')
@@ -93,10 +94,10 @@ def test_json(json):
         dbq.update_para(data['pid'], data['text'])
         #note: this is inefficent, it resends the text from the server to the client
         #but, it makes sure the commit happend before sending
-        send_command('updatePara', [data['pid'], data['text']]) 
+        send_command('updatePara', [data['pid'], data['text']])
     elif cmd == 'delete_para':
         dbq.delete_para(data['pid'])
-        send_command('deletePara', [data['pid']]) 
+        send_command('deletePara', [data['pid']])
     elif cmd == 'insert_after':
         text = data.get('text', '')
         par1 = dbq.insert_after(data['pid'], text)
@@ -104,7 +105,9 @@ def test_json(json):
     elif cmd == 'insert_before':
         text = data.get('text', '')
         par1 = dbq.insert_before(data['pid'], text)
-        send_command('insert', [data['pid'], par1.pid, True]) 
+        send_command('insert', [data['pid'], par1.pid, True])
+    elif cmd == 'echo':
+        return data
     else:
         print(f'Unknown command: {cmd}')
 

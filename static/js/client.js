@@ -26,10 +26,10 @@ function disconnect() {
     }
 }
 
-function sendCommand(cmd, cont) {
+function sendCommand(cmd, cont, ack) {
     if (cont == undefined) cont = "";
     data = {"cmd": cmd, "data": cont};
-    socket.emit("json", data);
+    socket.emit("json", data, ack);
 }
 
 return {

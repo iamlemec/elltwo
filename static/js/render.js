@@ -5,11 +5,13 @@ recvCommand = function(cmd, data) {
     if(cmd=='updatePara'){
         updatePara(...data); //data must come in correct order or args
     }else if(cmd=='deletePara'){
-        deletePara(...data) 
+        deletePara(...data)
     }else if(cmd=='insert'){
-        insert(...data) 
+        insert(...data)
+    }else if(cmd=='status'){
+        console.log('status: ', data);
     }else{
-        console.log('unknown cmd')
+        console.log('unknown cmd: ', cmd)
     }
 }
 client = Client(recvCommand);
