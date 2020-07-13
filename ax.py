@@ -60,7 +60,6 @@ def Home():
 def RenderArticle(short):
     art = dbq.get_art_short(short)
     paras = dbq.get_paras(art.aid)
-    print(paras)
     return render_template('article.html',
         title=art.title,
         paras=paras)
@@ -92,14 +91,20 @@ def test_json(json):
         send_command('create', art.short_title)
     elif cmd == 'update_para':
         dbq.update_para(data['pid'], data['text'])
+        #note: this is inefficent, it resends the text from the server to the client
+        #but, it makes sure the commit happend before sending
+        send_command('updatePara', [data['pid'], data['text']]) 
     elif cmd == 'delete_para':
         dbq.delete_para(data['pid'])
+        send_command('deletePara', [data['pid']]) 
     elif cmd == 'insert_after':
         text = data.get('text', '')
-        dbq.insert_after(data['pid'], text)
+        par1 = dbq.insert_after(data['pid'], text)
+        send_command('insert', [data['pid'], par1.pid, False])
     elif cmd == 'insert_before':
         text = data.get('text', '')
-        dbq.insert_before(data['pid'], text)
+        par1 = dbq.insert_before(data['pid'], text)
+        send_command('insert', [data['pid'], par1.pid, True]) 
     else:
         print(f'Unknown command: {cmd}')
 

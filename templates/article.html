@@ -18,10 +18,8 @@
       <div id=para_holder>
 
         {% for p in paras %}
-            <div class="para_outer">
-              <div class="para" id='{{p.pid}}' data-raw="{{p.text}}">
+            <div class="para" id=para_{{p.pid}} data-raw="{{p.text}}">
                 ...
-              </div>
             </div>
         {% endfor%}
 

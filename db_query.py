@@ -166,6 +166,8 @@ def insert_after(pid, text=''):
 
     session.commit()
 
+    return par1
+
 def insert_before(pid, text=''):
     now = datetime.utcnow()
 
@@ -191,6 +193,8 @@ def insert_before(pid, text=''):
         session.add(linp1)
 
     session.commit()
+
+    return par1
 
 def delete_para(pid):
     now = datetime.utcnow()
