@@ -101,11 +101,11 @@ def socket_json(json):
     elif cmd == 'insert_after':
         text = data.get('text', '')
         par1 = dbq.insert_after(data['pid'], text)
-        send_command('insert', [data['pid'], par1.pid, False])
+        send_command('insert', [data['pid'], par1.pid, False, text])
     elif cmd == 'insert_before':
         text = data.get('text', '')
         par1 = dbq.insert_before(data['pid'], text)
-        send_command('insert', [data['pid'], par1.pid, True])
+        send_command('insert', [data['pid'], par1.pid, True, text])
     elif cmd == 'echo':
         return data
     else:
@@ -114,4 +114,4 @@ def socket_json(json):
 
 if __name__ == '__main__':
     app.debug = True
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000)    
