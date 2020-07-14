@@ -2,11 +2,10 @@
 __pycache__/
 *.py[cod]
 
-#mac bullshit
-
+# Mac bullshit
 .DS_Store
 
-#Search Folders
+# Search Folders
 /msearch/**
 
 # Distribution / packaging
@@ -28,7 +27,9 @@ var/
 pip-log.txt
 pip-delete-this-directory.txt
 
-
 # Django stuff:
 *.log
 *.pot
+
+# Database
+axiom.db

@@ -1047,11 +1047,11 @@ Renderer.prototype.link = function(href, title, text) {
 Renderer.prototype.ilink = function(href) {
   var out = '<a class="internal" href="' + href + '">' + href + '</a>';
   return out;
-}
+};
 
 Renderer.prototype.escape = function(esc) {
   return escape(esc);
-}
+};
 
 Renderer.prototype.text = function(text) {
   return escape(text);
@@ -1101,7 +1101,7 @@ Renderer.prototype.footnote = function(text) {
 Renderer.prototype.image = function(href, alt) {
   var out = '\n<img src="' + href + '" alt="' + alt + '">';
   return out;
-}
+};
 
 Renderer.prototype.figure = function(ftype, tag, title, body) {
   var tagtxt = '';
@@ -1114,7 +1114,7 @@ Renderer.prototype.figure = function(ftype, tag, title, body) {
   }
   var out = '<figure class="' + ftype + '"' + tagtxt + '>' + body + captxt + '\n</figure>\n\n';
   return out;
-}
+};
 
 Renderer.prototype.biblio = function(id, info) {
   var out = '<div class="biblio" id="' + id + '"';
@@ -1124,7 +1124,179 @@ Renderer.prototype.biblio = function(id, info) {
   }
   out += '></div>\n';
   return out;
+};
+
+/**
+ * Renderer
+ */
+
+function DivRenderer(options) {
+  this.options = options || {};
 }
+
+DivRenderer.prototype.code = function(code, lang, escaped) {
+  if (this.options.highlight) {
+    var out = this.options.highlight(code, lang);
+    if (out != null && out !== code) {
+      escaped = true;
+      code = out;
+    }
+  }
+
+  code = escaped ? code : escape(code, true);
+  lang = lang ? (this.options.langPrefix + escape(lang, true)) : '';
+
+  return `<div class="code ${lang}">\n${code}\n</div>\n\n`;
+};
+
+DivRenderer.prototype.blockquote = function(quote) {
+  return `<div class="quote">\n${quote}\n</div>\n\n`;
+};
+
+DivRenderer.prototype.html = function(html) {
+  return html;
+};
+
+DivRenderer.prototype.title = function(text) {
+  return `<div class="title">${text}</div>\n\n`;
+};
+
+DivRenderer.prototype.heading = function(text, level, refid, number) {
+  var rid = (refid != undefined) ? `id="${refid}"`: '';
+  var num = number ? 'number' : '';
+  var cls = `heading h${level} ${num}`;
+
+  return `<div ${rid} class="${cls}">\n${text}\n</div>\n\n`;
+};
+
+DivRenderer.prototype.hr = function() {
+    return this.options.xhtml ? '<hr/>\n\n' : '<hr>\n\n';
+};
+
+DivRenderer.prototype.list = function(body, ordered) {
+  var type = ordered ? 'ordered' : 'unordered';
+  return `<div class="list ${type}">\n${body}</div>\n\n`;
+};
+
+DivRenderer.prototype.listitem = function(text) {
+  return `<div class="list-item">${text}</div>\n`;
+};
+
+DivRenderer.prototype.paragraph = function(text, terse) {
+  return `<div class="p">${text}</div>\n\n`;
+};
+
+DivRenderer.prototype.table = function(header, body) {
+  return `<div class="table">\n<div class="table-header">\n${header}</div>\n<div class="table-body">\n${body}</div>\n</div>\n\n`;
+};
+
+DivRenderer.prototype.tablerow = function(content) {
+  return `<div class="table-row">${content}</div>\n`;
+};
+
+DivRenderer.prototype.tablecell = function(content, flags) {
+  return `<div class="table-cell">${content}</div>`;
+};
+
+// span level DivRenderer
+DivRenderer.prototype.strong = function(text) {
+  return `<span class="strong">${text}</span>`;
+};
+
+DivRenderer.prototype.em = function(text) {
+  return `<span class="em">${text}</span>`;
+};
+
+DivRenderer.prototype.codespan = function(text) {
+  text = escape(text, true);
+  return `<span class="code">${text}</span>`;
+};
+
+DivRenderer.prototype.br = function() {
+  return this.options.xhtml ? '<br/>' : '<br>';
+};
+
+DivRenderer.prototype.del = function(text) {
+  return `<span class="del">${text}</span>`;
+};
+
+DivRenderer.prototype.link = function(href, title, text) {
+  if (this.options.sanitize) {
+    try {
+      var prot = decodeURIComponent(unescape(href))
+        .replace(/[^\w:]/g, '')
+        .toLowerCase();
+    } catch (e) {
+      return '';
+    }
+    if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0) {
+      return '';
+    }
+  }
+
+  title = title ? `title="${title}"` : '';
+  text = escape(text);
+
+  return `<a href="${href}" ${title}>${text}</a>`;
+};
+
+DivRenderer.prototype.ilink = function(href) {
+  return `<a class="internal" href="${href}">${href}</a>`;
+};
+
+DivRenderer.prototype.escape = function(esc) {
+  return escape(esc);
+};
+
+DivRenderer.prototype.text = function(text) {
+  return escape(text);
+};
+
+DivRenderer.prototype.math = function(tex) {
+  return `<span class="latex">${tex}</span>`;
+};
+
+// benv
+DivRenderer.prototype.benv = function(type, env_id, nonumber) {
+  var num = number ? 'number' : '';
+  return `<span class="env_b_${type} ${num}" id="${env_id}"></span>`;
+};
+
+DivRenderer.prototype.eenv = function(type) {
+  return `<span class="env_e_${type}"></span>`;
+};
+
+DivRenderer.prototype.equation = function(id, tex) {
+  var eqid = (id != undefined) ? `id="${id}"`: '';
+  return `<div class="equation" ${eqid}>\n${tex}</div>\n\n`;
+};
+
+DivRenderer.prototype.ref = function(id) {
+  return `<span class="reference">${id}</span>`;
+};
+
+DivRenderer.prototype.footnote = function(text) {
+  return `<span class="footnote">${text}</span>`;
+};
+
+DivRenderer.prototype.image = function(href, alt) {
+  return `<img src="${href}" alt="${alt}">`;
+};
+
+DivRenderer.prototype.figure = function(ftype, tag, title, body) {
+  var tagtxt = (tag != undefined) ? `id="${tag}"`: '';
+  var captxt = (title != undefined) ? `<figcaption>${title}</figcaption>` : '';
+  return `<figure class="${ftype}" ${tagtxt}>\n${body}\n${captxt}\n</figure>\n\n`;
+};
+
+DivRenderer.prototype.biblio = function(id, info) {
+  var keys = '';
+  for (k in info) {
+    var v = info[k];
+    keys += ` ${k}="${v}"`;
+  }
+  return `<div class="biblio" id="${id}" ${keys}></div>\n`;
+};
 
 /**
  * Latex Renderer
@@ -1250,7 +1422,7 @@ LatexRenderer.prototype.link = function(href, title, text) {
 
 LatexRenderer.prototype.escape = function(esc) {
   return escape_latex(esc);
-}
+};
 
 LatexRenderer.prototype.text = function(text) {
   return escape_latex(text);
@@ -1282,7 +1454,7 @@ LatexRenderer.prototype.image = function(href, alt) {
     href = href.split('/').pop();
   }
   return '\\includegraphics[width=\\textwidth]{' + href + '}\n\n';
-}
+};
 
 LatexRenderer.prototype.figure = function(ftype, tag, title, body) {
   var typetxt = ftype;
@@ -1304,11 +1476,11 @@ LatexRenderer.prototype.figure = function(ftype, tag, title, body) {
     + tagtxt + body + captxt
     + '\\end{center}\n'
     + '\\end{' + typetxt + '}\n\n';
-}
+};
 
 LatexRenderer.prototype.biblio = function(id, info) {
   return id + '\n\n';
-}
+};
 
 /**
  * Parsing & Compiling
@@ -1722,7 +1894,8 @@ marked.merge = merge;
 marked.Parser = Parser;
 marked.parser = Parser.parse;
 
-marked.Renderer = Renderer;
+marked.Renderer = DivRenderer;
+marked.HtmlRenderer = Renderer;
 marked.LatexRenderer = LatexRenderer;
 
 marked.Lexer = Lexer;
@@ -1746,6 +1919,3 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
 }).call(function() {
   return this || (typeof window !== 'undefined' ? window : global);
 }());
-
-
-
