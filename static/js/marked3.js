@@ -547,11 +547,16 @@ var inline = {
   text: /^[\s\S]+?(?=[\\<!\[_*`\$\^@]| {2,}\n|$)/,
   math: /^\$((?:\\\$|[\s\S])+?)\$/,
   ref: /^@\[([\w-]+?)\]/,
-  footnote: /^\^\[(inside)\]/
+  footnote: /^\^\[(inside)\]/,
+  benv: /^\\begin\{(.*?)\}(\*?)*(?:refid)?/,
+  eenv: /^(\\end\{)(.*?)\}/,
 };
 
 inline._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
 inline._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
+inline._refid = /\[([\w-]+)\]/;
+
+
 
 inline.link = replace(inline.link)
   ('inside', inline._inside)
@@ -564,6 +569,10 @@ inline.reflink = replace(inline.reflink)
 
 inline.footnote = replace(inline.footnote)
   ('inside', inline._inside)
+  ();
+
+inline.benv = replace(inline.benv)
+  ('refid', inline._refid)
   ();
 
 /**
@@ -675,6 +684,25 @@ InlineLexer.prototype.output = function(src) {
       src = src.substring(cap[0].length);
       tex = cap[1];
       out += this.renderer.math(tex);
+      continue;
+    }
+
+    // benv
+    if (cap = this.rules.benv.exec(src)) {
+      console.log(cap)
+      src = src.substring(cap[0].length);
+      type = cap[1];
+      env_id = ""
+      nonumber = cap[2];
+        env_id = cap[3] || "";
+      out += this.renderer.benv(type, env_id, nonumber);
+      continue;
+    }
+
+    if (cap = this.rules.eenv.exec(src)) {
+      src = src.substring(cap[0].length);
+      type = cap[2];
+      out += this.renderer.eenv(type);
       continue;
     }
 
@@ -1031,6 +1059,21 @@ Renderer.prototype.text = function(text) {
 
 Renderer.prototype.math = function(tex) {
   var out = '<span class="latex">' + tex + '</span>';
+  return out;
+};
+
+// benv
+Renderer.prototype.benv = function(type, env_id, nonumber) {
+  var out = '<span class="'
+  if (nonumber){
+    out+= 'nonumber '
+  }
+  out+='env_b_'+type+'" id='+env_id+'></span>';
+  return out;
+};
+
+Renderer.prototype.eenv = function(type) {
+  var out = '<span class="env_e_'+type+'"></span>';
   return out;
 };
 

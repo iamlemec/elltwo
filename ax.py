@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect, url_for, render_template, jsonify, make_response
-from flask_socketio import SocketIO, send, emit
+from flask_socketio import SocketIO, send, emit 
 #app = Flask(__name__)
 
 import os, re, datetime, time, json
@@ -68,8 +68,8 @@ def RenderArticle(short):
 ## socketio handler
 ##
 
-def send_command(cmd, data=None):
-    emit('json', {'cmd': cmd, 'data': data})
+def send_command(cmd, data=None, broadcast=False, include_self=True):
+    emit('json', {'cmd': cmd, 'data': data}, broadcast=broadcast, include_self=include_self)
 
 @socketio.on('connect')
 def socket_connect():
@@ -94,7 +94,7 @@ def socket_json(json):
         dbq.update_para(data['pid'], data['text'])
         #note: this is inefficent, it resends the text from the server to the client
         #but, it makes sure the commit happend before sending
-        send_command('updatePara', [data['pid'], data['text']])
+        send_command('updatePara', [data['pid'], data['text']], broadcast=True)
     elif cmd == 'delete_para':
         dbq.delete_para(data['pid'])
         send_command('deletePara', [data['pid']])

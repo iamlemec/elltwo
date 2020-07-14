@@ -16,6 +16,16 @@ recvCommand = function(cmd, data) {
 }
 client = Client(recvCommand);
 
+//init commands
+
+//inner HTML for para structure. Included here for updating paras
+
+ inner_para = `<div class='p_text'></div>
+                <textarea class='p_input'></textarea>
+                <div class='update'>Update</div>`
+
+
+
 // get raw text from data-raw attribute, parse, render
 dataToText = function(para, raw="") {
     if (!raw){
@@ -29,6 +39,7 @@ $(document).ready(function() {
     var url = "http://" + document.domain + ':' + location.port;
     client.connect(url);
     $('.para').each(function() {
+        $(this).html(inner_para)
         dataToText($(this));
     });
 });
@@ -49,16 +60,13 @@ deletePara = function(pid){
 
 insert = function(pid, new_pid, before=true, raw="..."){
     para = $('#para_' + pid);
-    new_para = `<div class="para" id=para_`+new_pid+` data-raw="`+raw+`">
-                    <div class='p_text'></div>
-                    <textarea class='p_input'></textarea>
-                    <div class='update'>Update</div>
-                </div>`;
+    new_para = `<div class="para" id=para_`+new_pid+` data-raw="`+raw+`"></div>`;
     if(before){
         para.before(new_para);
     }else{
         para.after(new_para);
     };
+    $('#para_' + new_pid).html(inner_para)
     dataToText($('#para_' + new_pid), raw);
 };
 
@@ -66,21 +74,25 @@ insert = function(pid, new_pid, before=true, raw="..."){
 
 checkEnv = function(text){
     text = text.trim()
-    open_tag = /^(\\begin\{)(.*?)\}/ 
-    close_tag = /(\\end\{)(.*?)\}$/
-    heading_tag = /^ *(#{1,6})(\*?) *(?:refid)? *([^\n]+?) *#* *(?:\n+|$)/
+
+    tag = {
+    open: /^(\\begin\{)(.*?)\}/,
+    close: /(\\end\{)(.*?)\}$/,
+    heading: /^ *(#{1,6})(\*?)/
+    };
+
 
     open = false
     close = false
     heading = false
 
-    if (text.match(open_tag)){
-        open = text.match(open_tag)[2]
+    if (text.match(tag.open)){
+        open = text.match(tag.open)[2]
     };
-    if (text.match(close_tag)){
-        close = text.match(close_tag)[2]
+    if (text.match(tag.close)){
+        close = text.match(tag.close)[2]
     };
-    if (text.match(heading_tag)){
+    if (text.match(tag.heading)){
         heading = true;
     }
     
@@ -119,3 +131,26 @@ envClasses = function(){
     env_paras.forEach(para => para.addClass('env_err')) //add error for open envs left at the end
 }
 
+/// UI editing
+
+rawToTextArea = function(pid){
+    para = $('#para_' + pid);
+    textArea = para.children('.p_input');
+    textArea.val(para.data('raw'));
+}
+
+updateFromTextArea = function(pid){
+    para = $('#para_' + pid);
+    raw = para.children('.p_input').val();
+    client.sendCommand('update_para', {'pid':pid, 'text': raw});
+}
+
+$(document).on('click', '.p_text', function(){
+        pid = $(this).parent().attr("id").substr(5);
+        rawToTextArea(pid)
+}); 
+
+$(document).on('click', '.update', function(){
+        pid = $(this).parent().attr("id").substr(5);
+        updateFromTextArea(pid)
+}); 

@@ -26,7 +26,7 @@ function disconnect() {
     }
 }
 
-function sendCommand(cmd, cont, ack) {
+function sendCommand(cmd, cont, ack=function(){}) {
     if (cont == undefined) cont = "";
     data = {"cmd": cmd, "data": cont};
     socket.emit("json", data, ack);
