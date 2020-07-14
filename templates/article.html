@@ -18,7 +18,7 @@
       <div id=para_holder>
 
         {% for p in paras %}
-            <div class="para" id=para_{{p.pid}} data-raw="{{p.text}}">
+            <div class="para" pid="{{p.pid}}" data-raw="{{p.text}}">
                 <div class='p_text'></div>
                 <textarea class='p_input'></textarea>
                 <div class='update'>Update</div>

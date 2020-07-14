@@ -1,156 +1,165 @@
 // handle incoming commands from server
-recvCommand = function(cmd, data) {
+client = Client(function(cmd, data) {
     msg = JSON.stringify(data);
     console.log("received [" + cmd + "]: " + msg);
-    if(cmd=='updatePara'){
+
+    if (cmd == 'updatePara') {
         updatePara(...data); //data must come in correct order or args
-    }else if(cmd=='deletePara'){
-        deletePara(...data)
-    }else if(cmd=='insert'){
-        insert(...data)
-    }else if(cmd=='status'){
+    } else if (cmd == 'deletePara') {
+        deletePara(...data);
+    } else if (cmd == 'insert') {
+        insert(...data);
+    } else if (cmd == 'status') {
         console.log('status: ', data);
-    }else{
-        console.log('unknown cmd: ', cmd)
+    } else {
+        console.log('unknown: ', cmd);
     }
-}
-client = Client(recvCommand);
+});
 
-//init commands
+/// init commands
 
-//inner HTML for para structure. Included here for updating paras
+// inner HTML for para structure. Included here for updating paras
+inner_para = `<div class='p_text'></div>
+              <textarea class='p_input'></textarea>
+              <div class='update'>Update</div>`;
 
- inner_para = `<div class='p_text'></div>
-                <textarea class='p_input'></textarea>
-                <div class='update'>Update</div>`
-
-
+getPara = function(pid) {
+    return $(`[pid=${pid}]`);
+};
 
 // get raw text from data-raw attribute, parse, render
 dataToText = function(para, raw="") {
-    if (!raw){
+    if (!raw) {
         raw = para.data('raw');
     }
-        html_text = markthree(raw);
-        para.children('.p_text').html(html_text);
- };
+    var html_text = markthree(raw);
+    para.children('.p_text').html(html_text);
+};
 
 $(document).ready(function() {
     var url = "http://" + document.domain + ':' + location.port;
     client.connect(url);
     $('.para').each(function() {
-        $(this).html(inner_para)
-        dataToText($(this));
+        var para = $(this);
+        para.html(inner_para);
+        dataToText(para);
     });
 });
 
 /// editing commands for paras (triggered by incoming socket commands)
 /// local changes only --> to reflect server changes without full reload
 
-updatePara = function(pid, raw){
-    para = $('#para_' + pid);
+updatePara = function(pid, raw) {
+    var para = getPara(pid);
     para.data('raw', raw);
     dataToText(para, raw);
 };
 
-deletePara = function(pid){
-    para = $('#para_' + pid);
-    para.remove()
+deletePara = function(pid) {
+    var para = getPara(pid);
+    para.remove();
 };
 
-insert = function(pid, new_pid, before=true, raw="..."){
-    para = $('#para_' + pid);
-    new_para = `<div class="para" id=para_`+new_pid+` data-raw="`+raw+`"></div>`;
-    if(before){
+insert = function(pid, new_pid, before=true, raw="...") {
+    var para = getPara(pid);
+    var new_para = `<div class="para" pid="${new_pid}" data-raw="${raw}"></div>`;
+    if (before) {
         para.before(new_para);
-    }else{
+    } else {
         para.after(new_para);
-    };
-    $('#para_' + new_pid).html(inner_para)
-    dataToText($('#para_' + new_pid), raw);
+    }
+    new_para.html(inner_para);
+    dataToText(new_para, raw);
 };
 
 /// env methods
 
 checkEnv = function(text){
-    text = text.trim()
+    var text = text.trim();
 
-    tag = {
-    open: /^(\\begin\{)(.*?)\}/,
-    close: /(\\end\{)(.*?)\}$/,
-    heading: /^ *(#{1,6})(\*?)/
+    var tag = {
+        open: /^(\\begin\{)(.*?)\}/,
+        close: /(\\end\{)(.*?)\}$/,
+        heading: /^ *(#{1,6})(\*?)/
     };
 
+    var open = false;
+    var close = false;
+    var heading = false;
 
-    open = false
-    close = false
-    heading = false
+    var match_open = text.match(tag.open);
+    if (match_open) {
+        open = match_open[2];
+    }
 
-    if (text.match(tag.open)){
-        open = text.match(tag.open)[2]
-    };
-    if (text.match(tag.close)){
-        close = text.match(tag.close)[2]
-    };
-    if (text.match(tag.heading)){
+    var match_close = text.match(tag.close);
+    if (match_close) {
+        close = match_close[2];
+    }
+
+    var match_heading = text.match(tag.heading);
+    if (match_heading) {
         heading = true;
     }
-    
+
     return {'open': open, 'close': close, 'heading': heading}
 };
 
-//creates classes for environs 
-envClasses = function(){
-    //remove old section classes
-    $(".para").removeClass (function (index, css) {
-        return (css.match (/(^|\s)env_\S+/g) || []).join(' ');
+// creates classes for environs
+envClasses = function() {
+    // remove old section classes
+    $(".para").removeClass(function(index, css) {
+        return (css.match(/(^|\s)env_\S+/g) || []).join(' ');
     });
 
-    current_open_env = false
-    env_paras = []
-    $('.para').each(function(){
-        raw = $(this).data('raw')
-        flags = checkEnv(raw)
-        if (flags.open && !(current_open_env)){ //cannot open an env if one is already open
+    var current_open_env = false;
+    var env_paras = [];
+
+    $('.para').each(function() {
+        var para = $(this)
+        var raw = para.data('raw');
+        var flags = checkEnv(raw);
+        if (flags.open && !current_open_env) { // cannot open an env if one is already open
             current_open_env = flags.open;
-        };
-        if (flags.heading){ //sections or headings break envs
-            env_paras.forEach(para => para.addClass('env_err'))
-            current_open_env = false;
-            env_paras = [] 
         }
-        if (current_open_env){
-            env_paras.push($(this))
-        };
-        if (flags.close && ((current_open_env)==(flags.close))){ //closing tag = current open tag
-            env_paras.forEach(para => para.addClass('env_'+current_open_env))
+        if (flags.heading) { // sections or headings break envs
+            env_paras.forEach(para => para.addClass('env_err'));
             current_open_env = false;
-            env_paras = [] 
-        };
+            env_paras = [];
+        }
+        if (current_open_env) {
+            env_paras.push(para);
+        }
+        if (flags.close && (current_open_env == flags.close)) { // closing tag = current open tag
+            env_paras.forEach(para => para.addClass('env_'+current_open_env));
+            current_open_env = false;
+            env_paras = [];
+        }
     });
-    env_paras.forEach(para => para.addClass('env_err')) //add error for open envs left at the end
-}
+
+    env_paras.forEach(para => para.addClass('env_err')); // add error for open envs left at the end
+};
 
 /// UI editing
 
-rawToTextArea = function(pid){
-    para = $('#para_' + pid);
-    textArea = para.children('.p_input');
+rawToTextArea = function(pid) {
+    var para = getPara(pid);
+    var textArea = para.children('.p_input');
     textArea.val(para.data('raw'));
-}
+};
 
-updateFromTextArea = function(pid){
-    para = $('#para_' + pid);
-    raw = para.children('.p_input').val();
-    client.sendCommand('update_para', {'pid':pid, 'text': raw});
-}
+updateFromTextArea = function(pid) {
+    var para = getPara(pid);
+    var raw = para.children('.p_input').val();
+    client.sendCommand('update_para', {'pid': pid, 'text': raw});
+};
 
-$(document).on('click', '.p_text', function(){
-        pid = $(this).parent().attr("id").substr(5);
-        rawToTextArea(pid)
-}); 
+$(document).on('click', '.p_text', function() {
+    var pid = $(this).parent().attr("pid");
+    rawToTextArea(pid);
+});
 
-$(document).on('click', '.update', function(){
-        pid = $(this).parent().attr("id").substr(5);
-        updateFromTextArea(pid)
-}); 
+$(document).on('click', '.update', function() {
+    var pid = $(this).parent().attr("pid");
+    updateFromTextArea(pid);
+});
