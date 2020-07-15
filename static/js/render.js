@@ -1,3 +1,14 @@
+
+// move this to backend when we have user genereted envs
+
+env_format = {
+    'thm': {'b': 'Theorem', 'e':""},
+    'proof': {'b': 'Proof', 'e':"QED"},
+    'err': {'b': 'ERR: env not closed. ', 'e':""},
+    'undefined': {'b': 'ERR: env undefined. ', 'e':""}
+}
+
+
 // handle incoming commands from server
 client = Client(function(cmd, data) {
     msg = JSON.stringify(data);
@@ -74,35 +85,25 @@ insert = function(pid, new_pid, before=true, raw="...") {
 
 /// env methods
 
-checkEnv = function(text){
-    var text = text.trim();
+checkEnv = function(para){
+    para = $(para);
+    var flags = {};
 
-    var tag = {
-        open: /^(\\begin\{)(.*?)\}/,
-        close: /(\\end\{)(.*?)\}$/,
-        heading: /^ *(#{1,6})(\*?)/
-    };
-
-    var open = false;
-    var close = false;
-    var heading = false;
-
-    var match_open = text.match(tag.open);
-    if (match_open) {
-        open = match_open[2];
+    flags.open = false;
+    var open = para.find('.env_b');
+    if(open.length){
+        envspan = open[0]
+        envcls = $(envspan).attr("class").match(/(^|\s)env__\S+/g);
+        if(envcls){
+            env = envcls[0].substr(6);
+            flags.open = env;
+        }
     }
-
-    var match_close = text.match(tag.close);
-    if (match_close) {
-        close = match_close[2];
-    }
-
-    var match_heading = text.match(tag.heading);
-    if (match_heading) {
-        heading = true;
-    }
-
-    return {'open': open, 'close': close, 'heading': heading}
+    
+  
+    flags.close = para.find('.env_e').length !== 0;
+    flags.heading = para.find('.heading').length !== 0;
+    return flags
 };
 
 // creates classes for environs
@@ -116,28 +117,46 @@ envClasses = function() {
     var env_paras = [];
 
     $('.para').each(function() {
-        var para = $(this)
-        var raw = para.data('raw');
-        var flags = checkEnv(raw);
+        var flags = checkEnv(this);
         if (flags.open && !current_open_env) { // cannot open an env if one is already open
             current_open_env = flags.open;
+            $(this).addClass('env_b');
         }
         if (flags.heading) { // sections or headings break envs
-            env_paras.forEach(para => para.addClass('env_err'));
+            env_paras.forEach(para => para.addClass('env__err'));
             current_open_env = false;
             env_paras = [];
         }
         if (current_open_env) {
-            env_paras.push(para);
+            env_paras.push($(this));
         }
-        if (flags.close && (current_open_env == flags.close)) { // closing tag = current open tag
-            env_paras.forEach(para => para.addClass('env_'+current_open_env));
+        if (flags.close) { // closing tag = current open tag
+            env_paras.forEach(para => para.addClass('env__'+current_open_env));
+            $(this).addClass('env_e');
             current_open_env = false;
             env_paras = [];
         }
     });
 
-    env_paras.forEach(para => para.addClass('env_err')); // add error for open envs left at the end
+    env_paras.forEach(para => para.addClass('env__err')); // add error for open envs left at the end
+};
+
+// env text
+
+envFormat = function(){
+    $('.env_prepend').remove();
+    $('.para.env_b').each(function() {
+        envcls = $(this).attr("class").match(/(^|\s)env__\S+/g);
+        if(envcls){
+            var env = envcls[0].substr(6);
+            if (env_format[env]){
+                var fmt = env_format[env];
+                $(this).children('.p_text').prepend(`<span class="env_prepend">${fmt.b} </span>`);
+            } else {
+                $(this).children('.p_text').prepend(`<span class="env_prepend"> ${env_format.undefined.b} </span>`);
+            }
+        };
+    });
 };
 
 /// UI editing

@@ -18,7 +18,7 @@ var block = {
   heading: /^ *(#{1,6})(\*?) *(?:refid)? *([^\n]+?) *#* *(?:\n+|$)/,
   nptable: noop,
   lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
-  blockquote: /^( *>[^\n]+(\n(?!def)[^\n]+)*\n*)+/,
+  blockquote: /^( q*>[^\n]+(\n(?!def)[^\n]+)*\n*)+/, //added q
   list: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
   html: /^ *(?:comment *(?:\n|\s*$)|closed *(?:\n{2,}|\s*$)|closing *(?:\n{2,}|\s*$))/,
   def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/,
@@ -29,7 +29,9 @@ var block = {
   title: /^#! *([^\n]*)(?:\n+|$)/,
   image: /^!\[(inside)\]\(href\)(?:\n+|$)/,
   biblio: /^@@ *(?:refid) *\n?((?:[^\n]+\n?)*)(?:\n+|$)/,
-  figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n?)*)(?:\n+|$)/
+  figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n?)*)(?:\n+|$)/,
+  benv: /\>\>(\!)?([\w-]+)(\*)?(?:refid)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
+  eenv: /((?:[^\n]+\n?)*)\<\<$/
 };
 
 block._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
@@ -46,6 +48,10 @@ block.heading = replace(block.heading)
   ();
 
 block.biblio = replace(block.biblio)
+  ('refid', block._refid)
+  ();
+
+block.benv = replace(block.benv)
   ('refid', block._refid)
   ();
 
@@ -284,6 +290,29 @@ Lexer.prototype.token = function(src, top, bq) {
         number: cap[2].length == 0,
         refid: cap[3],
         text: cap[4]
+      });
+      continue;
+    }
+
+    // benv
+    if (cap = this.rules.benv.exec(src)) {
+      src = src.substring(cap[0].length);
+      this.tokens.push({
+        type: 'benv',
+        end: cap[1] || 0,
+        env: cap[2],
+        number: cap[3] || 0,
+        refid: cap[4] || "",
+        text: cap[5]
+      });
+      continue;
+    }
+
+    if (cap = this.rules.eenv.exec(src)) {
+      src = src.substring(cap[0].length);
+      this.tokens.push({
+        type: 'eenv',
+        text: cap[1]
       });
       continue;
     }
@@ -547,9 +576,7 @@ var inline = {
   text: /^[\s\S]+?(?=[\\<!\[_*`\$\^@]| {2,}\n|$)/,
   math: /^\$((?:\\\$|[\s\S])+?)\$/,
   ref: /^@\[([\w-]+?)\]/,
-  footnote: /^\^\[(inside)\]/,
-  benv: /^\\begin\{(.*?)\}(\*?)*(?:refid)?/,
-  eenv: /^(\\end\{)(.*?)\}/,
+  footnote: /^\^\[(inside)\]/
 };
 
 inline._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
@@ -571,9 +598,6 @@ inline.footnote = replace(inline.footnote)
   ('inside', inline._inside)
   ();
 
-inline.benv = replace(inline.benv)
-  ('refid', inline._refid)
-  ();
 
 /**
  * Normal Inline Grammar
@@ -684,25 +708,6 @@ InlineLexer.prototype.output = function(src) {
       src = src.substring(cap[0].length);
       tex = cap[1];
       out += this.renderer.math(tex);
-      continue;
-    }
-
-    // benv
-    if (cap = this.rules.benv.exec(src)) {
-      console.log(cap)
-      src = src.substring(cap[0].length);
-      type = cap[1];
-      env_id = ""
-      nonumber = cap[2];
-        env_id = cap[3] || "";
-      out += this.renderer.benv(type, env_id, nonumber);
-      continue;
-    }
-
-    if (cap = this.rules.eenv.exec(src)) {
-      src = src.substring(cap[0].length);
-      type = cap[2];
-      out += this.renderer.eenv(type);
       continue;
     }
 
@@ -1062,18 +1067,20 @@ Renderer.prototype.math = function(tex) {
   return out;
 };
 
+
 // benv
-Renderer.prototype.benv = function(type, env_id, nonumber) {
+Renderer.prototype.benv = function(env, refid, number, text, end) {
+  var num = !number ? 'number' : '';
+  var e = !end ? 'env_e' : '';
   var out = '<span class="'
-  if (nonumber){
-    out+= 'nonumber '
-  }
-  out+='env_b_'+type+'" id='+env_id+'></span>';
+  out+= num + e
+  out+='env_b env__'+env+'" id='+refid+'>'+'text'+'</span>';
   return out;
 };
 
-Renderer.prototype.eenv = function(type) {
-  var out = '<span class="env_e_'+type+'"></span>';
+
+Renderer.prototype.eenv = function(text) {
+  var out = '<span class="env_e">'+type+'</span>';
   return out;
 };
 
@@ -1169,6 +1176,13 @@ DivRenderer.prototype.heading = function(text, level, refid, number) {
   return `<div ${rid} class="${cls}">\n${text}\n</div>\n\n`;
 };
 
+// benv
+DivRenderer.prototype.benv = function(env, refid, number, text, end) {
+  var num = !number ? 'number' : '';
+  var e = end ? 'env_e' : '';
+  return `<span class="env_b env__${env} ${num} ${e}" id="${refid}">${text}</span>`;
+};
+
 DivRenderer.prototype.hr = function() {
     return this.options.xhtml ? '<hr/>\n\n' : '<hr>\n\n';
 };
@@ -1256,14 +1270,9 @@ DivRenderer.prototype.math = function(tex) {
   return `<span class="latex">${tex}</span>`;
 };
 
-// benv
-DivRenderer.prototype.benv = function(type, env_id, nonumber) {
-  var num = number ? 'number' : '';
-  return `<span class="env_b_${type} ${num}" id="${env_id}"></span>`;
-};
 
-DivRenderer.prototype.eenv = function(type) {
-  return `<span class="env_e_${type}"></span>`;
+DivRenderer.prototype.eenv = function(text) {
+  return `<span class="env_e">${text}</span>`;
 };
 
 DivRenderer.prototype.equation = function(id, tex) {
@@ -1578,6 +1587,20 @@ Parser.prototype.tok = function() {
         this.token.number
       );
     }
+    case 'benv': {
+      return this.renderer.benv(
+        this.token.env,
+        this.token.refid,
+        this.token.number,
+        this.inline.output(this.token.text),
+        this.token.end,
+      );
+    }
+    case 'eenv': {
+      return this.renderer.eenv(
+        this.inline.output(this.token.text),
+      );
+    }
     case 'code': {
       return this.renderer.code(this.token.text,
         this.token.lang,
@@ -1879,7 +1902,7 @@ marked.defaults = {
   langPrefix: 'lang-',
   smartypants: false,
   headerPrefix: '',
-  renderer: new Renderer,
+  renderer: new DivRenderer,
   xhtml: false,
   deps: false,
   flatten: false
