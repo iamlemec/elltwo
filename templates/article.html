@@ -1,8 +1,8 @@
 {% extends "axiom.html" %}
 
 {% block head %}
-  {{ super() }}
-  <!-- <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='styles/article.css') }} /> -->
+   {{ super() }}
+   <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
    <script src={{ url_for('static', filename='js/marked3.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='js/socket.io.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
@@ -18,11 +18,7 @@
       <div id=para_holder>
 
         {% for p in paras %}
-            <div class="para" pid="{{p.pid}}" data-raw="{{p.text}}">
-<!--                 <div class='p_text'></div>
-                <textarea class='p_input'></textarea>
-                <div class='update'>Update</div> -->
-            </div>
+            <div class="para" pid="{{p.pid}}" data-raw="{{p.text}}"></div>
         {% endfor%}
 
       </div>

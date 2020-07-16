@@ -27,6 +27,7 @@ function disconnect() {
 }
 
 function sendCommand(cmd, cont="", ack=function(){}) {
+    console.log('sending', cmd, cont);
     var data = {"cmd": cmd, "data": cont};
     socket.emit("json", data, ack);
 }

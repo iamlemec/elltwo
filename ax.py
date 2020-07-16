@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect, url_for, render_template, jsonify, make_response
-from flask_socketio import SocketIO, send, emit 
+from flask_socketio import SocketIO, send, emit
 #app = Flask(__name__)
 
 import os, re, datetime, time, json
@@ -100,6 +100,7 @@ def socket_json(json):
         send_command('deletePara', [data['pid']])
     elif cmd == 'insert_after':
         text = data.get('text', '')
+        print(data)
         par1 = dbq.insert_after(data['pid'], text)
         send_command('insert', [data['pid'], par1.pid, False, text])
     elif cmd == 'insert_before':
@@ -114,4 +115,4 @@ def socket_json(json):
 
 if __name__ == '__main__':
     app.debug = True
-    socketio.run(app, host='0.0.0.0', port=5000)    
+    socketio.run(app, host='0.0.0.0', port=5000)

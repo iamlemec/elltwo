@@ -19,7 +19,7 @@ client = Client(function(cmd, data) {
     } else if (cmd == 'deletePara') {
         deletePara(...data);
     } else if (cmd == 'insert') {
-        insert(...data);
+        insertPara(...data);
     } else if (cmd == 'status') {
         console.log('status: ', data);
     } else {
@@ -30,17 +30,22 @@ client = Client(function(cmd, data) {
 /// init commands
 
 // inner HTML for para structure. Included here for updating paras
-inner_para = `<div class='p_text'></div>
-              <textarea class='p_input'></textarea>
-              <div class='update'>Update</div>`;
+inner_para = `<div class="p_text"></div>
+              <textarea class="p_input"></textarea>
+              <div class="control">
+              <button class="update">Update</button>
+              <button class="before">Before</button>
+              <button class="after">After</button>
+              <button class="delete">Delete</button>
+              </div>`;
 
 getPara = function(pid) {
     return $(`[pid=${pid}]`);
 };
 
 // get raw text from data-raw attribute, parse, render
-dataToText = function(para, raw="") {
-    if (!raw) {
+dataToText = function(para, raw) {
+    if (raw == undefined) {
         raw = para.data('raw');
     }
     var html_text = markthree(raw);
@@ -48,13 +53,18 @@ dataToText = function(para, raw="") {
 };
 
 $(document).ready(function() {
-    var url = "http://" + document.domain + ':' + location.port;
+    var url = `http://${document.domain}:${location.port}`;
     client.connect(url);
     $('.para').each(function() {
         var para = $(this);
         para.html(inner_para);
         dataToText(para);
+        rawToTextArea(para);
     });
+
+    // goofy debugging
+    $('#head').append('<button id="env_update" style="margin-left: 10px;">Environ</button>');
+    $('#env_update').click(envClasses);
 });
 
 /// editing commands for paras (triggered by incoming socket commands)
@@ -71,9 +81,9 @@ deletePara = function(pid) {
     para.remove();
 };
 
-insert = function(pid, new_pid, before=true, raw="...") {
+insertPara = function(pid, new_pid, before=true, raw="...") {
     var para = getPara(pid);
-    var new_para = `<div class="para" pid="${new_pid}" data-raw="${raw}"></div>`;
+    var new_para = $(`<div class="para" pid="${new_pid}" data-raw="${raw}"></div>`);
     if (before) {
         para.before(new_para);
     } else {
@@ -81,6 +91,7 @@ insert = function(pid, new_pid, before=true, raw="...") {
     }
     new_para.html(inner_para);
     dataToText(new_para, raw);
+    rawToTextArea(new_para);
 };
 
 /// env methods
@@ -99,8 +110,8 @@ checkEnv = function(para){
             flags.open = env;
         }
     }
-    
-  
+
+
     flags.close = para.find('.env_e').length !== 0;
     flags.heading = para.find('.heading').length !== 0;
     return flags
@@ -161,24 +172,38 @@ envFormat = function(){
 
 /// UI editing
 
-rawToTextArea = function(pid) {
-    var para = getPara(pid);
+rawToTextArea = function(para) {
     var textArea = para.children('.p_input');
     textArea.val(para.data('raw'));
 };
 
-updateFromTextArea = function(pid) {
-    var para = getPara(pid);
+updateFromTextArea = function(para) {
     var raw = para.children('.p_input').val();
+    var pid = para.attr('pid');
     client.sendCommand('update_para', {'pid': pid, 'text': raw});
 };
 
 $(document).on('click', '.p_text', function() {
-    var pid = $(this).parent().attr("pid");
-    rawToTextArea(pid);
+    var para = $(this).parent();
+    rawToTextArea(para);
 });
 
 $(document).on('click', '.update', function() {
-    var pid = $(this).parent().attr("pid");
-    updateFromTextArea(pid);
+    var para = $(this).parent().parent();
+    updateFromTextArea(para);
+});
+
+$(document).on('click', '.before', function() {
+    var pid = $(this).parent().parent().attr('pid');
+    client.sendCommand('insert_before', {'pid': pid});
+});
+
+$(document).on('click', '.after', function() {
+    var pid = $(this).parent().parent().attr('pid');
+    client.sendCommand('insert_after', {'pid': pid});
+});
+
+$(document).on('click', '.delete', function() {
+    var pid = $(this).parent().parent().attr('pid');
+    client.sendCommand('delete_para', {'pid': pid});
 });
