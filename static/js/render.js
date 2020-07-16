@@ -152,6 +152,25 @@ envClasses = function() {
     env_paras.forEach(para => para.addClass('env_err')); // add error for open envs left at the end
 };
 
+// env text
+
+envFormat = function() {
+    $('.env_prepend').remove();
+    $('.para.env_b').each(function() {
+        envcls = $(this).attr("class").match(/(^|\s)env__\S+/g);
+        if(envcls) {
+            var env = envcls[0].substr(6);
+            if (env_format[env]) {
+                var fmt = env_format[env];
+                $(this).children('.p_text').prepend(`<span class="env_prepend">${fmt.b} </span>`);
+            } else {
+                $(this).children('.p_text').prepend(`<span class="env_prepend"> ${env_format.undefined.b} </span>`);
+            }
+        };
+    });
+    env_paras.forEach(para => para.addClass('env_err')); // add error for open envs left at the end
+};
+
 /// UI editing
 
 rawToTextArea = function(para) {

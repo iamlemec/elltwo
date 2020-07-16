@@ -42,3 +42,7 @@
 div.env__proof.env_end > .p_text:after {
     content: "□";
 }
+
+div.env__thm.env_beg > .p_text {
+    font-weight: bold;
+}
