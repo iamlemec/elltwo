@@ -157,7 +157,7 @@ envClasses = function() {
 envFormat = function() {
     $('.env_prepend').remove();
     $('.para.env_b').each(function() {
-        envcls = $(this).attr("class").match(/(^|\s)env__\S+/g);
+        envcls = $(this).attr("class").match(/(^|\s)env_\S+/g);
         if(envcls) {
             var env = envcls[0].substr(6);
             if (env_format[env]) {
