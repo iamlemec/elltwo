@@ -39,6 +39,6 @@
     font-weight: bold;
 }
 
-div.env__proof.env_e > .p_text:after {
+div.env__proof.env_end > .p_text:after {
     content: "□";
 }

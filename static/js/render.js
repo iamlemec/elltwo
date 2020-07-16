@@ -101,7 +101,7 @@ checkEnv = function(para){
     var flags = {};
 
     flags.open = false;
-    var open = para.find('.env_b');
+    var open = para.find('.env_beg');
     if(open.length){
         envspan = open[0]
         envcls = $(envspan).attr("class").match(/(^|\s)env__\S+/g);
@@ -112,7 +112,7 @@ checkEnv = function(para){
     }
 
 
-    flags.close = para.find('.env_e').length !== 0;
+    flags.close = para.find('.env_end').length !== 0;
     flags.heading = para.find('.heading').length !== 0;
     return flags
 };
@@ -121,7 +121,7 @@ checkEnv = function(para){
 envClasses = function() {
     // remove old section classes
     $(".para").removeClass(function(index, css) {
-        return (css.match(/(^|\s)env_\S+/g) || []).join(' ');
+        return (css.match(/(^|\s)env__\S+/g) || []).join(' ');
     });
 
     var current_open_env = false;
@@ -131,10 +131,10 @@ envClasses = function() {
         var flags = checkEnv(this);
         if (flags.open && !current_open_env) { // cannot open an env if one is already open
             current_open_env = flags.open;
-            $(this).addClass('env_b');
+            $(this).addClass('env_beg');
         }
         if (flags.heading) { // sections or headings break envs
-            env_paras.forEach(para => para.addClass('env__err'));
+            env_paras.forEach(para => para.addClass('env_err'));
             current_open_env = false;
             env_paras = [];
         }
@@ -143,31 +143,13 @@ envClasses = function() {
         }
         if (flags.close) { // closing tag = current open tag
             env_paras.forEach(para => para.addClass('env__'+current_open_env));
-            $(this).addClass('env_e');
+            $(this).addClass('env_end');
             current_open_env = false;
             env_paras = [];
         }
     });
 
-    env_paras.forEach(para => para.addClass('env__err')); // add error for open envs left at the end
-};
-
-// env text
-
-envFormat = function(){
-    $('.env_prepend').remove();
-    $('.para.env_b').each(function() {
-        envcls = $(this).attr("class").match(/(^|\s)env__\S+/g);
-        if(envcls){
-            var env = envcls[0].substr(6);
-            if (env_format[env]){
-                var fmt = env_format[env];
-                $(this).children('.p_text').prepend(`<span class="env_prepend">${fmt.b} </span>`);
-            } else {
-                $(this).children('.p_text').prepend(`<span class="env_prepend"> ${env_format.undefined.b} </span>`);
-            }
-        };
-    });
+    env_paras.forEach(para => para.addClass('env_err')); // add error for open envs left at the end
 };
 
 /// UI editing
