@@ -1,13 +1,5 @@
 
-// move this to backend when we have user genereted envs
-
-env_format = {
-    'thm': {'b': 'Theorem', 'e':""},
-    'proof': {'b': 'Proof', 'e':"QED"},
-    'err': {'b': 'ERR: env not closed. ', 'e':""},
-    'undefined': {'b': 'ERR: env undefined. ', 'e':""}
-}
-
+//// SERVER INTERACTION ////
 
 // handle incoming commands from server
 client = Client(function(cmd, data) {
@@ -27,7 +19,7 @@ client = Client(function(cmd, data) {
     }
 });
 
-/// init commands
+/// init commands ///
 
 // inner HTML for para structure. Included here for updating paras
 inner_para = `<div class="p_text"></div>
@@ -43,14 +35,6 @@ getPara = function(pid) {
     return $(`[pid=${pid}]`);
 };
 
-// get raw text from data-raw attribute, parse, render
-dataToText = function(para, raw) {
-    if (raw == undefined) {
-        raw = para.data('raw');
-    }
-    var html_text = markthree(raw);
-    para.children('.p_text').html(html_text);
-};
 
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
@@ -67,8 +51,32 @@ $(document).ready(function() {
     $('#env_update').click(envClasses);
 });
 
+/////////////////// EDITING /////////
+
 /// editing commands for paras (triggered by incoming socket commands)
 /// local changes only --> to reflect server changes without full reload
+
+// get raw text from data-raw attribute, parse, render
+dataToText = function(para, raw) {
+    if (raw == undefined) {
+        raw = para.data('raw');
+    }
+    var html_text = markthree(raw);
+    para.children('.p_text').html(html_text);
+};
+
+rawToTextArea = function(para) {
+    var textArea = para.children('.p_input');
+    textArea.val(para.data('raw'));
+};
+
+updateFromTextArea = function(para) {
+    var raw = para.children('.p_input').val();
+    var pid = para.attr('pid');
+    client.sendCommand('update_para', {'pid': pid, 'text': raw});
+};
+
+/// Severer Command Editing
 
 updatePara = function(pid, raw) {
     var para = getPara(pid);
@@ -94,95 +102,8 @@ insertPara = function(pid, new_pid, before=true, raw="...") {
     rawToTextArea(new_para);
 };
 
-/// env methods
-
-checkEnv = function(para){
-    para = $(para);
-    var flags = {};
-
-    flags.open = false;
-    var open = para.find('.env_beg');
-    if(open.length){
-        envspan = open[0]
-        envcls = $(envspan).attr("class").match(/(^|\s)env__\S+/g);
-        if(envcls){
-            env = envcls[0].substr(6);
-            flags.open = env;
-        }
-    }
-
-
-    flags.close = para.find('.env_end').length !== 0;
-    flags.heading = para.find('.heading').length !== 0;
-    return flags
-};
-
-// creates classes for environs
-envClasses = function() {
-    // remove old section classes
-    $(".para").removeClass(function(index, css) {
-        return (css.match(/(^|\s)env__\S+/g) || []).join(' ');
-    });
-
-    var current_open_env = false;
-    var env_paras = [];
-
-    $('.para').each(function() {
-        var flags = checkEnv(this);
-        if (flags.open && !current_open_env) { // cannot open an env if one is already open
-            current_open_env = flags.open;
-            $(this).addClass('env_beg');
-        }
-        if (flags.heading) { // sections or headings break envs
-            env_paras.forEach(para => para.addClass('env_err'));
-            current_open_env = false;
-            env_paras = [];
-        }
-        if (current_open_env) {
-            env_paras.push($(this));
-        }
-        if (flags.close) { // closing tag = current open tag
-            env_paras.forEach(para => para.addClass('env__'+current_open_env));
-            $(this).addClass('env_end');
-            current_open_env = false;
-            env_paras = [];
-        }
-    });
-
-    env_paras.forEach(para => para.addClass('env_err')); // add error for open envs left at the end
-};
-
-// env text
-
-envFormat = function() {
-    $('.env_prepend').remove();
-    $('.para.env_b').each(function() {
-        envcls = $(this).attr("class").match(/(^|\s)env_\S+/g);
-        if(envcls) {
-            var env = envcls[0].substr(6);
-            if (env_format[env]) {
-                var fmt = env_format[env];
-                $(this).children('.p_text').prepend(`<span class="env_prepend">${fmt.b} </span>`);
-            } else {
-                $(this).children('.p_text').prepend(`<span class="env_prepend"> ${env_format.undefined.b} </span>`);
-            }
-        };
-    });
-    env_paras.forEach(para => para.addClass('env_err')); // add error for open envs left at the end
-};
-
 /// UI editing
 
-rawToTextArea = function(para) {
-    var textArea = para.children('.p_input');
-    textArea.val(para.data('raw'));
-};
-
-updateFromTextArea = function(para) {
-    var raw = para.children('.p_input').val();
-    var pid = para.attr('pid');
-    client.sendCommand('update_para', {'pid': pid, 'text': raw});
-};
 
 $(document).on('click', '.p_text', function() {
     var para = $(this).parent();
@@ -208,3 +129,120 @@ $(document).on('click', '.delete', function() {
     var pid = $(this).parent().parent().attr('pid');
     client.sendCommand('delete_para', {'pid': pid});
 });
+
+/////////////////// ENVS /////////
+
+
+// env formating
+// move this to backend when we have user genereted envs
+
+
+checkEnv = function(para){
+    para = $(para);
+    var flags = {};
+
+    flags.open = false;
+    var open = para.find('.env_beg');
+    if(open.length){
+        envspan = open[0]
+        envcls = $(envspan).attr("class").match(/(^|\s)env__\S+/g);
+        if(envcls){
+            env = envcls[0].substr(6);
+            args = $(envspan).data('args');
+            flags.args = args;
+            flags.open = env;
+        }
+    }
+
+
+    flags.close = para.find('.env_end').length !== 0;
+    flags.heading = para.find('.heading').length !== 0;
+    return flags
+};
+
+// creates classes for environs
+envClasses = function() {
+    // remove old section classes
+    $(".para").removeClass(function(index, css) {
+        //should remove all tags, inc env_beg, env_end, env_err
+        return (css.match(/(^|\s)env_\S+/g) || []).join(' ');
+    });
+
+    var current_open_env = false;
+    var env_paras = [];
+
+    $('.para').each(function() {
+        var flags = checkEnv(this);
+        if (flags.open && !current_open_env) { // cannot open an env if one is already open
+            current_open_env = flags.open;
+            $(this).addClass('env_beg').data('args',flags.args);
+        }
+        if (flags.heading) { // sections or headings break envs
+            env_paras.forEach(para => para.addClass('env_err'));
+            current_open_env = false;
+            env_paras = [];
+        }
+        if (current_open_env) {
+            env_paras.push($(this));
+        }
+        if (flags.close) { // closing tag = current open tag
+            env_paras.forEach(para => para.addClass('env__'+current_open_env));
+            $(this).addClass('env_end');
+            current_open_env = false;
+            env_paras = [];
+        }
+    });
+
+    env_paras.forEach(para => para.addClass('env_err')); // add error for open envs left at the end
+    envFormat(); //format classed envs
+};
+
+// env text
+
+envFormat = function() {
+    $('.para.env_beg').each(function() {
+        envcls = $(this).attr("class").match(/(^|\s)env__\S+/g);
+        if(envcls) {
+            var env = envcls[0].substr(6);
+            if (env_format[env]['f']) {
+                var fmt = env_format[env];
+                fmt.f($(this), env, $(this).data('args'), fmt.head, fmt.tail);
+            } else {
+                env_format.err.f($(this), 'und', env);
+            }
+        };
+        if($(this).hasClass('env_err')){
+            env_format.err.f($(this), 'open');
+        };
+        });
+};
+
+
+//// ENV formatting
+
+theorem = function(para, env, args, head, tail) {
+    para.find('.env_prepend').remove();
+    var num = args['number'] || "";
+    if (num){
+        num = `<span class="num_${env}"></span>`
+    }
+    prepend = `<span class="env_prepend">${head}${num}.</span> `;
+    para.children('.p_text').prepend(prepend);   
+}
+
+errEnv = function(para, err, env="") {
+    para.find('.env_prepend').remove();
+    if(err='und'){
+        prepend = `<span class="env_prepend">Err: envrionment ${env} is not defined.</span> `;
+    };
+    if(err='open'){
+        prepend = `<span class="env_prepend">Err: envrionment not closed.</span> `;
+    }
+    para.children('.p_text').prepend(prepend);   
+}
+
+env_format = {
+    't': {'head': 'Theorem', 'f': theorem, 'tail':""},
+    'x': {'head': 'Example', 'f': theorem, 'tail':"QED"},
+    'err': {'f': errEnv}
+}

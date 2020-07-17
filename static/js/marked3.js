@@ -298,14 +298,15 @@ Lexer.prototype.token = function(src, top, bq) {
     if (cap = this.rules.envbeg.exec(src)) {
       src = src.substring(cap[0].length);
       var args = {};
-      argsraw = cap[4].split('|')
-      argsraw.filter(arg => arg.split('=')[1])
+      argsraw = cap[4] || "";
+      argsraw.split('|').filter(arg => arg.split('=')[1])
              .forEach(arg => args[arg.split('=')[0]] = arg.split('=')[1]);
-      if ((Object.keys(args).length==0)&&(argsraw.length == 1)){
-          args['id'] = argsraw[0];
+      if ((Object.keys(args).length==0)&&(argsraw)){
+          args['id'] = argsraw;
       };
       if (!('number' in args)){
-        args['number'] = cap[3] || 0
+        nonum = cap[3] || "";
+        args['number'] = nonum.length == 0;
       };
       this.tokens.push({
         type: 'envbeg',
