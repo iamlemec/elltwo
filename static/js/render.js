@@ -1,4 +1,3 @@
-
 //// SERVER INTERACTION ////
 
 // handle incoming commands from server
@@ -104,7 +103,6 @@ insertPara = function(pid, new_pid, before=true, raw="...") {
 
 /// UI editing
 
-
 $(document).on('click', '.p_text', function() {
     var para = $(this).parent();
     rawToTextArea(para);
@@ -132,32 +130,34 @@ $(document).on('click', '.delete', function() {
 
 /////////////////// ENVS /////////
 
-
 // env formating
 // move this to backend when we have user genereted envs
 
+getEnvClass = function(span) {
+    var envcls = span.attr('class').match(/(?:^|\s)env__(\S+)/);
+    if (envcls == null) {
+        return null;
+    } else {
+        return envcls[1];
+    }
+}
 
-checkEnv = function(para){
-    para = $(para);
-    var flags = {};
+checkEnv = function (para) {
+    var flags = {open: false};
 
-    flags.open = false;
-    var open = para.find('.env_beg');
-    if(open.length){
-        envspan = open[0]
-        envcls = $(envspan).attr("class").match(/(^|\s)env__\S+/g);
-        if(envcls){
-            env = envcls[0].substr(6);
-            args = $(envspan).data('args');
-            flags.args = args;
+    var envspan = para.find('.env_beg').first();
+    if (envspan.length !== 0) {
+        var env = getEnvClass(envspan);
+        if (env != null) {
             flags.open = env;
+            flags.args = envspan.data('args');
         }
     }
 
-
     flags.close = para.find('.env_end').length !== 0;
     flags.heading = para.find('.heading').length !== 0;
-    return flags
+
+    return flags;
 };
 
 // creates classes for environs
@@ -172,77 +172,95 @@ envClasses = function() {
     var env_paras = [];
 
     $('.para').each(function() {
-        var flags = checkEnv(this);
+        var para = $(this);
+        var flags = checkEnv(para);
         if (flags.open && !current_open_env) { // cannot open an env if one is already open
             current_open_env = flags.open;
-            $(this).addClass('env_beg').data('args',flags.args);
+            para.addClass('env_beg').data('args', flags.args);
         }
         if (flags.heading) { // sections or headings break envs
-            env_paras.forEach(para => para.addClass('env_err'));
+            $(env_paras).addClass('env_err');
             current_open_env = false;
             env_paras = [];
         }
         if (current_open_env) {
-            env_paras.push($(this));
+            env_paras.push(para[0]);
         }
         if (flags.close) { // closing tag = current open tag
-            env_paras.forEach(para => para.addClass('env__'+current_open_env));
-            $(this).addClass('env_end');
+            $(env_paras).addClass(`env__${current_open_env}`);
+            para.addClass('env_end');
             current_open_env = false;
             env_paras = [];
         }
     });
 
-    env_paras.forEach(para => para.addClass('env_err')); // add error for open envs left at the end
-    envFormat(); //format classed envs
+    $(env_paras).addClass('env_err'); // add error for open envs left at the end
+    envFormat(); // format classed envs
 };
 
 // env text
 
 envFormat = function() {
     $('.para.env_beg').each(function() {
-        envcls = $(this).attr("class").match(/(^|\s)env__\S+/g);
-        if(envcls) {
-            var env = envcls[0].substr(6);
-            if (env_format[env]['f']) {
-                var fmt = env_format[env];
-                fmt.f($(this), env, $(this).data('args'), fmt.head, fmt.tail);
+        var para = $(this);
+        var env = getEnvClass(para);
+        if (env != null) {
+            if (env in env_spec) {
+                env_spec[env](para, para.data('args'));
             } else {
-                env_format.err.f($(this), 'und', env);
+                var args = {code: 'undef', env: env};
+                env_spec.error(para, args);
             }
-        };
-        if($(this).hasClass('env_err')){
-            env_format.err.f($(this), 'open');
-        };
-        });
+        } else if (para.hasClass('env_err')) {
+            var args = {code: 'open'};
+            env_spec.error(para, args);
+        }
+    });
 };
-
 
 //// ENV formatting
 
-theorem = function(para, env, args, head, tail) {
+simpleEnv = function(para, env, num=false, head='', tail='') {
     para.find('.env_prepend').remove();
-    var num = args['number'] || "";
-    if (num){
-        num = `<span class="num_${env}"></span>`
+    if (num) {
+        num = `<span class="num_${env}"></span>`;
     }
     prepend = `<span class="env_prepend">${head}${num}.</span> `;
-    para.children('.p_text').prepend(prepend);   
+    para.children('.p_text').prepend(prepend);
 }
 
-errEnv = function(para, err, env="") {
+numberEnv = function(para, env, args, head='', tail='') {
+    var num = args.number || '';
+    return simpleEnv(para, env, num, head, tail);
+}
+
+errorEnv = function(para, args) {
     para.find('.env_prepend').remove();
-    if(err='und'){
-        prepend = `<span class="env_prepend">Err: envrionment ${env} is not defined.</span> `;
+    if (args.code == 'und') {
+        prepend = `<span class="env_prepend">Err: envrionment ${args.env} is not defined.</span> `;
     };
-    if(err='open'){
+    if (args.code == 'open') {
+        // could pass through which environ not closed here
         prepend = `<span class="env_prepend">Err: envrionment not closed.</span> `;
     }
-    para.children('.p_text').prepend(prepend);   
+    para.children('.p_text').prepend(prepend);
 }
 
-env_format = {
-    't': {'head': 'Theorem', 'f': theorem, 'tail':""},
-    'x': {'head': 'Example', 'f': theorem, 'tail':"QED"},
-    'err': {'f': errEnv}
+theoremEnv = function(para, args) {
+    return numberEnv(para, 'theorem', args, 'Theorem', '');
+}
+
+proofEnv = function(para, args) {
+    return numberEnv(para, 'proof', args, 'Proof', 'QED');
+}
+
+exampleEnv = function(para, args) {
+    return numberEnv(para, 'example', args, 'Example', '');
+}
+
+env_spec = {
+    'theorem': theoremEnv,
+    'proof': proofEnv,
+    'example': exampleEnv,
+    'error': errorEnv
 }

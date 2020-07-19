@@ -1192,14 +1192,14 @@ DivRenderer.prototype.heading = function(text, level, refid, number) {
 //   return `<span class="env_beg env__${env} ${num} ${e}" id="${refid}">${text}</span>`;
 // };
 DivRenderer.prototype.envbeg = function(env, text, end, args) {
-  refid = args['id'] || '';
-  var e = end ? 'env_end' : '';
-  json_args = JSON.stringify(args)
-  return `<span class="env_beg env__${env} ${e}" id="${refid}" data-args=${json_args}>${text}</span>`;
+  var refid = args['id'] || '';
+  var etxt = end ? 'env_end' : '';
+  var json_args = JSON.stringify(args);
+  return `<span class="env_beg env__${env} ${etxt}" id="${refid}" data-args=${json_args}>${text}</span>`;
 };
 
 DivRenderer.prototype.hr = function() {
-    return this.options.xhtml ? '<hr/>\n\n' : '<hr>\n\n';
+  return this.options.xhtml ? '<hr/>\n\n' : '<hr>\n\n';
 };
 
 DivRenderer.prototype.list = function(body, ordered) {
