@@ -310,7 +310,7 @@ Lexer.prototype.token = function(src, top, bq) {
       };
       this.tokens.push({
         type: 'envbeg',
-        end: cap[1] || 0,
+        end: cap[1] || false,
         env: cap[2],
         text: cap[5],
         args: args
@@ -1185,17 +1185,13 @@ DivRenderer.prototype.heading = function(text, level, refid, number) {
   return `<div ${rid} class="${cls}">\n${text}\n</div>\n\n`;
 };
 
-// envben
-// DivRenderer.prototype.envbeg = function(env, refid, number, text, end) {
-//   var num = !number ? 'number' : '';
-//   var e = end ? 'env_end' : '';
-//   return `<span class="env_beg env__${env} ${num} ${e}" id="${refid}">${text}</span>`;
-// };
-DivRenderer.prototype.envbeg = function(env, text, end, args) {
-  var refid = args['id'] || '';
-  var etxt = end ? 'env_end' : '';
-  var json_args = JSON.stringify(args);
-  return `<span class="env_beg env__${env} ${etxt}" id="${refid}" data-args=${json_args}>${text}</span>`;
+DivRenderer.prototype.envbeg = function(env, end, text) {
+  var etxt = end ? '<span class="env_footer"></span>' : '';
+  return `<span class="env_header"></span> ${text} ${etxt}`;
+};
+
+DivRenderer.prototype.envend = function(text) {
+  return `${text} <span class="env_footer"></span>`;
 };
 
 DivRenderer.prototype.hr = function() {
@@ -1283,11 +1279,6 @@ DivRenderer.prototype.text = function(text) {
 
 DivRenderer.prototype.math = function(tex) {
   return `<span class="latex">${tex}</span>`;
-};
-
-
-DivRenderer.prototype.envend = function(text) {
-  return `<span class="env_end">${text}</span>`;
 };
 
 DivRenderer.prototype.equation = function(id, tex) {
@@ -1535,15 +1526,15 @@ Parser.parse = function(src, options, renderer) {
 Parser.prototype.parse = function(src) {
   this.inline = new InlineLexer(src.links, this.options, this.renderer);
   this.tokens = src.reverse();
-  this.deps = [];
+  this.env = null;
 
   var out = '';
   while (this.next()) {
     out += this.tok();
   }
 
-  if (this.options.deps) {
-    return {'out': out, 'deps': this.deps};
+  if (this.options.env) {
+    return {'src': out, 'env': this.env};
   } else {
     return out;
   }
@@ -1603,14 +1594,20 @@ Parser.prototype.tok = function() {
       );
     }
     case 'envbeg': {
+      this.env = {
+        type: 'begin',
+        single: this.token.end,
+        env: this.token.env,
+        args: this.token.args
+      };
       return this.renderer.envbeg(
         this.token.env,
-        this.inline.output(this.token.text),
         this.token.end,
-        this.token.args,
+        this.inline.output(this.token.text)
       );
     }
     case 'envend': {
+      this.env = {type: 'end'};
       return this.renderer.envend(
         this.inline.output(this.token.text),
       );
@@ -1712,7 +1709,6 @@ Parser.prototype.tok = function() {
       return this.renderer.equation(this.token.id, this.token.tex);
     }
     case 'image': {
-      this.deps.push(this.token.href);
       return this.renderer.image(this.token.href, this.token.alt);
     }
     case 'figure_start': {
@@ -1918,7 +1914,7 @@ marked.defaults = {
   headerPrefix: '',
   renderer: new DivRenderer,
   xhtml: false,
-  deps: false,
+  env: true,
   flatten: false
 };
 

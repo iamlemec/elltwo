@@ -60,8 +60,25 @@ dataToText = function(para, raw) {
     if (raw == undefined) {
         raw = para.data('raw');
     }
-    var html_text = markthree(raw);
+
+    var mark_out = markthree(raw);
+    var html_text = mark_out['src'];
+    var env_info = mark_out['env'];
+
     para.children('.p_text').html(html_text);
+
+    if (env_info != null) {
+        if (env_info.type == 'begin') {
+            para.addClass('env_beg');
+            para.attr('env', env_info.env);
+            para.data('args', env_info.args);
+            if (env_info.single) {
+                para.addClass('env_end');
+            }
+        } else if (env_info.type == 'end') {
+            para.addClass('env_end');
+        }
+    }
 };
 
 rawToTextArea = function(para) {
@@ -130,90 +147,71 @@ $(document).on('click', '.delete', function() {
 
 /////////////////// ENVS /////////
 
-// env formating
 // move this to backend when we have user genereted envs
-
-getEnvClass = function(span) {
-    var envcls = span.attr('class').match(/(?:^|\s)env__(\S+)/);
-    if (envcls == null) {
-        return null;
-    } else {
-        return envcls[1];
-    }
-}
-
-checkEnv = function (para) {
-    var flags = {open: false};
-
-    var envspan = para.find('.env_beg').first();
-    if (envspan.length !== 0) {
-        var env = getEnvClass(envspan);
-        if (env != null) {
-            flags.open = env;
-            flags.args = envspan.data('args');
-        }
-    }
-
-    flags.close = para.find('.env_end').length !== 0;
-    flags.heading = para.find('.heading').length !== 0;
-
-    return flags;
-};
 
 // creates classes for environs
 envClasses = function() {
-    // remove old section classes
+    // remove old env classes
     $(".para").removeClass(function(index, css) {
-        //should remove all tags, inc env_beg, env_end, env_err
-        return (css.match(/(^|\s)env_\S+/g) || []).join(' ');
+        return (css.match(/(^|\s)env__\S+/g) || []).join(' ');
     });
 
+    // remove error markers
+    $('.para').removeClass('env_err');
+
+    // env state
     var current_open_env = false;
     var env_paras = [];
 
+    // forward env pass
     $('.para').each(function() {
         var para = $(this);
-        var flags = checkEnv(para);
-        if (flags.open && !current_open_env) { // cannot open an env if one is already open
-            current_open_env = flags.open;
-            para.addClass('env_beg').data('args', flags.args);
+        console.log(para);
+
+        if (!current_open_env && para.hasClass('env_beg')) { // cannot open an env if one is already open
+            current_open_env = para.attr('env');
+            console.log('begin', current_open_env);
         }
-        if (flags.heading) { // sections or headings break envs
+
+        if (para.hasClass('heading')) { // sections or headings break envs
             $(env_paras).addClass('env_err');
             current_open_env = false;
             env_paras = [];
         }
+
         if (current_open_env) {
             env_paras.push(para[0]);
         }
-        if (flags.close) { // closing tag = current open tag
-            $(env_paras).addClass(`env__${current_open_env}`);
-            para.addClass('env_end');
+
+        if (para.hasClass('env_end')) { // closing tag = current open tag
+            $(env_paras).addClass('env').addClass(`env__${current_open_env}`);
             current_open_env = false;
             env_paras = [];
         }
     });
 
-    $(env_paras).addClass('env_err'); // add error for open envs left at the end
-    envFormat(); // format classed envs
+    // add error for open envs left at the end
+    $(env_paras).addClass('env_err');
+
+    // format classed envs
+    envFormat();
 };
 
-// env text
-
+// dispatch environment formatters
 envFormat = function() {
-    $('.para.env_beg').each(function() {
+    $('.para').each(function() {
         var para = $(this);
-        var env = getEnvClass(para);
-        if (env != null) {
+        var env = para.attr('env');
+        if (para.hasClass('env_err')) {
+            var args = {code: 'open', env: env};
+            env_spec.error(para, args);
+        } else if (env != null) {
             if (env in env_spec) {
                 env_spec[env](para, para.data('args'));
             } else {
                 var args = {code: 'undef', env: env};
                 env_spec.error(para, args);
             }
-        } else if (para.hasClass('env_err')) {
-            var args = {code: 'open'};
-            env_spec.error(para, args);
         }
     });
 };
@@ -221,12 +219,8 @@ envFormat = function() {
 //// ENV formatting
 
 simpleEnv = function(para, env, num=false, head='', tail='') {
-    para.find('.env_prepend').remove();
-    if (num) {
-        num = `<span class="num_${env}"></span>`;
-    }
-    prepend = `<span class="env_prepend">${head}${num}.</span> `;
-    para.children('.p_text').prepend(prepend);
+    var pre = para.find('.env_header');
+    pre.html(num ? `${head} <span class="num_${env}"></span>.` : `${head}.`);
 }
 
 numberEnv = function(para, env, args, head='', tail='') {
@@ -235,15 +229,16 @@ numberEnv = function(para, env, args, head='', tail='') {
 }
 
 errorEnv = function(para, args) {
-    para.find('.env_prepend').remove();
+    var pre = para.find('.env_header');
+    var msg;
     if (args.code == 'und') {
-        prepend = `<span class="env_prepend">Err: envrionment ${args.env} is not defined.</span> `;
-    };
+        msg = `<span class="env_prepend">Err: envrionment ${args.env} is not defined.</span> `;
+    }
     if (args.code == 'open') {
         // could pass through which environ not closed here
-        prepend = `<span class="env_prepend">Err: envrionment not closed.</span> `;
+        msg = `<span class="env_prepend">Err: envrionment not closed.</span> `;
     }
-    para.children('.p_text').prepend(prepend);
+    pre.html(msg);
 }
 
 theoremEnv = function(para, args) {
@@ -251,7 +246,7 @@ theoremEnv = function(para, args) {
 }
 
 proofEnv = function(para, args) {
-    return numberEnv(para, 'proof', args, 'Proof', 'QED');
+    return simpleEnv(para, 'proof', false, 'Proof', 'QED');
 }
 
 exampleEnv = function(para, args) {
