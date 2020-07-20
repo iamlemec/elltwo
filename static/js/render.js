@@ -67,6 +67,11 @@ dataToText = function(para, raw) {
 
     para.children('.p_text').html(html_text);
 
+    //must remove old classes, to prevent pileup / artifacts
+    para.removeClass('env_end')
+            .removeClass('env_beg')
+            .removeAttr('env', "");
+
     if (env_info != null) {
         if (env_info.type == 'begin') {
             para.addClass('env_beg');
@@ -78,7 +83,7 @@ dataToText = function(para, raw) {
         } else if (env_info.type == 'end') {
             para.addClass('env_end');
         }
-    }
+    };
 };
 
 rawToTextArea = function(para) {
@@ -153,7 +158,7 @@ $(document).on('click', '.delete', function() {
 envClasses = function() {
     // remove old env classes
     $(".para").removeClass(function(index, css) {
-        return (css.match(/(^|\s)env__\S+/g) || []).join(' ');
+        return (css.match(/(^|\s)env__\S+/g) || []).join(' '); 
     });
 
     // remove error markers
@@ -166,11 +171,9 @@ envClasses = function() {
     // forward env pass
     $('.para').each(function() {
         var para = $(this);
-        console.log(para);
 
         if (!current_open_env && para.hasClass('env_beg')) { // cannot open an env if one is already open
             current_open_env = para.attr('env');
-            console.log('begin', current_open_env);
         }
 
         if (para.hasClass('heading')) { // sections or headings break envs
@@ -195,6 +198,7 @@ envClasses = function() {
 
     // format classed envs
     envFormat();
+    createNumbers();
 };
 
 // dispatch environment formatters
@@ -218,20 +222,22 @@ envFormat = function() {
 
 //// ENV formatting
 
-simpleEnv = function(para, env, num=false, head='', tail='') {
+simpleEnv = function(para, env, num=false, id='', head='', tail='') {
+    para.attr('id', id);
     var pre = para.find('.env_header');
-    pre.html(num ? `${head} <span class="num_${env}"></span>.` : `${head}.`);
+    pre.html(num ? `${head} <span class="num" counter=${env} inc=1></span>.` : `${head}.`);
 }
 
 numberEnv = function(para, env, args, head='', tail='') {
+    var id = args.id || '';
     var num = args.number || '';
-    return simpleEnv(para, env, num, head, tail);
+    return simpleEnv(para, env, num, id, head, tail);
 }
 
 errorEnv = function(para, args) {
     var pre = para.find('.env_header');
     var msg;
-    if (args.code == 'und') {
+    if (args.code == 'undef') {
         msg = `<span class="env_prepend">Err: envrionment ${args.env} is not defined.</span> `;
     }
     if (args.code == 'open') {
@@ -246,7 +252,7 @@ theoremEnv = function(para, args) {
 }
 
 proofEnv = function(para, args) {
-    return simpleEnv(para, 'proof', false, 'Proof', 'QED');
+    return simpleEnv(para, 'proof', false, '', 'Proof', 'QED');
 }
 
 exampleEnv = function(para, args) {
@@ -259,3 +265,17 @@ env_spec = {
     'example': exampleEnv,
     'error': errorEnv
 }
+
+
+/// Numbering
+
+createNumbers = function() {
+    var nums = {};
+    $('.num').each(function(){
+        var counter = $(this).attr('counter');
+        var inc = parseInt($(this).attr('inc'));
+        nums[counter] = nums[counter] || 0;
+        nums[counter] += inc;
+        $(this).text(nums[counter]);
+    })
+};

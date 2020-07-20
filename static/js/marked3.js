@@ -1179,10 +1179,17 @@ DivRenderer.prototype.title = function(text) {
 
 DivRenderer.prototype.heading = function(text, level, refid, number) {
   var rid = (refid != undefined) ? `id="${refid}"`: '';
-  var num = number ? 'number' : '';
-  var cls = `heading h${level} ${num}`;
-
-  return `<div ${rid} class="${cls}">\n${text}\n</div>\n\n`;
+  num = "";
+  if(number){
+    l = 1;
+    while(level - l){
+      num += `<span class="num" counter=heading${l} inc=0></span>.`
+      l += 1;
+    };
+    num += `<span class="num" counter=heading${l} inc=1></span>.`;
+  };
+  var cls = `heading h${level}`;
+  return `<div ${rid} class="${cls}">\n${num} ${text}\n</div>\n\n`;
 };
 
 DivRenderer.prototype.envbeg = function(env, end, text) {
