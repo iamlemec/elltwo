@@ -39,10 +39,10 @@
     font-weight: bold;
 }
 
-div.env__proof.env_end > .p_text:after {
-    content: "□";
+.env__theorem.env_beg .env_header {
+    font-weight: bold;
 }
 
-div.env__theorem.env_beg > .p_text > .env_prepend {
+.env__proof.env_beg .env_header {
     font-weight: bold;
 }

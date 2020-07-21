@@ -58,7 +58,7 @@ $(document).ready(function() {
 // get raw text from data-raw attribute, parse, render
 dataToText = function(para, raw) {
     if (raw == undefined) {
-        raw = para.data('raw');
+        raw = para.attr('raw');
     }
 
     var mark_out = markthree(raw);
@@ -69,26 +69,31 @@ dataToText = function(para, raw) {
 
     //must remove old classes, to prevent pileup / artifacts
     para.removeClass('env_end')
-            .removeClass('env_beg')
-            .removeAttr('env', "");
+        .removeClass('env_beg')
+        .removeAttr('env')
+        .removeAttr('id');
 
     if (env_info != null) {
         if (env_info.type == 'begin') {
-            para.addClass('env_beg');
             para.attr('env', env_info.env);
-            para.data('args', env_info.args);
+            para.addClass('env_beg');
             if (env_info.single) {
                 para.addClass('env_end');
             }
+            if ('id' in env_info.args) {
+                para.attr('id', env_info.args.id);
+                delete env_info.args.id;
+            }
+            para.data('args', env_info.args);
         } else if (env_info.type == 'end') {
             para.addClass('env_end');
         }
-    };
+    }
 };
 
 rawToTextArea = function(para) {
     var textArea = para.children('.p_input');
-    textArea.val(para.data('raw'));
+    textArea.val(para.attr('raw'));
 };
 
 updateFromTextArea = function(para) {
@@ -101,7 +106,7 @@ updateFromTextArea = function(para) {
 
 updatePara = function(pid, raw) {
     var para = getPara(pid);
-    para.data('raw', raw);
+    para.attr('raw', raw);
     dataToText(para, raw);
 };
 
@@ -110,9 +115,9 @@ deletePara = function(pid) {
     para.remove();
 };
 
-insertPara = function(pid, new_pid, before=true, raw="...") {
+insertPara = function(pid, new_pid, before=true, raw='') {
     var para = getPara(pid);
-    var new_para = $(`<div class="para" pid="${new_pid}" data-raw="${raw}"></div>`);
+    var new_para = $('<div>', {class: 'para', pid: new_pid, raw: raw});
     if (before) {
         para.before(new_para);
     } else {
@@ -158,7 +163,7 @@ $(document).on('click', '.delete', function() {
 envClasses = function() {
     // remove old env classes
     $(".para").removeClass(function(index, css) {
-        return (css.match(/(^|\s)env__\S+/g) || []).join(' '); 
+        return (css.match(/(^|\s)env__\S+/g) || []).join(' ');
     });
 
     // remove error markers
@@ -187,7 +192,9 @@ envClasses = function() {
         }
 
         if (para.hasClass('env_end')) { // closing tag = current open tag
-            $(env_paras).addClass('env').addClass(`env__${current_open_env}`);
+            $(env_paras).addClass('env')
+                        .addClass(`env__${current_open_env}`)
+                        .attr('env', current_open_env);
             current_open_env = false;
             env_paras = [];
         }
@@ -222,60 +229,72 @@ envFormat = function() {
 
 //// ENV formatting
 
-simpleEnv = function(para, env, num=false, id='', head='', tail='') {
-    para.attr('id', id);
-    var pre = para.find('.env_header');
-    pre.html(num ? `${head} <span class="num" counter=${env} inc=1></span>.` : `${head}.`);
+makeCounter = function(env, inc=1) {
+    return $('<span>', {class: 'num', counter: env, inc: inc});
 }
 
-numberEnv = function(para, env, args, head='', tail='') {
-    var id = args.id || '';
+simpleEnv = function(para, env, head='', tail='', num=false) {
+    if (para.hasClass('env_beg')) {
+        var pre = para.find('.env_header');
+        pre.html(head);
+        if (num) {
+            var span = makeCounter(env);
+            pre.append(['&nbsp;', span]);
+        }
+        pre.append('.');
+    }
+    if (para.hasClass('env_end')) {
+        var pre = para.find('.env_footer');
+        pre.html(tail);
+    }
+};
+
+numberEnv = function(para, env, head='', tail='', args={}) {
     var num = args.number || '';
-    return simpleEnv(para, env, num, id, head, tail);
-}
+    return simpleEnv(para, env, head, tail, num);
+};
 
 errorEnv = function(para, args) {
     var pre = para.find('.env_header');
     var msg;
     if (args.code == 'undef') {
-        msg = `<span class="env_prepend">Err: envrionment ${args.env} is not defined.</span> `;
+        msg = `Err: envrionment ${args.env} is not defined.`
     }
     if (args.code == 'open') {
         // could pass through which environ not closed here
-        msg = `<span class="env_prepend">Err: envrionment not closed.</span> `;
+        msg = 'Err: envrionment not closed.';
     }
     pre.html(msg);
-}
+};
 
 theoremEnv = function(para, args) {
-    return numberEnv(para, 'theorem', args, 'Theorem', '');
-}
+    return numberEnv(para, 'theorem', 'Theorem', '', args);
+};
 
 proofEnv = function(para, args) {
-    return simpleEnv(para, 'proof', false, '', 'Proof', 'QED');
-}
+    return simpleEnv(para, 'proof', 'Proof', '□', false);
+};
 
 exampleEnv = function(para, args) {
-    return numberEnv(para, 'example', args, 'Example', '');
-}
+    return numberEnv(para, 'example', 'Example', '', args);
+};
 
 env_spec = {
     'theorem': theoremEnv,
     'proof': proofEnv,
     'example': exampleEnv,
     'error': errorEnv
-}
-
+};
 
 /// Numbering
 
 createNumbers = function() {
     var nums = {};
-    $('.num').each(function(){
+    $('.num').each(function() {
         var counter = $(this).attr('counter');
         var inc = parseInt($(this).attr('inc'));
         nums[counter] = nums[counter] || 0;
         nums[counter] += inc;
         $(this).text(nums[counter]);
-    })
+    });
 };
