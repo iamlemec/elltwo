@@ -1070,7 +1070,8 @@ DivRenderer.prototype.math = function(tex) {
 
 DivRenderer.prototype.equation = function(id, tex) {
   var eqid = (id != undefined) ? `id="${id}"`: '';
-  return `<div class="equation" ${eqid}>\n${tex}</div>\n\n`;
+  var num = (id != undefined) ? `<div class="eqnum">(<span class="num" counter=equation inc=1></span>)</div>`: '';
+  return `<div class="equation" ${eqid}>\n${tex}</div>\n\n` + num;
 };
 
 DivRenderer.prototype.ref = function(id) {

@@ -1,22 +1,139 @@
-#head {
-    margin-bottom: 20px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid black;
+/* VARIABLE ASSIGNMENT */
+
+:root{
+    --bor-col: darkcyan; /* border color */
+    --hl-col: goldenrod; /* highlight color */
+    --bor-foc-col: red; /* highlight color */
 }
 
-#foot {
-    margin-top: 20px;
-    padding-top: 5px;
-    border-top: 1px solid black;#CCC
+
+
+#para_holder{
+    position: absolute;
+    width: 80%;
+    left: 10%;
 }
 
 .para {
+    position: relative;
+    width: 100%;
+    min-height: 30px;
     margin-bottom: 20px;
+    padding-left: 5px; 
+    border-left: 2px solid var(--bg-col);
+}
+
+.para:hover{
+    border-left: 2px solid var(--bor-col);
+}
+
+.p_text{
+    cursor: pointer;
 }
 
 .p_input {
-    width: 400px;
-    height: 50px;
+    resize: none;
+    width: 100%;
+    min-height: 50px;
+    overflow: hidden;
+    display: none;
+    border: none;
+    padding: 2px;
+    padding-left: 5px; 
+}
+
+.p_input:focus {
+    outline: none !important;
+/*     border: 2px solid red; */
+}
+
+.para.editable{
+    border-left: 2px solid var(--bor-foc-col); 
+}
+
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent; /* make scrollbar transparent */
+}
+
+.control{
+    display: none;
+    position: absolute;
+    width: 10%;
+    right: 100%;
+    top: -25%;
+    text-align: right;
+    padding-right: 8px;
+}
+
+.para.editable > .control{
+    display: block;
+}
+
+.controlButs{
+    display: none;
+}
+
+
+.control:hover .controlButs{
+    display: block;
+}
+
+.control:hover .controlDots{
+    display: none;
+}
+.controlDots{
+    color: gray;
+    font-size: 90%;
+}
+
+
+button {
+	border:1px solid var(--bor-col);
+	display:inline-block;
+	cursor:pointer;
+	color:gray;
+	font-size:80%;
+	padding:1px 3px;
+    font-family: CM;
+    width: 100%;
+}
+button:hover {
+	background-color:darkgray;
+}
+button:active {
+	position:relative;
+	top:1px;
+}
+
+
+.active{
+   border-left: 2px solid var(--hl-col); 
+}
+
+.active > .p_text{
+    display: none;
+}
+
+.active > .p_input{
+    display: block;
+}
+
+
+
+/* DIV renderer stylying
+ */
+
+.eqnum{
+ position: absolute;
+ right: 0;
+ bottom: 50%;
+}
+
+.qed{
+ position: absolute;
+ right: 0;
+ bottom:0%;  
 }
 
 .h1 {
@@ -46,3 +163,5 @@
 .env__proof.env_beg .env_header {
     font-weight: bold;
 }
+
+

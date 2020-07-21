@@ -24,10 +24,13 @@ client = Client(function(cmd, data) {
 inner_para = `<div class="p_text"></div>
               <textarea class="p_input"></textarea>
               <div class="control">
+              <div class="controlDots">&#9776;</div>
+              <div class="controlButs">
               <button class="update">Update</button>
               <button class="before">Before</button>
               <button class="after">After</button>
               <button class="delete">Delete</button>
+              </div>
               </div>`;
 
 getPara = function(pid) {
@@ -46,8 +49,8 @@ $(document).ready(function() {
     });
 
     // goofy debugging
-    $('#head').append('<button id="env_update" style="margin-left: 10px;">Environ</button>');
-    $('#env_update').click(envClasses);
+    //$('#head').append('<button id="env_update" style="margin-left: 10px;">Environ</button>');
+    //$('#env_update').click(envClasses);
 });
 
 /////////////////// EDITING /////////
@@ -88,7 +91,11 @@ dataToText = function(para, raw) {
         } else if (env_info.type == 'end') {
             para.addClass('env_end');
         }
-    }
+    };
+    envClasses(); //redraw envs
+    renderKatex(para);
+    h = para.children('.p_text').height();
+    para.children('.p_input').css('min-height', h);
 };
 
 rawToTextArea = function(para) {
@@ -128,33 +135,6 @@ insertPara = function(pid, new_pid, before=true, raw='') {
     rawToTextArea(new_para);
 };
 
-/// UI editing
-
-$(document).on('click', '.p_text', function() {
-    var para = $(this).parent();
-    rawToTextArea(para);
-});
-
-$(document).on('click', '.update', function() {
-    var para = $(this).parent().parent();
-    updateFromTextArea(para);
-});
-
-$(document).on('click', '.before', function() {
-    var pid = $(this).parent().parent().attr('pid');
-    client.sendCommand('insert_before', {'pid': pid});
-});
-
-$(document).on('click', '.after', function() {
-    var pid = $(this).parent().parent().attr('pid');
-    client.sendCommand('insert_after', {'pid': pid});
-});
-
-$(document).on('click', '.delete', function() {
-    var pid = $(this).parent().parent().attr('pid');
-    client.sendCommand('delete_para', {'pid': pid});
-});
-
 /////////////////// ENVS /////////
 
 // move this to backend when we have user genereted envs
@@ -183,6 +163,7 @@ envClasses = function() {
 
         if (para.hasClass('heading')) { // sections or headings break envs
             $(env_paras).addClass('env_err');
+            env_paras.map(envFormat);
             current_open_env = false;
             env_paras = [];
         }
@@ -195,23 +176,24 @@ envClasses = function() {
             $(env_paras).addClass('env')
                         .addClass(`env__${current_open_env}`)
                         .attr('env', current_open_env);
-            current_open_env = false;
-            env_paras = [];
+          env_paras.map(envFormat);
+          current_open_env = false;
+          env_paras = [];
         }
     });
 
     // add error for open envs left at the end
     $(env_paras).addClass('env_err');
+    env_paras.map(envFormat);
 
     // format classed envs
-    envFormat();
+    //envFormat();
     createNumbers();
 };
 
 // dispatch environment formatters
-envFormat = function() {
-    $('.para').each(function() {
-        var para = $(this);
+envFormat = function(para) {
+        para = $(para);
         var env = para.attr('env');
         if (para.hasClass('env_err')) {
             var args = {code: 'open', env: env};
@@ -224,7 +206,6 @@ envFormat = function() {
                 env_spec.error(para, args);
             }
         }
-    });
 };
 
 //// ENV formatting
@@ -233,7 +214,7 @@ makeCounter = function(env, inc=1) {
     return $('<span>', {class: 'num', counter: env, inc: inc});
 }
 
-simpleEnv = function(para, env, head='', tail='', num=false) {
+simpleEnv = function(para, env, head='', tail='', num=false,) {
     if (para.hasClass('env_beg')) {
         var pre = para.find('.env_header');
         pre.html(head);
@@ -272,7 +253,7 @@ theoremEnv = function(para, args) {
 };
 
 proofEnv = function(para, args) {
-    return simpleEnv(para, 'proof', 'Proof', '□', false);
+    return simpleEnv(para, 'proof', 'Proof', `<span class='qed'>&#8718;</span>`, false);
 };
 
 exampleEnv = function(para, args) {
@@ -284,6 +265,40 @@ env_spec = {
     'proof': proofEnv,
     'example': exampleEnv,
     'error': errorEnv
+};
+
+//// KATEX
+
+renderKatex = function(para) {
+    para.find(".latex").each(function() {
+        var tex = $(this);
+        var src = tex.text();
+        tex.empty();
+        try {
+          katex.render(src, tex[0], 
+            //{macros: config["macros"]}
+            );
+        } catch (e) {
+          console.log(para.text());
+          console.log(src);
+          console.log(e);
+        }
+    });
+    para.find(".equation").each(function() {
+        var tex = $(this);
+        var src = tex.text();
+        $(this).empty();
+        try {
+            katex.render(src, tex[0], {displayMode: true, 
+                //macros: config["macros"]
+            });
+        } catch (e) {
+            console.log(para.text());
+            console.log(src);
+            console.log(e);
+        }
+    });
+
 };
 
 /// Numbering
@@ -298,3 +313,5 @@ createNumbers = function() {
         $(this).text(nums[counter]);
     });
 };
+
+
