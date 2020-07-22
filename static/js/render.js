@@ -91,11 +91,13 @@ dataToText = function(para, raw) {
         } else if (env_info.type == 'end') {
             para.addClass('env_end');
         }
-    };
+    }
+
     envClasses(); //redraw envs
     renderKatex(para);
-    h = para.children('.p_text').height();
-    para.children('.p_input').css('min-height', h);
+
+    // h = para.children('.p_text').height();
+    // para.children('.p_input').css('min-height', h);
 };
 
 rawToTextArea = function(para) {
@@ -249,7 +251,7 @@ errorEnv = function(para, args) {
 };
 
 theoremEnv = function(para, args) {
-    return numberEnv(para, 'theorem', 'Theorem', '', args);
+    return numberEnv(para, 'theorem', 'Theorem', '—', args);
 };
 
 proofEnv = function(para, args) {
@@ -275,7 +277,7 @@ renderKatex = function(para) {
         var src = tex.text();
         tex.empty();
         try {
-          katex.render(src, tex[0], 
+          katex.render(src, tex[0],
             //{macros: config["macros"]}
             );
         } catch (e) {
@@ -289,7 +291,7 @@ renderKatex = function(para) {
         var src = tex.text();
         $(this).empty();
         try {
-            katex.render(src, tex[0], {displayMode: true, 
+            katex.render(src, tex[0], {displayMode: true,
                 //macros: config["macros"]
             });
         } catch (e) {
@@ -313,5 +315,3 @@ createNumbers = function() {
         $(this).text(nums[counter]);
     });
 };
-
-

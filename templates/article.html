@@ -15,13 +15,9 @@
 {% block header %}<div id='head'>{{title}}</div>{% endblock %}
 
 {% block content %}
-      <div id=para_holder>
-
-        {% for p in paras %}
-            <div class="para" pid="{{p.pid}}" raw="{{p.text}}"></div>
-        {% endfor%}
-
-      </div>
+    {% for p in paras %}
+        <div class="para" pid="{{p.pid}}" raw="{{p.text}}"></div>
+    {% endfor%}
 {% endblock %}
 
 {% block foot %}

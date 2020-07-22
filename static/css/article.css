@@ -6,49 +6,43 @@
     --bor-foc-col: red; /* highlight color */
 }
 
-
-
-#para_holder{
-    position: absolute;
-    width: 80%;
-    left: 10%;
-}
-
 .para {
     position: relative;
     width: 100%;
-    min-height: 30px;
+    min-height: 25px;
     margin-bottom: 20px;
-    padding-left: 5px; 
+    padding-left: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
     border-left: 2px solid var(--bg-col);
 }
 
-.para:hover{
+.para:hover {
     border-left: 2px solid var(--bor-col);
 }
 
-.p_text{
+.p_text {
     cursor: pointer;
 }
 
 .p_input {
     resize: none;
     width: 100%;
-    min-height: 50px;
+    /* min-height: 30px; */
     overflow: hidden;
     display: none;
     border: none;
     padding: 2px;
-    padding-left: 5px; 
+    padding-left: 5px;
 }
 
 .p_input:focus {
     outline: none !important;
-/*     border: 2px solid red; */
+    /* border: 2px solid red; */
 }
 
-.para.editable{
-    border-left: 2px solid var(--bor-foc-col); 
+.para.editable {
+    border-left: 2px solid var(--bor-foc-col);
 }
 
 ::-webkit-scrollbar {
@@ -56,7 +50,7 @@
     background: transparent; /* make scrollbar transparent */
 }
 
-.control{
+.control {
     display: none;
     position: absolute;
     width: 10%;
@@ -66,27 +60,25 @@
     padding-right: 8px;
 }
 
-.para.editable > .control{
+.para.editable > .control {
     display: block;
 }
 
-.controlButs{
+.controlButs {
     display: none;
 }
 
-
-.control:hover .controlButs{
+.control:hover .controlButs {
     display: block;
 }
 
-.control:hover .controlDots{
+.control:hover .controlDots {
     display: none;
 }
-.controlDots{
+.controlDots {
     color: gray;
     font-size: 90%;
 }
-
 
 button {
 	border:1px solid var(--bor-col);
@@ -98,42 +90,44 @@ button {
     font-family: CM;
     width: 100%;
 }
+
 button:hover {
 	background-color:darkgray;
 }
+
 button:active {
 	position:relative;
 	top:1px;
 }
 
-
-.active{
-   border-left: 2px solid var(--hl-col); 
+.active {
+    border-left: 2px solid var(--hl-col);
 }
 
-.active > .p_text{
+.active > .p_text {
     display: none;
 }
 
-.active > .p_input{
+.active > .p_input {
     display: block;
 }
 
+/* DIV renderer stylying */
 
-
-/* DIV renderer stylying
- */
-
-.eqnum{
- position: absolute;
- right: 0;
- bottom: 50%;
+.eqnum {
+    position: absolute;
+    right: 0;
+    bottom: 50%;
 }
 
-.qed{
- position: absolute;
- right: 0;
- bottom:0%;  
+.qed {
+    position: absolute;
+    right: 0;
+    bottom:0%;
+}
+
+.title {
+    font-size: 35px;
 }
 
 .h1 {
@@ -163,5 +157,3 @@ button:active {
 .env__proof.env_beg .env_header {
     font-weight: bold;
 }
-
-
