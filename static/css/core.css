@@ -29,9 +29,9 @@ body{
 *{
   padding: 0;
   margin: 0;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
+  -moz-box-sizing: border-box; 
+  -webkit-box-sizing: border-box; 
+  box-sizing: border-box; 
 }
 
 textarea{
@@ -47,41 +47,36 @@ textarea:focus {
 }
 
 #head {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    margin: 0;
-    padding-top: 5px;
+    margin-bottom: 20px;
     padding-bottom: 5px;
-    padding-left: 5px;
-    /* border-bottom: 1px solid black; */
+    padding-left: 2%;
+/*     border-bottom: 1px solid black; */
 }
 
 #foot {
     position: fixed;
-    bottom: 0;
     width: 100%;
-    padding-left: 5px;
-    padding-bottom: 5px;
+    bottom: 3px;
+    padding-left: 2%;
     font-size: 70%;
-    /* border-top: 1px solid black; */
+/*     border-top: 1px solid black;#CCC */
 }
 
-#bg {
-    background-color: var(--bg-col);
-}
-
-#content {
-    overflow-y: scroll;
+#bg{
+    position: fixed;
     height: 100%;
-    width: 700px;
-    margin: auto;
-    scrollbar-width: none;
-<<<<<<< HEAD
-    padding-top: 50px;
-    padding-bottom: 50px;
+    width: 100%;
+    background-color: var(--bg-col)
 }
-=======
+
+#content{
+    position: fixed;
+    overflow-y: scroll;
+    height: 85%;
+    top: 10%;
+    width: 80%;
+    left: 10%; 
+    scrollbar-width: none;
 }
 
 button {
@@ -100,4 +95,3 @@ button:active {
     top:1px;
 }
 
->>>>>>> bib
