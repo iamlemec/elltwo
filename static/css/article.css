@@ -10,42 +10,30 @@
 .para {
     position: relative;
     width: 100%;
-    min-height: 25px;
+    min-height: 30px;
     margin-bottom: 20px;
-    padding-left: 5px;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    padding-left: 5px; 
     border-left: 2px solid var(--bg-col);
 }
 
-.para:hover {
+.para:hover{
     border-left: 2px solid var(--bor-col);
 }
 
-.p_text {
+.p_text{
     cursor: pointer;
 }
 
 .p_input {
     width: 100%;
-    /* min-height: 30px; */
+    min-height: 50px;
     overflow: hidden;
     display: none;
     border: none;
-<<<<<<< HEAD
-    padding: 2px;
-    padding-left: 5px;
 }
 
-.p_input:focus {
-    outline: none !important;
-    /* border: 2px solid red; */
-=======
->>>>>>> bib
-}
-
-.para.editable {
-    border-left: 2px solid var(--bor-foc-col);
+.para.editable{
+    border-left: 2px solid var(--bor-foc-col); 
 }
 
 ::-webkit-scrollbar {
@@ -53,7 +41,7 @@
     background: transparent; /* make scrollbar transparent */
 }
 
-.control {
+.control{
     display: none;
     position: absolute;
     width: 10%;
@@ -63,72 +51,63 @@
     padding-right: 8px;
 }
 
-.para.editable > .control {
+.para.editable > .control{
     display: block;
 }
 
-.controlButs {
+.controlButs{
     display: none;
 }
 
-.control:hover .controlButs {
+
+.control:hover .controlButs{
     display: block;
 }
 
-.control:hover .controlDots {
+.control:hover .controlDots{
     display: none;
 }
-.controlDots {
+.controlDots{
     color: gray;
     font-size: 90%;
 }
 
+
 button {
-	font-size:80%;
-	padding:1px 3px;
+    font-size:80%;
+    padding:1px 3px;
     width: 100%;
 }
 
-<<<<<<< HEAD
-button:hover {
-	background-color:darkgray;
+
+
+.active{
+   border-left: 2px solid var(--hl-col); 
 }
 
-button:active {
-	position:relative;
-	top:1px;
-}
-=======
->>>>>>> bib
-
-.active {
-    border-left: 2px solid var(--hl-col);
-}
-
-.active > .p_text {
+.active > .p_text{
     display: none;
 }
 
-.active > .p_input {
+.active > .p_input{
     display: block;
 }
 
-/* DIV renderer stylying */
 
-.eqnum {
-    position: absolute;
-    right: 0;
-    bottom: 50%;
+
+/* DIV renderer stylying
+ */
+
+.eqnum{
+ position: absolute;
+ right: 0;
+ bottom: 50%;
 }
 
-.qed {
-    position: absolute;
-    right: 0;
-    bottom:0%;
-}
-
-.title {
-    font-size: 35px;
+.qed{
+ position: absolute;
+ right: 0;
+ bottom:0%;  
 }
 
 .h1 {
