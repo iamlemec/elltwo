@@ -22,8 +22,12 @@ src: url(/static/fonts/lmroman10-regular.otf);
 }
 
 body{
+<<<<<<< HEAD
+  /* font-family: CM; */
+=======
   font-family: CM;
   caret-color: var(--bor-col);
+>>>>>>> bib
 }
 
 *{

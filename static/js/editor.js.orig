@@ -187,7 +187,11 @@ $(document).keyup(function(e) {
 
 /// Button Nav
 
+<<<<<<< HEAD
+/// UI editing
 
+=======
+>>>>>>> bib
 // $(document).on('click', '.p_text', function() {
 //     var para = $(this).parent();
 //     rawToTextArea(para);

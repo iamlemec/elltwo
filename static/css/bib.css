@@ -1,0 +1,39 @@
+#bib_input{
+    position: fixed;
+    resize: none;
+    width: 60%;
+    left: 20%;
+    bottom: 10%;
+    height: 25%;
+    border-bottom: 1px solid var(--bor-col);
+}
+
+button{
+    padding: 1px 3px;
+    border-top: none;
+    background-color: white;
+}
+
+#create{
+    position: fixed;
+    right: 20%;
+    top: 90%;
+}
+
+.cite {
+  margin-bottom: 10px;
+  padding-left: 22px ;
+  text-indent: -22px ;
+} 
+
+#para_holder{
+    position: fixed;
+    font-size: 80%;
+    width: 60%;
+    left: 20%;
+    top: 10%;
+    height: 55%;
+    overflow: scroll;
+    border-bottom: 1px solid var(--bor-col);
+}
+

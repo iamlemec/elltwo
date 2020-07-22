@@ -1,22 +1,4 @@
-//// SERVER INTERACTION ////
 
-// handle incoming commands from server
-client = Client(function(cmd, data) {
-    msg = JSON.stringify(data);
-    console.log("received [" + cmd + "]: " + msg);
-
-    if (cmd == 'updatePara') {
-        updatePara(...data); //data must come in correct order or args
-    } else if (cmd == 'deletePara') {
-        deletePara(...data);
-    } else if (cmd == 'insert') {
-        insertPara(...data);
-    } else if (cmd == 'status') {
-        console.log('status: ', data);
-    } else {
-        console.log('unknown: ', cmd);
-    }
-});
 
 /// init commands ///
 

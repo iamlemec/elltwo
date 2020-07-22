@@ -1,6 +1,11 @@
 from datetime import datetime
 
-from db_setup import db, Article, Paragraph, Paralink
+from db_setup import db, Article, Paragraph, Paralink, Bib
+
+Bib.query.delete()
+Paralink.query.delete()
+Paragraph.query.delete()
+Article.query.delete()
 
 now = datetime.utcnow()
 
@@ -16,3 +21,5 @@ db.session.add(art)
 db.session.add_all([par0, par1, par2])
 db.session.add_all([lin0, lin1, lin2])
 db.session.commit()
+
+

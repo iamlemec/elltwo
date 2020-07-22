@@ -1,10 +1,17 @@
 /* VARIABLE ASSIGNMENT */
 
+<<<<<<< HEAD
+:root{
+    --bor-col: darkcyan; /* border color */
+    --hl-col: goldenrod; /* highlight color */
+    --bor-foc-col: red; /* highlight color */
+=======
 
 #para_holder{
     position: absolute;
     width: 80%;
     left: 10%;
+>>>>>>> bib
 }
 
 .para {
