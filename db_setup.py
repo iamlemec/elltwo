@@ -60,6 +60,27 @@ class Paralink(db.Model):
     def __repr__(self):
         return f'{self.aid} [{self.create_time} → {self.delete_time}]: {self.prev}—{self.pid}—{self.next}'
 
+
+class Bib(db.Model):
+    __tablename__ = 'bib'
+
+    bid = db.Column(db.Integer, primary_key=True)
+    citekey = db.Column(db.Text, nullable=False)
+    entry_type = db.Column(db.Text, nullable=False)
+    title = db.Column(db.Text)
+    author = db.Column(db.Text)
+    journal = db.Column(db.Text)
+    number = db.Column(db.Text) #integer?
+    volume = db.Column(db.Text)
+    year = db.Column(db.Text)
+    publisher = db.Column(db.Text)
+    pages = db.Column(db.Text)
+    create_time = db.Column(db.DateTime, default=datetime.utcnow)
+    delete_time = db.Column(db.DateTime)
+
+    def __repr__(self):
+        return f'{self.bid} [{self.create_time} → {self.delete_time}]:\n{self.author} ({self.year})'
+
 if __name__ == '__main__':
     db.create_all()
     search.create_index()

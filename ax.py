@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 # from random import randint
 
 #import DM models
-from db_setup import Article, Paragraph, Paralink, db, app
+from db_setup import Article, Paragraph, Paralink, Bib, db, app
 
 #import article mgmt
 import db_query as dbq
@@ -22,18 +22,7 @@ session = db.session
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
-#function to contruct URL names (Article.short_title)
 
-# def urlify(s):
-
-#      # Remove all non-word characters (everything except numbers and letters)
-#      # We should probably make this more robust, to allow escaped chars
-#      s = re.sub(r"[^\w\s]", '', s)
-
-#      # Replace all runs of whitespace with a single dash
-#      s = re.sub(r"\s+", '_', s)
-
-#      return s.lower()
 
 ###
 #####
@@ -63,6 +52,11 @@ def RenderArticle(short):
     return render_template('article.html',
         title=art.title,
         paras=paras)
+
+@app.route('/b', methods=['GET'])
+def RenderBib():
+    return render_template('bib.html',
+        )
 
 ##
 ## socketio handler
@@ -107,6 +101,16 @@ def socket_json(json):
         text = data.get('text', '')
         par1 = dbq.insert_before(data['pid'], text)
         send_command('insert', [data['pid'], par1.pid, True, text])
+    elif cmd == 'create_cite':
+        dbq.create_cite(data['citationKey'], data['entryType'], **data['entryTags'])
+        bib = dbq.get_bib_dict()
+        send_command('renderBib', bib)
+    elif cmd == 'get_bib':
+        cites = data['cites']
+        if not cites:
+            cites=None
+        bib = dbq.get_bib_dict(cites=cites)
+        send_command('renderBib', bib)
     elif cmd == 'echo':
         return data
     else:

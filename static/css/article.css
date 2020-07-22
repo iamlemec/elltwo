@@ -1,12 +1,5 @@
 /* VARIABLE ASSIGNMENT */
 
-:root{
-    --bor-col: darkcyan; /* border color */
-    --hl-col: goldenrod; /* highlight color */
-    --bor-foc-col: red; /* highlight color */
-}
-
-
 
 #para_holder{
     position: absolute;
@@ -32,19 +25,11 @@
 }
 
 .p_input {
-    resize: none;
     width: 100%;
     min-height: 50px;
     overflow: hidden;
     display: none;
     border: none;
-    padding: 2px;
-    padding-left: 5px; 
-}
-
-.p_input:focus {
-    outline: none !important;
-/*     border: 2px solid red; */
 }
 
 .para.editable{
@@ -89,22 +74,11 @@
 
 
 button {
-	border:1px solid var(--bor-col);
-	display:inline-block;
-	cursor:pointer;
-	color:gray;
 	font-size:80%;
 	padding:1px 3px;
-    font-family: CM;
     width: 100%;
 }
-button:hover {
-	background-color:darkgray;
-}
-button:active {
-	position:relative;
-	top:1px;
-}
+
 
 
 .active{
@@ -163,5 +137,3 @@ button:active {
 .env__proof.env_beg .env_header {
     font-weight: bold;
 }
-
-

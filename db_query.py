@@ -6,7 +6,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
 from math import ceil
 
-from db_setup import db, Article, Paragraph, Paralink
+from db_setup import db, Article, Paragraph, Paralink, Bib
 session = db.session
 
 ##
@@ -47,6 +47,7 @@ def intime(time, klass):
 arttime = partial(intime, klass=Article)
 partime = partial(intime, klass=Paragraph)
 lintime = partial(intime, klass=Paralink)
+bibtime = partial(intime, klass=Bib)
 
 def find_start(links):
     for p in links:
@@ -292,3 +293,65 @@ def fuzzy_query(words, err=0.3):
 def search_title(words, err=0.3):
     quer = fuzzy_query(words, err=err)
     return Article.query.msearch(quer, fields=['title']).all()
+
+
+##
+## citation methods
+##
+
+def create_cite(citekey, entry_type, **kwargs):
+    now = datetime.utcnow()
+
+    cite = Bib(citekey=citekey, entry_type=entry_type, create_time=now, **kwargs)
+    session.add(cite)
+    session.commit()
+
+    return cite
+
+
+def get_cite(bid, time=None):
+    if time is None:
+        time = datetime.utcnow()
+    return session.query(Bib).filter_by(bid=bid).filter(bibtime(time)).one_or_none()
+
+
+def delete_cite(bid):
+    now = datetime.utcnow()
+
+    if (bib := get_cite(bid)) is None:
+        return
+
+    bib.delete_time = now
+    session.commit()
+
+def get_bib(cites=None, time=None):
+    if time is None:
+        time = datetime.utcnow()
+
+    if cites is None:
+        query = (session
+            .query(Bib)
+            .filter(bibtime(time))
+        )
+    else:
+        query = (session
+            .query(Bib)
+            .filter(bibtime(time))
+            .filter(Bib.bid.in_(cites))
+        )
+
+    bib = query.all()
+
+    return bib
+
+def get_bib_dict(cites=None, time=None):
+    bib = get_bib(cites, time)
+    bib_dict = []
+    for c in bib:
+        x = c.__dict__
+        del x['_sa_instance_state']
+        del x['create_time']
+        del x['delete_time']
+        bib_dict.append(x)
+    return bib_dict
+

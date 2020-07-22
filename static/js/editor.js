@@ -119,8 +119,6 @@ $(document).keydown(function(e) {
 
   /// Button Nav
 
-  /// UI editing
-
 // $(document).on('click', '.p_text', function() {
 //     var para = $(this).parent();
 //     rawToTextArea(para);
