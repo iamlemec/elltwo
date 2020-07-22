@@ -1,0 +1,30 @@
+
+
+{% extends "axiom.html" %}
+{% block head %}
+  {{ super() }}
+  <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/bib.css') }} />
+  <script src={{ url_for('static', filename='js/bibtexParse.js') }} language="Javascript" type="text/javascript"></script>
+  <script src={{ url_for('static', filename='js/socket.io.js') }} language="Javascript" type="text/javascript"></script>
+  <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
+  <script src={{ url_for('static', filename='js/bib.js') }} language="Javascript" type="text/javascript"></script>
+{% endblock %}
+{% block title %}Bib{% endblock %} 
+
+{% block header %}Bib{% endblock %}
+
+{% block content %}
+      <div id=para_holder>
+        <!-- {% for p in paras %}
+            <div class="para" pid="{{p.pid}}" raw="{{p.text}}"></div>
+        {% endfor%} -->
+      </div>
+      <textarea id="bib_input"></textarea>
+      <button id="create">Create</button>
+{% endblock %}
+
+{% block foot %}
+{% endblock %}
+
+
+
