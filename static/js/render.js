@@ -1,5 +1,3 @@
-
-
 /// init commands ///
 
 // inner HTML for para structure. Included here for updating paras
@@ -23,16 +21,17 @@ getPara = function(pid) {
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
     client.connect(url);
+
     $('.para').each(function() {
         var para = $(this);
         para.html(inner_para);
-        dataToText(para);
+
+        var raw = para.attr('raw');
+        dataToText(para, raw, false); // postpone formatting
         rawToTextArea(para);
     });
 
-    // goofy debugging
-    //$('#head').append('<button id="env_update" style="margin-left: 10px;">Environ</button>');
-    //$('#env_update').click(envClasses);
+    envClasses();
 });
 
 /////////////////// EDITING /////////
@@ -41,11 +40,7 @@ $(document).ready(function() {
 /// local changes only --> to reflect server changes without full reload
 
 // get raw text from data-raw attribute, parse, render
-dataToText = function(para, raw) {
-    if (raw == undefined) {
-        raw = para.attr('raw');
-    }
-
+dataToText = function(para, raw, format=true) {
     var mark_out = markthree(raw);
     var html_text = mark_out['src'];
     var env_info = mark_out['env'];
@@ -72,19 +67,22 @@ dataToText = function(para, raw) {
             para.data('args', env_info.args);
         } else if (env_info.type == 'end') {
             para.addClass('env_end');
+        } else if (env_info.type == 'heading') {
+            para.addClass('heading');
         }
     }
 
-    envClasses(); //redraw envs
     renderKatex(para);
 
-    // h = para.children('.p_text').height();
-    // para.children('.p_input').css('min-height', h);
+    if (format) {
+        envClasses();
+    }
 };
 
 rawToTextArea = function(para) {
     var textArea = para.children('.p_input');
-    textArea.val(para.attr('raw'));
+    var raw = para.attr('raw');
+    textArea.val(raw);
 };
 
 updateFromTextArea = function(para) {
@@ -104,6 +102,7 @@ updatePara = function(pid, raw) {
 deletePara = function(pid) {
     var para = getPara(pid);
     para.remove();
+    envClasses();
 };
 
 insertPara = function(pid, new_pid, before=true, raw='') {
@@ -133,64 +132,88 @@ envClasses = function() {
     // remove error markers
     $('.para').removeClass('env_err');
 
+    // remove formatting addins
+    $('.env_add').remove();
+
     // env state
-    var current_open_env = false;
+    var env_name = null;
+    var env_args = null;
     var env_paras = [];
 
     // forward env pass
     $('.para').each(function() {
         var para = $(this);
 
-        if (!current_open_env && para.hasClass('env_beg')) { // cannot open an env if one is already open
-            current_open_env = para.attr('env');
+        if (!env_name && para.hasClass('env_end') && !para.hasClass('env_beg')) {
+            para.addClass('env_err');
+            envFormat(para, 'error', {code: 'ending'});
         }
 
-        if (para.hasClass('heading')) { // sections or headings break envs
-            $(env_paras).addClass('env_err');
-            env_paras.map(envFormat);
-            current_open_env = false;
+        if (env_name && para.hasClass('env_beg')) { // error on nested environs
+            var new_env = para.attr('env');
+
+            var env_all = $(env_paras);
+            env_all.addClass('env_err');
+            envFormat(env_all, 'error', {code: 'open', env: env_name, new_env: new_env});
+
+            env_name = null;
+            env_args = null;
             env_paras = [];
         }
 
-        if (current_open_env) {
+        if (env_name && para.hasClass('heading')) { // sections or headings break envs
+            var new_env = para.attr('env');
+
+            var env_all = $(env_paras);
+            env_all.addClass('env_err');
+            envFormat(env_all, 'error', {code: 'heading', env: env_name, new_env: new_env});
+
+            env_name = null;
+            env_args = null;
+            env_paras = [];
+        }
+
+        if (!env_name && para.hasClass('env_beg')) { // cannot open an env if one is already open
+            env_name = para.attr('env');
+            env_args = para.data('args');
+        }
+
+        if (env_name) {
             env_paras.push(para[0]);
         }
 
         if (para.hasClass('env_end')) { // closing tag = current open tag
-            $(env_paras).addClass('env')
-                        .addClass(`env__${current_open_env}`)
-                        .attr('env', current_open_env);
-          env_paras.map(envFormat);
-          current_open_env = false;
-          env_paras = [];
+            var env_all = $(env_paras);
+            env_all.addClass('env')
+                   .addClass(`env__${env_name}`)
+                   .attr('env', env_name);
+            envFormat(env_all, env_name, env_args);
+
+            env_name = null;
+            env_args = null;
+            env_paras = [];
         }
     });
 
     // add error for open envs left at the end
-    $(env_paras).addClass('env_err');
-    env_paras.map(envFormat);
+    if (env_name) {
+        var env_all = $(env_paras);
+        env_all.addClass('env_err');
+        envFormat(env_all, 'error', {code: 'eof', env: env_name});
+    }
 
     // format classed envs
-    //envFormat();
     createNumbers();
 };
 
-// dispatch environment formatters
-envFormat = function(para) {
-        para = $(para);
-        var env = para.attr('env');
-        if (para.hasClass('env_err')) {
-            var args = {code: 'open', env: env};
-            env_spec.error(para, args);
-        } else if (env != null) {
-            if (env in env_spec) {
-                env_spec[env](para, para.data('args'));
-            } else {
-                var args = {code: 'undef', env: env};
-                env_spec.error(para, args);
-            }
-        }
-};
+envFormat = function(paras, env, args) {
+    if (env in env_spec) {
+        env_spec[env](paras, args);
+    } else {
+        var args = {code: 'undef', env: env};
+        env_spec.error(paras, args);
+    }
+}
 
 //// ENV formatting
 
@@ -198,20 +221,47 @@ makeCounter = function(env, inc=1) {
     return $('<span>', {class: 'num', counter: env, inc: inc});
 }
 
-simpleEnv = function(para, env, head='', tail='', num=false,) {
-    if (para.hasClass('env_beg')) {
-        var pre = para.find('.env_header');
-        pre.html(head);
-        if (num) {
-            var span = makeCounter(env);
-            pre.append(['&nbsp;', span]);
-        }
-        pre.append('.');
+simpleEnv = function(paras, env, head='', tail='', num=false) {
+    var first = paras.filter('.env_beg').children('.p_text');
+    var pre = $('<span>', {class: `env_add ${env}_header`, html: head});
+    if (num) {
+        var span = makeCounter(env);
+        pre.append([' ', span]);
     }
-    if (para.hasClass('env_end')) {
-        var pre = para.find('.env_footer');
-        pre.html(tail);
+    pre.append('. ');
+    first.prepend(pre);
+
+    var last = paras.filter('.env_end').children('.p_text');
+    var pos = $('<span>', {class: `env_add ${env}_footer`, html: tail});
+    pos.prepend(' ');
+    last.append(pos);
+};
+
+// we probably want to pass targ as an argument
+errorEnv = function(paras, args) {
+    var mesg;
+    var targ;
+
+    if (args.code == 'undef') {
+        mesg = `Error: envrionment ${args.env} is not defined.`;
+        targ = paras.first();
+    } else if (args.code == 'open') {
+        mesg = `Error: envrionment ${args.env} not closed at new environment ${args.new_env}.`;
+        targ = paras.last();
+    } else if (args.code == 'heading') {
+        mesg = `Error: envrionment ${args.env} not closed at end of section.`;
+        targ = paras.last();
+    } else if (args.code == 'eof') {
+        mesg = `Error: envrionment ${args.env} not closed at end of document.`;
+        targ = paras.last();
+    } else if (args.code == 'ending') {
+        mesg = `Error: environment ending when not in environment.`;
+        targ = paras.first();
     }
+
+    var text = targ.children('.p_text');
+    var pre = $('<div>', {class: 'env_add error_footer', html: mesg});
+    text.append(pre);
 };
 
 numberEnv = function(para, env, head='', tail='', args={}) {
@@ -219,25 +269,12 @@ numberEnv = function(para, env, head='', tail='', args={}) {
     return simpleEnv(para, env, head, tail, num);
 };
 
-errorEnv = function(para, args) {
-    var pre = para.find('.env_header');
-    var msg;
-    if (args.code == 'undef') {
-        msg = `Err: envrionment ${args.env} is not defined.`
-    }
-    if (args.code == 'open') {
-        // could pass through which environ not closed here
-        msg = 'Err: envrionment not closed.';
-    }
-    pre.html(msg);
-};
-
 theoremEnv = function(para, args) {
     return numberEnv(para, 'theorem', 'Theorem', '—', args);
 };
 
 proofEnv = function(para, args) {
-    return simpleEnv(para, 'proof', 'Proof', `<span class='qed'>&#8718;</span>`, false);
+    return simpleEnv(para, 'proof', 'Proof', `— <span class='qed'>&#8718;</span>`, false);
 };
 
 exampleEnv = function(para, args) {

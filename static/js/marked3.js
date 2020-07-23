@@ -973,12 +973,11 @@ DivRenderer.prototype.heading = function(text, level, refid, number) {
 };
 
 DivRenderer.prototype.envbeg = function(env, end, text) {
-  var etxt = end ? '<span class="env_footer"></span>' : '';
-  return `<span class="env_header"></span> ${text} ${etxt}`;
+  return text;
 };
 
 DivRenderer.prototype.envend = function(text) {
-  return `${text} <span class="env_footer"></span>`;
+  return text;
 };
 
 DivRenderer.prototype.hr = function() {
@@ -1190,6 +1189,9 @@ Parser.prototype.tok = function() {
       return this.renderer.title(this.inline.output(this.token.text));
     }
     case 'heading': {
+      this.env = {
+        type: 'heading'
+      }
       return this.renderer.heading(
         this.inline.output(this.token.text),
         this.token.depth,

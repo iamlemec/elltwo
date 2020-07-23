@@ -158,7 +158,7 @@ $(document).keydown(function(e) {
             } else if (keymap['b']) {
                 var pid = active_para.attr('pid');
                 client.sendCommand('insert_after', {'pid': pid});
-            } else if (keymap['d']) {
+            } else if (keymap['shift'] && keymap['d']) {
                 var pid = active_para.attr('pid');
                 if (!activeNextPara()) {
                     if (!activePrevPara()) {
@@ -171,8 +171,10 @@ $(document).keydown(function(e) {
             if (keymap['esc']) {
                 makeUnEditable();
             } else if (keymap['shift'] && keymap['enter']) {
+                console.log('fuck you');
                 updateFromTextArea(active_para);
-                activeNextPara();
+                makeUnEditable();
+                return false;
             }
         }
     }
