@@ -151,22 +151,14 @@ envClasses = function() {
 
         if (env_name && para.hasClass('env_beg')) { // error on nested environs
             var new_env = para.attr('env');
-
-            var env_all = $(env_paras);
-            env_all.addClass('env_err');
-            envFormat(env_all, 'error', {code: 'open', env: env_name, new_env: new_env});
-
-            env_name = null;
-            env_args = null;
-            env_paras = [];
+            para.addClass('env_err');
+            envFormat(para, 'error', {code: 'open', env: env_name, new_env: new_env});
         }
 
         if (env_name && para.hasClass('heading')) { // sections or headings break envs
             var new_env = para.attr('env');
-
-            var env_all = $(env_paras);
-            env_all.addClass('env_err');
-            envFormat(env_all, 'error', {code: 'heading', env: env_name, new_env: new_env});
+            para.addClass('env_err');
+            envFormat(para, 'error', {code: 'heading', env: env_name, new_env: new_env});
 
             env_name = null;
             env_args = null;
@@ -222,7 +214,7 @@ makeCounter = function(env, inc=1) {
 }
 
 simpleEnv = function(paras, env, head='', tail='', num=false) {
-    var first = paras.filter('.env_beg').children('.p_text');
+    var first = paras.filter('.env_beg').first().children('.p_text');
     var pre = $('<span>', {class: `env_add ${env}_header`, html: head});
     if (num) {
         var span = makeCounter(env);
@@ -231,7 +223,7 @@ simpleEnv = function(paras, env, head='', tail='', num=false) {
     pre.append('. ');
     first.prepend(pre);
 
-    var last = paras.filter('.env_end').children('.p_text');
+    var last = paras.filter('.env_end').last().children('.p_text');
     var pos = $('<span>', {class: `env_add ${env}_footer`, html: tail});
     pos.prepend(' ');
     last.append(pos);
@@ -247,10 +239,10 @@ errorEnv = function(paras, args) {
         targ = paras.first();
     } else if (args.code == 'open') {
         mesg = `Error: envrionment ${args.env} not closed at new environment ${args.new_env}.`;
-        targ = paras.last();
+        targ = paras.first();
     } else if (args.code == 'heading') {
         mesg = `Error: envrionment ${args.env} not closed at end of section.`;
-        targ = paras.last();
+        targ = paras.first();
     } else if (args.code == 'eof') {
         mesg = `Error: envrionment ${args.env} not closed at end of document.`;
         targ = paras.last();

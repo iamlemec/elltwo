@@ -94,13 +94,14 @@ def socket_json(json):
         send_command('deletePara', [data['pid']])
     elif cmd == 'insert_after':
         text = data.get('text', '')
-        print(data)
         par1 = dbq.insert_after(data['pid'], text)
         send_command('insert', [data['pid'], par1.pid, False, text])
+        return True
     elif cmd == 'insert_before':
         text = data.get('text', '')
         par1 = dbq.insert_before(data['pid'], text)
         send_command('insert', [data['pid'], par1.pid, True, text])
+        return True
     elif cmd == 'create_cite':
         dbq.create_cite(data['citationKey'], data['entryType'], **data['entryTags'])
         bib = dbq.get_bib_dict()

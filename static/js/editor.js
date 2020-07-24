@@ -154,10 +154,18 @@ $(document).keydown(function(e) {
                 makeActive(null);
             } else if (keymap['a']) {
                 var pid = active_para.attr('pid');
-                client.sendCommand('insert_before', {'pid': pid});
+                client.sendCommand('insert_before', {'pid': pid}, function(success) {
+                    if (success) {
+                        activePrevPara();
+                    }
+                });
             } else if (keymap['b']) {
                 var pid = active_para.attr('pid');
-                client.sendCommand('insert_after', {'pid': pid});
+                client.sendCommand('insert_after', {'pid': pid}, function(success) {
+                    if (success) {
+                        activeNextPara();
+                    }
+                });
             } else if (keymap['shift'] && keymap['d']) {
                 var pid = active_para.attr('pid');
                 if (!activeNextPara()) {
