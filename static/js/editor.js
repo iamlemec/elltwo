@@ -10,6 +10,7 @@ $(document).on('input', 'textarea', function() {
 active_para = null; // state variable --- takes a para
 last_active = null; // state var, to keep track of where cursor was
 editable = false; // state variable, are we focused on the active para
+changed = [] //state vara, list of paras that have been changed
 
 makeActive = function(para) {
     makeUnEditable();
@@ -23,11 +24,33 @@ makeActive = function(para) {
     }
 };
 
-placeCursor = function() {
+
+localChange = function(para) {
+        var text = active_para.children('.p_input').val();
+        var raw = active_para.attr('raw');
+        if(text!=raw){
+            changed.push(para[0]);
+            $(para).addClass('changed');
+        } else {
+            var index = changed.indexOf(para[0]);
+            if (index > -1) {
+                changed.splice(index, 1);
+                $(para).removeClass('changed');
+            };
+        };
+        dataToText(para, text); //local changes only
+};
+
+placeCursor = function(begin=true) {
     if (active_para) {
         var text = active_para.children('.p_input');
         text.focus();
+        if(begin){
         text[0].setSelectionRange(0, 0);
+        }else{
+        tlen = text[0].value.length
+        text[0].setSelectionRange(tlen, tlen);
+        }
     }
 };
 
@@ -35,6 +58,29 @@ unPlaceCursor = function() {
     if (active_para) {
         var text = active_para.children('.p_input');
         text.blur();
+    }
+}
+
+editShiftUp = function(para){
+    input = para.children('.p_input')[0]
+    cpos = input.selectionStart
+    if (cpos == 0){
+        activePrevPara();
+        makeEditable();
+        placeCursor(begin=false);
+        return false;
+    }
+}
+
+editShiftDown = function(para){
+    input = para.children('.p_input')[0]
+    cpos = input.selectionStart;
+    tlen = input.value.length;
+        if (cpos == tlen){
+        activeNextPara();
+        makeEditable();
+        placeCursor();
+        return false;
     }
 }
 
@@ -48,9 +94,10 @@ makeEditable = function() {
 
 makeUnEditable = function() {
     $('.para').removeClass('editable');
-    editable = false;
-    if (active_para) {
+    if(editable&&active_para){
         unPlaceCursor();
+        editable = false;
+        localChange(active_para);
     }
 };
 
@@ -107,7 +154,9 @@ keymap = {
     'shift': false,
     'ctrl': false,
     'esc': false,
+    'left': false,
     'up': false,
+    'right': false,
     'down': false,
     'a': false,
     'b': false,
@@ -121,7 +170,9 @@ keyname = {
     16: 'shift',
     17: 'ctrl',
     27: 'esc',
+    37: 'left',
     38: 'up',
+    39: 'right',
     40: 'down',
     65: 'a',
     66: 'b',
@@ -178,10 +229,16 @@ $(document).keydown(function(e) {
         } else if (active_para && editable) { // we are active and editable
             if (keymap['esc']) {
                 makeUnEditable();
+            } else if (keymap['up'] || keymap['left']) {
+                return editShiftUp(active_para);
+            } else if (keymap['down'] || keymap['right']) {
+                return editShiftDown(active_para);
             } else if (keymap['shift'] && keymap['enter']) {
-                console.log('fuck you');
-                updateFromTextArea(active_para);
-                makeUnEditable();
+                var raw = active_para.children('.p_input').val();
+                var pid = active_para.attr('pid');
+                client.sendCommand('update_para', {'pid': pid, 'text': raw}, function(success){
+                    makeUnEditable();
+                });
                 return false;
             }
         }

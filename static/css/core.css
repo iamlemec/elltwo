@@ -69,6 +69,7 @@ textarea:focus {
 }
 
 #bg {
+    position: fixed; 
     height: 100%;
     width: 100%;
     background-color: var(--bg-col)
@@ -78,9 +79,9 @@ textarea:focus {
     overflow-y: scroll;
     scrollbar-width: none;
     height: 100%;
-    width: 700px;
+    width: 80%;
     margin: auto;
-    padding-top: 50px;
+    padding-top: 70px;
     padding-bottom: 50px;
 }
 
