@@ -77,6 +77,7 @@ dataToText = function(para, raw, format=true) {
     if (format) {
         envClasses();
     }
+    createRefs(para);
 };
 
 rawToTextArea = function(para) {
@@ -97,6 +98,14 @@ updatePara = function(pid, raw) {
     var para = getPara(pid);
     para.attr('raw', raw);
     dataToText(para, raw);
+};
+
+updateParas = function(para_dict) {
+    for (pid in para_dict){
+        var para = getPara(pid);
+        para.attr('raw', para_dict[pid]);
+        dataToText(para, para_dict[pid]);
+    }
 };
 
 deletePara = function(pid) {
@@ -326,3 +335,89 @@ createNumbers = function() {
         $(this).text(nums[counter]);
     });
 };
+
+renderedCites = new Set(); //state var, citations previously rendered
+
+
+createRefs = function(para) {
+    var citekeys = new Set();
+    $('.reference').each(function() {
+        citekeys.add($(this).attr('citekey'));
+    });
+    //will only require server interaction for novel citations 
+    var unRenderedCites = [];
+    for(let key of citekeys){
+        if(!(renderedCites.has(key))){
+            unRenderedCites.push(key);
+        };
+    };
+    //remove old bib entries that have been removed
+    for(let key of renderedCites){
+        if(!(citekeys.has(key))){
+            $('#'+key).remove()
+        };
+    };
+    if(citekeys.size > 0){
+        $('#bib_block').show()
+    }else{
+        $('#bib_block').hide()
+    }
+    if(unRenderedCites.length > 0){
+        client.sendCommand('get_cite', {'keys': unRenderedCites}, function(response){
+            renderBib(response);
+            renderCiteText(para);
+        });
+    } else {
+        renderCiteText(para);
+    } 
+    renderedCites = citekeys;
+
+};
+
+renderCiteText = function(para){
+    para.find('.reference').each(function() {
+        key = $(this).attr('citekey');
+        citeText = $('#'+key).attr('citeText') || '[ERR: CiteKey Not Found]';
+        $(this).text(citeText);
+    });
+}
+
+/// THIS IS REPATED FROM THE BIB.JS, we should make it more efficent 
+renderBib = function(data){
+    //$('#para_holder').empty();
+    data.map(createBibEntry)
+    //sortCite('#para_holder')
+}
+
+createBibEntry = function(cite){
+
+yr = cite['year'] ? ` ${cite['year']}. ` : "";
+vol = cite['volume'] ? `, ${cite['volume']}` : "";
+num = cite['number'] ? `, no. ${cite['number']}` : "";
+pgs = cite['pages'] ? `, pp. ${cite['pages']}` : "";
+title = cite['title'] ? `${cite['title']}` : "";
+journal = cite['journal'] || 'mimeo';
+journal = `${journal}`
+
+author = `<b>${cite['author']}</b>. ` || "";
+
+
+if(author&&yr){
+    var author_list = cite['author'].split(" and ").map(auth => auth.split(',')[0]);
+    if(author_list.length == 2){
+        citeText = author_list[0] + " and " + author_list[1];
+    } else if(author_list.length == 2){
+        citeText = author_list[0];
+    } else {
+        citeText = author_list[0] + " et al.";
+    };
+    citeText += ` (${cite['year'] || 0})`;
+}
+
+c = `<div class=cite id=${cite['citekey']} citeText="${citeText}">
+${author}${yr}${title}. <em>${journal}</em>${vol + num + pgs}. 
+<span class=citekey>${cite['citekey']}</span>
+</div>`;
+
+$('#bib_block').append(c);
+}

@@ -18,7 +18,7 @@ generateJson = function(src){
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
     client.connect(url);
-    client.sendCommand('get_bib', {'cites': ""});
+    client.sendCommand('get_bib', {'keys': ""});
 });
 
 
@@ -38,7 +38,7 @@ num = cite['number'] ? `, no. ${cite['number']}` : "";
 pgs = cite['pages'] ? `, pp. ${cite['pages']}` : "";
 title = cite['title'] ? `${cite['title']}` : "";
 journal = cite['journal'] || 'mimeo';
-journal = `<em>${journal}</em>`
+journal = `${journal}`
 
 author = `<b>${cite['author']}</b>. ` || "";
 
@@ -56,13 +56,25 @@ if(author&&yr){
 }
 
 c = `<div class=cite id=${cite['citekey']} citeText="${citeText}">
-${author}${yr}${title}. <em>${journal}</em>
-${vol + num + pgs}.
+${author}${yr}${title}. <em>${journal}</em>${vol + num + pgs}. 
+<span class=citekey>${cite['citekey']}</span>
 </div>`;
 
 $('#para_holder').append(c);
 }
 
+copy_citekey = function(cite) {
+    var textArea = document.createElement("textarea");
+    textArea.value = $(cite).attr('id');
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("Copy");
+    textArea.remove();
+}
+
+$(document).on('click', '.cite', function(){
+    copy_citekey(this)
+});
 
 
 sortCite = function(id){

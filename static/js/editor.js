@@ -10,7 +10,7 @@ $(document).on('input', 'textarea', function() {
 active_para = null; // state variable --- takes a para
 last_active = null; // state var, to keep track of where cursor was
 editable = false; // state variable, are we focused on the active para
-changed = [] //state vara, list of paras that have been changed
+changed = {}; //state vara, list of paras that have been changed
 
 makeActive = function(para) {
     makeUnEditable();
@@ -28,13 +28,13 @@ makeActive = function(para) {
 localChange = function(para) {
         var text = active_para.children('.p_input').val();
         var raw = active_para.attr('raw');
+        var pid = para.attr('pid');
         if(text!=raw){
-            changed.push(para[0]);
+            changed[pid] = text;
             $(para).addClass('changed');
         } else {
-            var index = changed.indexOf(para[0]);
-            if (index > -1) {
-                changed.splice(index, 1);
+            if (changed[pid]) {
+                delete changed[pid];
                 $(para).removeClass('changed');
             };
         };
@@ -61,28 +61,26 @@ unPlaceCursor = function() {
     }
 }
 
-editShiftUp = function(para){
+editShift = function(para, up=true){
     input = para.children('.p_input')[0]
     cpos = input.selectionStart
-    if (cpos == 0){
-        activePrevPara();
-        makeEditable();
-        placeCursor(begin=false);
-        return false;
-    }
-}
-
-editShiftDown = function(para){
-    input = para.children('.p_input')[0]
-    cpos = input.selectionStart;
-    tlen = input.value.length;
+    if(up==true){    
+        if (cpos == 0){
+            activePrevPara();
+            makeEditable();
+            placeCursor(begin=false);
+            return false;
+        };
+    } else {
+        tlen = input.value.length;
         if (cpos == tlen){
-        activeNextPara();
-        makeEditable();
-        placeCursor();
-        return false;
-    }
-}
+            activeNextPara();
+            makeEditable();
+            placeCursor();
+            return false;
+        };
+    };
+};
 
 makeEditable = function() {
     $('.para').removeClass('editable');
@@ -185,6 +183,13 @@ $(document).keydown(function(e) {
     if (e.keyCode in keyname) {
         keymap[keyname[e.keyCode]] = true;
         if (keymap['ctrl'] && keymap['s']) {
+            makeUnEditable()
+            if (Object.keys(changed).length > 0){
+                client.sendCommand('update_bulk', changed, function(success){
+                $('.para').removeClass('changed');
+                changed = {};
+                });
+            };
             return false;
         }
         if (!active_para) { // if we are inactive
@@ -230,9 +235,9 @@ $(document).keydown(function(e) {
             if (keymap['esc']) {
                 makeUnEditable();
             } else if (keymap['up'] || keymap['left']) {
-                return editShiftUp(active_para);
+                return editShift(active_para);
             } else if (keymap['down'] || keymap['right']) {
-                return editShiftDown(active_para);
+                return editShift(active_para, up=false);
             } else if (keymap['shift'] && keymap['enter']) {
                 var raw = active_para.children('.p_input').val();
                 var pid = active_para.attr('pid');

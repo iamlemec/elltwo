@@ -37,3 +37,12 @@ button{
     border-bottom: 1px solid var(--bor-col);
 }
 
+.citekey{
+    visibility: hidden;
+    color: var(--hl-col)
+}
+
+.cite:hover .citekey{
+    visibility: visible;
+}
+

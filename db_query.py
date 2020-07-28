@@ -128,18 +128,27 @@ def create_pid():
     else:
         return 0
 
-def update_para(pid, text):
-    now = datetime.utcnow()
+def update_para(pid, text, time=None):
+    if (time==None):
+        time = datetime.utcnow()
 
-    if (par := get_para(pid, now)) is None:
+    if (par := get_para(pid, time)) is None:
         return
 
-    par.delete_time = now
+    par.delete_time = time
 
-    par1 = Paragraph(aid=par.aid, pid=par.pid, create_time=now, text=text)
+    par1 = Paragraph(aid=par.aid, pid=par.pid, create_time=time, text=text)
     session.add(par1)
 
     session.commit()
+
+def bulk_update(para_dict, time=None):
+    if (time==None):
+        time = datetime.utcnow()
+
+    for pid, text in para_dict.items():
+        update_para(pid, text, time)
+
 
 def insert_after(pid, text=''):
     now = datetime.utcnow()
@@ -324,11 +333,11 @@ def delete_cite(bid):
     bib.delete_time = now
     session.commit()
 
-def get_bib(cites=None, time=None):
+def get_bib(keys=None, time=None):
     if time is None:
         time = datetime.utcnow()
 
-    if cites is None:
+    if keys is None:
         query = (session
             .query(Bib)
             .filter(bibtime(time))
@@ -337,15 +346,15 @@ def get_bib(cites=None, time=None):
         query = (session
             .query(Bib)
             .filter(bibtime(time))
-            .filter(Bib.bid.in_(cites))
+            .filter(Bib.citekey.in_(keys))
         )
 
     bib = query.all()
 
     return bib
 
-def get_bib_dict(cites=None, time=None):
-    bib = get_bib(cites, time)
+def get_bib_dict(keys=None, time=None):
+    bib = get_bib(keys, time)
     bib_dict = []
     for c in bib:
         x = c.__dict__

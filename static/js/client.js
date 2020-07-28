@@ -50,6 +50,8 @@ client = Client(function(cmd, data) {
 
     if (cmd == 'updatePara') {
         updatePara(...data); //data must come in correct order or args
+    } else if (cmd == 'update_bulk') {
+        updateParas(data);
     } else if (cmd == 'deletePara') {
         deletePara(...data);
     } else if (cmd == 'insert') {

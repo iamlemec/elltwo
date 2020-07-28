@@ -1074,7 +1074,7 @@ DivRenderer.prototype.equation = function(id, tex) {
 };
 
 DivRenderer.prototype.ref = function(id) {
-  return `<span class="reference">${id}</span>`;
+  return `<span class="reference" citekey=${id}>${id}</span>`;
 };
 
 DivRenderer.prototype.footnote = function(text) {

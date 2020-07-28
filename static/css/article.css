@@ -154,3 +154,32 @@ button {
     padding-top: 5px;
     padding-bottom: 5px;
 }
+
+#bib_block{
+    display: none;
+    position: relative;
+    left: 20%;
+    width: 60%;
+    min-height: 30px;
+    margin-bottom: 20px;
+    padding-left: 5px;
+    font-size: 70%;
+}
+
+.cite{
+  margin-top: 15px;
+  padding-left: 15px ;
+  text-indent: -15px ;
+}
+
+.citekey{
+    visibility: hidden;
+    color: var(--hl-col)
+}
+
+.cite:hover .citekey{
+    visibility: visible;
+}
+
+
+

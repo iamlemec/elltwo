@@ -89,6 +89,11 @@ def socket_json(json):
         #note: this is inefficent, it resends the text from the server to the client
         #but, it makes sure the commit happend before sending
         send_command('updatePara', [data['pid'], data['text']], broadcast=True)
+    elif cmd == 'update_bulk':
+        dbq.bulk_update(data)
+        #force update for other open windows
+        send_command('update_bulk', data, broadcast=True, include_self=False)
+        return True
     elif cmd == 'delete_para':
         dbq.delete_para(data['pid'])
         send_command('deletePara', [data['pid']])
@@ -107,11 +112,14 @@ def socket_json(json):
         bib = dbq.get_bib_dict()
         send_command('renderBib', bib)
     elif cmd == 'get_bib':
-        cites = data['cites']
-        if not cites:
-            cites=None
-        bib = dbq.get_bib_dict(cites=cites)
+        keys = data['keys']
+        if not keys:
+            keys=None
+        bib = dbq.get_bib_dict(keys=keys)
         send_command('renderBib', bib)
+    elif cmd == 'get_cite':
+        bib = dbq.get_bib_dict(keys=data['keys'])
+        return bib
     elif cmd == 'echo':
         return data
     else:
