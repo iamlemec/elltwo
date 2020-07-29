@@ -384,23 +384,29 @@ createRefs = function(para=false) {
     renderedCites = citekeys;
 };
 
+getTro = function(span){
+        tro = {}
+        key = span.attr('citekey');
+        if(key=="_self_"){
+            tro['tro'] = span;
+            tro['citeType'] = '_self_';
+        } else {
+           tro['tro'] = $('#'+key) || ""; //the referenced object
+           tro['citeType'] = tro.tro.attr('citeType') || tro.tro.attr('env') || '';
+        }
+        return tro
+}
+
 renderCiteText = function(para){
     para.find('.reference').each(function() {
         span = $(this); //the reference (actually an 'a' tag)
-        key = span.attr('citekey');
         text = span.attr('text') || "";
-        if(key=="_self_"){
-            tro = span;
-            citeType = '_self_';
-        } else {
-           tro = $('#'+key) || ""; //the referenced object
-           citeType = tro.attr('citeType') || tro.attr('env') || '';
-        }
-        if (citeType in ref_spec){
+        tro = getTro(span);
+        if (tro.citeType in ref_spec){
             if(text){
-            ref_spec['text'](span,tro,text)
+                ref_spec.text(span,tro.tro,text)
             }else{
-            ref_spec[citeType](span,tro)
+                ref_spec[tro.citeType](span,tro.tro)
             }
         }else {
             ref_spec['error'](span);
@@ -459,7 +465,7 @@ refEnv = function(span, tro, env){
     };
     span.text(citeText);
     span.attr('href', href);
-    span.removeClass('pop_anchor') // just for now
+    //span.removeClass('pop_anchor') // just for now
 
 }
 
@@ -568,23 +574,23 @@ createPop = function(html=""){
 
 popText = function(anchor){
     key = anchor.attr('citekey');
-    if(key == '_self_'){
-        tro = anchor;
-        citeType = '_self_'
-    } else {
-        tro = $('#'+key) || ""; //the referenced object
-        citeType = tro.attr('citeType') || tro.attr('env') || '';
-    };
-        if (citeType in pop_spec){
-            return pop_spec[citeType](tro)
-        }else {
+    tro = getTro(anchor);
+    if (tro.citeType in pop_spec){
+            return pop_spec[tro.citeType](tro.tro)
+    }else {
             return pop_spec['error']();
         };
 };
 
-popError = function(){
-    return "[Reference Not Found]";
-}
+popError = function(err='not found'){
+    if(err=='not found'){
+        return "[Reference Not Found]";
+    } else if (err=='env_err'){
+        return "[Referenced Environment Not Closed]";  
+    } else{
+        return "[Error]";  
+    };   
+};
 
 popSec = function(tro){
     return tro.text();
@@ -603,9 +609,27 @@ popSelf = function(tro){
     return tro.attr('poptext');
 }
 
+popEnv = function(tro){
+    if(tro.hasClass('env_err')){
+        return popError('env_err')
+    };
+    html = "";
+    next = true;
+    while(next){
+        html += tro.html()
+        if(tro.hasClass('env_end')){
+            next = false;
+        };
+        tro = tro.next('.para');
+    }
+
+    return html
+}
+
 
 pop_spec = {
     'sec': popSec,
+    'theorem': popEnv,
     'cite': popCite,
     'eq': popEq,
     'footnote': popSelf,
