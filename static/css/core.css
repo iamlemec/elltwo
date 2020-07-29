@@ -3,6 +3,7 @@
     --bor-col: darkcyan; /* border color */
     --hl-col: goldenrod; /* highlight color */
     --bor-foc-col: red; /* highlight color */
+    --pop-col: thistle ; /* popup color */
 }
 
 @font-face {
@@ -100,4 +101,15 @@ button:hover {
 button:active {
     position:relative;
     top:1px;
+}
+
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent; /* make scrollbar transparent */
+}
+
+
+a.reference{
+    color: var(--bor-col);
+    text-decoration: none;
 }

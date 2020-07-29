@@ -187,6 +187,11 @@ $(document).keydown(function(e) {
             if (Object.keys(changed).length > 0){
                 client.sendCommand('update_bulk', changed, function(success){
                 $('.para').removeClass('changed');
+                Object.keys(changed).map(function(pid){
+                    para = getPara(pid)
+                    para.attr('raw', changed[pid]);
+                    para.removeClass('changed');
+                })
                 changed = {};
                 });
             };

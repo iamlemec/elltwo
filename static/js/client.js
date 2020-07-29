@@ -60,6 +60,8 @@ client = Client(function(cmd, data) {
         console.log('status: ', data);
     } else if (cmd == 'renderBib') {
         renderBib(data);
+    } else if (cmd == 'deleteCite') {
+        deleteCite(data);
     } else {
         console.log('unknown: ', cmd);
     }

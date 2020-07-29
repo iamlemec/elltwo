@@ -27,11 +27,16 @@ $(document).ready(function() {
         para.html(inner_para);
 
         var raw = para.attr('raw');
-        dataToText(para, raw, false); // postpone formatting
+        dataToText(para, raw, false, false); // postpone formatting
         rawToTextArea(para);
     });
 
     envClasses();
+    createRefs()
+    // $('.para').each(createRefs($(this)));
+    $('.para').each(function(){
+        renderCiteText($(this))
+    });
 });
 
 /////////////////// EDITING /////////
@@ -40,7 +45,7 @@ $(document).ready(function() {
 /// local changes only --> to reflect server changes without full reload
 
 // get raw text from data-raw attribute, parse, render
-dataToText = function(para, raw, format=true) {
+dataToText = function(para, raw, format=true, ref=true) {
     var mark_out = markthree(raw);
     var html_text = mark_out['src'];
     var env_info = mark_out['env'];
@@ -76,8 +81,11 @@ dataToText = function(para, raw, format=true) {
 
     if (format) {
         envClasses();
-    }
+    };
+    if(ref){
     createRefs(para);
+    renderCiteText(para);
+    };
 };
 
 rawToTextArea = function(para) {
@@ -336,54 +344,161 @@ createNumbers = function() {
     });
 };
 
+/// REFERENCING and CITATIONS
+
 renderedCites = new Set(); //state var, citations previously rendered
 
 
-createRefs = function(para) {
+createRefs = function(para=false) {
     var citekeys = new Set();
     $('.reference').each(function() {
-        citekeys.add($(this).attr('citekey'));
+        key = $(this).attr('citekey');
+        citekeys.add(key);
     });
     //will only require server interaction for novel citations 
     var unRenderedCites = [];
     for(let key of citekeys){
-        if(!(renderedCites.has(key))){
+        if(($('#'+key).length == 0)&&(!(renderedCites.has(key)))&&(!(key=="_self_"))){
             unRenderedCites.push(key);
         };
     };
     //remove old bib entries that have been removed
     for(let key of renderedCites){
         if(!(citekeys.has(key))){
-            $('#'+key).remove()
+            $('.cite#'+key).remove()
         };
     };
-    if(citekeys.size > 0){
-        $('#bib_block').show()
-    }else{
-        $('#bib_block').hide()
-    }
+
     if(unRenderedCites.length > 0){
         client.sendCommand('get_cite', {'keys': unRenderedCites}, function(response){
-            renderBib(response);
-            renderCiteText(para);
+            renderBibLocal(response);
+            if(!para){
+                $('.para').each(function(){
+                    renderCiteText($(this))
+                });
+            } else {
+             renderCiteText(para);   
+            }
         });
-    } else {
-        renderCiteText(para);
-    } 
+    };
     renderedCites = citekeys;
-
 };
 
 renderCiteText = function(para){
     para.find('.reference').each(function() {
-        key = $(this).attr('citekey');
-        citeText = $('#'+key).attr('citeText') || '[ERR: CiteKey Not Found]';
-        $(this).text(citeText);
+        span = $(this); //the reference (actually an 'a' tag)
+        key = span.attr('citekey');
+        text = span.attr('text') || "";
+        if(key=="_self_"){
+            tro = span;
+            citeType = '_self_';
+        } else {
+           tro = $('#'+key) || ""; //the referenced object
+           citeType = tro.attr('citeType') || tro.attr('env') || '';
+        }
+        if (citeType in ref_spec){
+            if(text){
+            ref_spec['text'](span,tro,text)
+            }else{
+            ref_spec[citeType](span,tro)
+            }
+        }else {
+            ref_spec['error'](span);
+        }
     });
+    if($('.cite').length > 0){
+        $('#bib_block').show()
+    }else{
+        $('#bib_block').hide()
+    }
+};
+
+
+refCite = function(span,tro){
+
+    authors = tro.attr('authors').split(",");
+    year = tro.attr('year');
+    format = span.attr('format') || "";
+    href = '#'+tro.attr('id');
+
+    if(authors.length == 2){
+        citeText = authors[0] + " and " + authors[1];
+    } else if(authors.length < 2){
+        citeText = authors[0];
+    } else {
+        citeText = authors[0] + " et al.";
+    };
+
+    if(format=='p'){
+        citeText = `(${citeText}, ${year})`;
+    }else{
+        citeText += ` (${year})`;
+    }
+
+    span.text(citeText);
+    span.attr('href', href);
 }
 
+refEq = function(span, tro){
+    num = tro.find('.num')[0];
+    citeText = `(${$(num).text()})`;
+    href = '#'+tro.attr('id');
+    span.text(citeText);
+    span.attr('href', href);
+
+}
+
+refEnv = function(span, tro, env){
+    format = span.attr('format') || ""
+    num = tro.find('.num')[0] || "";
+    href = '#'+tro.attr('id');
+    if(format=='fancy'){
+        citeText = `${env} ${$(num).text()}`;
+    } else {
+    citeText = `${$(num).text()}`;
+    };
+    span.text(citeText);
+    span.attr('href', href);
+    span.removeClass('pop_anchor') // just for now
+
+}
+
+refText = function(span, tro, text){
+    href = '#'+tro.attr('id');
+    span.text(text);
+    span.attr('href', href);
+}
+
+refError = function(span){
+    span.text("[Reference Not Found]");
+}
+
+refSec = function(span, tro){
+    return refEnv(span, tro, 'Section')
+}
+
+refTheorem = function(span, tro){
+    return refEnv(span, tro, 'Theorem')
+}
+
+refSelf = function(span){
+    text = span.attr('text');
+    span.text(text);
+}
+
+
+ref_spec = {
+    'cite': refCite,
+    'eq': refEq,
+    'sec': refSec,
+    'theorem': refTheorem,
+    'text': refText,
+    '_self_': refSelf,
+    'error': refError,
+};
+
 /// THIS IS REPATED FROM THE BIB.JS, we should make it more efficent 
-renderBib = function(data){
+renderBibLocal = function(data){
     //$('#para_holder').empty();
     data.map(createBibEntry)
     //sortCite('#para_holder')
@@ -391,33 +506,110 @@ renderBib = function(data){
 
 createBibEntry = function(cite){
 
+$('#'+cite['citekey']).remove();
+
 yr = cite['year'] ? ` ${cite['year']}. ` : "";
 vol = cite['volume'] ? `, ${cite['volume']}` : "";
 num = cite['number'] ? `, no. ${cite['number']}` : "";
 pgs = cite['pages'] ? `, pp. ${cite['pages']}` : "";
 title = cite['title'] ? `${cite['title']}` : "";
-journal = cite['journal'] || 'mimeo';
-journal = `${journal}`
+pubs = ['book', 'incollection'];
+jns = ['article', 'techreport', 'unpublished']
 
-author = `<b>${cite['author']}</b>. ` || "";
-
-
-if(author&&yr){
-    var author_list = cite['author'].split(" and ").map(auth => auth.split(',')[0]);
-    if(author_list.length == 2){
-        citeText = author_list[0] + " and " + author_list[1];
-    } else if(author_list.length == 2){
-        citeText = author_list[0];
-    } else {
-        citeText = author_list[0] + " et al.";
-    };
-    citeText += ` (${cite['year'] || 0})`;
+if(pubs.includes(cite['entry_type'])){
+    pub = cite['publisher'] || "";
+    journal = (cite['booktitle']) ? `In ${cite['booktitle']}`: "";
+}else if (jns.includes(cite['entry_type'])) {
+    pub = ""
+    journal = cite['journal'] || 'mimeo';
 }
 
-c = `<div class=cite id=${cite['citekey']} citeText="${citeText}">
-${author}${yr}${title}. <em>${journal}</em>${vol + num + pgs}. 
+author = `<b>${cite['author']}</b>. ` || "";
+index = (vol || num || pgs) ? `${vol + num + pgs}.` : "";
+
+var author_list = cite['author'].split(" and ").map(auth => auth.split(',')[0]);
+
+c = `<div class=cite id=${cite['citekey']} citeType=cite authors="${author_list}" year="${cite['year']}">
+<span class=citeText>
+    ${author}${yr}${title}. <em>${journal}</em>${index} ${pub} 
+</span>
 <span class=citekey>${cite['citekey']}</span>
 </div>`;
 
 $('#bib_block').append(c);
 }
+
+
+//// POPUP FUNCTIONALITY
+
+$(document).on({
+    mouseenter: function(){
+        html = popText($(this)) || "";
+        createPop(html)
+    },
+    mouseleave: function(){
+        $('#pop').remove();
+    }
+}, ".pop_anchor");
+
+createPop = function(html=""){
+    pop = $("<div>", {id: "pop"})
+        $('#bg').append(pop)
+        pop.html(html);
+        h = pop.height();
+        w = pop.width();
+        $(this).mousemove(function(event){
+          pop.css({
+            'left': (event.pageX - .5*w - 10) + 'px', //offset 10px for padding
+            'top': (event.pageY - h - 35) + 'px', //offset up by 35 px
+            });  
+        })
+    };
+
+popText = function(anchor){
+    key = anchor.attr('citekey');
+    if(key == '_self_'){
+        tro = anchor;
+        citeType = '_self_'
+    } else {
+        tro = $('#'+key) || ""; //the referenced object
+        citeType = tro.attr('citeType') || tro.attr('env') || '';
+    };
+        if (citeType in pop_spec){
+            return pop_spec[citeType](tro)
+        }else {
+            return pop_spec['error']();
+        };
+};
+
+popError = function(){
+    return "[Reference Not Found]";
+}
+
+popSec = function(tro){
+    return tro.text();
+}
+
+popEq = function(tro){
+    return tro.find('.equation').html();
+}
+
+popCite = function(tro){
+    html = tro.find('.citeText').html();
+    return html
+}
+
+popSelf = function(tro){
+    return tro.attr('poptext');
+}
+
+
+pop_spec = {
+    'sec': popSec,
+    'cite': popCite,
+    'eq': popEq,
+    'footnote': popSelf,
+    '_self_': popSelf,
+    'error': popError,
+};
+

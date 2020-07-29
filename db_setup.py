@@ -67,14 +67,16 @@ class Bib(db.Model):
     bid = db.Column(db.Integer, primary_key=True)
     citekey = db.Column(db.Text, nullable=False)
     entry_type = db.Column(db.Text, nullable=False)
-    title = db.Column(db.Text)
-    author = db.Column(db.Text)
+    title = db.Column(db.Text, nullable=False)
+    author = db.Column(db.Text, nullable=False)
     journal = db.Column(db.Text)
     number = db.Column(db.Text) #integer?
     volume = db.Column(db.Text)
-    year = db.Column(db.Text)
+    year = db.Column(db.Text, nullable=False)
+    booktitle = db.Column(db.Text)
     publisher = db.Column(db.Text)
     pages = db.Column(db.Text)
+    raw = db.Column(db.Text, nullable=False) #the raw bibtex stored for editing, probably could kill off
     create_time = db.Column(db.DateTime, default=datetime.utcnow)
     delete_time = db.Column(db.DateTime)
 

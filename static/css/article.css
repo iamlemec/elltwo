@@ -39,11 +39,6 @@
 
 
 
-::-webkit-scrollbar {
-    width: 0px;
-    background: transparent; /* make scrollbar transparent */
-}
-
 .control {
     display: none;
     position: absolute;
@@ -108,7 +103,7 @@ button {
 .eqnum {
  position: absolute;
  right: 0;
- bottom: 50%;
+ bottom: 40%;
 }
 
 .qed {
@@ -155,6 +150,11 @@ button {
     padding-bottom: 5px;
 }
 
+.footnote{
+    color: var(--bor-col);
+    font-size: 90%;
+}
+
 #bib_block{
     display: none;
     position: relative;
@@ -164,6 +164,10 @@ button {
     margin-bottom: 20px;
     padding-left: 5px;
     font-size: 70%;
+}
+
+#bib_block .cite{
+    display: block;
 }
 
 .cite{
@@ -179,6 +183,30 @@ button {
 
 .cite:hover .citekey{
     visibility: visible;
+}
+
+#pop{
+    background: var(--pop-col);
+    padding: 10px;
+    position: absolute;
+    z-index: 1000;
+    min-width:150px;
+    min-height:30px;
+    max-width: 50%;
+}
+
+#pop:after {
+	top: 100%;
+	left: 50%;
+	border: solid transparent;
+	content: " ";
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+	border-top-color: var(--pop-col);
+	border-width: 10px;
+	margin-left: -10px;
 }
 
 

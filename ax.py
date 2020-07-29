@@ -109,8 +109,8 @@ def socket_json(json):
         return True
     elif cmd == 'create_cite':
         dbq.create_cite(data['citationKey'], data['entryType'], **data['entryTags'])
-        bib = dbq.get_bib_dict()
-        send_command('renderBib', bib)
+        bib = dbq.get_bib_dict(keys=[data['citationKey']])
+        send_command('renderBib', bib, broadcast=True)
     elif cmd == 'get_bib':
         keys = data['keys']
         if not keys:
@@ -120,6 +120,9 @@ def socket_json(json):
     elif cmd == 'get_cite':
         bib = dbq.get_bib_dict(keys=data['keys'])
         return bib
+    elif cmd == 'delete_cite':
+        dbq.delete_cite(data['key'])
+        send_command('deleteCite', data['key'], broadcast=True)
     elif cmd == 'echo':
         return data
     else:

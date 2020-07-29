@@ -311,23 +311,33 @@ def search_title(words, err=0.3):
 def create_cite(citekey, entry_type, **kwargs):
     now = datetime.utcnow()
 
-    cite = Bib(citekey=citekey, entry_type=entry_type, create_time=now, **kwargs)
-    session.add(cite)
-    session.commit()
+    if (bib := get_cite(citekey)) is None:
+        cite = Bib(citekey=citekey, entry_type=entry_type, create_time=now, **kwargs)
+        session.add(cite)
+        session.commit()
 
-    return cite
+        return cite
+
+    else:
+
+        bib.delete_time = now
+        cite = Bib(citekey=citekey, entry_type=entry_type, create_time=now, **kwargs)
+        session.add(bib)
+        session.add(cite)
+        session.commit()
 
 
-def get_cite(bid, time=None):
+
+def get_cite(citekey, time=None):
     if time is None:
         time = datetime.utcnow()
-    return session.query(Bib).filter_by(bid=bid).filter(bibtime(time)).one_or_none()
+    return session.query(Bib).filter_by(citekey=citekey).filter(bibtime(time)).one_or_none()
 
 
-def delete_cite(bid):
+def delete_cite(citekey):
     now = datetime.utcnow()
 
-    if (bib := get_cite(bid)) is None:
+    if (bib := get_cite(citekey)) is None:
         return
 
     bib.delete_time = now

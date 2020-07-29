@@ -304,6 +304,9 @@ Lexer.prototype.token = function(src, top, bq) {
       if ((Object.keys(args).length==0)&&(argsraw)) {
         args['id'] = argsraw;
       };
+      if(!('id' in args)){
+        args['id'] = argsraw.split('|')[0]
+      }
       if (!('number' in args)) {
         nonum = cap[3] || "";
         args['number'] = nonum.length == 0;
@@ -586,7 +589,7 @@ var inline = {
   del: noop,
   text: /^[\s\S]+?(?=[\\<!\[_*`\$\^@]| {2,}\n|$)/,
   math: /^\$((?:\\\$|[\s\S])+?)\$/,
-  ref: /^@\[([\w-]+?)\]/,
+  ref: /^@\[([\w-\|\=]+)\]/, 
   footnote: /^\^\[(inside)\]/
 };
 
@@ -725,8 +728,19 @@ InlineLexer.prototype.output = function(src) {
     // ref
     if (cap = this.rules.ref.exec(src)) {
       src = src.substring(cap[0].length);
-      id = cap[1];
-      out += this.renderer.ref(id);
+      var args = {};
+      argsraw = cap[1];
+      argsraw.split('|').filter(arg => arg.split('=')[1])
+             .forEach(arg => args[arg.split('=')[0]] = arg.split('=')[1]);
+      if ((Object.keys(args).length==0)&&(argsraw)) {
+        args['id'] = argsraw;
+      };
+      if(!('id' in args)){
+        args['id'] = argsraw.split('|')[0]
+      }
+      //id = args['id'];
+      args = args;
+      out += this.renderer.ref(args);
     }
 
     // footnote
@@ -969,7 +983,7 @@ DivRenderer.prototype.heading = function(text, level, refid, number) {
     num += `<span class="num" counter=heading${l} inc=1></span>.`;
   };
   var cls = `heading h${level}`;
-  return `<div ${rid} class="${cls}">\n${num} ${text}\n</div>\n\n`;
+  return `<div ${rid} class="${cls}" citeType=sec>\n${num} ${text}\n</div>\n\n`;
 };
 
 DivRenderer.prototype.envbeg = function(env, end, text) {
@@ -1070,15 +1084,20 @@ DivRenderer.prototype.math = function(tex) {
 DivRenderer.prototype.equation = function(id, tex) {
   var eqid = (id != undefined) ? `id="${id}"`: '';
   var num = (id != undefined) ? `<div class="eqnum">(<span class="num" counter=equation inc=1></span>)</div>`: '';
-  return `<div class="equation" ${eqid}>\n${tex}</div>\n\n` + num;
+  return `<div ${eqid} citeType=eq><div class="equation">\n${tex}</div>${num}</div>`;
 };
 
-DivRenderer.prototype.ref = function(id) {
-  return `<span class="reference" citekey=${id}>${id}</span>`;
+DivRenderer.prototype.ref = function(args) {
+  id = args['id'];
+  format =  args['format'] || args['f'] || args['fmt'] || "";
+  text =  (args['text'] || args['t']) ? `text="${args['text'] || args['text']}"`: "";
+  popup = (args['popup'] != 'false') ? 'pop_anchor': "";
+  poptext = (args['poptext'] != 'false') ? `poptext="${args['poptext']}"`: "";
+  return `<a class="reference ${popup}" citekey="${id}" format="${format}" ${text} ${poptext}></a>`;
 };
 
 DivRenderer.prototype.footnote = function(text) {
-  return `<span class="footnote">${text}</span>`;
+  return `<span class="footnote pop_anchor" citeType=footnote citekey="_self_" pop_text="${text}">&#10214<span class=num counter=footnote inc=1></span>&#10215</span>`;
 };
 
 DivRenderer.prototype.image = function(href, alt) {
