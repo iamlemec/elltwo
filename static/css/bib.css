@@ -18,13 +18,23 @@
     background-color: white;
 }
 
+#search{
+    position: fixed;
+    right: 35%;
+    top: 90%;
+    width: 10%;
+    border-top: none;
+    border-right: none;
+    background-color: white;
+}
+
 .cite {
   position: relative;
   width: 60%;
   left: 20%;
   margin-bottom: 10px;
-  padding-left: 22px ;
-  text-indent: -22px ;
+  padding-left: 28px ;
+  text-indent: -18px ;
 } 
 
 #para_holder{
@@ -37,6 +47,25 @@
     overflow: scroll;
     scrollbar-width: none;
 
+}
+
+#search_results{
+    display: none;
+    position: fixed;
+    font-size: 80%;
+    width: 80%;
+    left: 10%;
+    top: 10%;
+    height: 55%;
+    overflow: scroll;
+    scrollbar-width: none;
+    background-color: var(--bg-col);   
+
+}
+
+
+#search_results > .cite {    
+      background-color: var(--pop-col);
 }
 
 .citekey{
@@ -80,5 +109,14 @@ button {
     margin-bottom: 5px;
 }
 
+#s_heading{
+    font-size: 200%;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+#xsr{
+    cursor: pointer;
+}
 
 

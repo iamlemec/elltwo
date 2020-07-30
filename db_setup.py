@@ -75,6 +75,7 @@ class Bib(db.Model):
     year = db.Column(db.Text, nullable=False)
     booktitle = db.Column(db.Text)
     publisher = db.Column(db.Text)
+    DOI = db.Column(db.Text)
     pages = db.Column(db.Text)
     raw = db.Column(db.Text, nullable=False) #the raw bibtex stored for editing, probably could kill off
     create_time = db.Column(db.DateTime, default=datetime.utcnow)
@@ -84,5 +85,6 @@ class Bib(db.Model):
         return f'{self.bid} [{self.create_time} → {self.delete_time}]:\n{self.author} ({self.year})'
 
 if __name__ == '__main__':
+    # db.drop_all()
     db.create_all()
     search.create_index()

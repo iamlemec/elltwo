@@ -31,13 +31,32 @@ $(document).on('click', '#create', function () {
     var src = $('#bib_input').val();
     json = generateJson(src);
     if(json){
-        json['entryTags']['raw'] = src;
+        json.entryTags.raw = src;
         client.sendCommand('create_cite', json);
     };
 });
 
+$(document).on('click', '#search', function () {
+    var q = $('#bib_input').val();
+    $('#search_results').find('.cite').remove();
+    $('.nr').remove()
+    $('#search_results').show();
+    getCiteData(q);
+});
+
+
+$(document).on('click', '#xsr', function () {
+    $('#search_results').find('.cite').remove();
+    $('.nr').remove()
+    $('#search_results').hide();
+});
+
 renderBib = function(data){
-    data.map(createBibEntry)
+    //data.map(createBibEntry)
+    data.forEach(function(cite){
+        createBibEntry(cite, $('#para_holder'));
+
+    });
     $('#bib_input').val("");
     sortCite('#para_holder')
     if(data.length == 1){
@@ -49,11 +68,10 @@ deleteCite = function(key){
     $('#'+key).remove();
 }
 
-createBibEntry = function(cite){
 
-$('#'+cite['citekey']).remove();
+createBibEntry = function(cite, target, results=false){
 
-console.log(cite['entry_type'])
+target.find('#'+cite['citekey']).remove();
 
 yr = cite['year'] ? ` ${cite['year']}. ` : "";
 vol = cite['volume'] ? `, ${cite['volume']}` : "";
@@ -63,6 +81,9 @@ title = cite['title'] ? `${cite['title']}` : "";
 raw=cite['raw'];
 pubs = ['book', 'incollection'];
 jns = ['article', 'techreport', 'unpublished'];
+wild = ['undefined'];
+
+DOI = cite['DOI'] ? `<a target='_blank' href=https://www.doi.org/${cite['DOI']}>[Go]</a>` : "";
 
 if(pubs.includes(cite['entry_type'])){
     pub = cite['publisher'] || "";
@@ -70,23 +91,33 @@ if(pubs.includes(cite['entry_type'])){
 }else if (jns.includes(cite['entry_type'])) {
     pub = ""
     journal = cite['journal'] || 'mimeo';
+}else if (wild.includes(cite['entry_type'])) {
+    pub = pub = cite['publisher'] || "";
+    journal = cite['journal'] || cite['booktitle'] || "";
 }
 
 author = `<b>${cite['author']}</b>. ` || "";
 index = (vol || num || pgs) ? `${vol + num + pgs}.` : "";
 
+buts = `<button class="update">Update</button>
+        <button class="delete">Delete</button>`;
+
+if(results){
+    buts = `<button class="update">Edit</button>`;
+}
+
+
 c = `<div class=cite id=${cite['citekey']} citeType=cite raw="${raw}">
-${author}${yr}${title}. <em>${journal}</em>${index} ${pub}
+${author}${yr}${title}. <em>${journal}</em>${index} ${pub} ${DOI}
 <span class=citekey>${cite['citekey']}</span>
     <div class="control">
         <div class="controlDots">&#9776;</div>
         <div class="controlButs">
-        <button class="update">Update</button>
-        <button class="delete">Delete</button>
+        ${buts}
     </div>
 </div>`;
 
-$('#para_holder').append(c);
+target.append(c);
 }
 
 //editing and nav
@@ -117,6 +148,9 @@ sortCite = function(id){
 $(document).on('click', '.update', function () {
     var src = $(this).closest('.cite').attr('raw');
     $('#bib_input').val(src);
+    $('#search_results').find('.cite').remove();
+    $('.nr').remove()
+    $('#search_results').hide();
 });
 
 $(document).on('click', '.delete', function () {

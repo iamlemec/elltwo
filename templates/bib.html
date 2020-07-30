@@ -8,6 +8,7 @@
   <script src={{ url_for('static', filename='js/socket.io.js') }} language="Javascript" type="text/javascript"></script>
   <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
   <script src={{ url_for('static', filename='js/bib.js') }} language="Javascript" type="text/javascript"></script>
+  <script src={{ url_for('static', filename='js/bib_search.js') }} language="Javascript" type="text/javascript"></script>
 {% endblock %}
 {% block title %}Bib{% endblock %} 
 
@@ -16,8 +17,12 @@
 {% block content %}
       <div id=para_holder>
       </div>
+      <div id=search_results>
+        <div id=s_heading>Search Results <span id=xsr>&#9746</span></div>
+      </div>
       <textarea id="bib_input"></textarea>
       <button id="create">Create</button>
+      <button id="search">Search</button>
 {% endblock %}
 
 {% block foot %}
