@@ -1,4 +1,4 @@
-#bib_input{
+#bib_input {
     position: fixed;
     resize: none;
     width: 50%;
@@ -8,8 +8,7 @@
     border-bottom: 1px solid var(--bor-col);
 }
 
-
-#create{
+#create {
     position: fixed;
     right: 25%;
     top: 90%;
@@ -18,7 +17,7 @@
     background-color: white;
 }
 
-#search{
+#search {
     position: fixed;
     right: 35%;
     top: 90%;
@@ -35,9 +34,9 @@
   margin-bottom: 10px;
   padding-left: 28px ;
   text-indent: -18px ;
-} 
+}
 
-#para_holder{
+#para_holder {
     position: fixed;
     font-size: 80%;
     width: 80%;
@@ -49,7 +48,7 @@
 
 }
 
-#search_results{
+#search_results {
     display: none;
     position: fixed;
     font-size: 80%;
@@ -59,21 +58,20 @@
     height: 55%;
     overflow: scroll;
     scrollbar-width: none;
-    background-color: var(--bg-col);   
+    background-color: var(--bg-col);
 
 }
 
-
-#search_results > .cite {    
-      background-color: var(--pop-col);
+#search_results > .cite {
+      /* background-color: var(--pop-bg-col); */
 }
 
-.citekey{
+.citekey {
     visibility: hidden;
     color: var(--hl-col)
 }
 
-.cite:hover .citekey{
+.cite:hover .citekey {
     visibility: visible;
 }
 
@@ -109,14 +107,12 @@ button {
     margin-bottom: 5px;
 }
 
-#s_heading{
+#s_heading {
     font-size: 200%;
     text-align: center;
     margin-bottom: 10px;
 }
 
-#xsr{
+#xsr {
     cursor: pointer;
 }
-
-

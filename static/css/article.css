@@ -1,6 +1,5 @@
 /* VARIABLE ASSIGNMENT */
 
-
 #para_holder {
     position: absolute;
     width: 80%;
@@ -37,8 +36,6 @@
     border-left: 2px solid var(--bor-foc-col);
 }
 
-
-
 .control {
     display: none;
     position: absolute;
@@ -57,7 +54,6 @@
         display: none;
 }
 
-
 .control:hover .controlButs {
     display: block;
 }
@@ -70,14 +66,11 @@
     font-size: 90%;
 }
 
-
 button {
     font-size:80%;
     padding:1px 3px;
     width: 100%;
 }
-
-
 
 .active {
    border-left: 2px solid var(--hl-col);
@@ -97,8 +90,7 @@ button {
     display: block;
 }
 
-/* DIV renderer stylying
- */
+/* DIV renderer stylying */
 
 .eqnum {
  position: absolute;
@@ -150,12 +142,12 @@ button {
     padding-bottom: 5px;
 }
 
-.footnote{
+.footnote {
     color: var(--bor-col);
     font-size: 90%;
 }
 
-#bib_block{
+#bib_block {
     display: none;
     position: relative;
     left: 20%;
@@ -166,33 +158,35 @@ button {
     font-size: 70%;
 }
 
-#bib_block .cite{
+#bib_block .cite {
     display: block;
 }
 
-.cite{
+.cite {
   margin-top: 15px;
-  padding-left: 15px ;
-  text-indent: -15px ;
+  padding-left: 15px;
+  text-indent: -15px;
 }
 
-.citekey{
+.citekey {
     visibility: hidden;
-    color: var(--hl-col)
+    color: var(--hl-col);
 }
 
-.cite:hover .citekey{
+.cite:hover .citekey {
     visibility: visible;
 }
 
-#pop{
-    background: var(--pop-col);
+#pop {
+    color: var(--pop-fg-col);
+    background-color: var(--pop-bg-col);
     padding: 10px;
     position: absolute;
     z-index: 1000;
     min-width:150px;
     min-height:30px;
     max-width: 50%;
+    border-radius: 5px;
 }
 
 #pop:after {
@@ -204,10 +198,7 @@ button {
 	width: 0;
 	position: absolute;
 	pointer-events: none;
-	border-top-color: var(--pop-col);
+	border-top-color: var(--pop-bg-col);
 	border-width: 10px;
 	margin-left: -10px;
 }
-
-
-

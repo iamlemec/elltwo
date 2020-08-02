@@ -589,7 +589,7 @@ var inline = {
   del: noop,
   text: /^[\s\S]+?(?=[\\<!\[_*`\$\^@]| {2,}\n|$)/,
   math: /^\$((?:\\\$|[\s\S])+?)\$/,
-  ref: /^@\[([\w-\|\=]+)\]/, 
+  ref: /^@\[([\w-\|\=]+)\]/,
   footnote: /^\^\[(inside)\]/
 };
 
@@ -1088,12 +1088,13 @@ DivRenderer.prototype.equation = function(id, tex) {
 };
 
 DivRenderer.prototype.ref = function(args) {
-  id = args['id'];
-  format =  args['format'] || args['f'] || args['fmt'] || "";
-  text =  (args['text'] || args['t']) ? `text="${args['text'] || args['text']}"`: "";
-  popup = (args['popup'] != 'false') ? 'pop_anchor': "";
-  poptext = (args['poptext'] != 'false') ? `poptext="${args['poptext']}"`: "";
-  return `<a class="reference ${popup}" citekey="${id}" format="${format}" ${text} ${poptext}></a>`;
+  var id = args['id'];
+  var format =  args['format'] || args['fmt'] || args['f'] || '';
+  var text = args['text'] || args['txt'] || args['t'];
+  var htext =  (text != undefined) ? `text="${text}"`: '';
+  var pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
+  var ptext = ('poptext' in args) ? `poptext="${args['poptext']}"`: '';
+  return `<a class="reference ${pclass}" citekey="${id}" format="${format}" ${htext} ${ptext}></a>`;
 };
 
 DivRenderer.prototype.footnote = function(text) {

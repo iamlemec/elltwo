@@ -24,32 +24,31 @@ makeActive = function(para) {
     }
 };
 
-
 localChange = function(para) {
-        var text = active_para.children('.p_input').val();
-        var raw = active_para.attr('raw');
-        var pid = para.attr('pid');
-        if(text!=raw){
-            changed[pid] = text;
-            $(para).addClass('changed');
-        } else {
-            if (changed[pid]) {
-                delete changed[pid];
-                $(para).removeClass('changed');
-            };
-        };
-        dataToText(para, text); //local changes only
+    var text = active_para.children('.p_input').val();
+    var raw = active_para.attr('raw');
+    var pid = para.attr('pid');
+    if (text != raw) {
+        changed[pid] = text;
+        $(para).addClass('changed');
+    } else {
+        if (changed[pid]) {
+            delete changed[pid];
+            $(para).removeClass('changed');
+        }
+    };
+    dataToText(para, text); //local changes only
 };
 
 placeCursor = function(begin=true) {
     if (active_para) {
         var text = active_para.children('.p_input');
         text.focus();
-        if(begin){
-        text[0].setSelectionRange(0, 0);
-        }else{
-        tlen = text[0].value.length
-        text[0].setSelectionRange(tlen, tlen);
+        if (begin) {
+            text[0].setSelectionRange(0, 0);
+        } else {
+            var tlen = text[0].value.length
+            text[0].setSelectionRange(tlen, tlen);
         }
     }
 };
@@ -61,25 +60,25 @@ unPlaceCursor = function() {
     }
 }
 
-editShift = function(para, up=true){
-    input = para.children('.p_input')[0]
-    cpos = input.selectionStart
-    if(up==true){    
+editShift = function(para, up=true) {
+    var input = para.children('.p_input')[0];
+    var cpos = input.selectionStart;
+    if (up == true) {
         if (cpos == 0){
             activePrevPara();
             makeEditable();
             placeCursor(begin=false);
             return false;
-        };
+        }
     } else {
-        tlen = input.value.length;
+        var tlen = input.value.length;
         if (cpos == tlen){
             activeNextPara();
             makeEditable();
             placeCursor();
             return false;
-        };
-    };
+        }
+    }
 };
 
 makeEditable = function() {
@@ -218,6 +217,8 @@ $(document).keydown(function(e) {
                 client.sendCommand('insert_before', {'pid': pid}, function(success) {
                     if (success) {
                         activePrevPara();
+                        makeEditable();
+                        placeCursor();
                     }
                 });
             } else if (keymap['b']) {
@@ -225,6 +226,8 @@ $(document).keydown(function(e) {
                 client.sendCommand('insert_after', {'pid': pid}, function(success) {
                     if (success) {
                         activeNextPara();
+                        makeEditable();
+                        placeCursor();
                     }
                 });
             } else if (keymap['shift'] && keymap['d']) {
@@ -256,19 +259,12 @@ $(document).keydown(function(e) {
 })
 
 $(document).keyup(function(e) {
-    for (key in keymap) {
-        keymap[key] = false;
-        // console.log(map);
+    if (e.keyCode in keyname) {
+        keymap[keyname[e.keyCode]] = false;
     }
 });
 
 /// Button Nav
-
-
-// $(document).on('click', '.p_text', function() {
-//     var para = $(this).parent();
-//     rawToTextArea(para);
-// });
 
 $(document).on('click', '.update', function() {
     var para = $(this).parents('.para');

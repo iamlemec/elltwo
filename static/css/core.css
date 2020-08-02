@@ -3,7 +3,8 @@
     --bor-col: darkcyan; /* border color */
     --hl-col: goldenrod; /* highlight color */
     --bor-foc-col: red; /* highlight color */
-    --pop-col: thistle ; /* popup color */
+    --pop-fg-col: rgb(255, 255, 255); /* popup text color */
+    --pop-bg-col: rgba(0, 0, 0, 0.85); /* popup background color */
 }
 
 @font-face {
@@ -70,7 +71,7 @@ textarea:focus {
 }
 
 #bg {
-    position: fixed; 
+    position: fixed;
     height: 100%;
     width: 100%;
     background-color: var(--bg-col)
@@ -83,7 +84,13 @@ textarea:focus {
     width: 80%;
     margin: auto;
     padding-top: 70px;
-    padding-bottom: 50px;
+}
+
+/* css is so fucking dumb */
+#content:after {
+    content: "";
+    display: block;
+    height: 70px;
 }
 
 button {
@@ -108,8 +115,7 @@ button:active {
     background: transparent; /* make scrollbar transparent */
 }
 
-
-a.reference{
+a.reference {
     color: var(--bor-col);
     text-decoration: none;
 }
