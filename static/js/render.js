@@ -26,13 +26,12 @@ $(document).ready(function() {
         para.html(inner_para);
 
         var raw = para.attr('raw');
-        dataToText(para, raw, false, false); // postpone formatting
+        dataToText(para, raw, true); // postpone formatting
         rawToTextArea(para);
     });
 
     envClasses();
     createRefs();
-    renderCiteText();
 });
 
 /////////////////// EDITING /////////
@@ -41,12 +40,21 @@ $(document).ready(function() {
 /// local changes only --> to reflect server changes without full reload
 
 // get raw text from data-raw attribute, parse, render
-dataToText = function(para, raw, format=true, ref=true) {
+dataToText = function(para, raw, defer=false) {
+    // render with markthree
     var mark_out = markthree(raw);
     var html_text = mark_out['src'];
     var env_info = mark_out['env'];
 
+    // store old id/env info
+    var old_id = para.attr('id');
+    var old_env = para.attr('env');
+
+    // display rendered html
     para.children('.p_text').html(html_text);
+
+    // render math
+    renderKatex(para);
 
     // must remove old classes, to prevent pileup / artifacts
     para.removeClass('env_end')
@@ -54,6 +62,7 @@ dataToText = function(para, raw, format=true, ref=true) {
         .removeAttr('env')
         .removeAttr('id');
 
+    // fill in env identifiers
     if (env_info != null) {
         if (env_info.type == 'begin') {
             para.attr('env', env_info.env);
@@ -73,15 +82,18 @@ dataToText = function(para, raw, format=true, ref=true) {
         }
     }
 
-    renderKatex(para);
+    // has id/env info changed?
+    var new_id = para.attr('id');
+    var new_env = para.attr('env');
+    var changed = (new_id != old_id) || (new_env != old_env);
+    console.log(`changed: ${changed}`);
 
-    if (format) {
+    // call environment formatters and reference updates
+    if (!defer) {
         envClasses();
-    }
-
-    if (ref) {
-        createRefs(para);
-        renderCiteText(para);
+        if (changed) {
+            createRefs(); // we may be able to scope this more
+        }
     }
 };
 
@@ -117,6 +129,7 @@ deletePara = function(pid) {
     var para = getPara(pid);
     para.remove();
     envClasses();
+    createRefs(); // we may be able to scope this more
 };
 
 insertPara = function(pid, new_pid, before=true, raw='') {
@@ -213,7 +226,7 @@ envClasses = function() {
         envFormat(env_all, 'error', {code: 'eof', env: env_name});
     }
 
-    // format classed envs
+    // add in numbers with auto-increment
     createNumbers();
 };
 
@@ -389,15 +402,10 @@ createRefs = function(para) {
     if (unRenderedCites.length > 0) {
         client.sendCommand('get_cite', {'keys': unRenderedCites}, function(response) {
             renderBibLocal(response);
-            if (para == undefined) {
-                $('.para').each(function() {
-                    var p = $(this);
-                    renderCiteText(p);
-                });
-            } else {
-                renderCiteText(para);
-            }
+            renderCiteText(para);
         });
+    } else {
+        renderCiteText(para);
     }
 
     renderedCites = citeKeys;

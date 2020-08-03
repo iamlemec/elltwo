@@ -10,7 +10,7 @@ $(document).on('input', 'textarea', function() {
 active_para = null; // state variable --- takes a para
 last_active = null; // state var, to keep track of where cursor was
 editable = false; // state variable, are we focused on the active para
-changed = {}; //state vara, list of paras that have been changed
+changed = {}; // state vara, list of paras that have been changed
 
 makeActive = function(para) {
     makeUnEditable();
@@ -25,20 +25,27 @@ makeActive = function(para) {
 };
 
 localChange = function(para) {
-    var text = active_para.children('.p_input').val();
-    var raw = active_para.attr('raw');
-    var pid = para.attr('pid');
+    var text = para.children('.p_input').val();
+    var raw = para.attr('raw');
     if (text != raw) {
+        var pid = para.attr('pid');
         changed[pid] = text;
         $(para).addClass('changed');
-    } else {
-        if (changed[pid]) {
-            delete changed[pid];
-            $(para).removeClass('changed');
-        }
-    };
-    dataToText(para, text); //local changes only
+    }
+    dataToText(para, text); // local changes only
 };
+
+storeChange = function(para) {
+    var pid = para.attr('pid');
+    if (pid in changed) {
+        var raw = changed[pid];
+        para.attr('raw', raw);
+        delete changed[pid];
+        $(para).removeClass('changed');
+    }
+};
+
+// revertChange?
 
 placeCursor = function(begin=true) {
     if (active_para) {
@@ -58,13 +65,13 @@ unPlaceCursor = function() {
         var text = active_para.children('.p_input');
         text.blur();
     }
-}
+};
 
 editShift = function(para, up=true) {
     var input = para.children('.p_input')[0];
     var cpos = input.selectionStart;
     if (up == true) {
-        if (cpos == 0){
+        if (cpos == 0) {
             activePrevPara();
             makeEditable();
             placeCursor(begin=false);
@@ -72,7 +79,7 @@ editShift = function(para, up=true) {
         }
     } else {
         var tlen = input.value.length;
-        if (cpos == tlen){
+        if (cpos == tlen) {
             activeNextPara();
             makeEditable();
             placeCursor();
@@ -91,7 +98,7 @@ makeEditable = function() {
 
 makeUnEditable = function() {
     $('.para').removeClass('editable');
-    if(editable&&active_para){
+    if (editable && active_para) {
         unPlaceCursor();
         editable = false;
         localChange(active_para);
@@ -130,7 +137,7 @@ activeNextPara = function() {
             return false;
         }
     }
-}
+};
 
 activePrevPara = function() {
     if (active_para) {
@@ -142,7 +149,7 @@ activePrevPara = function() {
             return false;
         }
     }
-}
+};
 
 /// KEYBOARD NAV
 
@@ -182,18 +189,15 @@ $(document).keydown(function(e) {
     if (e.keyCode in keyname) {
         keymap[keyname[e.keyCode]] = true;
         if (keymap['ctrl'] && keymap['s']) {
-            makeUnEditable()
-            if (Object.keys(changed).length > 0){
-                client.sendCommand('update_bulk', changed, function(success){
-                $('.para').removeClass('changed');
-                Object.keys(changed).map(function(pid){
-                    para = getPara(pid)
-                    para.attr('raw', changed[pid]);
-                    para.removeClass('changed');
-                })
-                changed = {};
+            makeUnEditable();
+            if (Object.keys(changed).length > 0) {
+                client.sendCommand('update_bulk', changed, function(success) {
+                    Object.keys(changed).map(function(pid) {
+                        var para = getPara(pid);
+                        storeChange(para);
+                    });
                 });
-            };
+            }
             return false;
         }
         if (!active_para) { // if we are inactive
@@ -247,10 +251,14 @@ $(document).keydown(function(e) {
             } else if (keymap['down'] || keymap['right']) {
                 return editShift(active_para, up=false);
             } else if (keymap['shift'] && keymap['enter']) {
-                var raw = active_para.children('.p_input').val();
-                var pid = active_para.attr('pid');
-                client.sendCommand('update_para', {'pid': pid, 'text': raw}, function(success){
-                    makeUnEditable();
+                makeUnEditable();
+                var para = active_para;
+                var pid = para.attr('pid');
+                var raw = para.children('.p_input').val();
+                client.sendCommand('update_para', {'pid': pid, 'text': raw}, function(success) {
+                    if (success) {
+                        storeChange(para);
+                    }
                 });
                 return false;
             }

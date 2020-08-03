@@ -2,7 +2,7 @@ from flask import Flask, request, redirect, url_for, render_template, jsonify, m
 from flask_socketio import SocketIO, send, emit
 #app = Flask(__name__)
 
-import os, re, datetime, time, json
+import os, re, datetime, time, json, argparse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -49,9 +49,12 @@ def Home():
 def RenderArticle(short):
     art = dbq.get_art_short(short)
     paras = dbq.get_paras(art.aid)
-    return render_template('article.html',
+    return render_template(
+        'article.html',
         title=art.title,
-        paras=paras)
+        paras=paras,
+        theme=args.theme
+    )
 
 @app.route('/b', methods=['GET'])
 def RenderBib():
@@ -86,9 +89,10 @@ def socket_json(json):
         send_command('create', art.short_title)
     elif cmd == 'update_para':
         dbq.update_para(data['pid'], data['text'])
-        #note: this is inefficent, it resends the text from the server to the client
-        #but, it makes sure the commit happend before sending
-        send_command('updatePara', [data['pid'], data['text']], broadcast=True)
+        # note: this is inefficent, it resends the text from the server to the client
+        # but, it makes sure the commit happend before sending
+        send_command('updatePara', [data['pid'], data['text']], broadcast=True, include_self=False)
+        return True
     elif cmd == 'update_bulk':
         dbq.bulk_update(data)
         #force update for other open windows
@@ -130,5 +134,10 @@ def socket_json(json):
 
 
 if __name__ == '__main__':
-    app.debug = True
+    parser = argparse.ArgumentParser(description='Axiom2 server.')
+    parser.add_argument('--theme', type=str, default=None, help='Theme CSS to use (if any)')
+    parser.add_argument('--debug', action='store_true', help='Run in debug mode')
+    args = parser.parse_args()
+
+    app.debug = args.debug
     socketio.run(app, host='0.0.0.0', port=5000)
