@@ -44,6 +44,7 @@
     top: -15%;
     text-align: right;
     padding-right: 8px;
+    font-size: var(--bg-font)
 }
 
 .para.editable > .control {
@@ -94,7 +95,7 @@ button {
 
 .eqnum {
  position: absolute;
- right: 0;
+ right: 10px;
  bottom: 40%;
 }
 

@@ -37,6 +37,16 @@ socketio = SocketIO(app)
 def Home():
     return render_template('home.html')
 
+@app.route('/create', methods=['POST'])
+def Create():
+    art_name =request.form['new_art']
+    art = dbq.get_art_short(art_name)
+    if art:
+        return  redirect(url_for('RenderArticle', short=art_name))
+    else:
+        dbq.create_article(art_name)
+        return redirect(url_for('RenderArticle', short=art_name))
+
 ####
 #####
 ######
@@ -48,18 +58,21 @@ def Home():
 @app.route('/a/<short>', methods=['GET'])
 def RenderArticle(short):
     art = dbq.get_art_short(short)
-    paras = dbq.get_paras(art.aid)
-    return render_template(
-        'article.html',
-        title=art.title,
-        paras=paras,
-        theme=args.theme
-    )
+    if art:
+        paras = dbq.get_paras(art.aid)
+        return render_template(
+            'article.html',
+            title=art.title,
+            aid=art.aid,
+            paras=paras,
+            theme=args.theme
+        )
+    else:
+        return render_template('home.html')
 
 @app.route('/b', methods=['GET'])
 def RenderBib():
-    return render_template('bib.html',
-        )
+    return render_template('bib.html')
 
 ##
 ## socketio handler
@@ -127,6 +140,18 @@ def socket_json(json):
     elif cmd == 'delete_cite':
         dbq.delete_cite(data['key'])
         send_command('deleteCite', data['key'], broadcast=True)
+    elif cmd == 'update_ref':
+        dbq.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'])
+    elif cmd == 'get_ref':
+        art = dbq.get_art_short(data['title'])
+        if art:
+            ref = dbq.get_ref(data['key'], art.aid)
+            if ref:
+                return {'text': ref.text, 'cite_type': ref.cite_type, 'cite_env': ref.cite_env}
+            else:
+                return {'text': "", 'cite_type': 'err'}
+        else:
+            return {'text': "", 'cite_type': 'err'}
     elif cmd == 'echo':
         return data
     else:

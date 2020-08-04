@@ -40,8 +40,10 @@ storeChange = function(para) {
     if (pid in changed) {
         var raw = changed[pid];
         para.attr('raw', raw);
+        updateRefHTML(para);
         delete changed[pid];
-        $(para).removeClass('changed');
+        $(para).removeClass('changed')
+               .removeAttr('old_id');
     }
 };
 
@@ -105,11 +107,13 @@ makeUnEditable = function() {
     }
 };
 
-// click to make active
+// click to make active // double click to make editable
 $(document).on('click', '.para', function() {
     var para = $(this);
     if (!para.hasClass('active')) {
         makeActive($(this));
+    } else {
+        makeEditable();
     }
 });
 
@@ -291,5 +295,10 @@ $(document).on('click', '.after', function() {
 
 $(document).on('click', '.delete', function() {
     var pid = $(this).parents('.para').attr('pid');
+    if (!activeNextPara()) {
+        if (!activePrevPara()) {
+            return false;
+            }
+        }
     client.sendCommand('delete_para', {'pid': pid});
 });

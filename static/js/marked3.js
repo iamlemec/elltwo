@@ -589,7 +589,7 @@ var inline = {
   del: noop,
   text: /^[\s\S]+?(?=[\\<!\[_*`\$\^@]| {2,}\n|$)/,
   math: /^\$((?:\\\$|[\s\S])+?)\$/,
-  ref: /^@\[([\w-\|\=]+)\]/,
+  ref: /^@\[([\w-\|\=\:]+)\]/,
   footnote: /^\^\[(inside)\]/
 };
 
@@ -1076,12 +1076,13 @@ DivRenderer.prototype.equation = function(tex) {
 
 DivRenderer.prototype.ref = function(args) {
   var id = args['id'];
+  var ext =  (id.split(':').length > 1) ? true: false;
   var format =  args['format'] || args['fmt'] || args['f'] || '';
   var text = args['text'] || args['txt'] || args['t'];
   var htext =  (text != undefined) ? `text="${text}"`: '';
   var pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
   var ptext = ('poptext' in args) ? `poptext="${args['poptext']}"`: '';
-  return `<a class="reference ${pclass}" citekey="${id}" format="${format}" ${htext} ${ptext}></a>`;
+  return `<a class="reference ${pclass}" citekey="${id}" ext="${ext}" format="${format}" ${htext} ${ptext}></a>`;
 };
 
 DivRenderer.prototype.footnote = function(text) {

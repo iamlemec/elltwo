@@ -84,7 +84,22 @@ class Bib(db.Model):
     def __repr__(self):
         return f'{self.bid} [{self.create_time} → {self.delete_time}]:\n{self.author} ({self.year})'
 
+class ExtRef(db.Model):
+    __tablename__ = 'ext_ref'
+
+    fid = db.Column(db.Integer, primary_key=True)
+    aid = db.Column(db.Integer, db.ForeignKey('article.aid'), nullable=False)
+    key = db.Column(db.Text, nullable=False)
+    text = db.Column(db.Text, nullable=False)
+    cite_type = db.Column(db.Text, nullable=False)
+    cite_env = db.Column(db.Text, nullable=False)
+    create_time = db.Column(db.DateTime, default=datetime.utcnow)
+    delete_time = db.Column(db.DateTime)
+
+    def __repr__(self):
+        return f'{self.key} [{self.create_time} → {self.delete_time}]:\n{self.text}'
+
 if __name__ == '__main__':
-    # db.drop_all()
+    db.drop_all()
     db.create_all()
     search.create_index()

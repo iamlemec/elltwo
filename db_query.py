@@ -6,7 +6,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
 from math import ceil
 
-from db_setup import db, Article, Paragraph, Paralink, Bib
+from db_setup import db, Article, Paragraph, Paralink, Bib, ExtRef
 session = db.session
 
 ##
@@ -48,6 +48,8 @@ arttime = partial(intime, klass=Article)
 partime = partial(intime, klass=Paragraph)
 lintime = partial(intime, klass=Paralink)
 bibtime = partial(intime, klass=Bib)
+reftime = partial(intime, klass=ExtRef)
+
 
 def find_start(links):
     for p in links:
@@ -374,3 +376,37 @@ def get_bib_dict(keys=None, time=None):
         bib_dict.append(x)
     return bib_dict
 
+##
+## exteral references
+##
+
+def get_ref(key, aid, time=None):
+    if time is None:
+        time = datetime.utcnow()
+    return session.query(ExtRef).filter_by(key=key).filter_by(aid=aid).filter(reftime(time)).one_or_none()
+
+def create_ref(key, aid, cite_type, cite_env, text):
+    now = datetime.utcnow()
+
+    if (ref := get_ref(key, aid)) is None:
+        ref1 = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, create_time=now,)
+        session.add(ref1)
+        session.commit()
+
+        return ref
+
+    else:
+
+        ref.delete_time = now
+        ref1 = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, create_time=now,)
+        session.add(ref1)
+        session.commit()
+
+def delete_cite(key, aid):
+    now = datetime.utcnow()
+
+    if (ref := get_ref(key, aid)) is None:
+        return
+
+    ref.delete_time = now
+    session.commit()

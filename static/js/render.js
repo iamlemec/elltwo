@@ -90,18 +90,24 @@ dataToText = function(para, raw, defer=false) {
     // has id/env info changed?
     var new_id = para.attr('id');
     var new_env = para.attr('env');
-    var changed = (new_env != old_env) || (new_id != old_id);
-    console.log(`changed: ${changed}`);
+    var changeRef = (new_env != old_env) || (new_id != old_id);
 
     // call environment formatters and reference updates
     if (!defer) {
         envClasses();
-        if (changed) {
+        if (changeRef) {
             createRefs(); // we may be able to scope this more
         } else {
             createRefs(para);
         }
+
+        if(old_id&&(old_id!=new_id)){ //if id changed, and old has not already been assigned
+            old_id = para.attr('old_id') || old_id;
+            para.attr('old_id', old_id);
+        };
     }
+
+
 };
 
 rawToTextArea = function(para) {
@@ -403,7 +409,7 @@ createNumbers = function() {
 
 /// REFERENCING and CITATIONS
 
-renderedCites = new Set(); // state var, citations previously rendered
+// renderedCites = new Set(); // state var, citations previously rendered
 
 createRefs = function(para) {
     var refs;
@@ -416,19 +422,22 @@ createRefs = function(para) {
     var citeKeys = new Set();
     refs.each(function() {
         var ref = $(this);
-        var key = ref.attr('citekey');
-        if (($('#'+key).length == 0) && (key != '_self_')) {
-            citeKeys.add(key);
-        }
+        if(ref.attr('ext')=='false'){
+            var key = ref.attr('citekey');
+            if (($('#'+key).length == 0) && (key != '_self_')) {
+                citeKeys.add(key);
+            };
+        };
     });
 
     // will only require server interaction for novel citations
-    var unRenderedCites = [];
-    for (let key of citeKeys) {
-        if (!renderedCites.has(key)) {
-            unRenderedCites.push(key);
-        }
-    }
+    //since we are not displaying refrences we dont need this bit either, i think
+    // var unRenderedCites = [];
+    // for (let key of citeKeys) {
+    //     if (!renderedCites.has(key)) {
+    //         unRenderedCites.push(key);
+    //     }
+    // }
 
     /*
     // skipping this shouldn't kill us, and saves some redundant passes
@@ -441,8 +450,9 @@ createRefs = function(para) {
     */
 
     // communicate results to server
-    if (unRenderedCites.length > 0) {
-        client.sendCommand('get_cite', {'keys': unRenderedCites}, function(response) {
+    // if (unRenderedCites.length > 0) {
+    if (citeKeys.size > 0) {
+        client.sendCommand('get_cite', {'keys': [...citeKeys]}, function(response) {
             renderBibLocal(response);
             renderCiteText(para);
         });
@@ -450,17 +460,47 @@ createRefs = function(para) {
         renderCiteText(para);
     }
 
-    renderedCites = citeKeys;
+    //renderedCites = citeKeys;
 };
 
-getTro = function(ref) {
+getTro = function(ref, pop=false) {
+    //var ref = $(this); // the reference (actually an 'a' tag)
+    var text = ref.attr('text') || '';
+
     var tro = {};
     var key = ref.attr('citekey');
 
     if (key == '_self_') {
         tro.tro = ref;
         tro.cite_type = 'self';
+        if(!pop){
+            routeRender(ref,tro,text);
+        } else {
+            createPop(popText(tro))
+        }
+    } else if (ref.attr('ext')=='true'){ //what the fuck, need == true?
+        extkeys = key.split(':')
+        client.sendCommand('get_ref', {'title': extkeys[0], 'key': extkeys[1]}, function(data) {
+            if(!pop){
+                tro.tro = $($.parseHTML(data.text))
+                tro.cite_type = data.cite_type
+                tro.cite_env = data.cite_env;
+                routeRender(ref,tro,text, ext=extkeys[0]);
+            } else {
+                createPop(data.text);
+            };
+        });
     } else {
+        tro = troFromKey(key,tro);
+        if(!pop){
+            routeRender(ref,tro,text);
+        } else {
+            createPop(popText(tro));
+        };
+    }
+};
+
+troFromKey = function(key, tro){
         tro.id = key;
         tro.tro = $('#'+key); // the referenced object
         if (tro.tro != undefined) {
@@ -480,10 +520,8 @@ getTro = function(ref) {
             tr.cite_type = 'err';
             tro.cite_type = 'not_found';
         }
-    }
-
-    return tro;
-};
+        return tro
+}
 
 renderCiteText = function(para) {
     var refs;
@@ -494,32 +532,34 @@ renderCiteText = function(para) {
     }
 
     refs.each(function() {
-        var ref = $(this); // the reference (actually an 'a' tag)
-        var text = ref.attr('text') || '';
-        var tro = getTro(ref);
-
-        if (text.length > 0) {
-            ref_spec.text(ref, tro.tro, text);
-        } else if (tro.cite_type == 'self') {
-            ref_spec.self(ref);
-        } else if ((tro.cite_type == 'env') || (tro.cite_type == 'one')) {
-            if (tro.cite_env in ref_spec) {
-                ref_spec[tro.cite_env](ref, tro.tro);
-            } else {
-                ref_spec.error(ref);
-            }
-        } else if (tro.cite_cite == 'cite') {
-            ref_spec.cite(ref, tro.tro);
-        } else if (tro.cite_type == 'err') {
-            ref_spec.error(ref);
-        }
+        getTro($(this));
     });
 
-    if ($('.cite').length > 0) {
-        $('#bib_block').show();
-    } else {
-        $('#bib_block').hide();
-    }
+    // keeping refs hidden, only used for popups
+    // if ($('.cite').length > 0) {
+    //     $('#bib_block').show();
+    // } else {
+    //     $('#bib_block').hide();
+    // }
+};
+
+//routing is split due to aysc of sever commands.
+routeRender = function(ref, tro, text="", ext=false){
+    if (text.length > 0) {
+        ref_spec.text(ref, tro.tro, text);
+    } else if (tro.cite_type == 'self') {
+        ref_spec.self(ref);
+    } else if ((tro.cite_type == 'env') || (tro.cite_type == 'one')) {
+        if (tro.cite_env in ref_spec) {
+            ref_spec[tro.cite_env](ref, tro.tro, ext=ext);
+        } else {
+            ref_spec.error(ref);
+        };
+    } else if (tro.cite_type == 'cite') {
+        ref_spec.cite(ref, tro.tro);
+    } else if (tro.cite_type == 'err') {
+        ref_spec.error(ref);
+    };
 };
 
 refCite = function(ref, tro) {
@@ -546,27 +586,31 @@ refCite = function(ref, tro) {
     ref.attr('href', href);
 };
 
-refEquation = function(ref, tro) {
+refEquation = function(ref, tro, ext) {
     var num = tro.find('.num')[0];
     var text = $(num).text();
-    var citeText = `(${text})`;
+    var citeText = (ext) ? `(${ext}, Eq. ${text})` :`(${text})`;
     var href = '#' + tro.attr('id');
 
     ref.text(citeText);
     ref.attr('href', href);
 };
 
-refEnv = function(ref, tro, env) {
+refEnv = function(ref, tro, env, ext) {
     var format = ref.attr('format') || '';
     var num = tro.find('.num')[0];
     var text = $(num).text();
     var href = '#' + tro.attr('id');
 
     var citeText;
-    if (format == 'fancy') {
-        citeText = `${env} ${text}`;
-    } else {
+    if (format == 'plain') {
         citeText = text;
+    } else {
+        citeText = `${env} ${text}`;
+    }
+
+    if(ext){
+        citeText += ` (${ext})`
     }
 
     ref.text(citeText);
@@ -586,12 +630,12 @@ refError = function(ref) {
     ref.html(`<span class="ref_error">@[${href}]</span>`);
 };
 
-refSection = function(ref, tro) {
-    refEnv(ref, tro, 'Section');
+refSection = function(ref, tro, ext) {
+    refEnv(ref, tro, 'Section', ext);
 };
 
-refTheorem = function(ref, tro) {
-    refEnv(ref, tro, 'Theorem');
+refTheorem = function(ref, tro, ext) {
+    refEnv(ref, tro, 'Theorem', ext);
 };
 
 refSelf = function(ref) {
@@ -604,7 +648,7 @@ ref_spec = {
     'self': refSelf,
     'error': refError,
     'equation': refEquation,
-    'section': refSection,
+    'heading': refSection,
     'theorem': refTheorem,
     'text': refText,
 };
@@ -658,8 +702,7 @@ createBibEntry = function(cite) {
 $(document).on({
     mouseenter: function() {
         var ref = $(this);
-        var html = popText(ref) || '';
-        createPop(html);
+        var html = getTro(ref, pop=true);
     },
     mouseleave: function() {
         $('#pop').remove();
@@ -682,10 +725,9 @@ createPop = function(html='') {
     });
 };
 
-popText = function(ref) {
-    var key = ref.attr('citekey');
-    var tro = getTro(ref);
-
+popText = function(tro) {
+    //var key = ref.attr('citekey');
+    //var tro = getTro(ref);
     if (tro.cite_type == 'self') {
         return pop_spec.self(tro.tro);
     } else if (tro.cite_type == 'env') {
@@ -705,7 +747,7 @@ popText = function(ref) {
         } else {
             return pop_spec.error('not_found');
         }
-    } else if (tro.cite_cite == 'cite') {
+    } else if (tro.cite_type == 'cite') {
         return pop_spec.cite(tro.tro);
     } else if (tro.cite_type == 'err') {
         return pop_spec.error(tro.cite_err);
@@ -723,11 +765,11 @@ popError = function(err='not_found') {
 };
 
 popSection = function(tro) {
-    return tro.text();
+    return tro.children('.p_text').text();
 };
 
 popEquation = function(tro) {
-    return tro.find('div.latex').html();
+    return tro.children('.p_text').html();
 };
 
 popCite = function(tro) {
@@ -749,7 +791,7 @@ popEnv = function(tro) {
 };
 
 pop_spec = {
-    'section': popSection,
+    'heading': popSection,
     'theorem': popEnv,
     'cite': popCite,
     'equation': popEquation,
@@ -757,3 +799,41 @@ pop_spec = {
     'self': popSelf,
     'error': popError,
 };
+
+
+/// External References 
+
+updateRefHTML = function(para){
+    new_id = para.attr('id') || para.attr('env_id');
+    old_id = para.attr('old_id');
+
+    if(new_id){
+        tro = {};
+        tro = troFromKey(new_id, tro);
+        ref = {}
+        console.log(tro);
+        ref.aid = aid;
+        ref.key = new_id;
+        ref.cite_type = tro.cite_type
+        ref.cite_env = tro.cite_env;
+        ref.text = popText(tro);
+        client.sendCommand('update_ref', ref, function(success) {
+                    console.log('success');
+        });
+    }
+    if(old_id && ($('#' + old_id).length > 0)){
+        tro = {};
+        tro = troFromKey(old_id, tro); 
+        console.log(tro);
+        ref = {}
+        ref.aid = aid;
+        ref.key = old_id;
+        ref.cite_type = tro.cite_type;
+        ref.cite_env = tro.cite_env;
+        ref.text = popText(tro);
+        client.sendCommand('update_ref', ref, function(success) {
+                    console.log('success');
+        });       
+    }
+}
+
