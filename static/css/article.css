@@ -104,6 +104,10 @@ button {
  bottom:0%;
 }
 
+.env__heading {
+    font-size: 30px;
+}
+
 .title {
     font-size: 35px;
 }
@@ -201,4 +205,11 @@ button {
 	border-top-color: var(--pop-bg-col);
 	border-width: 10px;
 	margin-left: -10px;
+}
+
+.ref_error {
+    background-color: #ddd;
+    color:  #e74c3c;
+    border-radius: 3px;
+    padding: 2px;
 }

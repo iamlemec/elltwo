@@ -288,7 +288,7 @@ Lexer.prototype.token = function(src, top, bq) {
         type: 'heading',
         depth: cap[1].length,
         number: cap[2].length == 0,
-        refid: cap[3],
+        id: cap[3],
         text: cap[4]
       });
       continue;
@@ -971,22 +971,11 @@ DivRenderer.prototype.title = function(text) {
   return `<div class="title">${text}</div>\n\n`;
 };
 
-DivRenderer.prototype.heading = function(text, level, refid, number) {
-  var rid = (refid != undefined) ? `id="${refid}"`: '';
-  num = "";
-  if(number){
-    l = 1;
-    while(level - l){
-      num += `<span class="num" counter=heading${l} inc=0></span>.`
-      l += 1;
-    };
-    num += `<span class="num" counter=heading${l} inc=1></span>.`;
-  };
-  var cls = `heading h${level}`;
-  return `<div ${rid} class="${cls}" citeType=sec>\n${num} ${text}\n</div>\n\n`;
+DivRenderer.prototype.heading = function(text) {
+  return text;
 };
 
-DivRenderer.prototype.envbeg = function(env, end, text) {
+DivRenderer.prototype.envbeg = function(text) {
   return text;
 };
 
@@ -1081,10 +1070,8 @@ DivRenderer.prototype.math = function(tex) {
   return `<span class="latex">${tex}</span>`;
 };
 
-DivRenderer.prototype.equation = function(id, tex) {
-  var eqid = (id != undefined) ? `id="${id}"`: '';
-  var num = (id != undefined) ? `<div class="eqnum">(<span class="num" counter=equation inc=1></span>)</div>`: '';
-  return `<div ${eqid} citeType=eq><div class="equation">\n${tex}</div>${num}</div>`;
+DivRenderer.prototype.equation = function(tex) {
+  return `<div class="latex">\n${tex}\n</div>\n\n`;
 };
 
 DivRenderer.prototype.ref = function(args) {
@@ -1098,7 +1085,7 @@ DivRenderer.prototype.ref = function(args) {
 };
 
 DivRenderer.prototype.footnote = function(text) {
-  return `<span class="footnote pop_anchor" citeType=footnote citekey="_self_" pop_text="${text}">&#10214<span class=num counter=footnote inc=1></span>&#10215</span>`;
+  return `<span class="footnote pop_anchor" cite_type="footnote" citekey="_self_" pop_text="${text}">&#10214<span class=num counter=footnote inc=1></span>&#10215</span>`;
 };
 
 DivRenderer.prototype.image = function(href, alt) {
@@ -1210,33 +1197,45 @@ Parser.prototype.tok = function() {
     }
     case 'heading': {
       this.env = {
-        type: 'heading'
+        type: 'env_one',
+        env: 'heading',
+        args: {
+          id: this.token.id,
+          level: this.token.depth,
+          number: this.token.number
+        }
       }
       return this.renderer.heading(
-        this.inline.output(this.token.text),
-        this.token.depth,
-        this.token.refid,
-        this.token.number
+        this.inline.output(this.token.text)
       );
     }
     case 'envbeg': {
       this.env = {
-        type: 'begin',
+        type: 'env_beg',
         single: this.token.end,
         env: this.token.env,
         args: this.token.args
       };
       return this.renderer.envbeg(
-        this.token.env,
-        this.token.end,
         this.inline.output(this.token.text)
       );
     }
     case 'envend': {
-      this.env = {type: 'end'};
+      this.env = {
+        type: 'env_end',
+        args: {}
+      };
       return this.renderer.envend(
         this.inline.output(this.token.text),
       );
+    }
+    case 'equation': {
+      this.env = {
+        type: 'env_one',
+        env: 'equation',
+        args: {id: this.token.id}
+      }
+      return this.renderer.equation(this.token.tex);
     }
     case 'code': {
       return this.renderer.code(this.token.text,
@@ -1330,9 +1329,6 @@ Parser.prototype.tok = function() {
     }
     case 'text': {
       return this.renderer.paragraph(this.parseText());
-    }
-    case 'equation': {
-      return this.renderer.equation(this.token.id, this.token.tex);
     }
     case 'image': {
       return this.renderer.image(this.token.href, this.token.alt);

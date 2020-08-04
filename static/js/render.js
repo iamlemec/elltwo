@@ -59,33 +59,38 @@ dataToText = function(para, raw, defer=false) {
     // must remove old classes, to prevent pileup / artifacts
     para.removeClass('env_end')
         .removeClass('env_beg')
+        .removeClass('env_one')
         .removeAttr('env')
-        .removeAttr('id');
+        .removeAttr('id')
+        .removeData('args');
 
     // fill in env identifiers
     if (env_info != null) {
-        if (env_info.type == 'begin') {
+        if ('env' in env_info) {
             para.attr('env', env_info.env);
+        }
+        if ('id' in env_info.args) {
+            para.attr('id', env_info.args.id);
+            delete env_info.args.id;
+        }
+        para.data('args', env_info.args);
+
+        if (env_info.type == 'env_beg') {
             para.addClass('env_beg');
             if (env_info.single) {
                 para.addClass('env_end');
             }
-            if ('id' in env_info.args) {
-                para.attr('id', env_info.args.id);
-                delete env_info.args.id;
-            }
-            para.data('args', env_info.args);
-        } else if (env_info.type == 'end') {
+        } else if (env_info.type == 'env_end') {
             para.addClass('env_end');
-        } else if (env_info.type == 'heading') {
-            para.addClass('heading');
+        } else if (env_info.type == 'env_one') {
+            para.addClass('env_one');
         }
     }
 
     // has id/env info changed?
     var new_id = para.attr('id');
     var new_env = para.attr('env');
-    var changed = (new_id != old_id) || (new_env != old_env);
+    var changed = (new_env != old_env) || (new_id != old_id);
     console.log(`changed: ${changed}`);
 
     // call environment formatters and reference updates
@@ -93,6 +98,8 @@ dataToText = function(para, raw, defer=false) {
         envClasses();
         if (changed) {
             createRefs(); // we may be able to scope this more
+        } else {
+            createRefs(para);
         }
     }
 };
@@ -171,6 +178,16 @@ envClasses = function() {
     // forward env pass
     $('.para').each(function() {
         var para = $(this);
+
+        if (para.hasClass('env_one')) {
+            var one_all = $(para);
+            var one_env = para.attr('env');
+            var one_arg = para.data('args');
+            para.addClass('env')
+                .addClass(`env__${one_env}`)
+                .attr('one', env_name);
+            envFormat(one_all, one_env, one_arg);
+        }
 
         if (!env_name && para.hasClass('env_end') && !para.hasClass('env_beg')) {
             para.addClass('env_err');
@@ -305,17 +322,42 @@ exampleEnv = function(para, args) {
     return numberEnv(para, 'example', 'Example', '', args);
 };
 
+headingEnv = function(para, args) {
+    var txt = para.find('.p_text');
+    var num = $('<span>', {class: 'env_add'});
+    if (args.number) {
+        l = 1;
+        while (args.level - l) {
+            num.append(makeCounter(`heading${l}`, 0));
+            num.append('.');
+            l += 1;
+        }
+        num.append(makeCounter(`heading${l}`, 1));
+    }
+    txt.prepend([num, ' ']);
+};
+
+equationEnv = function(para, args) {
+    var txt = para.find('.p_text');
+    var num = makeCounter('equation');
+    var div = $('<div>', {class: 'env_add eqnum'});
+    div.append(['(', num, ')']);
+    txt.append(div);
+};
+
 env_spec = {
     'theorem': theoremEnv,
     'proof': proofEnv,
     'example': exampleEnv,
+    'heading': headingEnv,
+    'equation': equationEnv,
     'error': errorEnv,
 };
 
 //// KATEX
 
 renderKatex = function(para) {
-    para.find(".latex").each(function() {
+    para.find("span.latex").each(function() {
         var tex = $(this);
         var src = tex.text();
         tex.empty();
@@ -329,7 +371,7 @@ renderKatex = function(para) {
           console.log(e);
         }
     });
-    para.find(".equation").each(function() {
+    para.find("div.latex").each(function() {
         var tex = $(this);
         var src = tex.text();
         $(this).empty();
@@ -416,11 +458,11 @@ getTro = function(ref) {
     var key = ref.attr('citekey');
 
     if (key == '_self_') {
-        tro['tro'] = ref;
-        tro['citeType'] = '_self_';
+        tro.tro = ref;
+        tro.cite_type = '_self_';
     } else {
-       tro['tro'] = $('#'+key) || ''; // the referenced object
-       tro['citeType'] = tro.tro.attr('citeType') || tro.tro.attr('env') || '';
+       tro.tro = $('#'+key) || ''; // the referenced object
+       tro.cite_type = tro.tro.attr('one') || tro.tro.attr('env') || tro.tro.attr('cite-type') || '';
     }
 
     return tro;
@@ -439,14 +481,15 @@ renderCiteText = function(para) {
         var text = ref.attr('text') || '';
         var tro = getTro(ref);
 
-        if (tro.citeType in ref_spec) {
+        console.log(tro);
+        if (tro.cite_type in ref_spec) {
             if (text.length > 0) {
                 ref_spec.text(ref, tro.tro, text);
             } else {
-                ref_spec[tro.citeType](ref, tro.tro);
+                ref_spec[tro.cite_type](ref, tro.tro);
             }
         } else {
-            ref_spec['error'](ref);
+            ref_spec.error(ref);
         }
     });
 
@@ -481,7 +524,7 @@ refCite = function(ref, tro) {
     ref.attr('href', href);
 };
 
-refEq = function(ref, tro) {
+refEquation = function(ref, tro) {
     var num = tro.find('.num')[0];
     var text = $(num).text();
     var citeText = `(${text})`;
@@ -517,10 +560,11 @@ refText = function(ref, tro, text) {
 };
 
 refError = function(ref) {
-    ref.text('[Reference Not Found]');
+    var href = ref.attr('citekey') || '';
+    ref.html(`<span class="ref_error">@[${href}]</span>`);
 };
 
-refSec = function(ref, tro) {
+refSection = function(ref, tro) {
     refEnv(ref, tro, 'Section');
 };
 
@@ -535,8 +579,8 @@ refSelf = function(ref) {
 
 ref_spec = {
     'cite': refCite,
-    'eq': refEq,
-    'sec': refSec,
+    'equation': refEquation,
+    'section': refSection,
     'theorem': refTheorem,
     'text': refText,
     '_self_': refSelf,
@@ -578,11 +622,11 @@ createBibEntry = function(cite) {
     var author_list = cite['author'].split(' and ').map(auth => auth.split(',')[0]);
 
     $('#bib_block').append(
-        `<div class=cite id=${cite['citekey']} citeType=cite authors="${author_list}" year="${cite['year']}">
-        <span class=citeText>
+        `<div class="cite" id=${cite['citekey']} cite-type="cite" authors="${author_list}" year="${cite['year']}">
+        <span class="citeText">
         ${author}${yr}${title}. <em>${journal}</em>${index} ${pub}
         </span>
-        <span class=citekey>${cite['citekey']}</span>
+        <span class="citekey">${cite['citekey']}</span>
         </div>`
     );
 };
@@ -619,8 +663,8 @@ createPop = function(html='') {
 popText = function(anchor) {
     var key = anchor.attr('citekey');
     var tro = getTro(anchor);
-    if (tro.citeType in pop_spec) {
-        return pop_spec[tro.citeType](tro.tro);
+    if (tro.cite_type in pop_spec) {
+        return pop_spec[tro.cite_type](tro.tro);
     } else {
         return pop_spec['error']();
     }
@@ -636,12 +680,12 @@ popError = function(err='not_found') {
     }
 };
 
-popSec = function(tro) {
+popSection = function(tro) {
     return tro.text();
 };
 
-popEq = function(tro) {
-    return tro.find('.equation').html();
+popEquation = function(tro) {
+    return tro.find('div.latex').html();
 };
 
 popCite = function(tro) {
@@ -669,10 +713,10 @@ popEnv = function(tro) {
 };
 
 pop_spec = {
-    'sec': popSec,
+    'section': popSection,
     'theorem': popEnv,
     'cite': popCite,
-    'eq': popEq,
+    'equation': popEquation,
     'footnote': popSelf,
     '_self_': popSelf,
     'error': popError,
