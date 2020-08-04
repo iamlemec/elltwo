@@ -180,13 +180,12 @@ envClasses = function() {
         var para = $(this);
 
         if (para.hasClass('env_one')) {
-            var one_all = $(para);
             var one_env = para.attr('env');
-            var one_arg = para.data('args');
+            var one_args = para.data('args');
             para.addClass('env')
                 .addClass(`env__${one_env}`)
-                .attr('one', env_name);
-            envFormat(one_all, one_env, one_arg);
+                .attr('one', one_env);
+            envFormat(para, one_env, one_args);
         }
 
         if (!env_name && para.hasClass('env_end') && !para.hasClass('env_beg')) {
@@ -195,15 +194,16 @@ envClasses = function() {
         }
 
         if (env_name && para.hasClass('env_beg')) { // error on nested environs
+            var env_all = $(env_paras);
             var new_env = para.attr('env');
-            para.addClass('env_err');
-            envFormat(para, 'error', {code: 'open', env: env_name, new_env: new_env});
+            env_all.addClass('env_err');
+            envFormat(env_all, 'error', {code: 'open', env: env_name, new_env: new_env});
         }
 
-        if (env_name && para.hasClass('heading')) { // sections or headings break envs
-            var new_env = para.attr('env');
-            para.addClass('env_err');
-            envFormat(para, 'error', {code: 'heading', env: env_name, new_env: new_env});
+        if (env_name && (para.attr('one') == 'heading')) { // sections or headings break envs
+            var env_all = $(env_paras);
+            env_all.addClass('env_err');
+            envFormat(env_all, 'error', {code: 'heading', env: env_name});
 
             env_name = null;
             env_id = null;
@@ -225,7 +225,6 @@ envClasses = function() {
             var env_all = $(env_paras);
             env_all.addClass('env')
                    .addClass(`env__${env_name}`)
-                   .attr('env', env_name)
                    .attr('env_id', env_id);
             envFormat(env_all, env_name, env_args);
 
@@ -323,6 +322,7 @@ exampleEnv = function(para, args) {
 };
 
 headingEnv = function(para, args) {
+    para.addClass(`env__heading_h${args.level}`);
     var txt = para.find('.p_text');
     var num = $('<span>', {class: 'env_add'});
     if (args.number) {
@@ -459,10 +459,27 @@ getTro = function(ref) {
 
     if (key == '_self_') {
         tro.tro = ref;
-        tro.cite_type = '_self_';
+        tro.cite_type = 'self';
     } else {
-       tro.tro = $('#'+key) || ''; // the referenced object
-       tro.cite_type = tro.tro.attr('one') || tro.tro.attr('env') || tro.tro.attr('cite-type') || '';
+        tro.id = key;
+        tro.tro = $('#'+key); // the referenced object
+        if (tro.tro != undefined) {
+            if (tro.tro.hasClass('env_beg')) {
+                tro.cite_type = 'env';
+                tro.cite_env = tro.tro.attr('env');
+            } else if (tro.tro.hasClass('env_one')) {
+                tro.cite_type = 'one';
+                tro.cite_env = tro.tro.attr('one');
+            } else if (tro.tro.hasClass('cite')) {
+                tro.cite_type = 'cite';
+            } else {
+                tro.cite_type = 'err';
+                tro.cite_err = 'unknown_type';
+            }
+        } else {
+            tr.cite_type = 'err';
+            tro.cite_type = 'not_found';
+        }
     }
 
     return tro;
@@ -481,14 +498,19 @@ renderCiteText = function(para) {
         var text = ref.attr('text') || '';
         var tro = getTro(ref);
 
-        console.log(tro);
-        if (tro.cite_type in ref_spec) {
-            if (text.length > 0) {
-                ref_spec.text(ref, tro.tro, text);
+        if (text.length > 0) {
+            ref_spec.text(ref, tro.tro, text);
+        } else if (tro.cite_type == 'self') {
+            ref_spec.self(ref);
+        } else if ((tro.cite_type == 'env') || (tro.cite_type == 'one')) {
+            if (tro.cite_env in ref_spec) {
+                ref_spec[tro.cite_env](ref, tro.tro);
             } else {
-                ref_spec[tro.cite_type](ref, tro.tro);
+                ref_spec.error(ref);
             }
-        } else {
+        } else if (tro.cite_cite == 'cite') {
+            ref_spec.cite(ref, tro.tro);
+        } else if (tro.cite_type == 'err') {
             ref_spec.error(ref);
         }
     });
@@ -579,12 +601,12 @@ refSelf = function(ref) {
 
 ref_spec = {
     'cite': refCite,
+    'self': refSelf,
+    'error': refError,
     'equation': refEquation,
     'section': refSection,
     'theorem': refTheorem,
     'text': refText,
-    '_self_': refSelf,
-    'error': refError,
 };
 
 /// THIS IS REPATED FROM THE BIB.JS, we should make it more efficent
@@ -660,13 +682,33 @@ createPop = function(html='') {
     });
 };
 
-popText = function(anchor) {
-    var key = anchor.attr('citekey');
-    var tro = getTro(anchor);
-    if (tro.cite_type in pop_spec) {
-        return pop_spec[tro.cite_type](tro.tro);
-    } else {
-        return pop_spec['error']();
+popText = function(ref) {
+    var key = ref.attr('citekey');
+    var tro = getTro(ref);
+
+    if (tro.cite_type == 'self') {
+        return pop_spec.self(tro.tro);
+    } else if (tro.cite_type == 'env') {
+        if (tro.tro.hasClass('env_err')) {
+            return pop_spec.error('parse_error');
+        } else if (tro.cite_env in pop_spec) {
+            var paras = $(`[env_id=${tro.id}]`);
+            return pop_spec[tro.cite_env](paras);
+        } else {
+            return pop_spec.error('not_found');
+        }
+    } else if (tro.cite_type == 'one') {
+        if (tro.tro.hasClass('env_err')) {
+            return pop_spec.error('parse_error');
+        } else if (tro.cite_env in pop_spec) {
+            return pop_spec[tro.cite_env](tro.tro);
+        } else {
+            return pop_spec.error('not_found');
+        }
+    } else if (tro.cite_cite == 'cite') {
+        return pop_spec.cite(tro.tro);
+    } else if (tro.cite_type == 'err') {
+        return pop_spec.error(tro.cite_err);
     }
 };
 
@@ -697,15 +739,9 @@ popSelf = function(tro) {
 };
 
 popEnv = function(tro) {
-    if (tro.hasClass('env_err')) {
-        return popError('env_err');
-    }
-
-    var env_id = tro.attr('env_id');
-
     var html = '';
-    $(`[env_id="${env_id}"] > .p_text`).each(function() {
-        var ptxt = $(this);
+    tro.each(function() {
+        var ptxt = $(this).children('.p_text');
         html += ptxt.html();
     });
 
@@ -718,6 +754,6 @@ pop_spec = {
     'cite': popCite,
     'equation': popEquation,
     'footnote': popSelf,
-    '_self_': popSelf,
+    'self': popSelf,
     'error': popError,
 };

@@ -104,24 +104,24 @@ button {
  bottom:0%;
 }
 
-.env__heading {
-    font-size: 30px;
-}
-
 .title {
     font-size: 35px;
 }
 
-.h1 {
+.env__heading_h1 {
     font-size: 30px;
 }
 
-.h2 {
+.env__heading_h2 {
     font-size: 25px;
 }
 
-.h3 {
+.env__heading_h3 {
     font-size: 20px;
+}
+
+.bib_heading {
+    font-size: 30px;
 }
 
 .em {
