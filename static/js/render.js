@@ -500,7 +500,7 @@ getTro = function(ref, pop=false) {
     }
 };
 
-troFromKey = function(key, tro){
+troFromKey = function(key, tro={}){
         tro.id = key;
         tro.tro = $('#'+key); // the referenced object
         if (tro.tro != undefined) {
@@ -658,7 +658,6 @@ ref_spec = {
 renderBibLocal = function(data){
     // $('#para_holder').empty();
     data.map(createBibEntry);
-    // sortCite('#para_holder');
 }
 
 createBibEntry = function(cite) {
@@ -725,6 +724,7 @@ createPop = function(html='') {
     });
 };
 
+//generates pop text from tro (only for internal refs)
 popText = function(tro) {
     //var key = ref.attr('citekey');
     //var tro = getTro(ref);
@@ -803,37 +803,32 @@ pop_spec = {
 
 /// External References 
 
+createExtRef = function(id){
+        tro = troFromKey(id);
+        ref = {}
+        ref.aid = aid;
+        ref.key = id;
+        ref.cite_type = tro.cite_type
+        ref.cite_env = tro.cite_env;
+        ref.text = popText(tro);
+        return ref
+}
+
 updateRefHTML = function(para){
     new_id = para.attr('id') || para.attr('env_id');
     old_id = para.attr('old_id');
 
     if(new_id){
-        tro = {};
-        tro = troFromKey(new_id, tro);
-        ref = {}
-        console.log(tro);
-        ref.aid = aid;
-        ref.key = new_id;
-        ref.cite_type = tro.cite_type
-        ref.cite_env = tro.cite_env;
-        ref.text = popText(tro);
+        ref = createExtRef(new_id);
         client.sendCommand('update_ref', ref, function(success) {
                     console.log('success');
         });
     }
     if(old_id && ($('#' + old_id).length > 0)){
-        tro = {};
-        tro = troFromKey(old_id, tro); 
-        console.log(tro);
-        ref = {}
-        ref.aid = aid;
-        ref.key = old_id;
-        ref.cite_type = tro.cite_type;
-        ref.cite_env = tro.cite_env;
-        ref.text = popText(tro);
+        ref = createExtRef(old_id);
         client.sendCommand('update_ref', ref, function(success) {
                     console.log('success');
         });       
-    }
+    };
 }
 
