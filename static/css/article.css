@@ -150,6 +150,7 @@ button {
 .footnote {
     color: var(--bor-col);
     font-size: 90%;
+    cursor: pointer;
 }
 
 #bib_block {
