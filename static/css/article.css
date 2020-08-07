@@ -17,8 +17,10 @@
 }
 
 .para:hover {
-    border-left: 2px solid var(--bor-col);
+/*     border-left: 2px solid var(--bor-col); */
+    
 }
+
 
 .p_text {
     /* cursor: pointer; */
@@ -129,6 +131,19 @@ button {
     font-style: italic;
 }
 
+.list-item:before{
+    content: "\2022\ ";
+}
+
+.list-item{
+   text-indent: 15px;
+}
+
+.list{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
 .strong {
     font-weight: bold;
 }
@@ -187,6 +202,7 @@ button {
     color: var(--pop-fg-col);
     background-color: var(--pop-bg-col);
     padding: 10px;
+    padding-right: 50px;
     position: absolute;
     z-index: 1000;
     min-width:150px;

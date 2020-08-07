@@ -6,7 +6,6 @@
     --pop-fg-col: rgb(255, 255, 255); /* popup text color */
     --pop-bg-col: rgba(0, 0, 0, 0.85); /* popup background color */
     --bg-font: 15px; /* popup background color */
-
 }
 
 @font-face {
@@ -118,6 +117,6 @@ button:active {
 }
 
 a.reference {
-    color: var(--bor-col);
+    color: var(--bor-foc-col);
     text-decoration: none;
 }

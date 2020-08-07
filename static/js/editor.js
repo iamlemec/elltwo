@@ -1,7 +1,7 @@
 ////// UI ///////
 
 // resize text area on input (eliminate scroll)
-$(document).on('input', 'textarea', function() {
+$(document).on('input focus', 'textarea', function() {
     this.style.height = 'auto';
     this.style.height = (this.scrollHeight) + 'px';
 });

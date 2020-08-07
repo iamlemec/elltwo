@@ -1,3 +1,15 @@
+:root {
+    --bg-col: #fdf6e3;
+    --top-col: #eee8d5;
+    --bor-col: #6c71c4; /* border and link color */
+    --hl-col: #268bd2; /* highlight color */
+    --bor-foc-col: #cb4b16; /* highlight color */
+    --pop-fg-col: #fdf6e3; /* popup text color */
+    --pop-bg-col: #073642; /* popup background color */
+    --bg-font: 15px; /* popup background color */
+    --font-col: #586e75;
+}
+
 @font-face {
   font-family: 'Montserrat';
   font-style: normal;
@@ -37,4 +49,19 @@ body {
     font-family: Montserrat;
     font-weight: 300;
     font-size: 18px;
+    color: var(--font-col);
+}
+
+.active:hover {
+    border-left: 2px solid var(--hl-col);
+}
+
+#head{
+  background-color: var(--top-col);
+  z-index: 999;
+}
+
+#foot{
+  background-color: var(--bg-col);
+  z-index: 999;
 }
