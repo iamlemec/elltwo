@@ -2,9 +2,13 @@
 
 // resize text area on input (eliminate scroll)
 $(document).on('input focus', 'textarea', function() {
-    this.style.height = 'auto';
-    this.style.height = (this.scrollHeight) + 'px';
+    resize(this);
 });
+
+resize = function(textarea){
+    textarea.style.height = 'auto';
+    textarea.style.height = (textarea.scrollHeight) + 'px';
+}
 
 // global state
 active_para = null; // state variable --- takes a para
@@ -95,6 +99,8 @@ makeEditable = function() {
     editable = true;
     if (active_para) {
         active_para.addClass('editable');
+        text = active_para.children('.p_input')[0];
+        resize(text);
     }
 };
 

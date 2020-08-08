@@ -12,7 +12,10 @@
 
 {% block title %}{{title}}{% endblock %}
 
-{% block header %}<div id='head'>{{title}}</div>{% endblock %}
+{% block header %}
+<div id='head'>{{title}}</div>
+<div id=toc></div>
+{% endblock %}
 
 {% block content %}
     {% for p in paras %}

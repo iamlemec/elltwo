@@ -1,0 +1,87 @@
+:root {
+    --bg-col: whitesmoke;
+    --bor-col: darkcyan; /* border color */
+    --hl-col: goldenrod; /* highlight color */
+    --bor-foc-col: red; /* highlight color */
+    --pop-fg-col: rgb(255, 255, 255); /* popup text color */
+    --pop-bg-col: rgba(0, 0, 0, 0.85); /* popup background color */
+    --bg-font: 15px; /* popup background color */
+}
+
+@font-face {
+    font-family: 'CM';
+    src: url(/static/fonts/lmroman10-regular.otf);
+}
+
+@font-face {
+    font-family: 'CM';
+    src: url("/static/fonts/lmroman10-bold.otf");
+    font-weight: bold;
+}
+@font-face {
+    font-family: 'CM';
+    src: url("/static/fonts/lmroman10-italic.otf");
+    font-style: italic;
+}
+
+@font-face {
+  font-family: 'Fira';
+  font-style: normal;
+  font-weight: 100;
+  src: url('/static/fonts/FiraCode.ttf') format('truetype');
+}
+
+body {
+    font-family: CM;
+    font-weight: 300;
+    font-size: 18px;
+    color: var(--font-col);
+}
+
+button {
+    border:1px solid var(--bor-col);
+    display:inline-block;
+    cursor:pointer;
+    color:gray;
+    font-family: CM;
+}
+
+button:hover {
+    background-color:darkgray;
+}
+
+.active:hover {
+    border-left: 2px solid var(--hl-col);
+}
+
+#head{
+  background-color: var(--top-col);
+  z-index: 999;
+}
+
+#foot{
+  background-color: var(--bg-col);
+  z-index: 999;
+}
+
+textarea{
+  background-color: var(--top-col);
+  color: var(--font-col-int);
+}
+
+.footnote{
+  color: var(--bor-col);
+}
+
+.code{
+  font-family: Fira;
+  font-size: 90%;
+  color: var(--bor-col);
+  text-indent: 15px;
+  background-color: var(--top-col);
+}
+
+.ref_error {
+    background-color: #ddd;
+    color:  #e74c3c;
+}

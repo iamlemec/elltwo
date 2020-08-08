@@ -399,7 +399,7 @@ renderKatex = function(para) {
 
 };
 
-/// Numbering
+/// Numbering and TOC
 
 createNumbers = function() {
     var nums = {};
@@ -410,7 +410,22 @@ createNumbers = function() {
         nums[counter] += inc;
         $(this).text(nums[counter]);
     });
+    createTOC();
 };
+
+createTOC = function() {
+    toc = $('#toc');
+    toc.empty()
+    $('.env__heading').each(function() {
+        var text = $(this).children('.p_text').text();
+        var id = $(this).attr('id');
+        var href= id ? '#' + id : "";
+        var sec = $('<a>', {class: 'toc_entry', href: href, text: text});
+        toc.append(sec);
+    });
+};
+
+
 
 /// REFERENCING and CITATIONS
 

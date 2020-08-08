@@ -64,15 +64,17 @@
 .control:hover .controlDots {
     display: none;
 }
+
 .controlDots {
     color: black;
     font-size: 90%;
 }
 
 button {
-    font-size:80%;
+    font-size:70%;
     padding:1px 3px;
     width: 100%;
+    margin-top: 3px;
 }
 
 .active {
@@ -81,7 +83,7 @@ button {
 
 .active.changed {
    border-left: 2px solid;
-   border-image-source: linear-gradient(var(--hl-col) 40%, var(--bor-foc-col));
+   border-image-source: linear-gradient(var(--hl-col) 0%, var(--hl-col) 50%, var(--bor-foc-col) 50%, var(--bor-foc-col));
    border-image-slice: 1;
 }
 
@@ -163,7 +165,6 @@ button {
 }
 
 .footnote {
-    color: var(--bor-col);
     font-size: 90%;
     cursor: pointer;
 }
@@ -202,13 +203,17 @@ button {
     color: var(--pop-fg-col);
     background-color: var(--pop-bg-col);
     padding: 10px;
-    padding-right: 50px;
     position: absolute;
     z-index: 1000;
     min-width:150px;
     min-height:30px;
     max-width: 50%;
     border-radius: 5px;
+    opacity: .95;
+}
+
+#pop .eqnum{
+    display: none;
 }
 
 #pop:after {
@@ -226,8 +231,24 @@ button {
 }
 
 .ref_error {
-    background-color: #ddd;
-    color:  #e74c3c;
     border-radius: 3px;
     padding: 2px;
+}
+
+#toc{
+    position: fixed;
+    top: 5%;
+    left: 20px;
+    width: 23%;
+    font-size: 80%;
+    padding-top: 3%;
+}
+
+.toc_entry{
+    visibility: hidden;
+    display: block;
+}
+
+#toc:hover .toc_entry{
+    visibility: visible;
 }

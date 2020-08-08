@@ -1,14 +1,14 @@
 :root {
-    --bg-col: #fdf6e3;
-    --top-col: #eee8d5;
+    --bg-col: #073642;
+    --top-col: #002b36;
     --bor-col: #6c71c4; /* border and link color */
-    --hl-col: #268bd2; /* highlight color */
-    --bor-foc-col: #cb4b16; /* highlight color */
-    --pop-fg-col: #eee8d5; /* popup text color */
-    --pop-bg-col: #073642; /* popup background color */
+    --hl-col: #859900; /* highlight color */
+    --bor-foc-col:  	#dc322f ; /* highlight color */
+    --pop-fg-col:  	#002b36; /* popup text color */
+    --pop-bg-col: #93a1a1; /* popup background color */
     --bg-font: 15px; /* popup background color */
-    --font-col: #073642;
-    --font-col-int: #586e75;
+    --font-col: #93a1a1;
+    --font-col-int: #b58900 ;
 }
 
 @font-face {

@@ -72,7 +72,7 @@ def RenderArticle(short):
 
 @app.route('/b', methods=['GET'])
 def RenderBib():
-    return render_template('bib.html')
+    return render_template('bib.html',theme=args.theme)
 
 ##
 ## socketio handler
@@ -160,7 +160,7 @@ def socket_json(json):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Axiom2 server.')
-    parser.add_argument('--theme', type=str, default=None, help='Theme CSS to use (if any)')
+    parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
     parser.add_argument('--debug', action='store_true', help='Run in debug mode')
     args = parser.parse_args()
 
