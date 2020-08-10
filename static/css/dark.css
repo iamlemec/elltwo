@@ -61,6 +61,7 @@ body {
 }
 
 button {
+    background-color: var(--pop-bg-col);
     border:1px solid var(--bor-col);
     display:inline-block;
     cursor:pointer;

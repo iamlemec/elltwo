@@ -29,6 +29,7 @@
 .p_input {
     width: 100%;
     min-height: 50px;
+    font-size: 90%;
     overflow: hidden;
     display: none;
     border: none;
