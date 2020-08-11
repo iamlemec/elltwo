@@ -20,6 +20,10 @@ getPara = function(pid) {
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
     client.connect(url);
+    // join room specific to article
+    client.sendCommand('room', {'room': aid}, function(response) {
+            console.log(response);
+            });
 
     $('.para').each(function() {
         var para = $(this);
@@ -498,7 +502,10 @@ getTro = function(ref, callback) {
     } else if (ref.data('extern')) {
         var [extern, citekey] = key.split(':');
         client.sendCommand('get_ref', {'title': extern, 'key': citekey}, function(data) {
-            callback(ref, tro, text, data);
+            tro.tro = $($.parseHTML(data.text));
+            tro.cite_type = data.cite_type;
+            tro.cite_env = data.cite_env;
+            callback(ref, tro, text, data.title);
         });
     } else {
         tro = troFromKey(key, tro);
@@ -603,7 +610,6 @@ refEquation = function(ref, tro, ext) {
     var text = $(num).text();
     var citeText = (ext) ? `(${ext}, Eq. ${text})` :`(${text})`;
     var href = '#' + tro.attr('id');
-
     ref.text(citeText);
     ref.attr('href', href);
 };
@@ -756,11 +762,10 @@ popText = function(tro) {
 
 renderPop = function(ref, tro, text, ext) {
     if (ext != undefined) {
-        tro.tro = $($.parseHTML(ext.text));
-        tro.cite_type = ext.cite_type;
-        tro.cite_env = ext.cite_env;
-    }
+        pop = tro.tro;
+    } else {
     var pop = popText(tro);
+    };
     createPop(pop);
 }
 

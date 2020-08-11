@@ -201,7 +201,10 @@ $(document).keydown(function(e) {
         if (keymap['ctrl'] && keymap['s']) {
             makeUnEditable();
             if (Object.keys(changed).length > 0) {
-                client.sendCommand('update_bulk', changed, function(success) {
+                data = {};
+                data.paras = changed;
+                data.room = aid;
+                client.sendCommand('update_bulk', data, function(success) {
                     Object.keys(changed).map(function(pid) {
                         var para = getPara(pid);
                         storeChange(para);
@@ -228,7 +231,7 @@ $(document).keydown(function(e) {
                 makeActive(null);
             } else if (keymap['a']) {
                 var pid = active_para.attr('pid');
-                client.sendCommand('insert_before', {'pid': pid}, function(success) {
+                client.sendCommand('insert_before', {'pid': pid, 'room': aid}, function(success) {
                     if (success) {
                         activePrevPara();
                         makeEditable();
@@ -237,7 +240,7 @@ $(document).keydown(function(e) {
                 });
             } else if (keymap['b']) {
                 var pid = active_para.attr('pid');
-                client.sendCommand('insert_after', {'pid': pid}, function(success) {
+                client.sendCommand('insert_after', {'pid': pid, 'room': aid}, function(success) {
                     if (success) {
                         activeNextPara();
                         makeEditable();
@@ -251,7 +254,7 @@ $(document).keydown(function(e) {
                         return false;
                     }
                 }
-                client.sendCommand('delete_para', {'pid': pid});
+                client.sendCommand('delete_para', {'pid': pid, 'room': aid});
             }
         } else if (active_para && editable) { // we are active and editable
             if (keymap['esc']) {
@@ -265,7 +268,7 @@ $(document).keydown(function(e) {
                 var para = active_para;
                 var pid = para.attr('pid');
                 var raw = para.children('.p_input').val();
-                client.sendCommand('update_para', {'pid': pid, 'text': raw}, function(success) {
+                client.sendCommand('update_para', {'pid': pid, 'text': raw, 'room': aid}, function(success) {
                     if (success) {
                         storeChange(para);
                     }

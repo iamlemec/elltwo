@@ -1,6 +1,9 @@
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
     client.connect(url);
+    client.sendCommand('room', {'room': '__bib'}, function(response) {
+        console.log(response);
+        });
     client.sendCommand('get_bib', {'keys': ''});
 });
 

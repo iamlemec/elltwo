@@ -18,6 +18,23 @@ function connect(url) {
     socket.on('json', function(json) {
         recvCommand(json["cmd"], json["data"]);
     });
+
+    socket.on('updatePara', function(data) {
+        updatePara(...data);
+    });
+
+    socket.on('updateBulk', function(data) {
+        updateParas(data)
+    });
+
+    socket.on('insertPara', function(data) {
+        insertPara(...data)
+    });
+
+    socket.on('deletePara', function(data) {
+        deletePara(...data)
+    });
+
 }
 
 function disconnect() {
@@ -26,16 +43,21 @@ function disconnect() {
     }
 }
 
-function sendCommand(cmd, cont="", ack=function(){}) {
-    console.log('sending', cmd, cont);
-    var data = {"cmd": cmd, "data": cont};
-    socket.emit("json", data, ack);
+// function sendCommand(cmd, cont="", ack=function(){}) {
+//     console.log('sending', cmd, cont);
+//     var data = {"cmd": cmd, "data": cont};
+//     socket.emit("json", data, ack);
+// }
+
+function sendCommand(cmd, data="", ack=function(){}) {
+    console.log('sending', cmd, data);
+    socket.emit(cmd, data, ack);
 }
 
 return {
     connect: connect,
     disconnect: disconnect,
-    sendCommand: sendCommand
+    sendCommand: sendCommand,
 };
 
 });
@@ -48,15 +70,7 @@ client = Client(function(cmd, data) {
     msg = JSON.stringify(data);
     console.log("received [" + cmd + "]: " + msg);
 
-    if (cmd == 'updatePara') {
-        updatePara(...data); //data must come in correct order or args
-    } else if (cmd == 'update_bulk') {
-        updateParas(data);
-    } else if (cmd == 'deletePara') {
-        deletePara(...data);
-    } else if (cmd == 'insert') {
-        insertPara(...data);
-    } else if (cmd == 'status') {
+    if (cmd == 'status') {
         console.log('status: ', data);
     } else if (cmd == 'renderBib') {
         renderBib(data);
