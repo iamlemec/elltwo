@@ -65,7 +65,6 @@ button {
     display:inline-block;
     cursor:pointer;
     color:gray;
-    font-family: CM;
 }
 
 button:hover {

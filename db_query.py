@@ -282,6 +282,13 @@ def insert_end(aid, text):
     else:
         insert_after(par.pid, text)
 
+def set_blurb(aid, blurb):
+    art = session.query(Article).filter_by(aid=aid).one_or_none()
+    if art:
+        art.blurb = blurb
+        session.add(art)
+        session.commit()
+
 ##
 ## query methods
 ##

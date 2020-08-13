@@ -160,7 +160,7 @@ button {
 }
 
 .error_footer {
-    color: red;
+    color: var(--bor-foc-col);
     padding-top: 5px;
     padding-bottom: 5px;
 }

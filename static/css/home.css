@@ -1,0 +1,54 @@
+#prompt{
+  display:none;
+}
+#new_art_id{
+  position: fixed;
+  width: 44%;
+  left: 20%;
+  min-height: 50px;
+  background-color: var(--top-col);
+  color: var(--font-col-int);
+  font-size: 130%;
+}
+
+#submit{
+  position: fixed;
+  width: 15%;
+  right: 20%;
+  min-height: 50px;
+  background-color: var(--top-col);
+  border: none;
+  color: var(--font-col-int);
+  font-size: 130%;
+}
+
+
+.art_result{
+  display: block;
+  background-color: var(--top-col);
+  margin-bottom: 10px;
+  padding: 5px;
+  padding-left: 10px;
+}
+
+a.art_result{
+  color:  var(--bor-col);
+}
+
+#results{
+  position: fixed;
+  font-size: 120%;
+  width: 60%;
+  left: 20%;
+  top: 25%;
+}
+
+.blurb{
+  color: var(--hl-col);
+  margin-top: 5px;
+  font-size: 60%;
+}
+
+.heading{
+  color: var(--bor-foc-col)
+}

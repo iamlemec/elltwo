@@ -69,7 +69,10 @@ deleteCite = function(key) {
 };
 
 createBibEntry = function(cite, target, results=false) {
+        console.log(cite.title)
+
     target.find('#'+cite['citekey']).remove();
+
 
     var yr = cite['year'] ? ` ${cite['year']}. ` : '';
     var vol = cite['volume'] ? `, ${cite['volume']}` : '';
@@ -79,8 +82,9 @@ createBibEntry = function(cite, target, results=false) {
     var raw = cite['raw'];
     var pubs = ['book', 'incollection'];
     var jns = ['article', 'techreport', 'unpublished'];
-    var wild = ['undefined'];
+    var wild = [undefined];
     var doi = cite['DOI'] ? `<a target='_blank' href=https://www.doi.org/${cite['DOI']}>[Go]</a>` : '';
+
 
     var pub;
     var journal;
@@ -93,9 +97,10 @@ createBibEntry = function(cite, target, results=false) {
     } else if (wild.includes(cite['entry_type'])) {
         pub = pub = cite['publisher'] || '';
         journal = cite['journal'] || cite['booktitle'] || '';
-    }
+    };
 
-    var author = `<b>${cite['author']}</b>. ` || '';
+
+    var author = `<b>${cite['author']}</b> ` || '';
     var index = (vol || num || pgs) ? `${vol + num + pgs}.` : '';
 
     var buts = `<button class="update">Update</button>
@@ -116,7 +121,7 @@ createBibEntry = function(cite, target, results=false) {
             </div>
         </div>`
     );
-}
+};
 
 //editing and nav
 

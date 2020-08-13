@@ -66,7 +66,6 @@ button {
     display:inline-block;
     cursor:pointer;
     color:gray;
-    font-family: CM;
 }
 
 button:hover {
@@ -105,10 +104,10 @@ textarea{
 }
 
 .ref_error {
-    background-color: #ddd;
-    color:  #e74c3c;
+    background-color: var(--font-col);
+    color:  var(--bor-foc-col);
 }
 
 .toc_entry{
- color: var(--bor-foc-col); 
+ color: var(--hl-col); 
 }

@@ -35,17 +35,17 @@ socketio = SocketIO(app)
 @app.route('/')
 @app.route('/home')
 def Home():
-    return render_template('home.html')
+    return render_template('home.html', theme=args.theme)
 
 @app.route('/create', methods=['POST'])
 def Create():
     art_name =request.form['new_art']
     art = dbq.get_art_short(art_name)
     if art:
-        return  redirect(url_for('RenderArticle', short=art_name))
+        return  redirect(url_for('RenderArticle', title=art_name))
     else:
         dbq.create_article(art_name)
-        return redirect(url_for('RenderArticle', short=art_name))
+        return redirect(url_for('RenderArticle', title=art_name))
 
 ####
 #####
@@ -55,9 +55,9 @@ def Create():
 #####
 ####
 
-@app.route('/a/<short>', methods=['GET'])
-def RenderArticle(short):
-    art = dbq.get_art_short(short)
+@app.route('/a/<title>', methods=['GET'])
+def RenderArticle(title):
+    art = dbq.get_art_short(title)
     if art:
         paras = dbq.get_paras(art.aid)
         return render_template(
@@ -162,9 +162,34 @@ def delete_para(data):
 
 
 @socketio.on('create_art')
-def create_art(data):
-    art = dbq.create_article(data['title'])
-    send_command('create', art.short_title)
+def create_art(title):
+    print(title)
+    art = dbq.get_art_short(title)
+    if art:
+        return url_for('RenderArticle', title=title)
+    else:
+        dbq.create_article(title)
+        return url_for('RenderArticle', title=title)
+
+@socketio.on('search_title')
+def search_title(data):
+    results = dbq.search_title(data)
+    if (results):
+        r = {}
+        for art in results:
+            print('b', art.blurb)
+            r[art.title] = {'url': art.short_title, 'blurb': art.blurb}
+        return r
+    else:
+        return False
+
+@socketio.on('set_blurb')
+def set_blurb(data):
+    aid = data['aid']
+    blurb = data['blurb']
+    dbq.set_blurb(aid, blurb)
+    return True
+
 
 ####
 #### citations

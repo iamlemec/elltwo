@@ -36,6 +36,7 @@ $(document).ready(function() {
 
     envClasses();
     createRefs();
+    setBlurb();
 });
 
 /////////////////// EDITING /////////
@@ -49,6 +50,8 @@ dataToText = function(para, raw, defer=false) {
     var mark_out = markthree(raw);
     var html_text = mark_out['src'];
     var env_info = mark_out['env'];
+
+    console.log(env_info)
 
     // store old id/env info
     var old_id = para.attr('id');
@@ -353,11 +356,13 @@ headingEnv = function(para, args) {
 };
 
 equationEnv = function(para, args) {
-    var txt = para.find('.p_text');
-    var num = makeCounter('equation');
-    var div = $('<div>', {class: 'env_add eqnum'});
-    div.append(['(', num, ')']);
-    txt.append(div);
+    if(para.attr('id')){
+        var txt = para.find('.p_text');
+        var num = makeCounter('equation');
+        var div = $('<div>', {class: 'env_add eqnum'});
+        div.append(['(', num, ')']);
+        txt.append(div);
+    };
 };
 
 env_spec = {
@@ -845,4 +850,37 @@ updateRefHTML = function(para) {
             console.log('success');
         });
     }
+}
+
+$.fn.ignore = function(sel){
+  return this.clone().find(sel||">*").remove().end();
+};
+
+getBlurb= function(len=200){
+    blurb = ""
+    paras = $('.para').toArray();
+    while(len > 0){
+        var para = paras.shift()
+        if(para){
+            p_text = $(para).find('.p_text').ignore(".katex-mathml, .eqnum ").text().replace(/(\r\n|\n|\r)/gm,"")
+            p_text = p_text.slice(0,len);
+            len -= p_text.length;
+            if($(para).hasClass('env')){
+                env = $(para).attr('env')
+                p_text = `<span class=${env}>${p_text}</span>`
+            }
+        blurb += p_text + " ";
+        }else{
+            break;
+        };
+    };
+    blurb += "..."
+    return blurb
+}
+
+setBlurb = function(){
+    b = getBlurb()
+    client.sendCommand('set_blurb', {'aid': aid, 'blurb': blurb}, function(success) {
+            console.log('blurb set');
+        });
 }

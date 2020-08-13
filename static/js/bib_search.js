@@ -6,13 +6,13 @@ getCiteData = function(q){
     $.getJSON(url+q).then(function(data){
         cts = data.message.items
         data = cts.map(createbtjs).filter(Boolean);
-                    console.log(data)
+        console.log(data)
         if(data.length == 0){
             nr = $('<span>', {class: `nr`, html: "No Results Found"});
             $('#search_results').append(nr)
         } else {
             data.forEach(function(cite){
-                createBibEntry(cite, $('#search_results'), true);
+            createBibEntry(cite, $('#search_results'), true);
             });
         };
     });
@@ -49,7 +49,9 @@ createbtjs = function(bd){
                 btjs.booktitle = bd['container-title'][0]
             };
         };
-        btjs.citekey = bd.author[0].family.toLowerCase() + btjs.year + btjs.title.split(' ')[0];
+        s = bd.author[0].family.toLowerCase() + btjs.year + btjs.title.split(' ')[0];
+        s = s.replace(/[^\w\s]/g, "");
+        btjs.citekey = s;
         btjs.raw = toBibtexStr(btjs);
         return btjs;
     } else {

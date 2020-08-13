@@ -8,6 +8,7 @@
     --bg-font: 15px; /* popup background color */
 }
 
+
 body {
     font-family: CM;
     caret-color: var(--bor-col);
@@ -26,14 +27,14 @@ a{
 }
 
 
-textarea {
+textarea, input {
     resize: none;
     border: none;
     padding: 2px;
     padding-left: 5px;
 }
 
-textarea:focus {
+textarea:focus, input:focus {
     outline: none !important;
     /* border: 2px solid red; */
 }
@@ -85,7 +86,7 @@ textarea:focus {
 
 
 button:active {
-    position:relative;
+    position:relative;\\
     top:1px;
 }
 
@@ -95,6 +96,6 @@ button:active {
 }
 
 a.reference {
-    color: var(--bor-foc-col);
+    color: var(--bor-col);
     text-decoration: none;
 }
