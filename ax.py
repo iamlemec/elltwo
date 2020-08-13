@@ -190,6 +190,14 @@ def set_blurb(data):
     dbq.set_blurb(aid, blurb)
     return True
 
+@socketio.on('get_blurb')
+def get_blurb(title):
+    art = dbq.get_art_short(title)
+    if art:
+        return art.blurb
+    else:
+        return False
+
 
 ####
 #### citations

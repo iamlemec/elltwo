@@ -51,8 +51,6 @@ dataToText = function(para, raw, defer=false) {
     var html_text = mark_out['src'];
     var env_info = mark_out['env'];
 
-    console.log(env_info)
-
     // store old id/env info
     var old_id = para.attr('id');
     var old_env = para.attr('env');
@@ -77,6 +75,7 @@ dataToText = function(para, raw, defer=false) {
             para.attr('env', env_info.env);
         }
         if ('id' in env_info.args) {
+            console.log(env_info.args.id)
             para.attr('id', env_info.args.id);
             delete env_info.args.id;
         }
@@ -504,6 +503,19 @@ getTro = function(ref, callback) {
         tro.tro = ref;
         tro.cite_type = 'self';
         callback(ref, tro, text);
+    } else if (key == '_ilink_') {
+        client.sendCommand('get_blurb', ref.attr('href'), function(response) {
+            if(response){
+                tro.tro = response;
+                tro.cite_type = 'ilink';
+            } else {
+                tro.tro = '';
+                tro.cite_type = 'err';
+                tro.cite_err = 'not_found';
+            };
+            tro.cite_type = 'ilink';
+            callback(ref, tro, text, true);
+        });
     } else if (ref.data('extern')) {
         var [extern, citekey] = key.split(':');
         client.sendCommand('get_ref', {'title': extern, 'key': citekey}, function(data) {
@@ -539,7 +551,7 @@ troFromKey = function(key, tro={}) {
         }
     } else {
         tro.cite_type = 'err';
-        tro.cite_type = 'not_found';
+        tro.cite_err = 'not_found';
     }
     return tro;
 };

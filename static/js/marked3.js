@@ -15,7 +15,7 @@ var block = {
   code: /^`` *\n(?:[^\n]+(?:\n|$))+/,
   fences: noop,
   hr: /^( *[-*_]){3,} *(?:\n+|$)/,
-  heading: /^ *(#{1,6})(\*?) *(?:refid)? *([^\n]+?) *#* *(?:\n+|$)/,
+  heading: /^ *(#{1,6})(\*?) *(?:refargs)? *([^\n]+?) *#* *(?:\n+|$)/,
   nptable: noop,
   lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
   blockquote: /^( q*>[^\n]+(\n(?!def)[^\n]+)*\n*)+/, //added q
@@ -25,18 +25,19 @@ var block = {
   table: noop,
   paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/,
   text: /^[^\n]+/,
-  equation: /^\$\$ *(?:\[([\w-]+)\])? *((?:[^\n]+\n?)*)(?:\n+|$)/,
+  equation: /^\$\$ *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
   title: /^#! *([^\n]*)(?:\n+|$)/,
   image: /^!\[(inside)\]\(href\)(?:\n+|$)/,
   biblio: /^@@ *(?:refid) *\n?((?:[^\n]+\n?)*)(?:\n+|$)/,
   figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n?)*)(?:\n+|$)/,
-  envbeg: /^\>\>(\!)? ([\w-]+)(\*)? (?:\[([\w-\|\=]+)\])? *((?:[^\n]+\n?)*)(?:\n+|$)/,
+  envbeg: /^\>\>(\!)? ([\w-]+)(\*)? (?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
   envend: /^\<\<((?:[^\n]+\n?)*)/
 };
 
 block._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
+block._refargs = /(?:\[([\w-\|\=]+)\])/;
 
 block.image = replace(block.image)
   ('inside', block._inside)
@@ -44,7 +45,11 @@ block.image = replace(block.image)
   ();
 
 block.heading = replace(block.heading)
-  ('refid', block._refid)
+  ('refargs', block._refargs)
+  ();
+
+block.equation = replace(block.equation)
+  ('refargs', block._refargs)
   ();
 
 block.biblio = replace(block.biblio)
@@ -52,7 +57,7 @@ block.biblio = replace(block.biblio)
   ();
 
 block.envbeg = replace(block.envbeg)
-  ('refid', block._refid)
+  ('refargs', block._refargs)
   ();
 
 block.bullet = /(?:[*+-]|\d+\.)/;
@@ -126,6 +131,22 @@ block.tables = merge({}, block.gfm, {
  * Block Lexer
  */
 
+ function parseArgs(argsraw, nonum="") {
+    var args = {};
+    argsraw.split('|').filter(arg => arg.split('=')[1])
+           .forEach(arg => args[arg.split('=')[0]] = arg.split('=')[1]);
+    if ((Object.keys(args).length==0)&&(argsraw)) {
+      args['id'] = argsraw;
+    };
+    if(!('id' in args)){
+      args['id'] = argsraw.split('|')[0]
+    }
+    if (!('number' in args)) {
+      args['number'] = nonum.length == 0;
+    };
+    return args;
+}
+
 function Lexer(options) {
   this.tokens = [];
   this.tokens.links = {};
@@ -192,9 +213,14 @@ Lexer.prototype.token = function(src, top, bq) {
     // equation
     if (cap = this.rules.equation.exec(src)) {
       src = src.substring(cap[0].length);
+      args = "";
+      argsraw = cap[1] || "";
+      if (argsraw){
+        args = parseArgs(argsraw);
+      }
       this.tokens.push({
         type: 'equation',
-        id: cap[1],
+        args: args,
         tex: cap[2]
       });
       continue;
@@ -297,20 +323,9 @@ Lexer.prototype.token = function(src, top, bq) {
     // envbeg
     if (cap = this.rules.envbeg.exec(src)) {
       src = src.substring(cap[0].length);
-      var args = {};
       argsraw = cap[4] || "";
-      argsraw.split('|').filter(arg => arg.split('=')[1])
-             .forEach(arg => args[arg.split('=')[0]] = arg.split('=')[1]);
-      if ((Object.keys(args).length==0)&&(argsraw)) {
-        args['id'] = argsraw;
-      };
-      if(!('id' in args)){
-        args['id'] = argsraw.split('|')[0]
-      }
-      if (!('number' in args)) {
-        nonum = cap[3] || "";
-        args['number'] = nonum.length == 0;
-      };
+      nonum = cap[3] || "";
+      args = parseArgs(argsraw, nonum);
       this.tokens.push({
         type: 'envbeg',
         end: cap[1] || false,
@@ -730,16 +745,7 @@ InlineLexer.prototype.output = function(src) {
       src = src.substring(cap[0].length);
       var args = {};
       argsraw = cap[1];
-      argsraw.split('|').filter(arg => arg.split('=')[1])
-             .forEach(arg => args[arg.split('=')[0]] = arg.split('=')[1]);
-      if ((Object.keys(args).length==0)&&(argsraw)) {
-        args['id'] = argsraw;
-      };
-      if(!('id' in args)){
-        args['id'] = argsraw.split('|')[0]
-      }
-      //id = args['id'];
-      args = args;
+      args = parseArgs(argsraw);
       out += this.renderer.ref(args);
     }
 
@@ -1055,7 +1061,7 @@ DivRenderer.prototype.link = function(href, title, text) {
 };
 
 DivRenderer.prototype.ilink = function(href) {
-  return `<a class="internal" href="${href}">${href}</a>`;
+  return `<a class="reference pop_anchor" citekey="_ilink_" href="${href}" data-extern='true'>${href}</a>`;
 };
 
 DivRenderer.prototype.escape = function(esc) {
@@ -1234,7 +1240,7 @@ Parser.prototype.tok = function() {
       this.env = {
         type: 'env_one',
         env: 'equation',
-        args: {id: this.token.id}
+        args: this.token.args
       }
       return this.renderer.equation(this.token.tex);
     }

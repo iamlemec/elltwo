@@ -253,3 +253,6 @@ button {
 #toc:hover .toc_entry{
     visibility: visible;
 }
+#pop .heading {
+    color: var(--hl-col)
+} 
