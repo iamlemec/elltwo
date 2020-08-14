@@ -175,7 +175,8 @@ envClasses = function() {
 
     // remove env markers
     $('.para').removeClass('env')
-              .removeClass('env_err');
+              .removeClass('env_err')
+              .removeAttr('env_sel');
 
     // remove formatting addins
     $('.env_add').remove();

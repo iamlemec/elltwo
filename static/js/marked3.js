@@ -131,20 +131,30 @@ block.tables = merge({}, block.gfm, {
  * Block Lexer
  */
 
- function parseArgs(argsraw, nonum="") {
-    var args = {};
-    argsraw.split('|').filter(arg => arg.split('=')[1])
-           .forEach(arg => args[arg.split('=')[0]] = arg.split('=')[1]);
-    if ((Object.keys(args).length==0)&&(argsraw)) {
-      args['id'] = argsraw;
-    };
-    if(!('id' in args)){
-      args['id'] = argsraw.split('|')[0]
-    }
-    if (!('number' in args)) {
-      args['number'] = nonum.length == 0;
-    };
-    return args;
+function parseArgs(argsraw, number=true) {
+  if (!argsraw) {
+    return {'number': number};
+  }
+
+  var args = {};
+  argsraw.split('|')
+         .map(x => x.split('='))
+         .filter(x => x.length > 1)
+         .forEach(x => args[x[0]] = x[1]);
+
+  if ((Object.keys(args).length==0) && argsraw) {
+    args['id'] = argsraw;
+  }
+
+  if (!('id' in args)) {
+    args['id'] = argsraw.split('|')[0];
+  }
+
+  if (!('number' in args)) {
+    args['number'] = number;
+  }
+
+  return args;
 }
 
 function Lexer(options) {
@@ -213,11 +223,8 @@ Lexer.prototype.token = function(src, top, bq) {
     // equation
     if (cap = this.rules.equation.exec(src)) {
       src = src.substring(cap[0].length);
-      args = "";
-      argsraw = cap[1] || "";
-      if (argsraw){
-        args = parseArgs(argsraw);
-      }
+      var argsraw = cap[1] || '';
+      var args = parseArgs(argsraw);
       this.tokens.push({
         type: 'equation',
         args: args,
@@ -323,12 +330,13 @@ Lexer.prototype.token = function(src, top, bq) {
     // envbeg
     if (cap = this.rules.envbeg.exec(src)) {
       src = src.substring(cap[0].length);
-      argsraw = cap[4] || "";
-      nonum = cap[3] || "";
-      args = parseArgs(argsraw, nonum);
+      var end = cap[1] != undefined;
+      var number = cap[3] == undefined;
+      var argsraw = cap[4] || '';
+      var args = parseArgs(argsraw, number);
       this.tokens.push({
         type: 'envbeg',
-        end: cap[1] || false,
+        end: end,
         env: cap[2],
         text: cap[5],
         args: args

@@ -18,7 +18,7 @@
 
 .para:hover {
 /*     border-left: 2px solid var(--bor-col); */
-    
+
 }
 
 
@@ -99,15 +99,19 @@ button {
 /* DIV renderer stylying */
 
 .eqnum {
- position: absolute;
- right: 10px;
- bottom: 40%;
+    position: absolute;
+    right: 10px;
+    bottom: 40%;
+}
+
+#pop .eqnum {
+    display: none;
 }
 
 .qed {
- position: absolute;
- right: 0;
- bottom:0%;
+    position: absolute;
+    right: 0;
+    bottom:0%;
 }
 
 .title {
@@ -255,4 +259,4 @@ button {
 }
 #pop .heading {
     color: var(--hl-col)
-} 
+}
