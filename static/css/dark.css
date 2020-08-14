@@ -86,11 +86,6 @@ button:hover {
   z-index: 999;
 }
 
-textarea{
-  background-color: var(--top-col);
-  color: var(--font-col-int);
-}
-
 .footnote{
   color: var(--bor-col);
 }

@@ -7,7 +7,10 @@ $(document).on('input focus', 'textarea', function() {
 
 resize = function(textarea){
     textarea.style.height = 'auto';
-    textarea.style.height = (textarea.scrollHeight) + 'px';
+    h = (textarea.scrollHeight) + 'px'
+    textarea.style.height = h;
+    para = $(textarea).parent('.para');
+    para.css('min-height', h);
 }
 
 // global state
@@ -101,11 +104,13 @@ makeEditable = function() {
         active_para.addClass('editable');
         text = active_para.children('.p_input')[0];
         resize(text);
+        syntaxHL(active_para);
     }
 };
 
 makeUnEditable = function() {
     $('.para').removeClass('editable');
+    $('.para').css('min-height', '30px');
     if (editable && active_para) {
         unPlaceCursor();
         editable = false;
@@ -282,7 +287,7 @@ $(document).keydown(function(e) {
 $(document).keyup(function(e) {
     if (e.keyCode in keyname) {
         keymap[keyname[e.keyCode]] = false;
-    }
+    };
 });
 
 /// Button Nav

@@ -27,12 +27,28 @@
 }
 
 .p_input {
+    white-space: pre-wrap;
+    position: absolute;
     width: 100%;
     min-height: 50px;
     font-size: 90%;
     overflow: hidden;
     display: none;
     border: none;
+    background-color: rgba(0,0,0,0);
+    color: rgba(1,1,1,0)
+}
+
+.p_input_view {
+    position: absolute;
+    white-space: pre-wrap;
+    width: 100%;
+    min-height: 50px;
+    font-size: 90%;
+    overflow: hidden;
+    display: none;
+    border: none;
+    font-family: monospace;
 }
 
 .para.changed {
@@ -44,7 +60,7 @@
     position: absolute;
     width: 15%;
     right: 100%;
-    top: -15%;
+    top: 0%;
     text-align: right;
     padding-right: 8px;
     font-size: var(--bg-font)
@@ -92,7 +108,7 @@ button {
     display: none;
 }
 
-.editable > .p_input {
+.editable > .p_input, .editable > .p_input_view {
     display: block;
 }
 
@@ -256,3 +272,16 @@ button {
 #pop .heading {
     color: var(--hl-col)
 } 
+
+.syn_hl{
+    color: var(--bor-foc-col);
+}
+
+.syn_math{
+    color: var(--hl-col);
+}
+
+.syn_ref{
+    color: var(--font-col-int);
+}
+

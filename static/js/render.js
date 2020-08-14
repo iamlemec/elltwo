@@ -2,6 +2,7 @@
 
 // inner HTML for para structure. Included here for updating paras
 inner_para = `<div class="p_text"></div>
+              <div class="p_input_view"></div>
               <textarea class="p_input"></textarea>
               <div class="control">
               <div class="controlDots">&#9776;</div>
@@ -75,7 +76,6 @@ dataToText = function(para, raw, defer=false) {
             para.attr('env', env_info.env);
         }
         if ('id' in env_info.args) {
-            console.log(env_info.args.id)
             para.attr('id', env_info.args.id);
             delete env_info.args.id;
         }
@@ -754,7 +754,7 @@ createPop = function(html='') {
     $(this).mousemove(function(event) {
         pop.css({
             'left': (event.pageX - 0.5*w - 10) + 'px', // offset 10px for padding
-            'top': (event.pageY - h - 35) + 'px', // offset up by 35 px
+            ' ': (event.pageY - h - 35) + 'px', // offset up by 35 px
         });
     });
 };
@@ -896,3 +896,46 @@ setBlurb = function(){
             console.log('blurb set');
         });
 }
+
+
+/// SyntaxHighlighting
+
+syntaxHL = function(para){
+    const ta = para.children('.p_input');
+    const v = para.children('.p_input_view');
+    //h = ta.height();
+    var raw = ta.val();
+    v.html(sytaxParse(raw));
+    // console.log(h)
+    // para.height(h);
+};
+
+$(document).on('input', '.p_input', function(){
+    para=$(this).parent('.para');
+    syntaxHL(para)
+});
+
+sytaxParse = function(raw){
+    html = raw;
+    html = html.replace(/\</g, '&LT'); //html escape
+    html = html.replace(/\>/g, '&GT'); //html escape
+    //html = html.replace(/\n/g, '<br>\n'); //whitespace
+    math = /\$((?:\\\$|[\s\S])+?)\$/g;
+    ref = /@\[([\w-\|\=\:]+)\]/g;
+    ilink = /\[\[([^\]]+)\]\]/g;
+    html = html.replace(math, function(a,b){
+        return `<span class=syn_hl>$</span><span class=syn_math>${b}</span><span class=syn_hl>$</span>`
+    });
+    html = html.replace(ref, function(a,b){
+        b = b.replace('|', '<span class=syn_hl>|</span>');
+        return `<span class=syn_hl>@[</span><span class=syn_ref>${b}</span><span class=syn_hl>]</span>`
+    });
+    html = html.replace(ilink, function(a,b){
+        return `<span class=syn_hl>[[</span><span class=syn_ref>${b}</span><span class=syn_hl>]]</span>`
+    });
+    return html;
+}
+
+
+
+

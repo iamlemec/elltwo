@@ -27,7 +27,7 @@ a{
 }
 
 
-textarea, input {
+textarea, input, .p_input_view {
     resize: none;
     border: none;
     padding: 2px;
