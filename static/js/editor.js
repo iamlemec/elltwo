@@ -16,6 +16,30 @@ last_active = null; // state var, to keep track of where cursor was
 editable = false; // state variable, are we focused on the active para
 changed = {}; // state vara, list of paras that have been changed
 
+// hard coded options
+scrollSpeed = 100;
+scrollFudge = 100;
+
+ensureVisible = function(para) {
+    var cont = $('#content');
+    var scroll = cont.scrollTop();
+    var height = cont.height();
+
+    var cell_top = scroll + para.position().top;
+    var cell_bot = cell_top + para.height();
+
+    var page_top = scroll;
+    var page_bot = page_top + height;
+
+    if (cell_top < page_top + scrollFudge) {
+        cont.stop();
+        cont.animate({scrollTop: cell_top - scrollFudge}, scrollSpeed);
+    } else if (cell_bot > page_bot - scrollFudge) {
+        cont.stop();
+        cont.animate({scrollTop: cell_bot - height + scrollFudge}, scrollSpeed);
+    }
+};
+
 makeActive = function(para) {
     makeUnEditable();
     $('.para').removeClass('active');
@@ -25,6 +49,7 @@ makeActive = function(para) {
     active_para = para;
     if (active_para) {
         para.addClass('active');
+        ensureVisible(active_para);
     }
 };
 
@@ -225,8 +250,10 @@ $(document).keydown(function(e) {
                 return false;
             } else if (keymap['up']) {
                 activePrevPara();
+                return false;
             } else if (keymap['down']) {
                 activeNextPara();
+                return false;
             } else if (keymap['esc']) {
                 makeActive(null);
             } else if (keymap['a']) {

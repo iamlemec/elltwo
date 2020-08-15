@@ -83,7 +83,6 @@ button {
 }
 
 .active.changed {
-   border-left: 2px solid;
    border-image-source: linear-gradient(var(--hl-col) 0%, var(--hl-col) 50%, var(--bor-foc-col) 50%, var(--bor-foc-col));
    border-image-slice: 1;
 }

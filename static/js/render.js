@@ -880,7 +880,7 @@ getBlurb= function(len=200){
             len -= p_text.length;
             if($(para).hasClass('env')){
                 env = $(para).attr('env')
-                p_text = `<span class=${env}>${p_text}</span>`
+                p_text = `<div class=${env}>${p_text}</div>`
             }
         blurb += p_text + " ";
         }else{
