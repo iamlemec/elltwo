@@ -312,7 +312,6 @@ def search_title(words, err=0.3):
     quer = fuzzy_query(words, err=err)
     return Article.query.msearch(quer, fields=['title']).all()
 
-
 ##
 ## citation methods
 ##
@@ -324,24 +323,18 @@ def create_cite(citekey, entry_type, **kwargs):
         cite = Bib(citekey=citekey, entry_type=entry_type, create_time=now, **kwargs)
         session.add(cite)
         session.commit()
-
         return cite
-
     else:
-
         bib.delete_time = now
         cite = Bib(citekey=citekey, entry_type=entry_type, create_time=now, **kwargs)
         session.add(bib)
         session.add(cite)
         session.commit()
 
-
-
 def get_cite(citekey, time=None):
     if time is None:
         time = datetime.utcnow()
     return session.query(Bib).filter_by(citekey=citekey).filter(bibtime(time)).one_or_none()
-
 
 def delete_cite(citekey):
     now = datetime.utcnow()
@@ -399,11 +392,8 @@ def create_ref(key, aid, cite_type, cite_env, text):
         ref1 = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, create_time=now,)
         session.add(ref1)
         session.commit()
-
         return ref
-
     else:
-
         ref.delete_time = now
         ref1 = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, create_time=now,)
         session.add(ref1)

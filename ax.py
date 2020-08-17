@@ -22,15 +22,9 @@ session = db.session
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
-
-
 ###
-#####
-######
-####### Home Page
-######
-#####
-####
+### Home Page
+###
 
 @app.route('/')
 @app.route('/home')
@@ -47,13 +41,9 @@ def Create():
         dbq.create_article(art_name)
         return redirect(url_for('RenderArticle', title=art_name))
 
-####
-#####
-######
-####### Article
-######
-#####
-####
+###
+### Article
+###
 
 @app.route('/a/<title>', methods=['GET'])
 def RenderArticle(title):
@@ -74,9 +64,9 @@ def RenderArticle(title):
 def RenderBib():
     return render_template('bib.html',theme=args.theme)
 
-##
-## socketio handler
-##
+###
+### socketio handler
+###
 
 def send_command(cmd, data=None, broadcast=False, include_self=True, room=False):
     emit('json', {'cmd': cmd, 'data': data}, broadcast=broadcast, include_self=include_self,)
@@ -91,17 +81,15 @@ def socket_disconnect():
     print('Client disconnected')
     emit('status', 'disconnected')
 
- 
 @socketio.on('room')
 def room(data):
     room = data['room']
-    join_room(room) 
+    join_room(room)
     return('joined room:' + room)
 
-
-####
-#### arbitrary command
-####
+###
+### arbitrary command
+###
 
 @socketio.on('json')
 def socket_json(json):
@@ -113,11 +101,9 @@ def socket_json(json):
     else:
         print(f'Unknown command: {cmd}')
 
-
-####
-#### para editing
-####
-
+###
+### para editing
+###
 
 @socketio.on('update_para')
 def update_para(data):
@@ -152,14 +138,12 @@ def insert_before(data):
 @socketio.on('delete_para')
 def delete_para(data):
     dbq.delete_para(data['pid'])
-    emit('deletePara', [data['pid']], room=data['room'])    
+    emit('deletePara', [data['pid']], room=data['room'])
     return True
 
-
-####
-#### article editing
-####
-
+###
+### article editing
+###
 
 @socketio.on('create_art')
 def create_art(title):
@@ -187,6 +171,7 @@ def search_title(data):
 def set_blurb(data):
     aid = data['aid']
     blurb = data['blurb']
+    print('set_blurb', aid, blurb)
     dbq.set_blurb(aid, blurb)
     return True
 
@@ -198,10 +183,9 @@ def get_blurb(title):
     else:
         return False
 
-
-####
-#### citations
-####
+###
+### citations
+###
 
 @socketio.on('create_cite')
 def create_cite(data):
@@ -227,9 +211,9 @@ def get_cite(data):
     bib = dbq.get_bib_dict(keys=data['keys'])
     return bib
 
-####
-#### external references
-####
+###
+### external references
+###
 
 @socketio.on('get_ref')
 def get_ref(data):
@@ -244,13 +228,13 @@ def get_ref(data):
     else:
         return {'text': "", 'cite_type': 'err'}
 
-
 @socketio.on('update_ref')
 def update_ref(data):
     dbq.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'])
 
-
-
+###
+### interface
+###
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Axiom2 server.')
