@@ -285,3 +285,7 @@ button {
     color: var(--font-col-int);
 }
 
+.syn_delimit{
+    color: var(--bor-col);
+}
+

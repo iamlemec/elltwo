@@ -905,7 +905,7 @@ syntaxHL = function(para){
     const v = para.children('.p_input_view');
     //h = ta.height();
     var raw = ta.val();
-    v.html(sytaxParse(raw));
+    v.html(sytaxParseBlock(raw));
     // console.log(h)
     // para.height(h);
 };
@@ -915,7 +915,7 @@ $(document).on('input', '.p_input', function(){
     syntaxHL(para)
 });
 
-sytaxParse = function(raw){
+sytaxParseInline = function(raw){
     html = raw;
     html = html.replace(/\</g, '&LT'); //html escape
     html = html.replace(/\>/g, '&GT'); //html escape
@@ -924,16 +924,66 @@ sytaxParse = function(raw){
     ref = /@\[([\w-\|\=\:]+)\]/g;
     ilink = /\[\[([^\]]+)\]\]/g;
     html = html.replace(math, function(a,b){
-        return `<span class=syn_hl>$</span><span class=syn_math>${b}</span><span class=syn_hl>$</span>`
+        return s('$', 'delimit') + s(b, 'math') + s('$', 'delimit');
+
     });
     html = html.replace(ref, function(a,b){
         b = b.replace('|', '<span class=syn_hl>|</span>');
-        return `<span class=syn_hl>@[</span><span class=syn_ref>${b}</span><span class=syn_hl>]</span>`
+        return s('@', 'delimit') + s(fArgs(b), 'math');
     });
     html = html.replace(ilink, function(a,b){
-        return `<span class=syn_hl>[[</span><span class=syn_ref>${b}</span><span class=syn_hl>]]</span>`
+        return s('[[', 'delimit') + s(b, 'ref') + s(']]', 'delimit');
     });
     return html;
+}
+
+s = function(text, cls){
+    return `<span class=syn_${cls}>${text}</span>`
+}
+
+fArgs = function(argsraw){
+    return s('[', 'delimit') + argsraw.replace('|', s('|', 'delimit')) + s(']', 'delimit');
+};
+
+sytaxParseBlock = function(raw){
+
+var block = {
+  heading: /^(#{1,6})(\*?)( *)(?:\[([\w-\|\=]+)\])?( *)([^\n]+?)? *#* *(?:\n+|$)/,
+  text: /^[^\n]+/,
+  equation: /^\$\$( *)(?:\[([\w-\|\=]+)\])?( *)((?:[^\n]+\n*)*)(?:\n+|$)/,
+  title: /^#! *([^\n]*)(?:\n+|$)/,
+  figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
+  envbeg: /^\>\>(\!)?( *)([\w-]+)?(\*)?( *)(?:\[([\w-\|\=]+)\])?( *)((?:[^\n]+\n*)*)(?:\n+|$)/,
+  envend: /^\<\<((?:[^\n]+\n?)*)/
+};
+
+if (cap = block.heading.exec(raw)) {
+    var star = (cap[2]) ? s(cap[2], 'hl') : "";
+    var id = (cap[4]) ? s(fArgs(cap[4]), 'ref') : "";
+    var text = (cap[6]) ? sytaxParseInline(cap[6]) : "";
+    return s(cap[1], 'delimit') + star + cap[3] + id + cap[3] + cap[5] + text;
+};
+
+if (cap = block.equation.exec(raw)) {
+    var id = (cap[2]) ? s(fArgs(cap[2]), 'ref') : "";
+    return s('$$', 'delimit') + cap[1] + id + cap[3] + s(cap[4], 'math');
+};
+
+if (cap = block.envbeg.exec(raw)) {
+        console.log(cap)
+    var bang = (cap[1]) ? s('!', 'hl') : "";
+    var env = (cap[3]) ? s(cap[3], 'ref') : "";
+    var star = (cap[4]) ? s(cap[4], 'hl') : "";
+    var id = (cap[6]) ? s(fArgs(cap[6]), 'ref'): "";
+    var text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
+    return s('>>', 'delimit') + bang + cap[2] + env + star + cap[5] + id + cap[7] + text;
+};
+
+if (cap = block.envend.exec(raw)) {
+    return s('<<', 'delimit') + sytaxParseInline(cap[1]);
+};
+
+return sytaxParseInline(raw)
 }
 
 
