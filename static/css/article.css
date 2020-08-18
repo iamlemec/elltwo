@@ -24,6 +24,8 @@
 
 .p_text {
     /* cursor: pointer; */
+    line-height: 1.5;
+    text-align: justify;
 }
 
 .p_input {
@@ -118,19 +120,19 @@ button {
 }
 
 .env__heading_h1 {
-    font-size: 30px;
-}
-
-.env__heading_h2 {
     font-size: 25px;
 }
 
-.env__heading_h3 {
+.env__heading_h2 {
     font-size: 20px;
 }
 
+.env__heading_h3 {
+    font-size: 15px;
+}
+
 .bib_heading {
-    font-size: 30px;
+    font-size: 25px;
 }
 
 .em {

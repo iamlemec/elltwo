@@ -904,3 +904,12 @@ setBlurb = function() {
         console.log(`blurb set: ${blurb}`);
     });
 };
+
+/// Exporting
+
+getMarkdown = function() {
+    return $('.para').map(function() {
+        var para = $(this);
+        return para.attr('raw');
+    }).toArray().join('\n\n');
+};
