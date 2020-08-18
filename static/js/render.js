@@ -735,11 +735,13 @@ createBibEntry = function(cite) {
 
 $(document).on({
     mouseenter: function() {
-        $('#pop').remove();
         var ref = $(this);
+        ref.data('show_pop', true);
         var html = getTro(ref, renderPop);
     },
     mouseleave: function() {
+        var ref = $(this);
+        ref.data('show_pop', false);
         $('#pop').remove();
     },
 }, '.pop_anchor');
@@ -779,10 +781,13 @@ popText = function(tro) {
 };
 
 renderPop = function(ref, tro, text, ext) {
+    if (!ref.data('show_pop')) { // we've since left with mouse
+        return;
+    }
     if (ext != undefined) {
         pop = tro.tro;
     } else {
-    var pop = popText(tro);
+        var pop = popText(tro);
     };
     createPop(pop);
 }
