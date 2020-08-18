@@ -17,10 +17,8 @@
 }
 
 .para:hover {
-/*     border-left: 2px solid var(--bor-col); */
-
+    /* border-left: 2px solid var(--bor-col); */
 }
-
 
 .p_text {
     /* cursor: pointer; */

@@ -103,18 +103,20 @@ editShift = function(para, up=true) {
     var cpos = input.selectionStart;
     if (up == true) {
         if (cpos == 0) {
-            activePrevPara();
-            makeEditable();
-            placeCursor(begin=false);
-            return false;
+            if (activePrevPara()) {
+                makeEditable();
+                placeCursor(begin=false);
+                return false;
+            }
         }
     } else {
         var tlen = input.value.length;
         if (cpos == tlen) {
-            activeNextPara();
-            makeEditable();
-            placeCursor();
-            return false;
+            if (activeNextPara()) {
+                makeEditable();
+                placeCursor();
+                return false;
+            }
         }
     }
 };

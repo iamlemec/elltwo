@@ -6,7 +6,7 @@ In mathematics, Sard's theorem, also known as Sard's lemma or the Morse–Sard t
 
 More explicitly, let
 
-$$ f \colon \ \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}
+$$* f \colon \ \mathbb{R}^{n} \rightarrow \mathbb{R}^{m}
 
 be $C^{k}$ (that is, $k$ times continuously differentiable), where $k \geq \max \{n-m+1,1\}$. Let $X$ denote the *critical set* of $f$, which is the set of points $x \in \mathbb{R}^{n}$ at which the Jacobian matrix of $f$ has rank $< m$. Then the image $f(X)$ has Lebesgue measure 0 in $\mathbb{R}^{m}$.
 
@@ -14,11 +14,11 @@ Intuitively speaking, this means that although $X$ may be large, its image must 
 
 More generally, the result also holds for mappings between differentiable manifolds $M$ and $N$ of dimensions $m$ and $n$, respectively. The critical set $X$ of a $C^{k}$ function
 
-$$ f \colon \ N \rightarrow M
+$$* f \colon \ N \rightarrow M
 
 consists of those points at which the differential
 
-$$ df \colon \ TN \rightarrow TM
+$$* df \colon \ TN \rightarrow TM
 
 has rank less than $m$ as a linear transformation. If $k \geq \max \{n-m+1,1\}$, then Sard's theorem asserts that the image of $X$ has measure zero as a subset of $M$. This formulation of the result follows from the version for Euclidean spaces by taking a countable set of coordinate patches. The conclusion of the theorem is a local statement, since a countable union of sets of measure zero is a set of measure zero, and the property of a subset of a coordinate patch having zero measure is invariant under diffeomorphism.
 

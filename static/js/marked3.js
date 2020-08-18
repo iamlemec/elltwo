@@ -25,7 +25,7 @@ var block = {
   table: noop,
   paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/,
   text: /^[^\n]+/,
-  equation: /^\$\$ *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
+  equation: /^\$\$(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
   title: /^#! *([^\n]*)(?:\n+|$)/,
   image: /^!\[(inside)\]\(href\)(?:\n+|$)/,
   biblio: /^@@ *(?:refid) *\n?((?:[^\n]+\n?)*)(?:\n+|$)/,
@@ -223,12 +223,13 @@ Lexer.prototype.token = function(src, top, bq) {
     // equation
     if (cap = this.rules.equation.exec(src)) {
       src = src.substring(cap[0].length);
-      var argsraw = cap[1] || '';
-      var args = parseArgs(argsraw);
+      var number = cap[1] == undefined;
+      var argsraw = cap[2] || '';
+      var args = parseArgs(argsraw, number);
       this.tokens.push({
         type: 'equation',
         args: args,
-        tex: cap[2]
+        tex: cap[3]
       });
       continue;
     }
