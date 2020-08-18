@@ -107,6 +107,17 @@ def get_paras(aid, pids=None, time=None):
     return [index[p] for p in pids]
 
 def get_art(aid, time=None):
+    if time is None:
+        time = datetime.utcnow()
+
+    return (session
+        .query(Article)
+        .filter_by(aid=aid)
+        .filter(arttime(time))
+        .one_or_none()
+    )
+
+def get_art_text(aid, time=None):
     paras = get_paras(aid, time=time)
     return '\n\n'.join([p.text for p in paras])
 
@@ -131,10 +142,10 @@ def create_pid():
         return 0
 
 def update_para(pid, text, time=None):
-    if (time==None):
+    if time is None:
         time = datetime.utcnow()
 
-    if (par := get_para(pid, time)) is None:
+    if (par := get_para(pid, time=time)) is None:
         return
 
     par.delete_time = time
@@ -145,88 +156,90 @@ def update_para(pid, text, time=None):
     session.commit()
 
 def bulk_update(para_dict, time=None):
-    if (time==None):
+    if time is None:
         time = datetime.utcnow()
 
     for pid, text in para_dict.items():
-        update_para(pid, text, time)
+        update_para(pid, text, time=time)
 
-
-def insert_after(pid, text=''):
-    now = datetime.utcnow()
+def insert_after(pid, text='', time=None):
+    if time is None:
+        now = datetime.utcnow()
 
     if (par := get_para(pid)) is None:
         return
-    if (lin := get_link(pid, now)) is None:
+    if (lin := get_link(pid, time=time)) is None:
         return
 
-    linn = get_link(lin.next, now)
+    linn = get_link(lin.next, time=time)
 
     pid1 = create_pid()
-    par1 = Paragraph(aid=par.aid, pid=pid1, text=text, create_time=now)
+    par1 = Paragraph(aid=par.aid, pid=pid1, text=text, create_time=time)
     session.add(par1)
 
-    lin0 = Paralink(aid=par.aid, pid=par1.pid, prev=pid, next=lin.next, create_time=now)
+    lin0 = Paralink(aid=par.aid, pid=par1.pid, prev=pid, next=lin.next, create_time=time)
     session.add(lin0)
 
-    lin1 = splice_link(lin, now, next=par1.pid)
+    lin1 = splice_link(lin, time, next=par1.pid)
     session.add(lin1)
 
     if linn is not None:
-        linn1 = splice_link(linn, now, prev=par1.pid)
+        linn1 = splice_link(linn, time, prev=par1.pid)
         session.add(linn1)
 
     session.commit()
 
     return par1
 
-def insert_before(pid, text=''):
-    now = datetime.utcnow()
+def insert_before(pid, text='', time=None):
+    if time is None:
+        now = datetime.utcnow()
 
     if (par := get_para(pid)) is None:
         return
-    if (lin := get_link(pid, now)) is None:
+    if (lin := get_link(pid, time=time)) is None:
         return
 
-    linp = get_link(lin.prev, now)
+    linp = get_link(lin.prev, time=time)
 
     pid1 = create_pid()
-    par1 = Paragraph(aid=par.aid, pid=pid1, text=text, create_time=now)
+    par1 = Paragraph(aid=par.aid, pid=pid1, text=text, create_time=time)
     session.add(par1)
 
-    lin0 = Paralink(aid=par.aid, pid=par1.pid, prev=lin.prev, next=pid, create_time=now)
+    lin0 = Paralink(aid=par.aid, pid=par1.pid, prev=lin.prev, next=pid, create_time=time)
     session.add(lin0)
 
-    lin1 = splice_link(lin, now, prev=par1.pid)
+    lin1 = splice_link(lin, time, prev=par1.pid)
     session.add(lin1)
 
     if linp is not None:
-        linp1 = splice_link(linp, now, next=par1.pid)
+        linp1 = splice_link(linp, time, next=par1.pid)
         session.add(linp1)
 
     session.commit()
 
     return par1
 
-def delete_para(pid):
-    now = datetime.utcnow()
+def delete_para(pid, time=None):
+    if time is None:
+        now = datetime.utcnow()
 
     if (par := get_para(pid)) is None:
         return
-    if (lin := get_link(pid, now)) is None:
+    if (lin := get_link(pid, time=time)) is None:
         return
 
-    linp = get_link(lin.prev, now)
-    linn = get_link(lin.next, now)
+    linp = get_link(lin.prev, time)
+    linn = get_link(lin.next, time)
 
-    par.delete_time = now
-    lin.delete_time = now
+    par.delete_time = time
+    lin.delete_time = time
 
     if linp is not None:
-        linp1 = splice_link(linp, now, next=lin.next)
+        linp1 = splice_link(linp, time, next=lin.next)
         session.add(linp1)
     if linn is not None:
-        linn1 = splice_link(linn, now, prev=lin.prev)
+        linn1 = splice_link(linn, time, prev=lin.prev)
         session.add(linn1)
 
     session.commit()
@@ -244,20 +257,28 @@ def first_para(aid):
 def last_para(aid):
     return session.query(Paralink).filter_by(aid=aid).filter_by(next=None).one_or_none()
 
-def create_article(title, short_title=None, init=True):
-    now = datetime.utcnow()
+def create_article(title, short_title=None, init=True, time=None):
+    if time is None:
+        time = datetime.utcnow()
 
     if short_title is None:
         short_title = urlify(title)
 
-    art = Article(title=title, short_title=short_title, create_time=now)
+    art = Article(title=title, short_title=short_title, create_time=time)
     session.add(art)
     session.commit()
 
     if init:
-        init_article(art.aid, text=f'# {title}', time=now)
+        init_article(art.aid, text=f'#! {title}', time=time)
 
     return art
+
+def delete_article(aid, time=None):
+    if time is None:
+        time = datetime.utcnow()
+    if (art := get_art(aid)) is not None:
+        art.delete_time = time
+        session.commit()
 
 def init_article(aid, text, time=None):
     if time is None:
@@ -270,17 +291,23 @@ def init_article(aid, text, time=None):
     session.add_all([par, lin])
     session.commit()
 
-def insert_begin(aid, text):
-    if (par := first_para(aid)) is None:
-        init_article(aid)
-    else:
-        insert_before(par.pid, text)
+def insert_begin(aid, text, time=None):
+    if time is None:
+        time = datetime.utcnow()
 
-def insert_end(aid, text):
-    if (par := last_para(aid)) is None:
-        init_article(aid)
+    if (par := first_para(aid)) is None:
+        init_article(aid, text, time=time)
     else:
-        insert_after(par.pid, text)
+        insert_before(par.pid, text, time=time)
+
+def insert_end(aid, text, time=None):
+    if time is None:
+        time = datetime.utcnow()
+
+    if (par := last_para(aid)) is None:
+        init_article(aid, text, time=time)
+    else:
+        insert_after(par.pid, text, time=time)
 
 def set_blurb(aid, blurb):
     art = session.query(Article).filter_by(aid=aid).one_or_none()
@@ -288,6 +315,26 @@ def set_blurb(aid, blurb):
         art.blurb = blurb
         session.add(art)
         session.commit()
+
+def import_markdown(title, mark, time=None):
+    if time is None:
+        time = datetime.utcnow()
+
+    art = create_article(title, init=False, time=time)
+    aid = art.aid
+
+    paras = re.sub(r'\n{3,}', '\n\n', mark).strip().split('\n\n')
+    n_par, max_pid = len(paras), create_pid()
+    pids = list(range(max_pid, max_pid + n_par))
+
+    for i, (pid, ptxt) in enumerate(zip(pids, paras)):
+        prev = None if i == 0 else pids[i-1]
+        next = None if i == n_par - 1 else pids[i+1]
+        par = Paragraph(aid=aid, pid=pid, text=ptxt, create_time=time)
+        lin = Paralink(aid=aid, pid=pid, prev=prev, next=next, create_time=time)
+        session.add_all([par, lin])
+
+    session.commit()
 
 ##
 ## query methods
@@ -312,7 +359,6 @@ def search_title(words, err=0.3):
     quer = fuzzy_query(words, err=err)
     return Article.query.msearch(quer, fields=['title']).all()
 
-
 ##
 ## citation methods
 ##
@@ -324,24 +370,18 @@ def create_cite(citekey, entry_type, **kwargs):
         cite = Bib(citekey=citekey, entry_type=entry_type, create_time=now, **kwargs)
         session.add(cite)
         session.commit()
-
         return cite
-
     else:
-
         bib.delete_time = now
         cite = Bib(citekey=citekey, entry_type=entry_type, create_time=now, **kwargs)
         session.add(bib)
         session.add(cite)
         session.commit()
 
-
-
 def get_cite(citekey, time=None):
     if time is None:
         time = datetime.utcnow()
     return session.query(Bib).filter_by(citekey=citekey).filter(bibtime(time)).one_or_none()
-
 
 def delete_cite(citekey):
     now = datetime.utcnow()
@@ -399,11 +439,8 @@ def create_ref(key, aid, cite_type, cite_env, text):
         ref1 = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, create_time=now,)
         session.add(ref1)
         session.commit()
-
         return ref
-
     else:
-
         ref.delete_time = now
         ref1 = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, create_time=now,)
         session.add(ref1)

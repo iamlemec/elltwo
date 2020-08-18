@@ -17,13 +17,13 @@
 }
 
 .para:hover {
-/*     border-left: 2px solid var(--bor-col); */
-    
+    /* border-left: 2px solid var(--bor-col); */
 }
-
 
 .p_text {
     /* cursor: pointer; */
+    line-height: 1.5;
+    text-align: justify;
 }
 
 .p_input {
@@ -99,7 +99,6 @@ button {
 }
 
 .active.changed {
-   border-left: 2px solid;
    border-image-source: linear-gradient(var(--hl-col) 0%, var(--hl-col) 50%, var(--bor-foc-col) 50%, var(--bor-foc-col));
    border-image-slice: 1;
 }
@@ -115,15 +114,19 @@ button {
 /* DIV renderer stylying */
 
 .eqnum {
- position: absolute;
- right: 10px;
- bottom: 40%;
+    position: absolute;
+    right: 10px;
+    bottom: 40%;
+}
+
+#pop .eqnum {
+    display: none;
 }
 
 .qed {
- position: absolute;
- right: 0;
- bottom:0%;
+    position: absolute;
+    right: 0;
+    bottom:0%;
 }
 
 .title {
@@ -131,19 +134,19 @@ button {
 }
 
 .env__heading_h1 {
-    font-size: 30px;
-}
-
-.env__heading_h2 {
     font-size: 25px;
 }
 
-.env__heading_h3 {
+.env__heading_h2 {
     font-size: 20px;
 }
 
+.env__heading_h3 {
+    font-size: 15px;
+}
+
 .bib_heading {
-    font-size: 30px;
+    font-size: 25px;
 }
 
 .em {
@@ -222,15 +225,11 @@ button {
     padding: 10px;
     position: absolute;
     z-index: 1000;
-    min-width:150px;
-    min-height:30px;
-    max-width: 50%;
+    min-width: 250px;
+    min-height: 30px;
+    max-width: 400px;
     border-radius: 5px;
     opacity: .95;
-}
-
-#pop .eqnum{
-    display: none;
 }
 
 #pop:after {
@@ -252,7 +251,7 @@ button {
     padding: 2px;
 }
 
-#toc{
+#toc {
     position: fixed;
     top: 5%;
     left: 20px;
@@ -269,6 +268,9 @@ button {
 #toc:hover .toc_entry{
     visibility: visible;
 }
+
+/* popup overrides */
+
 #pop .heading {
     color: var(--hl-col)
 } 
@@ -289,3 +291,19 @@ button {
     color: var(--bor-col);
 }
 
+#pop .eqnum {
+    display: none;
+}
+
+#pop .title {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+#pop .env__heading_h1 {
+    font-size: 20px;
+}
+
+#pop a {
+    color: teal;
+}

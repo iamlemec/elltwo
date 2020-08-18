@@ -169,13 +169,14 @@ insertPara = function(pid, new_pid, before=true, raw='') {
 // creates classes for environs
 envClasses = function() {
     // remove old env classes
-    $('.para').removeClass(function(index, css) {
+    $('.para > .p_text').removeClass(function(index, css) {
         return (css.match(/(^|\s)env__\S+/g) || []).join(' ');
     });
 
     // remove env markers
     $('.para').removeClass('env')
-              .removeClass('env_err');
+              .removeClass('env_err')
+              .removeAttr('env_sel');
 
     // remove formatting addins
     $('.env_add').remove();
@@ -191,15 +192,16 @@ envClasses = function() {
         var para = $(this);
 
         if (para.hasClass('env_one')) {
+            var ptxt = para.children('.p_text');
             var one_id = para.attr('id');
             var one_env = para.attr('env');
             var one_args = para.data('args');
             para.addClass('env');
-            para.addClass(`env__${one_env}`);
+            ptxt.addClass(`env__${one_env}`);
             if (one_id != undefined) {
                 para.attr('env_sel', `#${one_id}`);
             }
-            envFormat(para, one_env, one_args);
+            envFormat(ptxt, one_env, one_args);
         }
 
         if (!env_name && para.hasClass('env_end') && !para.hasClass('env_beg')) {
@@ -240,10 +242,11 @@ envClasses = function() {
 
         if (para.hasClass('env_end')) { // closing tag = current open tag
             var env_all = $(env_paras);
+            var txt_all = env_all.children('.p_text');
             env_all.addClass('env');
-            env_all.addClass(`env__${env_name}`);
             env_all.attr('env_id', env_id);
-            envFormat(env_all, env_name, env_args);
+            txt_all.addClass(`env__${env_name}`);
+            envFormat(txt_all, env_name, env_args);
 
             env_name = null;
             env_id = null;
@@ -278,8 +281,8 @@ makeCounter = function(env, inc=1) {
     return $('<span>', {class: 'num', counter: env, inc: inc});
 }
 
-simpleEnv = function(paras, env, head='', tail='', num=false) {
-    var first = paras.filter('.env_beg').first().children('.p_text');
+simpleEnv = function(ptxt, env, head='', tail='', num=false) {
+    var first = ptxt.first();
     var pre = $('<span>', {class: `env_add ${env}_header`, html: head});
     if (num) {
         var span = makeCounter(env);
@@ -288,59 +291,57 @@ simpleEnv = function(paras, env, head='', tail='', num=false) {
     pre.append('. ');
     first.prepend(pre);
 
-    var last = paras.filter('.env_end').last().children('.p_text');
+    var last = ptxt.last();
     var pos = $('<span>', {class: `env_add ${env}_footer`, html: tail});
     pos.prepend(' ');
     last.append(pos);
 };
 
 // we probably want to pass targ as an argument
-errorEnv = function(paras, args) {
+errorEnv = function(ptxt, args) {
     var mesg;
     var targ;
 
     if (args.code == 'undef') {
         mesg = `Error: envrionment ${args.env} is not defined.`;
-        targ = paras.first();
+        targ = ptxt.first();
     } else if (args.code == 'open') {
         mesg = `Error: envrionment ${args.env} not closed at new environment ${args.new_env}.`;
-        targ = paras.first();
+        targ = ptxt.first();
     } else if (args.code == 'heading') {
         mesg = `Error: envrionment ${args.env} not closed at end of section.`;
-        targ = paras.first();
+        targ = ptxt.first();
     } else if (args.code == 'eof') {
         mesg = `Error: envrionment ${args.env} not closed at end of document.`;
-        targ = paras.last();
+        targ = ptxt.last();
     } else if (args.code == 'ending') {
         mesg = `Error: environment ending when not in environment.`;
-        targ = paras.first();
+        targ = ptxt.first();
     }
 
-    var text = targ.children('.p_text');
     var pre = $('<div>', {class: 'env_add error_footer', html: mesg});
-    text.append(pre);
+    ptxt.append(pre);
 };
 
-numberEnv = function(para, env, head='', tail='', args={}) {
+numberEnv = function(ptxt, env, head='', tail='', args={}) {
     var num = args.number || '';
-    return simpleEnv(para, env, head, tail, num);
+    return simpleEnv(ptxt, env, head, tail, num);
 };
 
-theoremEnv = function(para, args) {
-    return numberEnv(para, 'theorem', 'Theorem', '—', args);
+theoremEnv = function(ptxt, args) {
+    return numberEnv(ptxt, 'theorem', 'Theorem', '—', args);
 };
 
-proofEnv = function(para, args) {
-    return simpleEnv(para, 'proof', 'Proof', `— <span class='qed'>&#8718;</span>`, false);
+proofEnv = function(ptxt, args) {
+    return simpleEnv(ptxt, 'proof', 'Proof', `— <span class='qed'>&#8718;</span>`, false);
 };
 
-exampleEnv = function(para, args) {
-    return numberEnv(para, 'example', 'Example', '', args);
+exampleEnv = function(ptxt, args) {
+    return numberEnv(ptxt, 'example', 'Example', '', args);
 };
 
-headingEnv = function(para, args) {
-    para.addClass(`env__heading_h${args.level}`);
-    var txt = para.find('.p_text');
+headingEnv = function(ptxt, args) {
+    ptxt.addClass(`env__heading_h${args.level}`);
     var num = $('<span>', {class: 'env_add'});
     if (args.number) {
         l = 1;
@@ -351,17 +352,16 @@ headingEnv = function(para, args) {
         }
         num.append(makeCounter(`heading${l}`, 1));
     }
-    txt.prepend([num, ' ']);
+    ptxt.prepend([num, ' ']);
 };
 
-equationEnv = function(para, args) {
-    if(para.attr('id')){
-        var txt = para.find('.p_text');
+equationEnv = function(ptxt, args) {
+    if (args.number) {
         var num = makeCounter('equation');
         var div = $('<div>', {class: 'env_add eqnum'});
         div.append(['(', num, ')']);
-        txt.append(div);
-    };
+        ptxt.append(div);
+    }
 };
 
 env_spec = {
@@ -505,14 +505,14 @@ getTro = function(ref, callback) {
         callback(ref, tro, text);
     } else if (key == '_ilink_') {
         client.sendCommand('get_blurb', ref.attr('href'), function(response) {
-            if(response){
+            if (response) {
                 tro.tro = response;
                 tro.cite_type = 'ilink';
             } else {
                 tro.tro = '';
                 tro.cite_type = 'err';
                 tro.cite_err = 'not_found';
-            };
+            }
             tro.cite_type = 'ilink';
             callback(ref, tro, text, true);
         });
@@ -736,9 +736,12 @@ createBibEntry = function(cite) {
 $(document).on({
     mouseenter: function() {
         var ref = $(this);
+        ref.data('show_pop', true);
         var html = getTro(ref, renderPop);
     },
     mouseleave: function() {
+        var ref = $(this);
+        ref.data('show_pop', false);
         $('#pop').remove();
     },
 }, '.pop_anchor');
@@ -778,10 +781,13 @@ popText = function(tro) {
 };
 
 renderPop = function(ref, tro, text, ext) {
+    if (!ref.data('show_pop')) { // we've since left with mouse
+        return;
+    }
     if (ext != undefined) {
         pop = tro.tro;
     } else {
-    var pop = popText(tro);
+        var pop = popText(tro);
     };
     createPop(pop);
 }
@@ -836,62 +842,64 @@ pop_spec = {
 /// External References
 
 createExtRef = function(id) {
-    tro = troFromKey(id);
-    ref = {};
+    var tro = troFromKey(id);
+    var ref = {};
     ref.aid = aid;
     ref.key = id;
     ref.cite_type = tro.cite_type;
     ref.cite_env = tro.cite_env;
     ref.text = popText(tro);
-    return ref
+    return ref;
 };
 
 updateRefHTML = function(para) {
-    new_id = para.attr('id') || para.attr('env_id');
-    old_id = para.attr('old_id');
+    var new_id = para.attr('id') || para.attr('env_id');
+    var old_id = para.attr('old_id');
 
     if (new_id) {
-        ref = createExtRef(new_id);
+        var ref = createExtRef(new_id);
         client.sendCommand('update_ref', ref, function(success) {
             console.log('success');
         });
     }
-    if (old_id && ($('#'+old_id).length > 0)) {
-        ref = createExtRef(old_id);
-        client.sendCommand('update_ref', ref, function(success) {
-            console.log('success');
-        });
-    }
-}
 
-$.fn.ignore = function(sel){
-  return this.clone().find(sel||">*").remove().end();
+    if (old_id && ($('#'+old_id).length > 0)) {
+        var ref = createExtRef(old_id);
+        client.sendCommand('update_ref', ref, function(success) {
+            console.log('success');
+        });
+    }
 };
 
-getBlurb= function(len=200){
-    blurb = ""
-    paras = $('.para').toArray();
-    while(len > 0){
-        var para = paras.shift()
-        if(para){
-            p_text = $(para).find('.p_text').ignore(".katex-mathml, .eqnum ").text().replace(/(\r\n|\n|\r)/gm,"")
-            p_text = p_text.slice(0,len);
-            len -= p_text.length;
-            if($(para).hasClass('env')){
-                env = $(para).attr('env')
-                p_text = `<span class=${env}>${p_text}</span>`
-            }
-        blurb += p_text + " ";
-        }else{
-            break;
-        };
-    };
-    blurb += "..."
-    return blurb
-}
+$.fn.ignore = function(sel) {
+    return this.clone().find(sel || '>*').remove().end();
+};
 
-setBlurb = function(){
-    b = getBlurb()
+getBlurb = function(len=200) {
+    var blurb = '';
+    var size = 0;
+    $('.para').each(function() {
+        var para = $(this);
+        var ptxt = para.children('.p_text');
+        var core = ptxt.ignore('.katex-mathml, .eqnum')
+                       .removeClass('p_text');
+
+        var html = core[0].outerHTML;
+        blurb += html + ' ';
+
+        var text = core.text();
+        size += text.length;
+
+        if (size > len) {
+            blurb += '...';
+            return false;
+        }
+    });
+    return blurb;
+};
+
+setBlurb = function() {
+    var blurb = getBlurb();
     client.sendCommand('set_blurb', {'aid': aid, 'blurb': blurb}, function(success) {
             console.log('blurb set');
         });
@@ -987,5 +995,11 @@ return sytaxParseInline(raw)
 }
 
 
+/// Exporting
 
-
+getMarkdown = function() {
+    return $('.para').map(function() {
+        var para = $(this);
+        return para.attr('raw');
+    }).toArray().join('\n\n');
+};
