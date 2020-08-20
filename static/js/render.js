@@ -757,7 +757,7 @@ createPop = function(html='') {
     $(this).mousemove(function(event) {
         pop.css({
             'left': (event.pageX - 0.5*w - 10) + 'px', // offset 10px for padding
-            ' ': (event.pageY - h - 35) + 'px', // offset up by 35 px
+            'top': (event.pageY - h - 35) + 'px', // offset up by 35 px
         });
     });
 };
@@ -958,7 +958,7 @@ sytaxParseBlock = function(raw){
 var block = {
   heading: /^(#{1,6})(\*?)( *)(?:\[([\w-\|\=]+)\])?( *)([^\n]+?)? *#* *(?:\n+|$)/,
   text: /^[^\n]+/,
-  equation: /^\$\$( *)(?:\[([\w-\|\=]+)\])?( *)((?:[^\n]+\n*)*)(?:\n+|$)/,
+  equation: /^\$\$(\*?)( *)(?:\[([\w-\|\=]+)\])?( *)((?:[^\n]+\n*)*)(?:\n+|$)/,
   title: /^#! *([^\n]*)(?:\n+|$)/,
   figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
   envbeg: /^\>\>(\!)?( *)([\w-]+)?(\*)?( *)(?:\[([\w-\|\=]+)\])?( *)((?:[^\n]+\n*)*)(?:\n+|$)/,
@@ -973,8 +973,9 @@ if (cap = block.heading.exec(raw)) {
 };
 
 if (cap = block.equation.exec(raw)) {
-    var id = (cap[2]) ? s(fArgs(cap[2]), 'ref') : "";
-    return s('$$', 'delimit') + cap[1] + id + cap[3] + s(cap[4], 'math');
+    var id = (cap[3]) ? s(fArgs(cap[3]), 'ref') : "";
+    var star = (cap[1]) ? s(cap[1], 'hl') : "";
+    return s('$$', 'delimit') + star + cap[2] + id + cap[4] + s(cap[5], 'math');
 };
 
 if (cap = block.envbeg.exec(raw)) {
