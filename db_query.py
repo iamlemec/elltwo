@@ -164,7 +164,7 @@ def bulk_update(para_dict, time=None):
 
 def insert_after(pid, text='', time=None):
     if time is None:
-        now = datetime.utcnow()
+        time = datetime.utcnow()
 
     if (par := get_para(pid)) is None:
         return
@@ -193,7 +193,7 @@ def insert_after(pid, text='', time=None):
 
 def insert_before(pid, text='', time=None):
     if time is None:
-        now = datetime.utcnow()
+        time = datetime.utcnow()
 
     if (par := get_para(pid)) is None:
         return
@@ -222,7 +222,7 @@ def insert_before(pid, text='', time=None):
 
 def delete_para(pid, time=None):
     if time is None:
-        now = datetime.utcnow()
+        time = datetime.utcnow()
 
     if (par := get_para(pid)) is None:
         return
