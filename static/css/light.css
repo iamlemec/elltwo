@@ -75,14 +75,14 @@ button:hover {
     border-left: 2px solid var(--hl-col);
 }
 
-#head{
-  background-color: var(--top-col);
-  z-index: 999;
+#head {
+  /* background-color: var(--top-col); */
+  /* z-index: 999; */
 }
 
-#foot{
-  background-color: var(--bg-col);
-  z-index: 999;
+#foot {
+  /* background-color: var(--bg-col); */
+  /* z-index: 999; */
 }
 
 textarea{
@@ -108,5 +108,5 @@ textarea{
 }
 
 .toc_entry{
- color: var(--bor-foc-col); 
+ color: var(--bor-foc-col);
 }

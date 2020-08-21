@@ -254,7 +254,7 @@ button {
 #toc {
     position: fixed;
     top: 5%;
-    left: 20px;
+    right: 20px;
     width: 23%;
     font-size: 80%;
     padding-top: 3%;
@@ -273,7 +273,26 @@ button {
 
 #pop .heading {
     color: var(--hl-col)
-} 
+}
+
+#pop .eqnum {
+    display: none;
+}
+
+#pop .title {
+    font-size: 25px;
+    font-weight: bold;
+}
+
+#pop .env__heading_h1 {
+    font-size: 20px;
+}
+
+#pop a {
+    color: teal;
+}
+
+/* syntax highlighting */
 
 .syn_hl{
     color: var(--bor-foc-col);
@@ -295,19 +314,46 @@ button {
     background-color: rgba(150,70,30, .15);
 }
 
-#pop .eqnum {
+/* sidebar */
+
+#head {
+    z-index: 10;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+#logo {
+    font-size: 30px;
+    cursor: default;
+}
+
+#sidebar {
     display: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 200px;
+    height: 100%;
+    padding-left: 5px;
+    padding-bottom: 10px;
+    border-right: 1px dashed black;
 }
 
-#pop .title {
+#logo_placeholder {
+    font-size: 30px;
+    width: 100%;
+    border-bottom: 1px dashed black;
+    white-space: nowrap;
+}
+
+#options_title {
+    padding-top: 5px;
+    padding-bottom: 5px;
     font-size: 25px;
-    font-weight: bold;
+    border-bottom: 1px dashed black;
 }
 
-#pop .env__heading_h1 {
-    font-size: 20px;
-}
-
-#pop a {
-    color: teal;
+.option {
+    margin-top: 10px;
+    white-space: nowrap;
 }
