@@ -1,9 +1,10 @@
 import os
 from datetime import datetime
 
-from db_setup import db, Article, Paragraph, Paralink, Bib
+from db_setup import db, Article, Paragraph, Paralink, Bib, ExtRef
 from db_query import import_markdown
 
+ExtRef.query.delete()
 Bib.query.delete()
 Paralink.query.delete()
 Paragraph.query.delete()

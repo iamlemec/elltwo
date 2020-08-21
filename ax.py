@@ -147,7 +147,6 @@ def delete_para(data):
 
 @socketio.on('create_art')
 def create_art(title):
-    print(title)
     art = dbq.get_art_short(title)
     if art:
         return url_for('RenderArticle', title=title)
@@ -161,7 +160,6 @@ def search_title(data):
     if (results):
         r = {}
         for art in results:
-            print('b', art.blurb)
             r[art.title] = {'url': art.short_title, 'blurb': art.blurb}
         return r
     else:
@@ -171,7 +169,6 @@ def search_title(data):
 def set_blurb(data):
     aid = data['aid']
     blurb = data['blurb']
-    print('set_blurb', aid, blurb)
     dbq.set_blurb(aid, blurb)
     return True
 

@@ -942,6 +942,8 @@ sytaxParseInline = function(raw){
     html = html.replace(ilink, function(a,b){
         return s('[[', 'delimit') + s(b, 'ref') + s(']]', 'delimit');
     });
+    html = html.replace('_!L_', `<span class='brace'>`);
+    html = html.replace('_!R_', `</span>`);
     return html;
 }
 
@@ -979,7 +981,6 @@ if (cap = block.equation.exec(raw)) {
 };
 
 if (cap = block.envbeg.exec(raw)) {
-        console.log(cap)
     var bang = (cap[1]) ? s('!', 'hl') : "";
     var env = (cap[3]) ? s(cap[3], 'ref') : "";
     var star = (cap[4]) ? s(cap[4], 'hl') : "";
@@ -994,6 +995,91 @@ if (cap = block.envend.exec(raw)) {
 
 return sytaxParseInline(raw)
 }
+
+$(document).on('keyup', '.p_input', function(e){
+    let arrs = [37,38,39,40,48,57,219,221];
+    if(arrs.includes(e.keyCode)){
+        braceMatch(this);
+    }
+});
+
+braceMatch = function(textarea){
+    var delimit = {'(':')', '[':']', '{':'}'};
+    var rev_delimit = {')':'(', ']':'[', '}':'{'};
+    let cpos = textarea.selectionStart;
+    let text = textarea.value;
+    let after = text[cpos];
+    let before = text[cpos-1] || false;
+    if(after in delimit){
+        var pos = getBracePos(text, after, delimit[after], cpos);
+        if(pos){
+            let v = $(textarea).siblings('.p_input_view');
+            braceHL(v, text, pos);
+        };
+    } else if (before in delimit){
+        var pos = getBracePos(text, before, delimit[before],cpos-1);
+        if(pos){
+            let v = $(textarea).siblings('.p_input_view');
+            braceHL(v, text, pos);
+        };
+    } else if (before in rev_delimit){
+        var pos = getBracePos(text, before, rev_delimit[before], cpos, true);
+        let v = $(textarea).siblings('.p_input_view');
+        braceHL(v, text, pos);
+    } else if (after in rev_delimit){
+        var pos = getBracePos(text, after, rev_delimit[after], cpos+1, true);
+        let v = $(textarea).siblings('.p_input_view');
+        braceHL(v, text, pos);
+    } else {
+        $('.brace').contents().unwrap();
+    }
+};
+
+getBracePos = function(text, brace, match, cpos, rev=false){
+    var len = text.length
+    if (rev){
+        text = text.split('').reverse().join('');
+        cpos = len - cpos;
+    }
+    var z = 1;
+    var pos = cpos;
+    while(true){
+        pos += 1;
+        if(pos <= len){
+            char = text[pos];
+            if(char == brace){
+                z += 1;
+            } else if (char == match){
+                z -= 1;
+            };
+            if(z==0){
+                break
+            }
+        } else {
+            if(!rev){
+                return false;
+            } else{
+                break;
+            }
+        };
+    };
+    if(rev){
+        return {'l': Math.max(0,len - pos - 1), 'r': len -cpos -1}
+    } else {
+        return {'l': cpos, 'r': pos}
+    };
+};
+
+braceHL = function(view, text, pos){
+    let L = `\_\!L\_`
+    let R = `\_\!R\_`
+    let new_text = [text.slice(0, pos['l']), L, text.slice(pos['l'], pos['r']+1), R, text.slice(pos['r']+1)].join('');
+    let syn = sytaxParseBlock(new_text);
+    view.html(syn);
+    tmo = setTimeout(function () {
+        $('.brace').contents().unwrap();
+    }, 1000);
+};
 
 
 /// Exporting

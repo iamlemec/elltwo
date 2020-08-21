@@ -291,6 +291,10 @@ button {
     color: var(--bor-col);
 }
 
+.brace{
+    background-color: rgba(150,70,30, .15);
+}
+
 #pop .eqnum {
     display: none;
 }
