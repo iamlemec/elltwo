@@ -343,6 +343,7 @@ exampleEnv = function(ptxt, args) {
 
 headingEnv = function(ptxt, args) {
     ptxt.addClass(`env__heading_h${args.level}`);
+    ptxt.attr('head_level', args.level)
     var num = $('<span>', {class: 'env_add'});
     if (args.number) {
         l = 1;
@@ -424,12 +425,14 @@ createNumbers = function() {
 
 createTOC = function() {
     toc = $('#toc');
-    toc.empty()
+    toc.find('.toc_entry').remove();
     $('.env__heading').each(function() {
-        var text = $(this).children('.p_text').text();
-        var id = $(this).attr('id');
-        var href= id ? '#' + id : "";
-        var sec = $('<a>', {class: 'toc_entry', href: href, text: text});
+        let level = $(this).attr('head_level')
+        let text = $(this).text();
+        let id = $(this).parent('.para').attr('id');
+        let sec = id  
+            ? $('<a>', {class: `toc_entry head_level${level}`, href: '#'+id, text: text}) 
+            : $('<span>', {class: `toc_entry head_level${level}`, text: text});
         toc.append(sec);
     });
 };
@@ -921,7 +924,8 @@ syntaxHL = function(para){
 
 $(document).on('input', '.p_input', function(){
     para=$(this).parent('.para');
-    syntaxHL(para)
+    paraTimeOut();
+    syntaxHL(para);
 });
 
 sytaxParseInline = function(raw){
@@ -972,7 +976,7 @@ if (cap = block.heading.exec(raw)) {
     var star = (cap[2]) ? s(cap[2], 'hl') : "";
     var id = (cap[4]) ? s(fArgs(cap[4]), 'ref') : "";
     var text = (cap[6]) ? sytaxParseInline(cap[6]) : "";
-    return s(cap[1], 'delimit') + star + cap[3] + id + cap[3] + cap[5] + text;
+    return s(cap[1], 'delimit') + star + cap[3] + id + cap[5] + text;
 };
 
 if (cap = block.equation.exec(raw)) {

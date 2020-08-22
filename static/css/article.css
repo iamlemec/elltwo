@@ -252,21 +252,20 @@ button {
 }
 
 #toc {
-    position: fixed;
-    top: 5%;
-    right: 20px;
-    width: 23%;
-    font-size: 80%;
-    padding-top: 3%;
+    position: relative;
+    width: 100%;
+    margin-top: 30px;
 }
 
 .toc_entry{
-    visibility: hidden;
     display: block;
+    margin-top: 5px;
+    padding-left: 10px;
 }
 
-#toc:hover .toc_entry{
-    visibility: visible;
+.head_level2{
+   padding-left: 20px;
+   font-size: 80%;
 }
 
 /* popup overrides */
@@ -358,6 +357,12 @@ button {
     white-space: nowrap;
 }
 
-.locked{
-    background-color: red; 
+.locked:after {
+    content: '\1F512';
+    position: absolute;
+    width: 15%;
+    left:90%;
+    top: 0%;
+    text-align: right;
 }
+

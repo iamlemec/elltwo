@@ -128,20 +128,40 @@ editShift = function(para, up=true) {
 
 makeEditable = function() {
     $('.para').removeClass('editable');
-    editable = true;
     if (active_para) {
             var data = {};
             data.pid = active_para.attr('pid');
             data.room = aid;
             client.sendCommand('lock', data, function(response) {
                 if(response) {
+                    editable = true;
                     active_para.addClass('editable');
                     text = active_para.children('.p_input')[0];
                     resize(text);
                     syntaxHL(active_para);
+                    placeCursor();
+                    paraTimeOut();
                 };
             });
     }
+};
+
+let lockout = null;
+
+paraTimeOut = function(){
+    clearTimeout(lockout)
+    lockout = setTimeout(function () {
+        makeUnEditable();
+        data = {};
+        data.paras = changed;
+        data.room = aid;
+        client.sendCommand('update_bulk', data, function(success) {
+            Object.keys(changed).map(function(pid) {
+                var para = getPara(pid);
+                storeChange(para);
+            });
+        });
+    }, 1000*60*3); //3mins 
 };
 
 lockParas = function(pids){
@@ -182,9 +202,9 @@ $(document).on('click', '.para', function() {
     var para = $(this);
     if (!para.hasClass('active')) {
         makeActive($(this));
-    } else {
+    } else if (!editable) {
         makeEditable();
-    }
+    };
 });
 
 //click background to escape
@@ -195,10 +215,11 @@ $(document).on('click', '#bg', function() {
     }
 });
 
-// focus to make editable
-$(document).on('focus', '.p_input', function() {
-    makeEditable();
-});
+// this caused problems
+// // focus to make editable
+// $(document).on('focus', '.p_input', function() {
+//     makeEditable();
+// });
 
 // next para
 activeNextPara = function() {
@@ -360,12 +381,24 @@ $(document).on('click', '.update', function() {
 
 $(document).on('click', '.before', function() {
     var pid = $(this).parents('.para').attr('pid');
-    client.sendCommand('insert_before', {'pid': pid});
+    client.sendCommand('insert_before', {'pid': pid, 'room': aid}, function(success) {
+        if (success) {
+            activePrevPara();
+            makeEditable();
+            placeCursor();
+        }
+    });
 });
 
 $(document).on('click', '.after', function() {
     var pid = $(this).parents('.para').attr('pid');
-    client.sendCommand('insert_after', {'pid': pid});
+    client.sendCommand('insert_after', {'pid': pid, 'room': aid}, function(success) {
+        if (success) {
+            activeNextPara();
+            makeEditable();
+            placeCursor();
+        }
+    });
 });
 
 $(document).on('click', '.delete', function() {
@@ -375,7 +408,7 @@ $(document).on('click', '.delete', function() {
             return false;
             }
         }
-    client.sendCommand('delete_para', {'pid': pid});
+    client.sendCommand('delete_para', {'pid': pid, 'room': aid});
 });
 
 /// sidebar
