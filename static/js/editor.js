@@ -377,3 +377,47 @@ $(document).on('click', '.delete', function() {
         }
     client.sendCommand('delete_para', {'pid': pid});
 });
+
+/// sidebar
+
+// default options
+default_theme = theme;
+
+// current options
+current_theme = 'default';
+current_font = 'default';
+
+themeLink = function(name) {
+    return $('<link>', {
+        id: 'theme',
+        type: 'text/css',
+        rel: 'stylesheet',
+        href: `/static/css/${name}.css`,
+    });
+};
+
+$('#logo').click(function() {
+    $('#sidebar').animate({width: 'toggle'}, 100);
+});
+
+$('#theme_select').change(function() {
+    var tselect = $(this);
+    var tchoice = tselect.children('option:selected').text();
+    if (tchoice != current_theme) {
+        current_theme = tchoice;
+        var tset = (tchoice == 'default') ? default_theme : tchoice;
+        $('#theme').remove();
+        var link = themeLink(tset);
+        $('head').append(link);
+    }
+});
+
+$('#font_select').change(function() {
+    var fselect = $(this);
+    var fchoice = fselect.children('option:selected').text();
+    if (fchoice != current_font) {
+        current_font = fchoice;
+        var fset = (fchoice == 'default') ? '' : fchoice;
+        $('#content').css('font-family', fset);
+    }
+});

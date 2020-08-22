@@ -7,14 +7,45 @@
    <script src={{ url_for('static', filename='js/socket.io.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='js/render.js') }} language="Javascript" type="text/javascript"></script>
-   <script src={{ url_for('static', filename='js/editor.js') }} language="Javascript" type="text/javascript"></script>
 {% endblock %}
 
 {% block title %}{{title}}{% endblock %}
 
 {% block header %}
-<div id='head'>{{title}}</div>
-<div id=toc></div>
+
+<div id="head">
+<span id="logo">보</span>
+</div>
+
+<div id="sidebar">
+
+<div id="logo_placeholder">보 — options</div>
+
+<div class="option">
+Theme:
+<select id="theme_select" name="theme_select">
+    <option>default</option>
+    <option>classic</option>
+    <option>dark</option>
+    <option>white</option>
+    <option>light</option>
+</select>
+</div>
+
+<div class="option">
+Font:
+<select id="font_select" name="font_select">
+    <option>default</option>
+    <option>serif</option>
+    <option>sans-serif</option>
+    <option>monospace</option>
+</select>
+</div>
+
+</div>
+
+<div id="toc"></div>
+
 {% endblock %}
 
 {% block content %}
@@ -27,8 +58,10 @@
 {% endblock %}
 
 {% block foot %}
-<script language="Javascript" type="text/javascript">
-    title = "{{title}}";
-    aid = "{{aid}}";
+<script type="text/javascript">
+    title = '{{title}}';
+    aid = '{{aid}}';
+    theme = '{{theme}}';
 </script>
+<script src={{ url_for('static', filename='js/editor.js') }} language="Javascript" type="text/javascript"></script>
 {% endblock %}
