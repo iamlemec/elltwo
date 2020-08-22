@@ -59,11 +59,13 @@ makeActive = function(para) {
 localChange = function(para) {
     var text = para.children('.p_input').val();
     var raw = para.attr('raw');
+    var pid = para.attr('pid');
     if (text != raw) {
-        var pid = para.attr('pid');
         changed[pid] = text;
         $(para).addClass('changed');
-    }
+    } else {
+        sendUnlockPara([pid])
+    };
     dataToText(para, text); // local changes only
 };
 
@@ -128,11 +130,41 @@ makeEditable = function() {
     $('.para').removeClass('editable');
     editable = true;
     if (active_para) {
-        active_para.addClass('editable');
-        text = active_para.children('.p_input')[0];
-        resize(text);
-        syntaxHL(active_para);
+            var data = {};
+            data.pid = active_para.attr('pid');
+            data.room = aid;
+            client.sendCommand('lock', data, function(response) {
+                if(response) {
+                    active_para.addClass('editable');
+                    text = active_para.children('.p_input')[0];
+                    resize(text);
+                    syntaxHL(active_para);
+                };
+            });
     }
+};
+
+lockParas = function(pids){
+    pids.forEach(function(pid){
+        var para = getPara(pid);
+        para.addClass('locked');
+    });
+};
+
+sendUnlockPara = function(pids){
+    var data = {};
+    data.pids = pids;
+    data.room = aid;
+    client.sendCommand('unlock', data, function(response){
+        console.log(response);
+    });
+};
+
+unlockParas = function(pids){
+    pids.forEach(function(pid){
+        var para = getPara(pid);
+        para.removeClass('locked');
+    });
 };
 
 makeUnEditable = function() {

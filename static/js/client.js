@@ -24,15 +24,23 @@ function connect(url) {
     });
 
     socket.on('updateBulk', function(data) {
-        updateParas(data)
+        updateParas(data);
     });
 
     socket.on('insertPara', function(data) {
-        insertPara(...data)
+        insertPara(...data);
     });
 
     socket.on('deletePara', function(data) {
-        deletePara(...data)
+        deletePara(...data);
+    });
+
+    socket.on('lock', function(pids) {
+        lockParas(pids);
+    });
+
+    socket.on('unlock', function(pids) {
+        unlockParas(pids);
     });
 
 }
@@ -50,7 +58,7 @@ function disconnect() {
 // }
 
 function sendCommand(cmd, data="", ack=function(){}) {
-    console.log('sending', cmd, data);
+    console.log('sending', cmd, )//data);
     socket.emit(cmd, data, ack);
 }
 

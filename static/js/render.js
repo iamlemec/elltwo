@@ -21,10 +21,10 @@ getPara = function(pid) {
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
     client.connect(url);
-    // join room specific to article
-    client.sendCommand('room', {'room': aid}, function(response) {
-            console.log(response);
-            });
+    // join room specific to article and get locked paras
+    client.sendCommand('room', {'room': aid, 'get_locked': true}, function(response) {
+            lockParas(response);
+        });
 
     $('.para').each(function() {
         var para = $(this);
@@ -34,6 +34,7 @@ $(document).ready(function() {
         dataToText(para, raw, true); // postpone formatting
         rawToTextArea(para);
     });
+
 
     envClasses();
     createRefs();
@@ -977,7 +978,8 @@ if (cap = block.heading.exec(raw)) {
 if (cap = block.equation.exec(raw)) {
     var id = (cap[3]) ? s(fArgs(cap[3]), 'ref') : "";
     var star = (cap[1]) ? s(cap[1], 'hl') : "";
-    return s('$$', 'delimit') + star + cap[2] + id + cap[4] + s(cap[5], 'math');
+    var text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
+    return s('$$', 'delimit') + star + cap[2] + id + cap[4] + text;
 };
 
 if (cap = block.envbeg.exec(raw)) {

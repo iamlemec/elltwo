@@ -48,8 +48,9 @@ def Create():
 @app.route('/a/<title>', methods=['GET'])
 def RenderArticle(title):
     art = dbq.get_art_short(title)
+    aid = art.aid
     if art:
-        paras = dbq.get_paras(art.aid)
+        paras = dbq.get_paras(aid)
         return render_template(
             'article.html',
             title=art.title,
@@ -78,6 +79,10 @@ def socket_connect():
 
 @socketio.on('disconnect')
 def socket_disconnect():
+    sid = request.sid
+    data = locked_by_sid(sid)
+    if(data):
+        unlock(data)
     print('Client disconnected')
     emit('status', 'disconnected')
 
@@ -85,6 +90,8 @@ def socket_disconnect():
 def room(data):
     room = data['room']
     join_room(room)
+    if('get_locked' in data.keys()):
+        return list(locked[room].keys()) if room in locked.keys() else []
     return('joined room:' + room)
 
 ###
@@ -112,13 +119,16 @@ def update_para(data):
         [data['pid'], data['text']],
         include_self=False,
         room=data['room'])
+    unlock({'room': data['room'], 'pids': [data['pid']]})
     return True
 
 @socketio.on('update_bulk')
 def update_bulk(data):
     paras = data['paras']
     dbq.bulk_update(paras)
+    pids = list(paras.keys())
     emit('updateBulk', paras, include_self=False, room=data['room'])
+    unlock({'room': data['room'], 'pids': pids})
     return True
 
 @socketio.on('insert_after')
@@ -228,6 +238,55 @@ def get_ref(data):
 @socketio.on('update_ref')
 def update_ref(data):
     dbq.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'])
+
+
+### locking
+
+locked = {} #dict of locked aid: {pid: owner} pairs
+
+@socketio.on('lock')
+def lock(data):
+    pid = data['pid']
+    aid = data['room']
+    client = request.sid #unique client id
+    if aid in locked.keys() and pid in locked[aid]:
+        if locked[aid][pid] == client:
+             return True
+        else:
+            return False
+    else:
+        locked[aid] = locked[aid] if aid in locked.keys() else {}
+        locked[aid][pid] =  client
+        emit('lock', [pid], room=aid, include_self=False)
+        return True
+
+@socketio.on('unlock')
+def unlock(data):
+    pids = data['pids']
+    aid = data['room']
+    for pid in pids:
+        if aid in locked.keys() and pid in locked[aid]:
+            del locked[aid][pid]
+        else:
+            pids.remove(pid)
+    emit('unlock', pids, room=aid)
+
+def locked_by_sid(sid):
+    data = {}
+    for room in locked.keys():
+        pids = []
+        for pid in locked[room].keys():
+            if locked[room][pid] == sid:
+                pids.append(pid)
+        if pids:
+            data['pids'] = pids
+            data['room'] = room
+    return data
+
+async def request_unlock(sid):
+    print('starting timer')
+    await asyncio.sleep(3)
+    print(sid)
 
 ###
 ### interface
