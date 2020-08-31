@@ -2,10 +2,12 @@ from flask import Flask, request, redirect, url_for, render_template, jsonify, m
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 #app = Flask(__name__)
 
-import os, re, datetime, time, json, argparse
+import os, re, json, argparse
+from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from apscheduler.schedulers.background import BackgroundScheduler
 
 # from sqlalchemy.sql import func
 # from random import randint
@@ -21,6 +23,13 @@ session = db.session
 # socket setup
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
+
+###
+### Scheduler
+###
+
+sched = BackgroundScheduler(daemon=True)
+sched.start()
 
 ###
 ### Home Page
@@ -74,16 +83,18 @@ def send_command(cmd, data=None, broadcast=False, include_self=True, room=False)
 
 @socketio.on('connect')
 def socket_connect():
-    print('Client connected')
+    sid = request.sid
+    print(f'connect: {sid}')
+    timeout_create(sid)
     emit('status', 'connected')
 
 @socketio.on('disconnect')
 def socket_disconnect():
     sid = request.sid
-    data = locked_by_sid(sid)
-    if(data):
+    print(f'disconnect: {sid}')
+    sched.remove_job(sid)
+    if (data := locked_by_sid(sid)):
         unlock(data)
-    print('Client disconnected')
     emit('status', 'disconnected')
 
 @socketio.on('room')
@@ -240,23 +251,25 @@ def update_ref(data):
     dbq.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'])
 
 
+###
 ### locking
+###
 
-locked = {} #dict of locked aid: {pid: owner} pairs
+locked = {} # dict of locked aid: {pid: owner} pairs
 
 @socketio.on('lock')
 def lock(data):
     pid = data['pid']
     aid = data['room']
-    client = request.sid #unique client id
+    sid = request.sid # unique client id
     if aid in locked.keys() and pid in locked[aid]:
-        if locked[aid][pid] == client:
+        if locked[aid][pid] == sid:
              return True
         else:
             return False
     else:
         locked[aid] = locked[aid] if aid in locked.keys() else {}
-        locked[aid][pid] =  client
+        locked[aid][pid] = sid
         emit('lock', [pid], room=aid, include_self=False)
         return True
 
@@ -269,7 +282,7 @@ def unlock(data):
             del locked[aid][pid]
         else:
             pids.remove(pid)
-    emit('unlock', pids, room=aid)
+    socketio.emit('unlock', pids, room=aid)
 
 def locked_by_sid(sid):
     data = {}
@@ -278,15 +291,38 @@ def locked_by_sid(sid):
         for pid in locked[room].keys():
             if locked[room][pid] == sid:
                 pids.append(pid)
-        if pids:
+        if len(pids) > 0:
             data['pids'] = pids
             data['room'] = room
-    return data
+            return data
 
-async def request_unlock(sid):
-    print('starting timer')
-    await asyncio.sleep(3)
-    print(sid)
+###
+### timeout
+###
+
+def timeout_time():
+    return datetime.now() + timedelta(seconds=args.timeout)
+
+def timeout_create(sid):
+    sched.add_job(timeout_exec, id=sid, trigger='date', run_date=timeout_time(), args=[sid])
+
+def timeout_resched(sid):
+    sched.reschedule_job(sid, trigger='date', run_date=timeout_time())
+
+def timeout_exec(sid):
+    print(f'timeout: {sid}')
+    if (data := locked_by_sid(sid)) is not None:
+        unlock(data)
+
+@socketio.on('canary')
+def canary(data):
+    sid = request.sid
+    print(f'canary: {sid}')
+    if sched.get_job(sid) is None:
+        timeout_create(sid)
+    else:
+        timeout_resched(sid)
+
 
 ###
 ### interface
@@ -295,6 +331,7 @@ async def request_unlock(sid):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Axiom2 server.')
     parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
+    parser.add_argument('--timeout', type=int, default=180, help='Client timeout time in seconds')
     parser.add_argument('--debug', action='store_true', help='Run in debug mode')
     args = parser.parse_args()
 

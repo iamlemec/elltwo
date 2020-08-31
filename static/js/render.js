@@ -21,10 +21,11 @@ getPara = function(pid) {
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
     client.connect(url);
+
     // join room specific to article and get locked paras
     client.sendCommand('room', {'room': aid, 'get_locked': true}, function(response) {
             lockParas(response);
-        });
+    });
 
     $('.para').each(function() {
         var para = $(this);
@@ -34,7 +35,6 @@ $(document).ready(function() {
         dataToText(para, raw, true); // postpone formatting
         rawToTextArea(para);
     });
-
 
     envClasses();
     createRefs();
@@ -430,8 +430,8 @@ createTOC = function() {
         let level = $(this).attr('head_level')
         let text = $(this).text();
         let id = $(this).parent('.para').attr('id');
-        let sec = id  
-            ? $('<a>', {class: `toc_entry head_level${level}`, href: '#'+id, text: text}) 
+        let sec = id
+            ? $('<a>', {class: `toc_entry head_level${level}`, href: '#'+id, text: text})
             : $('<span>', {class: `toc_entry head_level${level}`, text: text});
         toc.append(sec);
     });
@@ -924,7 +924,8 @@ syntaxHL = function(para){
 
 $(document).on('input', '.p_input', function(){
     para=$(this).parent('.para');
-    paraTimeOut();
+    // paraTimeOut();
+    client.schedCanary();
     syntaxHL(para);
 });
 

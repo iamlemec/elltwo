@@ -1,6 +1,11 @@
 var Client = (function(recvCommand) {
 
-var socket; // socketio connection
+// socketio connection
+var socket;
+
+// canary state
+var canary_id = null;
+var canary_freq = 1000*30;
 
 function connect(url) {
     console.log(url);
@@ -62,10 +67,22 @@ function sendCommand(cmd, data="", ack=function(){}) {
     socket.emit(cmd, data, ack);
 }
 
+function schedCanary() {
+    console.log(`schedCanary: ${canary_id}`);
+    if (canary_id != null) {
+        return;
+    }
+    canary_id = setTimeout(function() {
+        client.sendCommand('canary');
+        canary_id = null;
+    }, canary_freq);
+};
+
 return {
     connect: connect,
     disconnect: disconnect,
     sendCommand: sendCommand,
+    schedCanary: schedCanary,
 };
 
 });

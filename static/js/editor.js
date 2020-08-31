@@ -133,14 +133,14 @@ makeEditable = function() {
             data.pid = active_para.attr('pid');
             data.room = aid;
             client.sendCommand('lock', data, function(response) {
-                if(response) {
+                if (response) {
                     editable = true;
                     active_para.addClass('editable');
                     text = active_para.children('.p_input')[0];
                     resize(text);
                     syntaxHL(active_para);
                     placeCursor();
-                    paraTimeOut();
+                    client.schedCanary();
                 };
             });
     }
@@ -148,6 +148,7 @@ makeEditable = function() {
 
 let lockout = null;
 
+/*
 paraTimeOut = function(){
     clearTimeout(lockout)
     lockout = setTimeout(function () {
@@ -161,8 +162,9 @@ paraTimeOut = function(){
                 storeChange(para);
             });
         });
-    }, 1000*60*3); //3mins 
+    }, 1000*60*3); //3mins
 };
+*/
 
 lockParas = function(pids){
     pids.forEach(function(pid){
@@ -180,10 +182,14 @@ sendUnlockPara = function(pids){
     });
 };
 
-unlockParas = function(pids){
-    pids.forEach(function(pid){
+unlockParas = function(pids) {
+    console.log('unlockParas');
+    pids.forEach(function(pid) {
         var para = getPara(pid);
         para.removeClass('locked');
+        if (para.hasClass('editable')) {
+            makeUnEditable();
+        }
     });
 };
 
