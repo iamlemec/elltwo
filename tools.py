@@ -16,19 +16,16 @@ class Multimap:
         self._sets[loc].add(item)
         self._locs[item] = loc
 
-    def drop(self, item):
-        if item not in self._locs:
+    def pop(self, item):
+        loc = self._locs.pop(item, None)
+        if loc is None:
             print(f'Item {item} not found')
-            return False
-        loc = self._locs.pop(item)
+            return
         self._sets[loc].remove(item)
-        return True
+        return loc
 
     def get(self, loc):
         return list(self._sets[loc])
 
     def loc(self, item):
-        if item not in self._locs:
-            return None
-        else:
-            return self._locs[item]
+        return self._locs.get(item, None)

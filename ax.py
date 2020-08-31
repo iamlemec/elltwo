@@ -88,7 +88,6 @@ def send_command(cmd, data=None, broadcast=False, include_self=True, room=False)
 def socket_connect():
     sid = request.sid
     print(f'connect: {sid}')
-    timeout_create(sid)
     emit('status', 'connected')
 
 @socketio.on('disconnect')
@@ -99,7 +98,7 @@ def socket_disconnect():
         sched.remove_job(sid)
     if (data := locked_by_sid(sid)):
         unlock(data)
-    roomed.drop(sid)
+    roomed.pop(sid)
     emit('status', 'disconnected')
 
 @socketio.on('room')
@@ -272,6 +271,7 @@ def lock(data):
     if (own := locked.loc(pid)) is not None:
         return own == sid
     locked.add(sid, pid)
+    timeout_sched(sid)
     emit('lock', [pid], room=aid, include_self=False)
     return True
 
@@ -279,7 +279,7 @@ def lock(data):
 def unlock(data):
     pids = data['pids']
     aid = data['room']
-    rpid = [p for p in pids if locked.drop(p)]
+    rpid = [p for p in pids if locked.pop(p) is not None]
     socketio.emit('unlock', rpid, room=aid) # since called exernally
 
 def locked_by_sid(sid):
@@ -288,32 +288,28 @@ def locked_by_sid(sid):
         'room': roomed.loc(sid),
     }
 
+
 ###
 ### timeout
 ###
-
-def timeout_time():
-    return datetime.now() + timedelta(seconds=args.timeout)
-
-def timeout_create(sid):
-    sched.add_job(timeout_exec, id=sid, trigger='date', run_date=timeout_time(), args=[sid])
-
-def timeout_resched(sid):
-    sched.reschedule_job(sid, trigger='date', run_date=timeout_time())
 
 def timeout_exec(sid):
     print(f'timeout: {sid}')
     if (data := locked_by_sid(sid)) is not None:
         unlock(data)
 
+def timeout_sched(sid):
+    run_date = datetime.now() + timedelta(seconds=args.timeout)
+    if sched.get_job(sid) is None:
+        sched.add_job(timeout_exec, id=sid, trigger='date', run_date=run_date, args=[sid])
+    else:
+        sched.reschedule_job(sid, trigger='date', run_date=run_date)
+
 @socketio.on('canary')
 def canary(data):
     sid = request.sid
     print(f'canary: {sid}')
-    if sched.get_job(sid) is None:
-        timeout_create(sid)
-    else:
-        timeout_resched(sid)
+    timeout_sched(sid)
 
 
 ###
