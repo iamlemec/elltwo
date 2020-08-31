@@ -18,6 +18,9 @@ from db_setup import Article, Paragraph, Paralink, Bib, db, app
 #import article mgmt
 import db_query as dbq
 
+# other tools
+from tools import Multimap
+
 session = db.session
 
 # socket setup
@@ -92,18 +95,21 @@ def socket_connect():
 def socket_disconnect():
     sid = request.sid
     print(f'disconnect: {sid}')
-    sched.remove_job(sid)
+    if sched.get_job(sid) is not None:
+        sched.remove_job(sid)
     if (data := locked_by_sid(sid)):
         unlock(data)
+    roomed.drop(sid)
     emit('status', 'disconnected')
 
 @socketio.on('room')
 def room(data):
+    sid = request.sid
     room = data['room']
     join_room(room)
-    if('get_locked' in data.keys()):
-        return list(locked[room].keys()) if room in locked.keys() else []
-    return('joined room:' + room)
+    roomed.add(room, sid)
+    if data.get('get_locked', False):
+        return sum([locked.get(s) for s in roomed.get(room)], [])
 
 ###
 ### arbitrary command
@@ -255,46 +261,32 @@ def update_ref(data):
 ### locking
 ###
 
-locked = {} # dict of locked aid: {pid: owner} pairs
+roomed = Multimap()
+locked = Multimap()
 
 @socketio.on('lock')
 def lock(data):
     pid = data['pid']
     aid = data['room']
     sid = request.sid # unique client id
-    if aid in locked.keys() and pid in locked[aid]:
-        if locked[aid][pid] == sid:
-             return True
-        else:
-            return False
-    else:
-        locked[aid] = locked[aid] if aid in locked.keys() else {}
-        locked[aid][pid] = sid
-        emit('lock', [pid], room=aid, include_self=False)
-        return True
+    if (own := locked.loc(pid)) is not None:
+        return own == sid
+    locked.add(sid, pid)
+    emit('lock', [pid], room=aid, include_self=False)
+    return True
 
 @socketio.on('unlock')
 def unlock(data):
     pids = data['pids']
     aid = data['room']
-    for pid in pids:
-        if aid in locked.keys() and pid in locked[aid]:
-            del locked[aid][pid]
-        else:
-            pids.remove(pid)
-    socketio.emit('unlock', pids, room=aid)
+    rpid = [p for p in pids if locked.drop(p)]
+    socketio.emit('unlock', rpid, room=aid) # since called exernally
 
 def locked_by_sid(sid):
-    data = {}
-    for room in locked.keys():
-        pids = []
-        for pid in locked[room].keys():
-            if locked[room][pid] == sid:
-                pids.append(pid)
-        if len(pids) > 0:
-            data['pids'] = pids
-            data['room'] = room
-            return data
+    return {
+        'pids': locked.get(sid),
+        'room': roomed.loc(sid),
+    }
 
 ###
 ### timeout

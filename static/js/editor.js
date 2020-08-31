@@ -56,7 +56,7 @@ makeActive = function(para) {
     }
 };
 
-localChange = function(para) {
+localChange = function(para, send=true) {
     var text = para.children('.p_input').val();
     var raw = para.attr('raw');
     var pid = para.attr('pid');
@@ -64,7 +64,9 @@ localChange = function(para) {
         changed[pid] = text;
         $(para).addClass('changed');
     } else {
-        sendUnlockPara([pid])
+        if (send) {
+            sendUnlockPara([pid]);
+        }
     };
     dataToText(para, text); // local changes only
 };
@@ -188,18 +190,18 @@ unlockParas = function(pids) {
         var para = getPara(pid);
         para.removeClass('locked');
         if (para.hasClass('editable')) {
-            makeUnEditable();
+            makeUnEditable(false);
         }
     });
 };
 
-makeUnEditable = function() {
+makeUnEditable = function(send=true) {
     $('.para').removeClass('editable');
     $('.para').css('min-height', '30px');
     if (editable && active_para) {
         unPlaceCursor();
         editable = false;
-        localChange(active_para);
+        localChange(active_para, send);
     }
 };
 
