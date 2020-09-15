@@ -1,17 +1,6 @@
-:root {
-    --bg-col: whitesmoke;
-    --bor-col: darkcyan; /* border color */
-    --hl-col: goldenrod; /* highlight color */
-    --bor-foc-col: red; /* highlight color */
-    --pop-fg-col: rgb(255, 255, 255); /* popup text color */
-    --pop-bg-col: rgba(0, 0, 0, 0.85); /* popup background color */
-    --bg-font: 15px; /* popup background color */
-}
-
 
 body {
     font-family: CM;
-    caret-color: var(--bor-col);
 }
 
 * {
@@ -47,7 +36,6 @@ textarea:focus, input:focus {
     padding-left: 5px;
     padding-top: 5px;
     padding-bottom: 5px;
-    /* border-bottom: 1px solid black; */
 }
 
 #foot {
@@ -58,7 +46,6 @@ textarea:focus, input:focus {
     padding-left: 5px;
     padding-bottom: 5px;
     font-size: 70%;
-    /* border-top: 1px solid black; */
 }
 
 #bg {
@@ -86,7 +73,7 @@ textarea:focus, input:focus {
 
 
 button:active {
-    position:relative;\\
+    position:relative;
     top:1px;
 }
 

@@ -57,8 +57,8 @@ def Create():
 ### Article
 ###
 
-@app.route('/a/<title>', methods=['GET'])
-def RenderArticle(title):
+def GetArtData(title, edit):
+    themes = [ t[:-4] for t in os.listdir('static/themes/')]
     art = dbq.get_art_short(title)
     aid = art.aid
     if art:
@@ -68,10 +68,23 @@ def RenderArticle(title):
             title=art.title,
             aid=art.aid,
             paras=paras,
-            theme=args.theme
+            theme=args.theme,
+            themes=themes,
+            edit=edit,
         )
     else:
         return render_template('home.html')
+
+
+@app.route('/a/<title>', methods=['GET'])
+def RenderArticle(title):
+    return GetArtData(title, True)
+    
+
+@app.route('/r/<title>', methods=['GET'])
+def RenderArticleRO(title):
+    return GetArtData(title, False)
+
 
 @app.route('/b', methods=['GET'])
 def RenderBib():

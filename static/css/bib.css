@@ -5,7 +5,6 @@
     left: 25%;
     bottom: 10%;
     height: 20%;
-    border-bottom: 1px solid var(--bor-col);
 }
 
 #create {
@@ -14,7 +13,6 @@
     top: 90%;
     width: 10%;
     border-top: none;
-    background-color: white;
 }
 
 #search {
@@ -24,7 +22,6 @@
     width: 10%;
     border-top: none;
     border-right: none;
-    background-color: white;
 }
 
 .cite {
@@ -32,6 +29,7 @@
   width: 60%;
   left: 20%;
   margin-bottom: 10px;
+  padding: 5px;
   padding-left: 28px ;
   text-indent: -18px ;
 }

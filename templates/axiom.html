@@ -6,7 +6,7 @@
     {% block head %}
     <link type="text/css" rel="stylesheet" href={{url_for('static', filename='css/core.css')}} />
     {% if theme %}
-    <link id="theme" type="text/css" rel="stylesheet" href={{url_for('static', filename='css/'+theme+'.css')}} />
+    <link id="theme" type="text/css" rel="stylesheet" href={{url_for('static', filename='themes/'+theme+'.css')}} />
     {% endif %}
     <script src="https://code.jquery.com/jquery-3.5.0.min.js"> </script>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">

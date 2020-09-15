@@ -7,8 +7,6 @@
   width: 44%;
   left: 20%;
   min-height: 50px;
-  background-color: var(--top-col);
-  color: var(--font-col-int);
   font-size: 130%;
 }
 
@@ -17,24 +15,17 @@
   width: 15%;
   right: 20%;
   min-height: 50px;
-  background-color: var(--top-col);
-  border: none;
-  color: var(--font-col-int);
   font-size: 130%;
 }
 
 
 .art_result{
   display: block;
-  background-color: var(--top-col);
   margin-bottom: 10px;
   padding: 5px;
   padding-left: 10px;
 }
 
-a.art_result{
-  color:  var(--bor-col);
-}
 
 #results{
   position: fixed;
@@ -45,11 +36,6 @@ a.art_result{
 }
 
 .blurb{
-  color: var(--hl-col);
   margin-top: 5px;
   font-size: 60%;
-}
-
-.heading{
-  color: var(--bor-foc-col)
 }

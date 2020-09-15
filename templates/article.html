@@ -3,10 +3,14 @@
 {% block head %}
    {{ super() }}
    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
-   <script src={{ url_for('static', filename='js/marked3.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='js/socket.io.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
+   <script src={{ url_for('static', filename='js/marked3.js') }} language="Javascript" type="text/javascript"></script>
+   {% if edit %}
    <script src={{ url_for('static', filename='js/render.js') }} language="Javascript" type="text/javascript"></script>
+   {% else %}
+   <script src={{ url_for('static', filename='js/renderRO.js') }} language="Javascript" type="text/javascript"></script>
+   {%endif%}
 {% endblock %}
 
 {% block title %}{{title}}{% endblock %}
@@ -24,11 +28,9 @@
 <div class="option">
 Theme:
 <select id="theme_select" name="theme_select">
-    <option>default</option>
-    <option>classic</option>
-    <option>dark</option>
-    <option>white</option>
-    <option>light</option>
+    {% for t in themes%}
+    <option>{{t}}</option>
+    {% endfor %}
 </select>
 </div>
 
@@ -67,5 +69,7 @@ Contents:
     aid = '{{aid}}';
     theme = '{{theme}}';
 </script>
+   {% if edit %}
 <script src={{ url_for('static', filename='js/editor.js') }} language="Javascript" type="text/javascript"></script>
+   {%endif%}
 {% endblock %}

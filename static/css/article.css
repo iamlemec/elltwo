@@ -13,12 +13,12 @@
     min-height: 30px;
     margin-bottom: 20px;
     padding-left: 5px;
-    border-left: 2px solid var(--bg-col);
+    padding-right: 5px;
 }
 
-.para:hover {
-    /* border-left: 2px solid var(--bor-col); */
-}
+/*.para:hover {
+     border-left: 2px solid var(--bor-col); 
+}*/
 
 .p_text {
     /* cursor: pointer; */
@@ -51,9 +51,6 @@
     font-family: monospace;
 }
 
-.para.changed {
-    border-left: 2px solid var(--bor-foc-col);
-}
 
 .control {
     display: none;
@@ -63,7 +60,6 @@
     top: 0%;
     text-align: right;
     padding-right: 8px;
-    font-size: var(--bg-font)
 }
 
 .para.editable > .control {
@@ -94,15 +90,6 @@ button {
     margin-top: 3px;
 }
 
-.active {
-   border-left: 2px solid var(--hl-col);
-}
-
-.active.changed {
-   border-image-source: linear-gradient(var(--hl-col) 0%, var(--hl-col) 50%, var(--bor-foc-col) 50%, var(--bor-foc-col));
-   border-image-slice: 1;
-}
-
 .editable > .p_text {
     display: none;
 }
@@ -116,7 +103,7 @@ button {
 .eqnum {
     position: absolute;
     right: 10px;
-    bottom: 40%;
+    bottom: 5px;
 }
 
 #pop .eqnum {
@@ -179,13 +166,12 @@ button {
 }
 
 .error_footer {
-    color: var(--bor-foc-col);
+    color: var(--hl2-col);
     padding-top: 5px;
     padding-bottom: 5px;
 }
 
 .footnote {
-    font-size: 90%;
     cursor: pointer;
 }
 
@@ -220,16 +206,12 @@ button {
 }
 
 #pop {
-    color: var(--pop-fg-col);
-    background-color: var(--pop-bg-col);
     padding: 10px;
     position: absolute;
     z-index: 1000;
     min-width: 250px;
     min-height: 30px;
     max-width: 400px;
-    border-radius: 5px;
-    opacity: .95;
 }
 
 #pop:after {
@@ -241,15 +223,10 @@ button {
 	width: 0;
 	position: absolute;
 	pointer-events: none;
-	border-top-color: var(--pop-bg-col);
 	border-width: 10px;
 	margin-left: -10px;
 }
 
-.ref_error {
-    border-radius: 3px;
-    padding: 2px;
-}
 
 #toc {
     position: relative;
@@ -268,11 +245,13 @@ button {
    font-size: 80%;
 }
 
+.head_level3{
+   padding-left: 25px;
+   font-size: 70%;
+}
+
 /* popup overrides */
 
-#pop .heading {
-    color: var(--hl-col)
-}
 
 #pop .eqnum {
     display: none;
@@ -287,31 +266,6 @@ button {
     font-size: 20px;
 }
 
-#pop a {
-    color: teal;
-}
-
-/* syntax highlighting */
-
-.syn_hl{
-    color: var(--bor-foc-col);
-}
-
-.syn_math{
-    color: var(--hl-col);
-}
-
-.syn_ref{
-    color: var(--font-col-int);
-}
-
-.syn_delimit{
-    color: var(--bor-col);
-}
-
-.brace{
-    background-color: rgba(150,70,30, .15);
-}
 
 /* sidebar */
 
@@ -335,13 +289,11 @@ button {
     height: 100%;
     padding-left: 5px;
     padding-bottom: 10px;
-    border-right: 1px dashed black;
 }
 
 #logo_placeholder {
     font-size: 30px;
     width: 100%;
-    border-bottom: 1px dashed black;
     white-space: nowrap;
 }
 

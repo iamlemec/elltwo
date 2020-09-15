@@ -29,3 +29,4 @@ class Multimap:
 
     def loc(self, item):
         return self._locs.get(item, None)
+

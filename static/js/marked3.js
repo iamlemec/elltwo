@@ -1101,7 +1101,7 @@ DivRenderer.prototype.ref = function(args) {
 };
 
 DivRenderer.prototype.footnote = function(text) {
-  return `<span class="footnote pop_anchor" cite_type="footnote" citekey="_self_" pop_text="${text}">&#10214<span class=num counter=footnote inc=1></span>&#10215</span>`;
+  return `<span class="footnote pop_anchor" cite_type="footnote" citekey="_self_" pop_text="${text}">&#10218&#8239;<span class=num counter=footnote inc=1></span>&#8239;&#10219</span>`;
 };
 
 DivRenderer.prototype.image = function(href, alt) {

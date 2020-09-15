@@ -433,7 +433,7 @@ themeLink = function(name) {
         id: 'theme',
         type: 'text/css',
         rel: 'stylesheet',
-        href: `/static/css/${name}.css`,
+        href: `/static/themes/${name}.css`,
     });
 };
 
