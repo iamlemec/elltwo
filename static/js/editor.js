@@ -441,7 +441,8 @@ $('#logo').click(function() {
     $('#sidebar').animate({width: 'toggle'}, 100);
 });
 
-$('#theme_select').change(function() {
+$('#theme_select').on('change', function() {
+    console.log('changed')
     var tselect = $(this);
     var tchoice = tselect.children('option:selected').text();
     if (tchoice != current_theme) {

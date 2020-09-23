@@ -27,16 +27,16 @@
 
 <div class="option">
 Theme:
-<select id="theme_select" name="theme_select">
+ <select id="theme_select" name="theme_select" class="custom-select sources" placeholder="default">
     {% for t in themes%}
-    <option>{{t}}</option>
+    <option value="{{t}}">{{t}}</option>
     {% endfor %}
-</select>
-</div>
+  </select>
 
+</div>
 <div class="option">
 Font:
-<select id="font_select" name="font_select">
+<select id="font_select" name="font_select" class="custom-select sources" placeholder="default">
     <option>default</option>
     <option>serif</option>
     <option>sans-serif</option>

@@ -3,6 +3,7 @@
     --hl2-col: tomato;
     --bg-col: white;
     --bg-hl-col: whitesmoke;
+    --bg-hl2-col: rgb(200,200,200);
     --delimit-col: tomato;
     --pop-bg-col: rgba(0,0,0,.95);
     --pop-fg-col: white;
@@ -236,4 +237,31 @@ a.art_result{
 
 .citekey {
     color: var(--hl-col)
+}
+
+.custom-select-trigger:after{
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+    border-color: var(--hl2-col);
+}
+
+.custom-select-trigger{
+    background: var(--bg-hl2-col);
+}
+
+.custom-options{
+    background: var(--bg-col);
+}
+
+.custom-option{
+    border-bottom: 1px solid var(--bg-hl2-col);
+}
+
+.custom-option{
+    background-color: var(--hl-col);
+
+}
+
+.custom-option:hover{
+    background-color: var(--bg-hl2-col);
 }

@@ -1,5 +1,6 @@
 :root {
     --bg-hl-col: rgb(235, 235, 235); /* popup text color */
+    --bg-hl2-col: rgb(205, 205, 205); /* popup text color */
     --bg-col: whitesmoke;
     --font-col-int: darkcyan; /* border color */
     --hl-col: goldenrod; /* highlight color */
@@ -211,4 +212,33 @@ a.art_result{
 
 .citekey {
     color: var(--hl-col)
+}
+
+.custom-select-trigger:after{
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+    border-color: var(--hl2-col);
+}
+
+.custom-select-trigger{
+        background: var(--bg-hl2-col);
+    color: var(--delimit-col);
+}
+
+.custom-options{
+    background: var(--bg-col);
+}
+
+.custom-option{
+    border-bottom: 1px solid var(--bg-hl2-col);
+}
+
+.custom-option{
+    background-color: var(--delimit-col);
+        color: var(--hl-col);
+
+}
+
+.custom-option:hover{
+    background-color: var(--bg-hl2-col);
 }

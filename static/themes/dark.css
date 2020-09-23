@@ -243,6 +243,33 @@ a.art_result{
 }
 
 
+.custom-select-trigger:after{
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+    border-color: var(--hl2-col);
+}
 
+.custom-select-trigger{
+        background: var(--pop-bg-col);
+    color: var(--pop-fg-col);
+}
+
+.custom-options{
+    background: var(--bg-col);
+}
+
+.custom-option{
+    border-bottom: 1px solid var(--pop-bg-col);
+}
+
+.custom-option{
+    background-color: var(--delimit-col);
+        color: var(--pop-fg-col);
+
+}
+
+.custom-option:hover{
+    background-color: var(--pop-bg-col);
+}
 
 
