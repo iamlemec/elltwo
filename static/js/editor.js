@@ -380,6 +380,14 @@ $(document).keyup(function(e) {
     };
 });
 
+$(document).click(function(e) {
+    if (sidebar_show) {
+        if ($(e.target).closest('#sidebar').length == 0) {
+            toggleSidebar();
+        }
+    }
+});
+
 /// Button Nav
 
 $(document).on('click', '.update', function() {
@@ -421,6 +429,8 @@ $(document).on('click', '.delete', function() {
 
 /// sidebar
 
+sidebar_show = false;
+
 // default options
 default_theme = theme;
 
@@ -437,12 +447,17 @@ themeLink = function(name) {
     });
 };
 
-$('#logo').click(function() {
+toggleSidebar = function() {
+    sidebar_show = !sidebar_show;
     $('#sidebar').animate({width: 'toggle'}, 100);
+};
+
+$('#logo').click(function() {
+    toggleSidebar();
+    return false;
 });
 
 $('#theme_select').on('change', function() {
-    console.log('changed')
     var tselect = $(this);
     var tchoice = tselect.children('option:selected').text();
     if (tchoice != current_theme) {
@@ -454,7 +469,7 @@ $('#theme_select').on('change', function() {
     }
 });
 
-$('#font_select').change(function() {
+$('#font_select').on('change', function() {
     var fselect = $(this);
     var fchoice = fselect.children('option:selected').text();
     if (fchoice != current_font) {

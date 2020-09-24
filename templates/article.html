@@ -23,10 +23,11 @@
 
 <div id="sidebar">
 
-<div id="logo_placeholder">보 — options</div>
+<div id="logo_placeholder">보 — Options</div>
 
+<div class="options">
 <div class="option">
-Theme:
+Theme
  <select id="theme_select" name="theme_select" class="custom-select sources" placeholder="default">
     {% for t in themes%}
     <option value="{{t}}">{{t}}</option>
@@ -35,18 +36,18 @@ Theme:
 
 </div>
 <div class="option">
-Font:
+Font
 <select id="font_select" name="font_select" class="custom-select sources" placeholder="default">
-    <option>default</option>
-    <option>serif</option>
-    <option>sans-serif</option>
-    <option>monospace</option>
+    <option value="default">default</option>
+    <option value="serif">serif</option>
+    <option value="sans-serif">sans-serif</option>
+    <option value="monospace">monospace</option>
 </select>
 </div>
-
+</div>
 
 <div id="toc">
-Contents:
+<div id="toc_title">Contents</div>
 </div>
 
 </div>

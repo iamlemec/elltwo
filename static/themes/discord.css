@@ -1,6 +1,7 @@
 :root {
     --bg-col: rgb(33, 33, 33);
-    --bg-hl-col: #002b36;
+    --bg-hl-col: rgb(41, 41, 41);
+    --bg-hl2-col: rgb(51, 51, 51);
     --bor-col: #6c71c4; /* border and link color */
     --hl-col: #859900; /* highlight color */
     --hl2-col: #dc322f ; /* highlight color */
@@ -8,7 +9,8 @@
     --pop-bg-col: #93a1a1; /* popup background color */
     --bg-font: 15px; /* popup background color */
     --font-col: #eee8d5;
-    --font-col-int: #b58900 ;
+    --font-col-int: #b58900;
+    --dc-blue-col: rgb(33, 150, 243);
 }
 
 @font-face {
@@ -46,12 +48,11 @@
     src: url('/static/fonts/Roboto-Black.ttf') format('truetype');
 }
 
-
-/*global */
+/* global */
 
 body {
     font-family: Roboto;
-    font-weight: 300;
+    font-weight: 400;
     font-size: 18px;
     color: var(--font-col);
     caret-color: var(--hl-col);
@@ -61,26 +62,49 @@ button {
     background-color: var(--pop-bg-col);
     color: var(--pop-fg-col);
     border: none;
-    display:inline-block;
-    cursor:pointer;
+    display: inline-block;
+    cursor: pointer;
 }
 
 button:hover {
-    background-color:darkgray;
+    background-color: darkgray;
 }
 
 /* other elements */
 
 #sidebar {
-    background-color: var(--bg-hl-col)
+    background-color: var(--bg-hl-col);
+    padding-left: 0px !important;
 }
 
 #logo_placeholder {
-/*    border-bottom: 1px dashed black;*/
+    border-bottom: 1px solid rgb(61, 61, 61);
+    padding-left: 5px;
 }
 
-.toc_entry{
- color: var(--font-col);
+.options {
+    border-bottom: 1px solid rgb(61, 61, 61);
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 5px;
+}
+
+.option {
+    margin-top: 0px !important;
+}
+
+#toc {
+    padding-left: 5px;
+    margin-top: 0px !important;
+}
+
+#toc_title {
+    font-size: 30px;
+    border-bottom: 1px solid rgb(61, 61, 61);
+}
+
+.toc_entry {
+    color: var(--font-col);
 }
 
 /* paras */
@@ -93,42 +117,37 @@ button:hover {
     border-right: 2px solid var(--hl2-col);
 }
 
-/*.active:hover {
-    border-left: 2px solid var(--hl-col);
-}*/
-
 .active {
    border-left: 2px solid var(--hl-col);
    background-color: var(--bg-hl-col);
 }
 
-/*.active.changed {
-   border-image-source: linear-gradient(var(--hl-col) 0%, var(--hl-col) 50%, var(--hl2-col) 50%, var(--hl2-col));
-   border-image-slice: 1;
-}*/
-
 /* text elements */
 
-.footnote{
+.title, .env__heading {
+    border-bottom: 1px solid var(--dc-blue-col);
+}
+
+.footnote {
   color: var(--delimit-col);
 }
 
-.footnote > .num{
+.footnote > .num {
    color: var(--font-col);
- 
+
 }
 
-.code{
-  font-family: Fira;
-  font-size: 90%;
-  color: var(--hl-col);
-  text-indent: 15px;
-  background-color: var(--bg-hl-col);
+.code {
+    font-family: Fira;
+    font-size: 90%;
+    color: var(--hl-col);
+    text-indent: 15px;
+    background-color: var(--bg-hl-col);
 }
 
 .ref_error {
     background-color: var(--font-col);
-    color:  var(--hl2-col);
+    color: var(--hl2-col);
     border-radius: 3px;
     padding: 2px;
 }
@@ -136,7 +155,7 @@ button:hover {
 #pop {
     color: var(--pop-fg-col);
     background-color: var(--pop-bg-col);
-    opacity: .95;
+    opacity: 0.95;
     border-radius: 5px;
 }
 
@@ -154,63 +173,62 @@ button:hover {
 
 /* syntax highlighting */
 
-.syn_hl{
+.syn_hl {
     color: var(--hl2-col);
 }
 
-.syn_math{
+.syn_math {
     color: var(--hl-col);
 }
 
-.syn_ref{
+.syn_ref {
     color: var(--font-col-int);
 }
 
-.syn_delimit{
+.syn_delimit {
     color: var(--delimit-col);
 }
 
-.brace{
+.brace {
     background-color: var(--brace-col);
 }
 
 /* home page */
 
-#new_art_id{
+#new_art_id {
   background-color: var(--bg-hl-col);
   color: var(--font-col);
 }
 
-#submit{
+#submit {
   background-color: var(--bg-hl-col);
   border: none;
   color: var(--font-col);
 }
 
-
-.art_result{
+.art_result {
   background-color: var(--bg-hl-col);
 }
 
-a.art_result{
+a.art_result {
   color:  var(--font-col-int);
 }
 
-.blurb{
+.blurb {
   color: var(--font-col);
 }
 
-.heading{
+.heading {
   color: var(--hl2-col)
 }
 
 /* bib */
 
-#bib_input{
+#bib_input {
   background-color: var(--bg-hl-col);
 }
 
-.cite > a{
+.cite > a {
     color: var(--delimit-col);
 }
 
@@ -219,10 +237,50 @@ a.art_result{
 }
 
 .cite {
-       background-color: var(--bg-hl-col); 
+    background-color: var(--bg-hl-col);
 }
 
 .citekey {
     color: var(--hl-col)
 }
 
+/* dropdown */
+
+.custom-select-wrapper {
+    /* float: right; */
+    /* margin-right: 5px; */
+    right: 5px;
+    position: absolute !important;
+}
+
+.custom-select-trigger:after {
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+    border-color: var(--hl2-col);
+}
+
+.custom-select-trigger {
+    background: var(--bg-hl2-col);
+    color: var(--delimit-col);
+}
+
+.custom-options {
+    background: var(--bg-col);
+}
+
+.custom-option {
+    border-bottom: 1px solid var(--bg-hl2-col);
+}
+
+.custom-option {
+    background-color: var(--delimit-col);
+    color: var(--dc-blue-col);
+}
+
+.custom-option:hover {
+    background-color: var(--bg-hl2-col);
+}
+
+#sidebar {
+    white-space: nowrap;
+}

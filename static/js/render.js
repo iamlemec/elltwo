@@ -1108,10 +1108,10 @@ $(".custom-select").each(function() {
       template += '<span class="custom-select-trigger">' + $(this).attr("placeholder") + '</span>';
       template += '<div class="custom-options">';
       $(this).find("option").each(function() {
-        template += '<span class="custom-option ' + $(this).attr("class") + '" data-value="' + $(this).attr("value") + '">' + $(this).html() + '</span>';
+        template += '<span class="custom-option" data-value="' + $(this).attr("value") + '">' + $(this).html() + '</span>';
       });
   template += '</div></div>';
-  
+
   $(this).wrap('<div class="custom-select-wrapper"></div>');
   $(this).hide();
   $(this).after(template);
