@@ -103,7 +103,7 @@ button:hover {
 
 .footnote > .num{
    color: var(--font-col);
- 
+
 }
 
 .code{
@@ -207,7 +207,7 @@ a.art_result{
 }
 
 .cite {
-       background-color: var(--bg-hl-col); 
+       background-color: var(--bg-hl-col);
 }
 
 .citekey {

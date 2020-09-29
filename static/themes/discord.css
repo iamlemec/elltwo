@@ -74,28 +74,14 @@ button:hover {
 
 #sidebar {
     background-color: var(--bg-hl-col);
-    padding-left: 0px !important;
 }
 
 #logo_placeholder {
     border-bottom: 1px solid rgb(61, 61, 61);
-    padding-left: 5px;
 }
 
 .options {
     border-bottom: 1px solid rgb(61, 61, 61);
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-left: 5px;
-}
-
-.option {
-    margin-top: 0px !important;
-}
-
-#toc {
-    padding-left: 5px;
-    margin-top: 0px !important;
 }
 
 #toc_title {
@@ -247,10 +233,12 @@ a.art_result {
 /* dropdown */
 
 .custom-select-wrapper {
-    /* float: right; */
-    /* margin-right: 5px; */
-    right: 5px;
+    /*
+    float: right;
+    margin-right: 5px;
+    */
     position: absolute !important;
+    right: 5px;
 }
 
 .custom-select-trigger:after {
