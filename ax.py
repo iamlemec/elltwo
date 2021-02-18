@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, url_for, render_template, jsonify, make_response
+from flask import Flask, request, redirect, url_for, render_template, jsonify, make_response, flash, send_from_directory
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 #app = Flask(__name__)
 
@@ -9,11 +9,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import current_user, login_user, logout_user, login_required
+
+
 # from sqlalchemy.sql import func
 # from random import randint
 
 #import DM models
-from db_setup import Article, Paragraph, Paralink, Bib, db, app
+from db_setup import User, Article, Paragraph, Paralink, Bib, db, app
 
 #import article mgmt
 import db_query as dbq
@@ -35,8 +39,24 @@ sched = BackgroundScheduler(daemon=True)
 sched.start()
 
 ###
+### Create global variables for all templets
+###
+
+@app.context_processor
+def inject_dict_for_all_templates():
+    return dict(login=args.login)
+
+
+###
 ### Home Page
 ###
+
+
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                          'favicon.ico',mimetype='image/vnd.microsoft.icon')
+
 
 @app.route('/')
 @app.route('/home')
@@ -53,6 +73,73 @@ def Create():
         dbq.create_article(art_name)
         return redirect(url_for('RenderArticle', title=art_name))
 
+
+###
+### Auth Routes
+###
+
+
+@app.route('/signup')
+def Signup():
+    return render_template('signup.html', theme=args.theme)
+
+@app.route('/login',  methods=['GET','POST'])
+def Login():
+    if request.referrer:
+        next = request.referrer.replace('/r/', '/a/', 1)
+    else: 
+        next = url_for('Home')
+    print(next, type(next))
+    return render_template('login.html', next=next, theme=args.theme)
+
+@app.route('/create_user', methods=['POST'])
+def CreateUser():
+    email = request.form.get('email')
+    name = request.form.get('name')
+    password = request.form.get('password')
+
+    user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
+
+    if user: # if a user is found, we want to redirect back to signup page so user can try again
+        flash('Email address already exists')
+        return redirect(url_for('Signup'))
+
+    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
+    new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
+
+    # add the new user to the database
+    db.session.add(new_user)
+    db.session.commit()
+
+    return redirect(url_for('Login'))
+
+@app.route('/login_user', methods=['POST'])
+def LoginUser():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    next = request.form.get('next')
+
+    if next=='this':
+        next = request.referrer.replace('/r/', '/a/', 1)
+
+
+    user = User.query.filter_by(email=email).first()
+
+    # check if the user actually exists
+    # take the user-supplied password, hash it, and compare it to the hashed password in the database
+    if not user or not check_password_hash(user.password, password):
+        flash('Please check your login details and try again.')
+        return redirect(url_for('Login')) # if the user doesn't exist or password is wrong, reload the page
+
+    # if the above check passes, then we know the user has the right credentials
+    login_user(user, remember=True)
+    return redirect(next)
+
+@app.route('/logout_user', methods=['POST'])
+def LogoutUser():
+    logout_user()
+    return redirect(request.referrer)
+
 ###
 ### Article
 ###
@@ -60,8 +147,8 @@ def Create():
 def GetArtData(title, edit):
     themes = [ t[:-4] for t in os.listdir('static/themes/')]
     art = dbq.get_art_short(title)
-    aid = art.aid
     if art:
+        aid = art.aid
         paras = dbq.get_paras(aid)
         return render_template(
             'article.html',
@@ -73,12 +160,16 @@ def GetArtData(title, edit):
             edit=edit,
         )
     else:
-        return render_template('home.html')
+        flash(f'Article "{title}" does not exist.')
+        return redirect(url_for('Home'))
 
 
 @app.route('/a/<title>', methods=['GET'])
 def RenderArticle(title):
-    return GetArtData(title, True)
+    if current_user.is_authenticated or not args.login:
+        return GetArtData(title, True)
+    else: 
+        return redirect(url_for('RenderArticleRO', title=title))
     
 
 @app.route('/r/<title>', methods=['GET'])
@@ -334,6 +425,7 @@ if __name__ == '__main__':
     parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
     parser.add_argument('--timeout', type=int, default=180, help='Client timeout time in seconds')
     parser.add_argument('--debug', action='store_true', help='Run in debug mode')
+    parser.add_argument('--login', type=bool, default=False, help='Require login for editing')
     args = parser.parse_args()
 
     app.debug = args.debug

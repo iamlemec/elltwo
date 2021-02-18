@@ -366,12 +366,25 @@ equationEnv = function(ptxt, args) {
     }
 };
 
+svgEnv = function(ptxt, args) {
+    console.log(args)
+    let num = (args.number) ? makeCounter('figure') : "";
+    let space = (num) ? " " : ""
+    let caption = args.caption || "";
+    var div = $('<div>', {class: 'env_add svg_cap'});
+    var span = $('<span>', {class: 'strong'});
+    span.append(['Figure', space, num, '. ']);
+    div.append([span, caption])
+    ptxt.append(div);
+};
+
 env_spec = {
     'theorem': theoremEnv,
     'proof': proofEnv,
     'example': exampleEnv,
     'heading': headingEnv,
     'equation': equationEnv,
+    'svg': svgEnv,
     'error': errorEnv,
 };
 

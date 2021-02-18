@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_msearch import Search
+from flask_login import UserMixin, LoginManager
 from whoosh import qparser
 
 app = Flask(__name__)
@@ -10,8 +11,20 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['MSEARCH_ENABLE'] = True
 app.config['MSEARCH_BACKEND'] = 'whoosh'
 db = SQLAlchemy(app)
+login = LoginManager(app)
+
 
 search = Search(app=app, db=db)
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True) # primary keys are required by SQLAlchemy
+    email = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(100))
+    name = db.Column(db.String(1000))
+
+@login.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
 class Article(db.Model):
     __tablename__ = 'article'

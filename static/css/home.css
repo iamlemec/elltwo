@@ -39,3 +39,31 @@
   margin-top: 5px;
   font-size: 60%;
 }
+
+.box{
+  position: fixed;
+  width: 30%;
+  top: 20%;
+  left: 35%;
+  background-color: var(--bg-hl2-col);
+  padding: 15px;
+  padding-top: 15px;
+}
+
+.login_field > input, .login-button, .notification{
+  width: 100%;
+  min-height: 45px;
+  margin-bottom: 10px; 
+  font-size: 110%;
+}
+
+.login-button{
+  margin: 20px 10px 0px 0px; 
+  background-color: var(--delimit-col);
+}
+
+.notification{
+  color: var(--hl2-col);
+  padding: 3px;
+  text-align: center;
+}

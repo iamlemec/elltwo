@@ -26,6 +26,7 @@ var block = {
   paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/,
   text: /^[^\n]+/,
   equation: /^\$\$(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
+  svg: /^\&svg(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:$)/,
   title: /^#! *([^\n]*)(?:\n+|$)/,
   image: /^!\[(inside)\]\(href\)(?:\n+|$)/,
   biblio: /^@@ *(?:refid) *\n?((?:[^\n]+\n?)*)(?:\n+|$)/,
@@ -49,6 +50,10 @@ block.heading = replace(block.heading)
   ();
 
 block.equation = replace(block.equation)
+  ('refargs', block._refargs)
+  ();
+
+block.svg = replace(block.svg)
   ('refargs', block._refargs)
   ();
 
@@ -314,6 +319,21 @@ Lexer.prototype.token = function(src, top, bq) {
       });
       continue;
     }
+
+        // title
+    if (cap = this.rules.svg.exec(src)) {
+      src = src.substring(cap[0].length);
+      var number = cap[1] == undefined;
+      var argsraw = cap[2] || '';
+      var args = parseArgs(argsraw, number);
+      this.tokens.push({
+        type: 'svg',
+        args: args,
+        svg: cap[3]
+      });
+      continue;
+    }
+
 
     // heading
     if (cap = this.rules.heading.exec(src)) {
@@ -990,6 +1010,12 @@ DivRenderer.prototype.heading = function(text) {
   return text;
 };
 
+DivRenderer.prototype.svg = function(svg) {
+  svg = `<svg class=svg_fig viewBox='0 0 100 100'>
+      ${svg}</svg>`
+  return svg
+};
+
 DivRenderer.prototype.envbeg = function(text) {
   return text;
 };
@@ -1210,6 +1236,14 @@ Parser.prototype.tok = function() {
     }
     case 'title': {
       return this.renderer.title(this.inline.output(this.token.text));
+    }
+    case 'svg': {
+      this.env = {
+        type: 'env_one',
+        env: 'svg',
+        args: this.token.args
+      }
+      return this.renderer.svg(this.token.svg);
     }
     case 'heading': {
       this.env = {

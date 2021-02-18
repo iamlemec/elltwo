@@ -175,6 +175,20 @@ button {
     cursor: pointer;
 }
 
+.svg_fig {
+    position: relative;
+    width: 40%;
+    left: 30%;
+}
+
+.svg_cap {
+    position: relative;
+    left: 10%;
+    padding-bottom: 50px; 
+/*  hacky, margin does */
+    
+}
+
 #bib_block {
     display: none;
     position: relative;

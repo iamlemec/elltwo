@@ -11,6 +11,7 @@
     <script src="https://code.jquery.com/jquery-3.5.0.min.js"> </script>
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.js"></script>
+    <script src={{ url_for('static', filename='js/all.js') }} language="Javascript" type="text/javascript"></script>
     {% endblock %}
     <title> {% block title %}{% endblock %} </title>
 </head>
@@ -24,7 +25,35 @@
             {% block content %}{% endblock %}
         </div>
 
-        <div id="foot">[201p // iamlemec]{% block foot %}{% endblock %}</div>
+        <div id="foot">[201p // iamlemec]
+            {% block foot_login %}
+            {% if login %}
+            {% if current_user.is_authenticated %} 
+                User: {{ current_user.name }}
+                <form class=inline_form method="POST" action="/logout_user">
+                    <button class="foot_butt">Log Out</button>
+                </form>
+            {% endif %}
+            {% if not current_user.is_authenticated %} 
+                <button class="foot_butt" id="toggle_ll">LogIn to Edit</button>
+                <div id=locallogin>
+                <form method="POST" action="/login_user">
+                <div class="login_field">
+                    <input class="input" type="email" name="email" placeholder="Email" autofocus="">
+                </div>
+
+                <div class="login_field">
+                    <input class="input" type="password" name="password" placeholder="Password">
+                </div>
+                <input type="hidden" name="next" value="this"/>
+                <button class="login-button">Log In</button>
+                </form>
+                </div>
+            {% endif %}
+            {% endif %}
+            {% endblock %}
+            {% block foot %}
+            {% endblock %}</div>
 
     </div>
 </body>

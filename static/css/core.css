@@ -86,3 +86,53 @@ a.reference {
     color: var(--bor-col);
     text-decoration: none;
 }
+
+#locallogin{
+    display: none;
+}
+
+.foot_butt{
+    display: inline-block;
+    min-width: 30px;
+    width: 8%;
+    font-size: 100%;
+    border: 1px solid var(--delimit-col);
+    margin-left: 10px;
+}
+
+#locallogin{
+  position: absolute;
+  width: 30%;
+  bottom: 150%;
+  left: 5%;
+  background-color: var(--bg-hl2-col);
+  padding: 15px;
+  padding-top: 15px;
+}
+
+.login_field > input, .login-button, .notification{
+  width: 100%;
+  min-height: 45px;
+  margin-bottom: 10px; 
+  font-size: 110%;
+}
+
+.login-button{
+  margin: 20px 10px 0px 0px; 
+  background-color: var(--delimit-col);
+}
+
+
+#locallogin:after {
+      content: "";
+      position: absolute;
+      border-width: 15px;
+      border-style: solid;
+      border-color: var(--bg-hl2-col) transparent transparent transparent;
+      bottom: -25px;
+      left: 20%;
+}
+
+.inline_form{
+    display: inline;
+}
