@@ -319,6 +319,17 @@ equationEnv = function(ptxt, args) {
     }
 };
 
+svgEnv = function(ptxt, args) {
+    let num = (args.number) ? makeCounter('figure') : "";
+    let space = (num) ? " " : ""
+    let caption = args.caption || "";
+    var div = $('<div>', {class: 'env_add svg_cap'});
+    var span = $('<span>', {class: 'strong'});
+    span.append(['Figure', space, num, '. ']);
+    div.append([span, caption])
+    ptxt.append(div);
+};
+
 env_spec = {
     'theorem': theoremEnv,
     'proof': proofEnv,
@@ -326,6 +337,7 @@ env_spec = {
     'heading': headingEnv,
     'equation': equationEnv,
     'error': errorEnv,
+    'svg': svgEnv,
 };
 
 //// KATEX
@@ -864,99 +876,3 @@ setBlurb = function() {
 }
 
 
-/// SIDEBAR
-
-
-// default options
-default_theme = theme;
-
-// current options
-current_theme = 'default';
-current_font = 'default';
-
-themeLink = function(name) {
-    return $('<link>', {
-        id: 'theme',
-        type: 'text/css',
-        rel: 'stylesheet',
-        href: `/static/themes/${name}.css`,
-    });
-};
-
-$(document).ready(function() {
-$('#logo').click(function() {
-    console.log('click')
-    $('#sidebar').animate({width: 'toggle'}, 100);
-});
-
-$('#theme_select').change(function() {
-    var tselect = $(this);
-    var tchoice = tselect.children('option:selected').text();
-    if (tchoice != current_theme) {
-        current_theme = tchoice;
-        var tset = (tchoice == 'default') ? default_theme : tchoice;
-        $('#theme').remove();
-        var link = themeLink(tset);
-        $('head').append(link);
-    }
-});
-
-$('#font_select').change(function() {
-    var fselect = $(this);
-    var fchoice = fselect.children('option:selected').text();
-    if (fchoice != current_font) {
-        current_font = fchoice;
-        var fset = (fchoice == 'default') ? '' : fchoice;
-        $('#content').css('font-family', fset);
-    }
-});
-});
-
-//SELECT
-
-$(document).ready(function() {
-$(".custom-select").each(function() {
-  var classes = $(this).attr("class"),
-      id      = $(this).attr("id"),
-      name    = $(this).attr("name");
-  var template =  '<div class="' + classes + '">';
-      template += '<span class="custom-select-trigger">' + $(this).attr("placeholder") + '</span>';
-      template += '<div class="custom-options">';
-      $(this).find("option").each(function() {
-        template += '<span class="custom-option ' + $(this).attr("class") + '" data-value="' + $(this).attr("value") + '">' + $(this).html() + '</span>';
-      });
-  template += '</div></div>';
-  
-  $(this).wrap('<div class="custom-select-wrapper"></div>');
-  $(this).hide();
-  $(this).after(template);
-});
-$(".custom-option:first-of-type").hover(function() {
-  $(this).parents(".custom-options").addClass("option-hover");
-}, function() {
-  $(this).parents(".custom-options").removeClass("option-hover");
-});
-$(".custom-select-trigger").on("click", function() {
-  $('html').one('click',function() {
-    $(".custom-select").removeClass("opened");
-  });
-  $(this).parents(".custom-select").toggleClass("opened");
-  event.stopPropagation();
-});
-$(".custom-option").on("click", function() {
-  $(this).parents(".custom-select-wrapper").find("select").val($(this).data("value"));
-  $(this).parents(".custom-options").find(".custom-option").removeClass("selection");
-  $(this).addClass("selection");
-  $(this).parents(".custom-select").removeClass("opened");
-  $(this).parents(".custom-select").find(".custom-select-trigger").text($(this).text());
-});
-});
-
-/// Exporting
-
-getMarkdown = function() {
-    return $('.para').map(function() {
-        var para = $(this);
-        return para.attr('raw');
-    }).toArray().join('\n\n');
-};

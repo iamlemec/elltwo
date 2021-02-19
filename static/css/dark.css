@@ -1,0 +1,285 @@
+
+/*color assignements */
+:root {
+    /*background colors*/
+    --bg-col: #073642; /* background color */
+    --bg-hl-col: #002b36; /* background highlight color (lighter or darker) */
+    /* font colors */
+    --font-col: #eee8d5; /* main font */
+    --font-col-int: #b58900 ; /* aux font */
+    --brace-col: rgba(200,200,200, .3); /* brace matching */
+    --delimit-col: #6c71c4; /* syntax hl delimts */
+    /* border colors for active and changed classes, also syn hl*/
+    --hl-col: #859900; /* highlight color, for changed, syntax hl  */
+    --hl2-col: #dc322f ; /* highlight color */
+    /* pop ups */
+    --pop-fg-col:  	#002b36; /* popup text color */
+    --pop-bg-col: #93a1a1; /* popup background color */
+
+}
+
+/* font assignment */
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 100;
+  src: url('/static/fonts/Montserrat-Thin.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 300;
+  src: url('/static/fonts/Montserrat-Light.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/static/fonts/Montserrat-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 700;
+  src: url('/static/fonts/Montserrat-Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 900;
+  src: url('/static/fonts/Montserrat-Black.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Fira';
+  font-style: normal;
+  font-weight: 100;
+  src: url('/static/fonts/FiraCode.ttf') format('truetype');
+}
+
+
+/*global */
+
+body {
+    font-family: Montserrat;
+    font-weight: 300;
+    font-size: 18px;
+    color: var(--font-col);
+    caret-color: var(--hl-col);
+}
+
+button {
+    background-color: var(--pop-bg-col);
+    color: var(--pop-fg-col);
+    border: none;
+    display:inline-block;
+    cursor:pointer;
+}
+
+button:hover {
+    background-color:darkgray;
+}
+
+/* other elements */
+
+#sidebar {
+    background-color: var(--bg-hl-col)
+}
+
+#logo_placeholder {
+/*    border-bottom: 1px dashed black;*/
+}
+
+.toc_entry{
+ color: var(--font-col);
+}
+
+/* paras */
+
+.para {
+    border-left: 2px solid var(--bg-col);
+}
+
+.para.changed {
+    border-right: 2px solid var(--hl2-col);
+}
+
+/*.active:hover {
+    border-left: 2px solid var(--hl-col);
+}*/
+
+.active {
+   border-left: 2px solid var(--hl-col);
+   background-color: var(--bg-hl-col);
+}
+
+/*.active.changed {
+   border-image-source: linear-gradient(var(--hl-col) 0%, var(--hl-col) 50%, var(--hl2-col) 50%, var(--hl2-col));
+   border-image-slice: 1;
+}*/
+
+/* text elements */
+
+.footnote{
+  color: var(--delimit-col);
+}
+
+.footnote > .num{
+   color: var(--font-col);
+ 
+}
+
+.code{
+  font-family: Fira;
+  font-size: 90%;
+  color: var(--hl-col);
+  text-indent: 15px;
+  background-color: var(--bg-hl-col);
+}
+
+.ref_error {
+    background-color: var(--font-col);
+    color:  var(--hl2-col);
+    border-radius: 3px;
+    padding: 2px;
+}
+
+#pop {
+    color: var(--pop-fg-col);
+    background-color: var(--pop-bg-col);
+    opacity: .95;
+    border-radius: 5px;
+}
+
+#pop:after {
+  border: var(--pop-bg-col);
+}
+
+#pop .heading {
+    color: var(--hl-col)
+}
+
+#pop a {
+    color: teal;
+}
+
+/* syntax highlighting */
+
+.syn_hl{
+    color: var(--hl2-col);
+}
+
+.syn_math{
+    color: var(--hl-col);
+}
+
+.syn_ref{
+    color: var(--font-col-int);
+}
+
+.syn_delimit{
+    color: var(--delimit-col);
+}
+
+.brace{
+    background-color: var(--brace-col);
+}
+
+/* home page */
+
+#new_art_id{
+  background-color: var(--bg-hl-col);
+  color: var(--font-col);
+}
+
+#submit{
+  background-color: var(--bg-hl-col);
+  border: none;
+  color: var(--font-col);
+}
+
+
+.art_result{
+  background-color: var(--bg-hl-col);
+}
+
+a.art_result{
+  color:  var(--font-col-int);
+}
+
+.blurb{
+  color: var(--font-col);
+}
+
+.heading{
+  color: var(--hl2-col)
+}
+
+/* bib */
+
+#bib_input{
+  background-color: var(--bg-hl-col);
+}
+
+.cite > a{
+    color: var(--delimit-col);
+}
+
+#search_results {
+    background-color: var(--bg-col);
+}
+
+.cite {
+       background-color: var(--bg-hl-col); 
+}
+
+.citekey {
+    color: var(--hl-col)
+}
+
+
+.custom-select-trigger:after{
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+    border-color: var(--hl2-col);
+}
+
+.custom-select-trigger{
+        background: var(--pop-bg-col);
+    color: var(--pop-fg-col);
+}
+
+.custom-options{
+    background: var(--bg-col);
+}
+
+.custom-option{
+    border-bottom: 1px solid var(--pop-bg-col);
+}
+
+.custom-option{
+    background-color: var(--delimit-col);
+        color: var(--pop-fg-col);
+
+}
+
+.custom-option:hover{
+    background-color: var(--pop-bg-col);
+}
+
+#foot {
+    background-color:  var(--pop-bg-col);
+    color: var(--pop-fg-col);
+}
+
+.foot_butt{
+    background-color:  var(--hl-col);
+    border: none;
+    color: var(--pop-fg-col);
+}
+

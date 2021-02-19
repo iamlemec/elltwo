@@ -46,6 +46,7 @@ textarea:focus, input:focus {
     padding-left: 5px;
     padding-bottom: 5px;
     font-size: 70%;
+    background-color:  var(--bg-hl2-col);
 }
 
 #bg {
@@ -92,10 +93,9 @@ a.reference {
 }
 
 .foot_butt{
-    display: inline-block;
-    min-width: 30px;
-    width: 8%;
-    font-size: 100%;
+    display: inline;
+    max-width: 100px;
+    font-size: 90%;
     border: 1px solid var(--delimit-col);
     margin-left: 10px;
 }
