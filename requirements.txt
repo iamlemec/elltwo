@@ -1,0 +1,9 @@
+apscheduler
+sqlalchemy
+flask
+flask_login
+flask_socketio
+flask_sqlalchemy
+flask_msearch
+whoosh
+blinker
