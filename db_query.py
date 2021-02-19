@@ -1,7 +1,7 @@
 import re
 from datetime import datetime
 from functools import partial
-from sqlalchemy import create_engine, or_, and_
+from sqlalchemy import create_engine, or_, and_, distinct
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
 from math import ceil
@@ -131,6 +131,9 @@ def get_link(pid, time=None):
         time = datetime.utcnow()
     return session.query(Paralink).filter_by(pid=pid).filter(lintime(time)).one_or_none()
 
+def get_lid(lid):
+    return session.query(Paralink).filter_by(lid=lid).one_or_none()
+
 ##
 ## editing methods
 ##
@@ -166,7 +169,7 @@ def insert_after(pid, text='', time=None):
     if time is None:
         time = datetime.utcnow()
 
-    if (par := get_para(pid)) is None:
+    if (par := get_para(pid, time=time)) is None:
         return
     if (lin := get_link(pid, time=time)) is None:
         return
@@ -195,7 +198,7 @@ def insert_before(pid, text='', time=None):
     if time is None:
         time = datetime.utcnow()
 
-    if (par := get_para(pid)) is None:
+    if (par := get_para(pid, time=time)) is None:
         return
     if (lin := get_link(pid, time=time)) is None:
         return
@@ -224,7 +227,7 @@ def delete_para(pid, time=None):
     if time is None:
         time = datetime.utcnow()
 
-    if (par := get_para(pid)) is None:
+    if (par := get_para(pid, time=time)) is None:
         return
     if (lin := get_link(pid, time=time)) is None:
         return
@@ -453,4 +456,96 @@ def delete_cite(key, aid):
         return
 
     ref.delete_time = now
+    session.commit()
+
+##
+## getting differentials
+##
+
+def get_commits(aid=None):
+    cond = {'aid': aid} if aid is not None else {}
+    paras = session.query(Paragraph).filter_by(**cond)
+    times = paras.from_self(distinct(Paragraph.create_time))
+    return [t for t, in times.all()]
+
+# diff 1 → 2
+def difference(aid, time1, time2):
+    # get paragraph set differential
+    # get paralink set differential
+    # get paragraph content differential
+
+    # get paragraphs
+    paras1 = get_paras(aid, time=time1)
+    paras2 = get_paras(aid, time=time2)
+    pids1 = set(p.pid for p in paras1)
+    pids2 = set(p.pid for p in paras2)
+
+    # get paralinks
+    links1 = get_links(aid, time=time1)
+    links2 = get_links(aid, time=time2)
+    lids1 = set(l.lid for l in links1)
+    lids2 = set(l.lid for l in links2)
+
+    # get added paras
+    pid_add = list(pids2 - pids1)
+    para_add = {p.pid: p.text for p in paras2 if p.pid in pid_add}
+
+    # get deleted paras
+    pid_del = list(pids1 - pids2)
+
+    # get updated paras
+    pid_com = list(pids1 & pids2)
+    para1_com = sorted([p for p in paras1 if p.pid in pid_com], key=lambda x: x.pid)
+    para2_com = sorted([p for p in paras2 if p.pid in pid_com], key=lambda x: x.pid)
+    para_upd = {p2.pid: p2.text for p1, p2 in zip(para1_com, para2_com) if p1.rid != p2.rid}
+
+    # get added paralinks
+    lid_add = list(lids2 - lids1)
+    link_add = {l.lid: (l.pid, l.prev, l.next) for l in links2 if l.lid in lid_add}
+
+    # get deleted paralinks
+    lid_del = list(lids1 - lids2)
+
+    return {
+        'para_add': para_add,
+        'para_upd': para_upd,
+        'para_del': pid_del,
+        'link_add': link_add,
+        'link_del': lid_del,
+    }
+
+def revert_art(aid, time1=None, diff=None, time=None):
+    if time is None:
+        time = datetime.utcnow()
+
+    # generate diff info
+    if diff is None:
+        diff = difference(aid, time, time1)
+
+    # insert new paras
+    for pid, text in diff['para_add'].items():
+        par = Paragraph(aid=aid, pid=pid, text=text, create_time=time)
+        session.add(par)
+
+    # update existing paras
+    for pid, text in diff['para_upd'].items():
+        par = Paragraph(aid=aid, pid=pid, text=text, create_time=time)
+        session.add(par)
+
+    # delete old paras
+    for pid in diff['para_del']:
+        par = get_para(pid, time=time)
+        par.delete_time = time
+
+    # add new links
+    for lid, (pid, prv, nxt) in diff['link_add'].items():
+        lin = Paralink(aid=aid, pid=pid, prev=prv, next=nxt, create_time=time)
+        session.add(lin)
+
+    # delete old links
+    for lid in diff['link_del']:
+        lin = get_lid(lid) # primary key
+        lin.delete_time = time
+
+    # commit it all
     session.commit()

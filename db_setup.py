@@ -72,7 +72,7 @@ class Paralink(db.Model):
     delete_time = db.Column(db.DateTime)
 
     def __repr__(self):
-        return f'{self.aid} [{self.create_time} → {self.delete_time}]: {self.prev}—{self.pid}—{self.next}'
+        return f'{self.aid}/{self.lid} [{self.create_time} → {self.delete_time}]: {self.prev}—{self.pid}—{self.next}'
 
 
 class Bib(db.Model):
