@@ -20,11 +20,11 @@ def getall(klass, disp=True):
     else:
         return ret
 
-def revert(time, klass=None):
+def reset(time, klass=None):
     if klass is None:
-        revert(time, klass=Article)
-        revert(time, klass=Paragraph)
-        revert(time, klass=Paralink)
+        reset(time, klass=Article)
+        reset(time, klass=Paragraph)
+        reset(time, klass=Paralink)
     else:
         for k in session.query(klass).filter(klass.create_time > time).all():
             session.delete(k)
@@ -462,11 +462,19 @@ def delete_cite(key, aid):
 ## getting differentials
 ##
 
-def get_commits(aid=None):
+def get_commits(aid=None, klass=None):
+    if klass is None:
+        return sorted(set(
+            get_commits(aid=aid, klass=Paragraph)
+          + get_commits(aid=aid, klass=Paralink)
+        ))
     cond = {'aid': aid} if aid is not None else {}
     paras = session.query(Paragraph).filter_by(**cond)
-    times = paras.from_self(distinct(Paragraph.create_time))
-    return [t for t, in times.all()]
+    times = (
+        paras.from_self(distinct(klass.create_time)).all()
+      + paras.from_self(distinct(klass.delete_time)).all()
+    )
+    return sorted({t for t, in times} - {None})
 
 # diff 1 → 2
 def difference(aid, time1, time2):

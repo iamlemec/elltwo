@@ -87,7 +87,7 @@ def Signup():
 def Login():
     if request.referrer:
         next = request.referrer.replace('/r/', '/a/', 1)
-    else: 
+    else:
         next = url_for('Home')
     print(next, type(next))
     return render_template('login.html', next=next, theme=args.theme)
@@ -168,9 +168,9 @@ def GetArtData(title, edit):
 def RenderArticle(title):
     if current_user.is_authenticated or not args.login:
         return GetArtData(title, True)
-    else: 
+    else:
         return redirect(url_for('RenderArticleRO', title=title))
-    
+
 
 @app.route('/r/<title>', methods=['GET'])
 def RenderArticleRO(title):

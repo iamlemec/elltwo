@@ -7,3 +7,4 @@ flask_sqlalchemy
 flask_msearch
 whoosh
 blinker
+eventlet

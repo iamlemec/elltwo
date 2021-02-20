@@ -28,4 +28,4 @@ db.session.commit()
 for fname in os.listdir('testing'):
     title, _ = os.path.splitext(fname)
     mark = open(f'testing/{fname}').read()
-    import_markdown(title, mark)
+    import_markdown(title, mark, time=now)
