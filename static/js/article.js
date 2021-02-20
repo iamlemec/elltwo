@@ -109,6 +109,19 @@ $(document).ready(function() {
 
 var hist_vis = false;
 
+local_date = function(d) {
+    var d1 = new Date(d);
+    d1.setTime(d1.getTime()-(d1.getTimezoneOffset()*60*1000));
+    return d1;
+};
+
+simple_para = function() {
+    var para = $('<div>', {class: 'para'});
+    var ptxt = $('<div>', {class: 'p_text'});
+    para.append(ptxt);
+    return para;
+};
+
 $(document).ready(function() {
     $('#show_hist').click(function() {
         $('#hist').toggle();
@@ -116,12 +129,12 @@ $(document).ready(function() {
             $('#hist').empty();
         } else {
             client.sendCommand('get_commits', {'aid': aid}, function(dates) {
-                var data = dates.map(d => {
-                    var d1 = new Date(d);
-                    d1.setTime(d1.getTime()-(d1.getTimezoneOffset()*60*1000));
-                    return {'commit': d, 'date': d1};
-                });
-                create_hist_map(data);
+                create_hist_map(
+                    dates.map(d => ({
+                        'commit': d,
+                        'date': local_date(d)
+                    }))
+                );
             });
         }
         hist_vis = !hist_vis;
@@ -143,9 +156,11 @@ function create_hist_map(data) {
         .attr('width', hist.node().getBoundingClientRect().width)
         .attr('height', hist.node().getBoundingClientRect().height);
 
-    var svg = d3.select("#svgg"),
-        width = +svg.attr("width"),
-        height = +svg.attr("height");
+    var svg = d3.select("#svgg")
+        .on('click', generalClick);
+
+    var width = +svg.attr("width");
+    var height = +svg.attr("height");
 
     // scaleEx controls how zoomed we go
     var zoom = d3.zoom()
@@ -249,8 +264,23 @@ function create_hist_map(data) {
     function handleClick(d, i) {
         console.log('history clicked:', d.commit);
         client.sendCommand('get_history', {'aid': aid, 'date': d.commit}, function(paras) {
-            console.log(paras);
+            var preview = $('#preview');
+            preview.empty();
+            $(paras).each((i, x) => {
+                var para = simple_para();
+                preview.append(para);
+                dataToText(para, x, true); // postpone formatting
+            });
+            preview.show();
+            $('#content').hide();
         });
+        d3.event.stopPropagation();
+    }
+
+    function generalClick(d, i) {
+        console.log('general click');
+        $('#preview').hide();
+        $('#content').show();
     }
 };
 

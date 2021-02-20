@@ -72,6 +72,15 @@ textarea:focus, input:focus {
     height: 70px;
 }
 
+#preview {
+    overflow-y: scroll;
+    scrollbar-width: none;
+    height: 100%;
+    width: 80%;
+    margin: auto;
+    padding-top: 70px;
+    display: none;
+}
 
 button:active {
     position:relative;
@@ -113,12 +122,12 @@ a.reference {
 .login_field > input, .login-button, .notification{
   width: 100%;
   min-height: 45px;
-  margin-bottom: 10px; 
+  margin-bottom: 10px;
   font-size: 110%;
 }
 
 .login-button{
-  margin: 20px 10px 0px 0px; 
+  margin: 20px 10px 0px 0px;
   background-color: var(--delimit-col);
 }
 

@@ -25,16 +25,19 @@
             {% block content %}{% endblock %}
         </div>
 
+        <div id="preview">
+        </div>
+
         <div id="foot">[201p // iamlemec]
             {% block foot_login %}
             {% if login %}
-            {% if current_user.is_authenticated %} 
+            {% if current_user.is_authenticated %}
                 User: {{ current_user.name }}
                 <form class=inline_form method="POST" action="/logout_user">
                     <button class="foot_butt">Log Out</button>
                 </form>
             {% endif %}
-            {% if not current_user.is_authenticated %} 
+            {% if not current_user.is_authenticated %}
                 <button class="foot_butt" id="toggle_ll">LogIn to Edit</button>
                 <div id=locallogin>
                 <form method="POST" action="/login_user">

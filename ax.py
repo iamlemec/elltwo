@@ -145,7 +145,7 @@ def LogoutUser():
 ###
 
 def GetArtData(title, edit):
-    themes = [ t[:-4] for t in os.listdir('static/themes/')]
+    themes = [t[:-4] for t in os.listdir('static/themes/')]
     art = dbq.get_art_short(title)
     if art:
         aid = art.aid
@@ -179,7 +179,7 @@ def RenderArticleRO(title):
 
 @app.route('/b', methods=['GET'])
 def RenderBib():
-    return render_template('bib.html',theme=args.theme)
+    return render_template('bib.html', theme=args.theme)
 
 ###
 ### socketio handler
