@@ -276,6 +276,12 @@ def get_commits(data):
     dates = dbq.get_commits(aid=data['aid'])
     return [d.isoformat() for d in dates]
 
+@socketio.on('get_history')
+def get_history(data):
+    date = datetime.fromisoformat(data['date'][:-1])
+    paras = dbq.get_paras(data['aid'], time=date)
+    return [p.text for p in paras]
+
 ###
 ### article editing
 ###

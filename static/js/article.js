@@ -116,7 +116,11 @@ $(document).ready(function() {
             $('#hist').empty();
         } else {
             client.sendCommand('get_commits', {'aid': aid}, function(dates) {
-                var data = dates.map(d => new Date(d))
+                var data = dates.map(d => {
+                    var d1 = new Date(d);
+                    d1.setTime(d1.getTime()-(d1.getTimezoneOffset()*60*1000));
+                    return d1;
+                });
                 create_hist_map(data);
             });
         }
@@ -190,7 +194,8 @@ function create_hist_map(data) {
         .attr('opacity', '.5')
         .attr('fill', hl2)
         .on("mouseover", handleMouseOver)
-        .on("mouseout", handleMouseOut);
+        .on("mouseout", handleMouseOut)
+        .on("click", handleClick);
 
     svg.call(zoom);
 
@@ -229,6 +234,14 @@ function create_hist_map(data) {
 
         // Select text by id and then remove
         d3.select("#hp_" + i).remove();  // Remove text location
+    }
+
+    function handleClick(d, i) {
+        var date = d.toISOString();
+        console.log('history clicked:', date);
+        client.sendCommand('get_history', {'aid': aid, 'date': date}, function(paras) {
+            console.log(paras);
+        });
     }
 };
 
