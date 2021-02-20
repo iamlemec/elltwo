@@ -271,6 +271,11 @@ def delete_para(data):
     emit('deletePara', [data['pid']], room=data['room'])
     return True
 
+@socketio.on('get_commits')
+def get_commits(data):
+    dates = dbq.get_commits(aid=data['aid'])
+    return [d.isoformat() for d in dates]
+
 ###
 ### article editing
 ###
