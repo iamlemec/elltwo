@@ -278,8 +278,8 @@ def get_commits(data):
 
 @socketio.on('get_history')
 def get_history(data):
-    date = datetime.fromisoformat(data['date'][:-1])
-    paras = dbq.get_paras(data['aid'], time=date)
+    date = data['date'].replace('T', ' ') # weird
+    paras = dbq.get_paras(aid=data['aid'], time=date)
     return [p.text for p in paras]
 
 ###

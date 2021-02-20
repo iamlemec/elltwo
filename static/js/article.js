@@ -119,7 +119,7 @@ $(document).ready(function() {
                 var data = dates.map(d => {
                     var d1 = new Date(d);
                     d1.setTime(d1.getTime()-(d1.getTimezoneOffset()*60*1000));
-                    return d1;
+                    return {'commit': d, 'date': d1};
                 });
                 create_hist_map(data);
             });
@@ -153,11 +153,21 @@ function create_hist_map(data) {
         .translateExtent([[-100, -100], [width + 90, height + 100]])
         .on("zoom", zoomed);
 
+    // round to hour/day/week
     var xmax = new Date(Date.now());
-    var xmin0 = new Date(xmax);
-    xmin0.setDate(xmin0.getDate()-30);
-    var xmin = d3.min(data);
-    xmin = (xmin < xmin0) ? xmin : xmin0;
+    var xmin0 = d3.min(data.map(d => d.date));
+
+    var xrange = (xmax - xmin0)/(1000*60*60); // hours
+    if (xrange <= 1) {
+        xdel = 1;
+    } else if (xrange <= 24) {
+        xdel = 24;
+    } else {
+        xdel = xrange;
+    }
+
+    var xmin = new Date(xmax);
+    xmin.setHours(xmin.getHours()-xdel);
 
     var x = d3.scaleTime()
         .domain([xmin, xmax])
@@ -188,7 +198,7 @@ function create_hist_map(data) {
     gDot.selectAll('circle').data(data)
         .enter()
         .append('circle')
-        .attr('cx',function(d) {return x(d)})
+        .attr('cx', d => x(d.date))
         .attr('cy',height*.3)
         .attr('r', radius)
         .attr('opacity', '.5')
@@ -205,7 +215,7 @@ function create_hist_map(data) {
         //var xScale = xAxis.scale(d3.event.transform.rescaleX(x));
         //gX.call(xScale);
         gX.call(xAxis.scale(xt));
-        gDot.selectAll("circle").attr("cx", function(d) { return xt(d); });
+        gDot.selectAll("circle").attr("cx", function(d) { return xt(d.date); });
     }
 
     function handleMouseOver(d, i) {  // Add interactivity
@@ -217,7 +227,7 @@ function create_hist_map(data) {
         // Specify where to put label of text
         var tooltip = d3.select('#bg').append("div").attr('id',  "hp_" + i)  // Create an id for text so we can select it later for removing on mouseout
             .attr('class', "hist_pop")
-            .text(function() {return d; });
+            .text(function() {return d.date; });
 
         var ttw = tooltip.node().getBoundingClientRect().width;
         var tth = tooltip.node().getBoundingClientRect().height;
@@ -237,9 +247,8 @@ function create_hist_map(data) {
     }
 
     function handleClick(d, i) {
-        var date = d.toISOString();
-        console.log('history clicked:', date);
-        client.sendCommand('get_history', {'aid': aid, 'date': date}, function(paras) {
+        console.log('history clicked:', d.commit);
+        client.sendCommand('get_history', {'aid': aid, 'date': d.commit}, function(paras) {
             console.log(paras);
         });
     }

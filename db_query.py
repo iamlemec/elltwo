@@ -13,8 +13,8 @@ session = db.session
 ## diagnostic tools
 ##
 
-def getall(klass, disp=True):
-    ret = session.query(klass).all()
+def getall(klass, disp=True, **kwargs):
+    ret = session.query(klass).filter_by(**kwargs).all()
     if disp:
         print('\n'.join([str(x) for x in ret]))
     else:
@@ -469,7 +469,7 @@ def get_commits(aid=None, klass=None):
           + get_commits(aid=aid, klass=Paralink)
         ))
     cond = {'aid': aid} if aid is not None else {}
-    paras = session.query(Paragraph).filter_by(**cond)
+    paras = session.query(klass).filter_by(**cond)
     times = (
         paras.from_self(distinct(klass.create_time)).all()
       + paras.from_self(distinct(klass.delete_time)).all()
