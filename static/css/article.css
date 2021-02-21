@@ -184,9 +184,9 @@ button {
 .svg_cap {
     position: relative;
     left: 10%;
-    padding-bottom: 50px; 
+    padding-bottom: 50px;
 /*  hacky, margin does */
-    
+
 }
 
 #bib_block {
@@ -478,11 +478,25 @@ transform: rotate(135deg) translateY(-160%) translateX(60%);
 .hist_pop{
     position: absolute;
     text-align: center;
-    padding: 10px;				
-    font: 12px sans-serif;		
+    padding: 10px;
+    font: 12px sans-serif;
     background: var(--pop-bg-col);
     color:   var(--pop-fg-col);;
-    border: 0px;		
-    border-radius: 2px;			
-    pointer-events: none;	
+    border: 0px;
+    border-radius: 2px;
+    pointer-events: none;
+}
+
+/* history */
+
+circle.commit {
+    fill: var(--hl2-col);
+}
+
+circle.commit:hover {
+    fill: var(--font-col-int);
+}
+
+circle.commit.active {
+    fill: var(--hl-col);
 }

@@ -168,19 +168,24 @@ insertPara = function(pid, new_pid, before=true, raw='') {
 // move this to backend when we have user genereted envs
 
 // creates classes for environs
-envClasses = function() {
+envClasses = function(outer, toc=true) {
+    if (outer === undefined) {
+        outer = $('#content');
+    }
+    var paras = outer.children('.para');
+
     // remove old env classes
-    $('.para > .p_text').removeClass(function(index, css) {
+    paras.children('.p_text').removeClass(function(index, css) {
         return (css.match(/(^|\s)env__\S+/g) || []).join(' ');
     });
 
     // remove env markers
-    $('.para').removeClass('env')
-              .removeClass('env_err')
-              .removeAttr('env_sel');
+    paras.removeClass('env')
+         .removeClass('env_err')
+         .removeAttr('env_sel');
 
     // remove formatting addins
-    $('.env_add').remove();
+    outer.find('.env_add').remove();
 
     // env state
     var env_name = null;
@@ -189,7 +194,7 @@ envClasses = function() {
     var env_paras = [];
 
     // forward env pass
-    $('.para').each(function() {
+    paras.each(function() {
         var para = $(this);
 
         if (para.hasClass('env_one')) {
@@ -257,14 +262,17 @@ envClasses = function() {
     });
 
     // add error for open envs left at the end
-    if (env_name) {
+    if (env_name !== null) {
         var env_all = $(env_paras);
         env_all.addClass('env_err');
         envFormat(env_all, 'error', {code: 'eof', env: env_name});
     }
 
     // add in numbers with auto-increment
-    createNumbers();
+    createNumbers(outer);
+    if (toc) {
+        createTOC();
+    }
 };
 
 envFormat = function(paras, env, args) {
@@ -423,16 +431,15 @@ renderKatex = function(para) {
 
 /// Numbering and TOC
 
-createNumbers = function() {
+createNumbers = function(outer) {
     var nums = {};
-    $('.num').each(function() {
+    outer.find('.num').each(function() {
         var counter = $(this).attr('counter');
         var inc = parseInt($(this).attr('inc'));
         nums[counter] = nums[counter] || 0;
         nums[counter] += inc;
         $(this).text(nums[counter]);
     });
-    createTOC();
 };
 
 createTOC = function() {

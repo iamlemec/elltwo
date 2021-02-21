@@ -142,14 +142,10 @@ $(document).ready(function() {
 });
 
 function create_hist_map(data) {
-    let hl2 = getComputedStyle(document.documentElement)
-        .getPropertyValue('--hl2-col');
-    let hl = getComputedStyle(document.documentElement)
-        .getPropertyValue('--font-col-int');
+    var hpadding = 50;
+    var radius = 4;
 
-    let hpadding = 50;
-    let radius = 4;
-    let hist = d3.select('#hist');
+    var hist = d3.select('#hist');
     hist.selectAll("*").remove();
     hist.append('svg')
         .attr('id', 'svgg')
@@ -213,11 +209,11 @@ function create_hist_map(data) {
     gDot.selectAll('circle').data(data)
         .enter()
         .append('circle')
+        .classed('commit', true)
         .attr('cx', d => x(d.date))
         .attr('cy',height*.3)
         .attr('r', radius)
         .attr('opacity', '.5')
-        .attr('fill', hl2)
         .on("mouseover", handleMouseOver)
         .on("mouseout", handleMouseOut)
         .on("click", handleClick);
@@ -237,7 +233,6 @@ function create_hist_map(data) {
         // Use D3 to select element, change color and size
         d3.select(this)
           .attr('r', radius + 2)
-          .attr('fill', hl)
 
         // Specify where to put label of text
         var tooltip = d3.select('#bg').append("div").attr('id',  "hp_" + i)  // Create an id for text so we can select it later for removing on mouseout
@@ -255,7 +250,6 @@ function create_hist_map(data) {
         // Use D3 to select element, change color back to normal
         d3.select(this)
           .attr('r', radius)
-          .attr('fill', hl2)
 
         // Select text by id and then remove
         d3.select("#hp_" + i).remove();  // Remove text location
@@ -263,6 +257,13 @@ function create_hist_map(data) {
 
     function handleClick(d, i) {
         console.log('history clicked:', d.commit);
+
+        d3.selectAll('circle.active')
+          .classed('active', false);
+        d3.select(this)
+          .classed('active', true);
+        d3.event.stopPropagation();
+
         client.sendCommand('get_history', {'aid': aid, 'date': d.commit}, function(paras) {
             var preview = $('#preview');
             preview.empty();
@@ -271,16 +272,20 @@ function create_hist_map(data) {
                 preview.append(para);
                 dataToText(para, x, true); // postpone formatting
             });
+            envClasses(preview, false);
             preview.show();
             $('#content').hide();
         });
-        d3.event.stopPropagation();
     }
 
     function generalClick(d, i) {
         console.log('general click');
-        $('#preview').hide();
+
+        d3.selectAll('circle.active')
+          .classed('active', false);
+
         $('#content').show();
+        $('#preview').hide();
     }
 };
 
