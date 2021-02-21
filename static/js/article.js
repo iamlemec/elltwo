@@ -122,26 +122,7 @@ simple_para = function() {
     return para;
 };
 
-$(document).ready(function() {
-    $('#show_hist').click(function() {
-        $('#hist').toggle();
-        if (hist_vis) {
-            $('#hist').empty();
-        } else {
-            client.sendCommand('get_commits', {'aid': aid}, function(dates) {
-                create_hist_map(
-                    dates.map(d => ({
-                        'commit': d,
-                        'date': local_date(d)
-                    }))
-                );
-            });
-        }
-        hist_vis = !hist_vis;
-    });
-});
-
-function create_hist_map(data) {
+create_hist_map = function(data) {
     var hpadding = 50;
     var radius = 4;
 
@@ -284,12 +265,42 @@ function create_hist_map(data) {
         d3.selectAll('circle.active')
           .classed('active', false);
 
-        var preview = $('#preview');
-        $('#content').show();
-        preview.hide();
-        preview.empty();
+        hide_hist_preview();
     }
 };
+
+launch_hist_map = function() {
+    client.sendCommand('get_commits', {'aid': aid}, function(dates) {
+        create_hist_map(
+            dates.map(d => ({
+                'commit': d,
+                'date': local_date(d)
+            }))
+        );
+    });
+}
+
+hide_hist_preview = function() {
+    var preview = $('#preview');
+    $('#content').show();
+    preview.hide();
+    preview.empty();
+}
+
+toggle_hist_map = function() {
+    $('#hist').toggle();
+    if (hist_vis) {
+        hide_hist_preview();
+        $('#hist').empty();
+    } else {
+        launch_hist_map();
+    }
+    hist_vis = !hist_vis;
+}
+
+$(document).ready(function() {
+    $('#show_hist').click(toggle_hist_map);
+});
 
 // Exporting
 

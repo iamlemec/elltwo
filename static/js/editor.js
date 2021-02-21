@@ -259,12 +259,12 @@ activePrevPara = function() {
 keymap = {
     'enter': false,
     'shift': false,
-    'ctrl': false,
-    'esc': false,
-    'left': false,
-    'up': false,
-    'right': false,
-    'down': false,
+    'control': false,
+    'escape': false,
+    'arrowleft': false,
+    'arrowup': false,
+    'arrowright': false,
+    'arrowdown': false,
     'a': false,
     'b': false,
     'd': false,
@@ -272,26 +272,12 @@ keymap = {
     'w': false,
 };
 
-keyname = {
-    13: 'enter',
-    16: 'shift',
-    17: 'ctrl',
-    27: 'esc',
-    37: 'left',
-    38: 'up',
-    39: 'right',
-    40: 'down',
-    65: 'a',
-    66: 'b',
-    68: 'd',
-    83: 's',
-    87: 'w',
-}
-
 $(document).keydown(function(e) {
-    if (e.keyCode in keyname) {
-        keymap[keyname[e.keyCode]] = true;
-        if (keymap['ctrl'] && keymap['s']) {
+    var key = e.key.toLowerCase();
+    console.log('keydown:', key);
+    if (key in keymap) {
+        keymap[key] = true;
+        if (keymap['control'] && keymap['s']) {
             makeUnEditable();
             if (Object.keys(changed).length > 0) {
                 data = {};
@@ -305,6 +291,9 @@ $(document).keydown(function(e) {
                 });
             }
             return false;
+        } else if (keymap['control'] && keymap['enter']) {
+            toggle_hist_map();
+            return false;
         }
         if (!active_para) { // if we are inactive
             if (keymap['enter']) {
@@ -316,13 +305,13 @@ $(document).keydown(function(e) {
                 makeEditable();
                 placeCursor();
                 return false;
-            } else if (keymap['up']) {
+            } else if (keymap['arrowup']) {
                 activePrevPara();
                 return false;
-            } else if (keymap['down']) {
+            } else if (keymap['arrowdown']) {
                 activeNextPara();
                 return false;
-            } else if (keymap['esc']) {
+            } else if (keymap['escape']) {
                 makeActive(null);
             } else if (keymap['a']) {
                 var pid = active_para.attr('pid');
@@ -352,11 +341,11 @@ $(document).keydown(function(e) {
                 client.sendCommand('delete_para', {'pid': pid, 'room': aid});
             }
         } else if (active_para && editable) { // we are active and editable
-            if (keymap['esc']) {
+            if (keymap['escape']) {
                 makeUnEditable();
-            } else if (keymap['up'] || keymap['left']) {
+            } else if (keymap['arrowup'] || keymap['arrowleft']) {
                 return editShift(active_para);
-            } else if (keymap['down'] || keymap['right']) {
+            } else if (keymap['arrowdown'] || keymap['arrowright']) {
                 return editShift(active_para, up=false);
             } else if (keymap['shift'] && keymap['enter']) {
                 makeUnEditable();
@@ -375,8 +364,10 @@ $(document).keydown(function(e) {
 })
 
 $(document).keyup(function(e) {
-    if (e.keyCode in keyname) {
-        keymap[keyname[e.keyCode]] = false;
+    var key = e.key.toLowerCase();
+    console.log('keyup:', key);
+    if (key in keymap) {
+        keymap[key] = false;
     };
 });
 
