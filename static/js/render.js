@@ -271,7 +271,7 @@ envClasses = function(outer, toc=true) {
     // add in numbers with auto-increment
     createNumbers(outer);
     if (toc) {
-        createTOC();
+        createTOC(outer);
     }
 };
 
@@ -442,11 +442,11 @@ createNumbers = function(outer) {
     });
 };
 
-createTOC = function() {
+createTOC = function(outer) {
     toc = $('#toc');
     toc.find('.toc_entry').remove();
-    $('.env__heading').each(function() {
-        let level = $(this).attr('head_level')
+    outer.find('.env__heading').each(function() {
+        let level = $(this).attr('head_level');
         let text = $(this).text();
         let id = $(this).parent('.para').attr('id');
         let sec = id

@@ -284,8 +284,10 @@ function create_hist_map(data) {
         d3.selectAll('circle.active')
           .classed('active', false);
 
+        var preview = $('#preview');
         $('#content').show();
-        $('#preview').hide();
+        preview.hide();
+        preview.empty();
     }
 };
 
