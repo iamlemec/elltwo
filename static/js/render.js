@@ -4,7 +4,7 @@
 inner_para = `
 <div class="p_text"></div>
 <div class="p_input_view"></div>
-<textarea class="p_input"></textarea>
+<textarea readonly class="p_input"></textarea>
 <div class="control">
 <div class="controlDots">&#9776;</div>
 <div class="controlButs">

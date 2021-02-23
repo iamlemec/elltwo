@@ -7,11 +7,8 @@
    <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='js/marked3.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='js/article.js') }} language="Javascript" type="text/javascript"></script>
-   {% if edit %}
    <script src={{ url_for('static', filename='js/render.js') }} language="Javascript" type="text/javascript"></script>
-   {% else %}
-   <script src={{ url_for('static', filename='js/renderRO.js') }} language="Javascript" type="text/javascript"></script>
-   {%endif%}
+   <script src="https://d3js.org/d3.v5.min.js"></script>
 {% endblock %}
 
 {% block title %}{{title}}{% endblock %}
@@ -73,9 +70,13 @@ Font
     title = '{{title}}';
     aid = '{{aid}}';
     theme = '{{theme}}';
+    {% if edit %}
+    readonly = false;
+    {% else %}
+    readonly = true;
+    {% endif %}
 </script>
-   {% if edit %}
 <script src={{ url_for('static', filename='js/editor.js') }} language="Javascript" type="text/javascript"></script>
-<script src="https://d3js.org/d3.v5.min.js"></script>
-   {%endif%}
+
+
 {% endblock %}

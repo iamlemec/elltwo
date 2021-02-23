@@ -303,6 +303,7 @@ toggle_hist_map = function() {
         launch_hist_map();
     }
     hist_vis = !hist_vis;
+    writeable = !readonly && !hist_vis;
 }
 
 $(document).ready(function() {

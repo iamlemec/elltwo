@@ -1,28 +1,32 @@
 ////// UI ///////
 
-// resize text area on input (eliminate scroll)
-$(document).on('input focus', 'textarea', function() {
-    resize(this);
-});
-
-resize = function(textarea){
-    textarea.style.height = 'auto';
-    h = (textarea.scrollHeight) + 'px'
-    textarea.style.height = h;
-    para = $(textarea).parent('.para');
-    para.css('min-height', h);
-}
-
 // global state
 active_para = null; // current active para
 last_active = null; // to keep track of where cursor was
 editable = false; // are we focused on the active para
-writeable = true; // can we actually modify contents
+writeable = !readonly; // can we actually modify contents
 changed = {}; // list of paras that have been changed
 
 // hard coded options
 scrollSpeed = 100;
 scrollFudge = 100;
+
+/// textarea manage
+
+resize = function(textarea) {
+    textarea.style.height = 'auto';
+    h = (textarea.scrollHeight) + 'px'
+    textarea.style.height = h;
+    para = $(textarea).parent('.para');
+    para.css('min-height', h);
+};
+
+// resize text area on input (eliminate scroll)
+$(document).on('input focus', 'textarea', function() {
+    resize(this);
+});
+
+/// scrolling
 
 ensureVisible = function(para) {
     var cont = para.parent();
@@ -44,18 +48,7 @@ ensureVisible = function(para) {
     }
 };
 
-makeActive = function(para) {
-    makeUnEditable();
-    $('.para').removeClass('active');
-    if (active_para) {
-        last_active = active_para;
-    }
-    active_para = para;
-    if (active_para) {
-        para.addClass('active');
-        ensureVisible(active_para);
-    }
-};
+/// rendering and storage
 
 localChange = function(para, send=true) {
     var text = para.children('.p_input').val();
@@ -84,51 +77,55 @@ storeChange = function(para) {
     }
 };
 
+/// server comms and callbacks
+
+on_success = function(func) {
+    return function(success) {
+        if (success) {
+            func();
+        }
+    };
+};
+
 updatePara = function(para) {
     var pid = para.attr('pid');
     var raw = para.children('.p_input').val();
     var data = {room: aid, pid: pid, text: raw};
-    client.sendCommand('update_para', data, function(success) {
-        if (success) {
-            storeChange(para);
-        }
-    });
+    client.sendCommand('update_para', data, on_success(() => {
+        storeChange(para);
+    }));
 };
 
 updateBulk = function() {
     if (Object.keys(changed).length > 0) {
         var data = {room: aid, paras: changed};
-        client.sendCommand('update_bulk', data, function(success) {
+        client.sendCommand('update_bulk', data, on_success(() => {
             Object.keys(changed).map(function(pid) {
                 var para = getPara(pid);
                 storeChange(para);
             });
-        });
+        }));
     }
 };
 
 insertBefore = function(para) {
     var pid = para.attr('pid');
     var data = {room: aid, pid: pid};
-    client.sendCommand('insert_before', data, function(success) {
-        if (success) {
-            activePrevPara();
-            makeEditable();
-            placeCursor();
-        }
-    });
+    client.sendCommand('insert_before', data, on_success(() => {
+        activePrevPara();
+        makeEditable();
+        placeCursor();
+    }));
 };
 
 insertAfter = function(para) {
     var pid = para.attr('pid');
     var data = {room: aid, pid: pid};
-    client.sendCommand('insert_after', data, function(success) {
-        if (success) {
-            activeNextPara();
-            makeEditable();
-            placeCursor();
-        }
-    });
+    client.sendCommand('insert_after', data, on_success(() => {
+        activeNextPara();
+        makeEditable();
+        placeCursor();
+    }));
 };
 
 deletePara = function(para) {
@@ -139,8 +136,10 @@ deletePara = function(para) {
 
 // revertChange?
 
+/// para editable
+
 placeCursor = function(begin=true) {
-    if (active_para && writeable && !hist_vis) {
+    if (active_para && writeable) {
         var text = active_para.children('.p_input');
         text.focus();
         if (begin) {
@@ -153,59 +152,32 @@ placeCursor = function(begin=true) {
 };
 
 unPlaceCursor = function() {
-    if (active_para && writeable && !hist_vis) {
+    if (active_para && writeable) {
         var text = active_para.children('.p_input');
         text.blur();
     }
 };
 
-editShift = function(para, up=true) {
-    var top, bot;
-    if (writeable && !hist_vis) {
-        var input = para.children('.p_input')[0];
-        var cpos = input.selectionStart;
-        var tlen = input.value.length;
-        top = (cpos == 0);
-        bot = (cpos == tlen);
-    } else {
-        top = true;
-        bot = true;
-    }
-
-    if (up == true) {
-        if (top) {
-            if (activePrevPara()) {
-                makeEditable();
-                placeCursor(begin=false);
-                return false;
-            }
-        }
-    } else {
-        if (bot) {
-            if (activeNextPara()) {
-                makeEditable();
-                placeCursor();
-                return false;
-            }
-        }
-    }
-};
-
-trueMakeEditable = function() {
+trueMakeEditable = function(rw=true) {
     editable = true;
     active_para.addClass('editable');
-    var text = active_para.children('.p_input')[0];
-    resize(text);
-    placeCursor();
+
+    var text = active_para.children('.p_input');
+    resize(text[0]);
+    if (rw) {
+        text.prop('readonly', false);
+        placeCursor();
+    }
     syntaxHL(active_para);
+
     client.schedCanary();
 };
 
 makeEditable = function() {
     $('.para').removeClass('editable');
     if (active_para) {
-        var pid = active_para.attr('pid');
-        if (pid !== undefined) {
+        if (writeable) {
+            var pid = active_para.attr('pid');
             var data = {pid: pid, room: aid};
             client.sendCommand('lock', data, function(response) {
                 if (response) {
@@ -213,10 +185,27 @@ makeEditable = function() {
                 };
             });
         } else {
-            trueMakeEditable();
+            trueMakeEditable(false);
         }
     }
 };
+
+makeUnEditable = function(send=true) {
+    $('.para.editable')
+        .removeClass('editable')
+        .css('min-height', '30px')
+        .children('.p_input')
+        .prop('readonly', true);
+
+    if (active_para && editable) {
+        editable = false;
+        if (writeable) {
+            localChange(active_para, send);
+        }
+    }
+};
+
+/// para locking
 
 let lockout = null;
 
@@ -265,41 +254,20 @@ unlockParas = function(pids) {
     });
 };
 
-makeUnEditable = function(send=true) {
-    $('.para').removeClass('editable');
-    $('.para').css('min-height', '30px');
-    if (editable && active_para) {
-        editable = false;
-        if (writeable && !hist_vis) {
-            unPlaceCursor();
-            localChange(active_para, send);
-        }
+/// active para tracking
+
+makeActive = function(para) {
+    makeUnEditable();
+    $('.para').removeClass('active');
+    if (active_para) {
+        last_active = active_para;
+    }
+    active_para = para;
+    if (active_para) {
+        para.addClass('active');
+        ensureVisible(active_para);
     }
 };
-
-// click to make active // double click to make editable
-$(document).on('click', '.para', function() {
-    var para = $(this);
-    if (!para.hasClass('active')) {
-        makeActive($(this));
-    } else if (!editable) {
-        makeEditable();
-    };
-});
-
-//click background to escape
-$(document).on('click', '#bg', function() {
-    if (event.target.id=='bg' || event.target.id=='content') {
-        makeUnEditable();
-        makeActive(null);
-    }
-});
-
-// this caused problems
-// // focus to make editable
-// $(document).on('focus', '.p_input', function() {
-//     makeEditable();
-// });
 
 // next para
 activeNextPara = function() {
@@ -322,6 +290,38 @@ activePrevPara = function() {
             return true;
         } else {
             return false;
+        }
+    }
+};
+
+editShift = function(para, up=true) {
+    var top, bot;
+    if (writeable) {
+        var input = para.children('.p_input')[0];
+        var cpos = input.selectionStart;
+        var tlen = input.value.length;
+        top = (cpos == 0);
+        bot = (cpos == tlen);
+    } else {
+        top = true;
+        bot = true;
+    }
+
+    if (up == true) {
+        if (top) {
+            if (activePrevPara()) {
+                makeEditable();
+                placeCursor(begin=false);
+                return false;
+            }
+        }
+    } else {
+        if (bot) {
+            if (activeNextPara()) {
+                makeEditable();
+                placeCursor();
+                return false;
+            }
         }
     }
 };
@@ -353,7 +353,7 @@ $(document).keydown(function(e) {
             toggle_hist_map();
             return false;
         } else if (keymap['control'] && keymap['s']) {
-            if (writeable && !hist_vis) {
+            if (writeable) {
                 makeUnEditable();
                 updateBulk();
             }
@@ -377,7 +377,7 @@ $(document).keydown(function(e) {
             } else if (keymap['escape']) {
                 makeActive(null);
             }
-            if (writeable && !hist_vis) { // if we are active but not in edit mode
+            if (writeable) { // if we are active but not in edit mode
                 if (keymap['a']) {
                     insertBefore(active_para);
                 } else if (keymap['b']) {
@@ -390,15 +390,15 @@ $(document).keydown(function(e) {
                 }
             }
         } else if (active_para && editable) { // we are active and editable
-            if (keymap['escape']) {
-                makeUnEditable();
-            } else if (keymap['arrowup'] || keymap['arrowleft']) {
+            if (keymap['arrowup'] || keymap['arrowleft']) {
                 return editShift(active_para);
             } else if (keymap['arrowdown'] || keymap['arrowright']) {
                 return editShift(active_para, up=false);
+            } else if (keymap['escape']) {
+                makeUnEditable();
             } else if (keymap['shift'] && keymap['enter']) {
                 makeUnEditable();
-                if (writeable && !hist_vis) {
+                if (writeable) {
                     updatePara(active_para);
                 }
                 return false;
@@ -415,7 +415,25 @@ $(document).keyup(function(e) {
     };
 });
 
-/// Button Nav
+/// mouse interface
+
+// click to make active // double click to make editable
+$(document).on('click', '.para', function() {
+    var para = $(this);
+    if (!para.hasClass('active')) {
+        makeActive($(this));
+    } else if (!editable) {
+        makeEditable();
+    };
+});
+
+//click background to escape
+$(document).on('click', '#bg', function() {
+    if (event.target.id=='bg' || event.target.id=='content') {
+        makeUnEditable();
+        makeActive(null);
+    }
+});
 
 $(document).on('click', '.update', function() {
     var para = $(this).parents('.para');
