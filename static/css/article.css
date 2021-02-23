@@ -38,6 +38,8 @@
     color: inherit;
     background-color: inherit;
     caret-color: inherit;
+    color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .p_input_view {

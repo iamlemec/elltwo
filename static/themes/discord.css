@@ -11,6 +11,9 @@
     --font-col: #eee8d5;
     --font-col-int: #b58900;
     --dc-blue-col: rgb(33, 150, 243);
+    --dollar-col: #859900;
+    --brace-col: rgba(33, 150, 243, 0.2);
+    --math-col: #3280F3;
 }
 
 @font-face {
@@ -169,7 +172,7 @@ button:hover {
 }
 
 .syn_math {
-    color: var(--hl-col);
+    color: var(--math-col);
 }
 
 .syn_ref {
@@ -177,7 +180,7 @@ button:hover {
 }
 
 .syn_delimit {
-    color: var(--delimit-col);
+    color: var(--dollar-col);
 }
 
 .brace {
