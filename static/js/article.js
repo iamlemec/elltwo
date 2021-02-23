@@ -115,12 +115,30 @@ local_date = function(d) {
     return d1;
 };
 
-simple_para = function() {
-    var para = $('<div>', {class: 'para'});
+para_readonly = function(x) {
+    var para = $('<div>', {class: 'para', raw: x});
     var ptxt = $('<div>', {class: 'p_text'});
+    var pviw = $('<div>', {class: 'p_input_view'});
+    var pinp = $('<textarea>', {class: 'p_input', val: x});
+    pinp.prop('readonly', true);
     para.append(ptxt);
+    para.append(pviw);
+    para.append(pinp);
     return para;
 };
+
+renderPreview = function(paras) {
+    var preview = $('#preview');
+    preview.empty();
+    $(paras).each((i, x) => {
+        var para = para_readonly(x);
+        preview.append(para);
+        rawToRender(para, true); // postpone formatting
+    });
+    envClasses(preview);
+    preview.show();
+    $('#content').hide();
+}
 
 create_hist_map = function(data) {
     var hpadding = 50;
@@ -245,18 +263,7 @@ create_hist_map = function(data) {
           .classed('active', true);
         d3.event.stopPropagation();
 
-        client.sendCommand('get_history', {'aid': aid, 'date': d.commit}, function(paras) {
-            var preview = $('#preview');
-            preview.empty();
-            $(paras).each((i, x) => {
-                var para = simple_para();
-                preview.append(para);
-                dataToText(para, x, true); // postpone formatting
-            });
-            envClasses(preview, false);
-            preview.show();
-            $('#content').hide();
-        });
+        client.sendCommand('get_history', {'aid': aid, 'date': d.commit}, renderPreview);
     }
 
     function generalClick(d, i) {

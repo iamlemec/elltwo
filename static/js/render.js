@@ -1,18 +1,20 @@
 /// init commands ///
 
 // inner HTML for para structure. Included here for updating paras
-inner_para = `<div class="p_text"></div>
-              <div class="p_input_view"></div>
-              <textarea class="p_input"></textarea>
-              <div class="control">
-              <div class="controlDots">&#9776;</div>
-              <div class="controlButs">
-              <button class="update">Update</button>
-              <button class="before">Before</button>
-              <button class="after">After</button>
-              <button class="delete">Delete</button>
-              </div>
-              </div>`;
+inner_para = `
+<div class="p_text"></div>
+<div class="p_input_view"></div>
+<textarea class="p_input"></textarea>
+<div class="control">
+<div class="controlDots">&#9776;</div>
+<div class="controlButs">
+<button class="update">Update</button>
+<button class="before">Before</button>
+<button class="after">After</button>
+<button class="delete">Delete</button>
+</div>
+</div>
+`;
 
 getPara = function(pid) {
     return $(`[pid=${pid}]`);
@@ -30,10 +32,8 @@ $(document).ready(function() {
     $('.para').each(function() {
         var para = $(this);
         para.html(inner_para);
-
-        var raw = para.attr('raw');
-        dataToText(para, raw, true); // postpone formatting
-        rawToTextArea(para);
+        rawToRender(para, true); // postpone formatting
+        rawToTextarea(para);
     });
 
     envClasses();
@@ -47,9 +47,10 @@ $(document).ready(function() {
 /// local changes only --> to reflect server changes without full reload
 
 // get raw text from data-raw attribute, parse, render
-dataToText = function(para, raw, defer=false) {
+rawToRender = function(para, defer, raw=null) {
     // render with markthree
-    var mark_out = markthree(raw);
+    var mark_in = (raw === null) ? para.attr('raw') : raw;
+    var mark_out = markthree(mark_in);
     var html_text = mark_out['src'];
     var env_info = mark_out['env'];
 
@@ -115,13 +116,13 @@ dataToText = function(para, raw, defer=false) {
     }
 };
 
-rawToTextArea = function(para) {
+rawToTextarea = function(para) {
     var textArea = para.children('.p_input');
     var raw = para.attr('raw');
     textArea.val(raw);
 };
 
-updateFromTextArea = function(para) {
+updateFromTextarea = function(para) {
     var raw = para.children('.p_input').val();
     var pid = para.attr('pid');
     client.sendCommand('update_para', {'pid': pid, 'text': raw});
@@ -132,14 +133,14 @@ updateFromTextArea = function(para) {
 updatePara = function(pid, raw) {
     var para = getPara(pid);
     para.attr('raw', raw);
-    dataToText(para, raw);
+    rawToRender(para);
 };
 
 updateParas = function(para_dict) {
     for (pid in para_dict) {
         var para = getPara(pid);
         para.attr('raw', para_dict[pid]);
-        dataToText(para, para_dict[pid]);
+        rawToRender(para);
     }
 };
 
@@ -159,8 +160,8 @@ insertPara = function(pid, new_pid, before=true, raw='') {
         para.after(new_para);
     }
     new_para.html(inner_para);
-    dataToText(new_para, raw);
-    rawToTextArea(new_para);
+    rawToRender(new_para);
+    rawToTextarea(new_para);
 };
 
 /////////////////// ENVS /////////
@@ -168,7 +169,7 @@ insertPara = function(pid, new_pid, before=true, raw='') {
 // move this to backend when we have user genereted envs
 
 // creates classes for environs
-envClasses = function(outer, toc=true) {
+envClasses = function(outer) {
     if (outer === undefined) {
         outer = $('#content');
     }
@@ -270,9 +271,7 @@ envClasses = function(outer, toc=true) {
 
     // add in numbers with auto-increment
     createNumbers(outer);
-    if (toc) {
-        createTOC(outer);
-    }
+    createTOC(outer);
 };
 
 envFormat = function(paras, env, args) {
@@ -932,14 +931,12 @@ setBlurb = function() {
 
 /// SyntaxHighlighting
 
-syntaxHL = function(para){
-    const ta = para.children('.p_input');
-    const v = para.children('.p_input_view');
-    //h = ta.height();
-    var raw = ta.val();
-    v.html(sytaxParseBlock(raw));
-    // console.log(h)
-    // para.height(h);
+syntaxHL = function(para) {
+    var text = para.children('.p_input');
+    var view = para.children('.p_input_view');
+    var raw = text.val();
+    var parsed = sytaxParseBlock(raw);
+    view.html(parsed);
 };
 
 $(document).on('input', '.p_input', function(){
