@@ -55,6 +55,7 @@ body {
     font-weight: 400;
     font-size: 18px;
     color: var(--font-col);
+    background-color: var(--bg-col);
     caret-color: var(--hl-col);
 }
 
@@ -104,8 +105,12 @@ button:hover {
 }
 
 .active {
-   border-left: 2px solid var(--hl-col);
-   background-color: var(--bg-hl-col);
+    border-left: 2px solid var(--hl-col);
+    background-color: var(--bg-hl-col);
+}
+
+.controlDots {
+    color: var(--pop-bg-col);
 }
 
 /* text elements */

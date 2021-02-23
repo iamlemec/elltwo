@@ -35,8 +35,9 @@
     overflow: hidden;
     display: none;
     border: none;
-    background-color: rgba(0,0,0,0);
-    color: rgba(1,1,1,0)
+    color: inherit;
+    background-color: inherit;
+    caret-color: inherit;
 }
 
 .p_input_view {
@@ -50,7 +51,6 @@
     border: none;
     font-family: monospace;
 }
-
 
 .control {
     display: none;
@@ -67,7 +67,7 @@
 }
 
 .controlButs {
-        display: none;
+    display: none;
 }
 
 .control:hover .controlButs {
@@ -79,7 +79,6 @@
 }
 
 .controlDots {
-    color: black;
     font-size: 90%;
 }
 

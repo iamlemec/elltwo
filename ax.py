@@ -436,7 +436,7 @@ if __name__ == '__main__':
     parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
     parser.add_argument('--timeout', type=int, default=180, help='Client timeout time in seconds')
     parser.add_argument('--debug', action='store_true', help='Run in debug mode')
-    parser.add_argument('--login', type=bool, default=False, help='Require login for editing')
+    parser.add_argument('--login', action='store_true', help='Require login for editing')
     args = parser.parse_args()
 
     app.debug = args.debug

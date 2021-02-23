@@ -131,7 +131,7 @@ button:hover {
 
 .footnote > .num{
    color: var(--font-col);
- 
+
 }
 
 .code{
@@ -235,7 +235,7 @@ a.art_result{
 }
 
 .cite {
-       background-color: var(--bg-hl-col); 
+       background-color: var(--bg-hl-col);
 }
 
 .citekey {
@@ -272,4 +272,13 @@ a.art_result{
     background-color: var(--pop-bg-col);
 }
 
+#foot {
+    background-color:  var(--pop-bg-col);
+    color: var(--pop-fg-col);
+}
 
+.foot_butt{
+    background-color:  var(--hl-col);
+    border: none;
+    color: var(--pop-fg-col);
+}
