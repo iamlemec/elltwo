@@ -468,6 +468,10 @@ body {
     border-top: 2px solid var(--hl-col);
 }
 
+#revert_hist {
+    display: none;
+}
+
 .hist_pop {
     position: absolute;
     text-align: center;

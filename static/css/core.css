@@ -76,6 +76,10 @@ textarea:focus, input:focus {
     display: none;
 }
 
+#preview > .para > .control {
+    display: none;
+}
+
 /* css is so fucking dumb */
 #content:after, #preview:after {
     content: "";
