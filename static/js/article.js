@@ -330,8 +330,19 @@ toggle_hist_map = function() {
     writeable = !readonly && !hist_vis;
 }
 
+revert_history = function() {
+    var act = d3.selectAll('circle.active');
+    if (act.empty()) {
+        return;
+    }
+    var data = act.datum();
+    var args = {aid: aid, date: data.commit};
+    client.sendCommand('revert_history', args, on_success(launch_hist_map));
+};
+
 $(document).ready(function() {
     $('#show_hist').click(toggle_hist_map);
+    $('#revert_hist').click(revert_history);
 });
 
 // Exporting

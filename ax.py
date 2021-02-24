@@ -274,13 +274,18 @@ def delete_para(data):
 @socketio.on('get_commits')
 def get_commits(data):
     dates = dbq.get_commits(aid=data['aid'])
-    return [d.isoformat() for d in dates]
+    return [d.isoformat().replace('T', ' ') for d in dates]
 
 @socketio.on('get_history')
 def get_history(data):
-    date = data['date'].replace('T', ' ') # weird
-    paras = dbq.get_paras(aid=data['aid'], time=date)
+    paras = dbq.get_paras(aid=data['aid'], time=data['date'])
     return {p.pid: p.text for p in paras}
+
+@socketio.on('revert_history')
+def revert_history(data):
+    print(f'revert_history: aid={data["aid"]} date={data["date"]}')
+    dbq.revert_art(data['aid'], time1=data['date'])
+    return True
 
 ###
 ### article editing
