@@ -379,7 +379,7 @@ body {
     display: inline-block;
 }
 
-.custom-select-trigger{
+.custom-select-trigger {
     position: relative;
     display: block;
     width: 160px;
@@ -457,15 +457,7 @@ body {
     border-bottom: 0;
 }
 
-#show_hist{
-    display: inline;
-    position: absolute;
-    right: 20px;
-    top: 0;
-    width: 70px;
-}
-
-#hist{
+#hist {
     display: none;
     position: absolute;
     width: 100%;
@@ -476,7 +468,7 @@ body {
     border-top: 2px solid var(--hl-col);
 }
 
-.hist_pop{
+.hist_pop {
     position: absolute;
     text-align: center;
     padding: 10px;

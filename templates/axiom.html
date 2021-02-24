@@ -28,11 +28,12 @@
         <div id="preview">
         </div>
 
-        <div id="foot">[201p // iamlemec]
+        <div id="foot">
+            <span class="hoot">[201p // iamlemec]</span>
             {% block foot_login %}
             {% if login %}
             {% if current_user.is_authenticated %}
-                User: {{ current_user.name }}
+                <span>User: {{ current_user.name }}</span>
                 <form class=inline_form method="POST" action="/logout_user">
                     <button class="foot_butt">Log Out</button>
                 </form>

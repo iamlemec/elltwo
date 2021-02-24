@@ -109,6 +109,12 @@ button:hover {
 
 /* paras */
 
+#content:before, #preview:before {
+    content: "";
+    display: block;
+    height: 50px;
+}
+
 .para {
     border-left: 2px solid var(--bg-col);
 }

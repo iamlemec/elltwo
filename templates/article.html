@@ -64,6 +64,9 @@ Font
 {% block foot %}
 
 <div id="hist"><svg id=svgg></svg></div>
+
+<span class="push"></span>
+<button id="revert_hist" class="foot_butt">Revert</button>
 <button id="show_hist" class="foot_butt">History</button>
 
 <script type="text/javascript">
@@ -77,6 +80,5 @@ Font
     {% endif %}
 </script>
 <script src={{ url_for('static', filename='js/editor.js') }} language="Javascript" type="text/javascript"></script>
-
 
 {% endblock %}
