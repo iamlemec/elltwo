@@ -249,7 +249,7 @@ create_hist_map = function(data) {
         // Specify where to put label of text
         var tooltip = d3.select('#bg').append("div").attr('id',  "hp_" + i)  // Create an id for text so we can select it later for removing on mouseout
             .attr('class', "hist_pop")
-            .text(function() {return d.date; });
+            .text(function() {return d.date.toLocaleString(); });
 
         var ttw = tooltip.node().getBoundingClientRect().width;
         var tth = tooltip.node().getBoundingClientRect().height;
