@@ -74,6 +74,16 @@ button:hover {
     background-color: darkgray;
 }
 
+#content, #preview {
+    max-width: 650px;
+    padding: 25px;
+}
+
+.para {
+    left: 0 !important;
+    width: 100% !important;
+}
+
 /* other elements */
 
 #sidebar {

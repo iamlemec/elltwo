@@ -65,13 +65,6 @@ textarea:focus, input:focus {
     padding-top: 70px;
 }
 
-/* css is so fucking dumb */
-#content:after {
-    content: "";
-    display: block;
-    height: 70px;
-}
-
 #preview {
     overflow-y: scroll;
     scrollbar-width: none;
@@ -80,6 +73,13 @@ textarea:focus, input:focus {
     margin: auto;
     padding-top: 70px;
     display: none;
+}
+
+/* css is so fucking dumb */
+#content:after, #preview:after {
+    content: "";
+    display: block;
+    height: 150px;
 }
 
 button:active {

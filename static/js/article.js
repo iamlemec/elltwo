@@ -128,12 +128,13 @@ para_readonly = function(pid, raw) {
 };
 
 renderPreview = function(paras) {
+    var preview = $('#preview');
+    var content = $('#content');
+
     var pid0 = null;
     if (active_para) {
         pid0 = active_para.attr('pid');
     }
-
-    var preview = $('#preview');
     preview.empty();
 
     var new_active = null;
@@ -147,10 +148,10 @@ renderPreview = function(paras) {
     });
 
     envClasses(preview);
-    makeActive(new_active);
 
     preview.show();
-    $('#content').hide();
+    content.hide();
+    makeActive(new_active);
 }
 
 create_hist_map = function(data) {
@@ -304,6 +305,9 @@ hide_hist_preview = function() {
     var preview = $('#preview');
     var content = $('#content');
 
+    content.show();
+    preview.hide();
+
     if (active_para) {
         var pid = active_para.attr('pid');
         var para = content.children(`[pid=${pid}]`);
@@ -311,8 +315,6 @@ hide_hist_preview = function() {
         makeActive(new_active);
     }
 
-    content.show();
-    preview.hide();
     preview.empty();
 }
 
