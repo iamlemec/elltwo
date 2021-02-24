@@ -280,7 +280,7 @@ def get_commits(data):
 def get_history(data):
     date = data['date'].replace('T', ' ') # weird
     paras = dbq.get_paras(aid=data['aid'], time=date)
-    return [p.text for p in paras]
+    return {p.pid: p.text for p in paras}
 
 ###
 ### article editing

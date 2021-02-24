@@ -115,11 +115,11 @@ local_date = function(d) {
     return d1;
 };
 
-para_readonly = function(x) {
-    var para = $('<div>', {class: 'para', raw: x});
+para_readonly = function(pid, raw) {
+    var para = $('<div>', {class: 'para', pid: pid, raw: raw});
     var ptxt = $('<div>', {class: 'p_text'});
     var pviw = $('<div>', {class: 'p_input_view'});
-    var pinp = $('<textarea>', {class: 'p_input', val: x});
+    var pinp = $('<textarea>', {class: 'p_input', val: raw});
     pinp.prop('readonly', true);
     para.append(ptxt);
     para.append(pviw);
@@ -128,14 +128,27 @@ para_readonly = function(x) {
 };
 
 renderPreview = function(paras) {
+    var pid0 = null;
+    if (active_para) {
+        pid0 = active_para.attr('pid');
+    }
+
     var preview = $('#preview');
     preview.empty();
-    $(paras).each((i, x) => {
-        var para = para_readonly(x);
+
+    var new_active = null;
+    $.each(paras, (pid, raw) => {
+        var para = para_readonly(pid, raw);
+        if (pid == pid0) {
+            new_active = para;
+        }
         preview.append(para);
         rawToRender(para, true); // postpone formatting
     });
+
     envClasses(preview);
+    makeActive(new_active);
+
     preview.show();
     $('#content').hide();
 }
@@ -289,7 +302,16 @@ launch_hist_map = function() {
 
 hide_hist_preview = function() {
     var preview = $('#preview');
-    $('#content').show();
+    var content = $('#content');
+
+    if (active_para) {
+        var pid = active_para.attr('pid');
+        var para = content.children(`[pid=${pid}]`);
+        var new_active = para ? para : null;
+        makeActive(new_active);
+    }
+
+    content.show();
     preview.hide();
     preview.empty();
 }
