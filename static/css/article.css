@@ -406,7 +406,7 @@ body {
 }
 
 #logo:after {
-transform: rotate(-45deg) translateY(60%) translateX(-60%);
+    transform: translateY(120%) translateX(-30%) rotate(-45deg);
     width: 20px;
     height: 20px;
     border-bottom: 3px solid;
@@ -415,7 +415,7 @@ transform: rotate(-45deg) translateY(60%) translateX(-60%);
 }
 
 #logo.opened:after {
-transform: rotate(135deg) translateY(-160%) translateX(60%);
+    transform: translateY(120%) translateX(70%) rotate(45deg);
 }
 
 .custom-select.opened .custom-select-trigger:after {
