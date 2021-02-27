@@ -144,6 +144,8 @@ renderPreview = function(paras) {
         if (pid == pid0) {
             new_active = para;
         }
+        preview.append(para);
+        rawToRender(para, true); // postpone formatting
     });
 
     envClasses(preview);
@@ -151,7 +153,7 @@ renderPreview = function(paras) {
     preview.show();
     content.hide();
     makeActive(new_active);
-}
+};
 
 create_hist_map = function(data) {
     var hpadding = 50;
