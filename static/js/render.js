@@ -20,6 +20,12 @@ getPara = function(pid) {
     return $(`#content [pid=${pid}]`);
 };
 
+makePara = function(para, defer=true) {
+    para.html(inner_para);
+    rawToRender(para, defer); // postpone formatting
+    rawToTextarea(para);
+}
+
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
     client.connect(url);
@@ -31,9 +37,7 @@ $(document).ready(function() {
 
     $('.para').each(function() {
         var para = $(this);
-        para.html(inner_para);
-        rawToRender(para, true); // postpone formatting
-        rawToTextarea(para);
+        makePara(para);
     });
 
     envClasses();

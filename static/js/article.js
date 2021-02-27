@@ -144,8 +144,6 @@ renderPreview = function(paras) {
         if (pid == pid0) {
             new_active = para;
         }
-        preview.append(para);
-        rawToRender(para, true); // postpone formatting
     });
 
     envClasses(preview);
@@ -278,6 +276,8 @@ create_hist_map = function(data) {
           .classed('active', true);
         d3.event.stopPropagation();
 
+        $('#revert_hist').show();
+
         client.sendCommand('get_history', {'aid': aid, 'date': d.commit}, renderPreview);
     }
 
@@ -286,6 +286,8 @@ create_hist_map = function(data) {
 
         d3.selectAll('circle.active')
           .classed('active', false);
+
+        $('#revert_hist').hide();
 
         hide_hist_preview();
     }
@@ -305,6 +307,9 @@ launch_hist_map = function() {
 hide_hist_preview = function() {
     var preview = $('#preview');
     var content = $('#content');
+
+    $('#revert_hist').hide();
+    $('.hist_pop').remove();
 
     content.show();
     preview.hide();
