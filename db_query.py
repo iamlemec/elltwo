@@ -477,10 +477,9 @@ def get_commits(aid=None, klass=None):
     return sorted({t for t, in times} - {None})
 
 # diff 1 → 2
-def difference(aid, time1, time2):
-    # get paragraph set differential
-    # get paralink set differential
-    # get paragraph content differential
+def diff_article(aid, time2, time1=None):
+    if time1 is None:
+        time1 = datetime.utcnow()
 
     # get paragraphs
     paras1 = get_paras(aid, time=time1)
@@ -522,13 +521,15 @@ def difference(aid, time1, time2):
         'link_del': lid_del,
     }
 
-def revert_art(aid, time1=None, diff=None, time=None):
-    if time is None:
+def revert_article(aid, time0=None, time1=None, diff=None):
+    if time0 is None:
         time = datetime.utcnow()
+    else:
+        time = time0
 
     # generate diff info
     if diff is None:
-        diff = difference(aid, time, time1)
+        diff = diff_article(aid, time, time1)
 
     # insert new paras
     for pid, text in diff['para_add'].items():
@@ -557,3 +558,25 @@ def revert_art(aid, time1=None, diff=None, time=None):
 
     # commit it all
     session.commit()
+
+def order_links(links, single=True):
+    groups = []
+    for lin in links.values():
+        pi, pr, nx = lin
+        found = False
+        for gr in groups:
+            _, lo, _ = gr[0]
+            _, _, hi = gr[-1]
+            if lo == pi and lo is not None:
+                gr.insert(0, lin)
+                found = True
+                break
+            if hi == pi and hi is not None:
+                gr.append(lin)
+                found = True
+                break
+        if not found:
+            groups.append([lin])
+    if single:
+        groups = [[(pi, pr) for pi, pr, _ in gr[1:]] for gr in groups]
+    return sum(groups, [])

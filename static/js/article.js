@@ -138,7 +138,8 @@ renderPreview = function(paras) {
     preview.empty();
 
     var new_active = null;
-    $.each(paras, (pid, raw) => {
+    $.each(paras, (i, p) => {
+        var [pid, raw] = p;
         var para = para_readonly(pid, raw);
         if (pid == pid0) {
             new_active = para;

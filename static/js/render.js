@@ -17,7 +17,7 @@ inner_para = `
 `;
 
 getPara = function(pid) {
-    return $(`[pid=${pid}]`);
+    return $(`#content [pid=${pid}]`);
 };
 
 $(document).ready(function() {
@@ -163,6 +163,31 @@ insertPara = function(pid, new_pid, before=true, raw='') {
     rawToRender(new_para);
     rawToTextarea(new_para);
 };
+
+applyDiff = function(edits) {
+    console.log('applyDiff', edits);
+
+    $.each(edits['para_del'], (i, pid) => {
+        deletePara(pid);
+    });
+
+    $.each(edits['para_upd'], (pid, raw) => {
+        updatePara(pid, raw);
+    });
+
+    var adds = edits['para_add'];
+    $.each(edits['position'], (i, pos) => {
+        var [pid, pre] = pos;
+        if (pid in adds) {
+            var raw = adds[pid];
+            insertPara(pre, pid, before=false, raw=raw);
+        } else {
+            var para = getPara(pid);
+            var base = getPara(pre);
+            base.after(para);
+        }
+    });
+}
 
 /////////////////// ENVS /////////
 

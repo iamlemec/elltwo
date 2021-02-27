@@ -87,7 +87,7 @@ on_success = function(func) {
     };
 };
 
-updatePara = function(para) {
+sendUpdatePara = function(para) {
     var pid = para.attr('pid');
     var raw = para.children('.p_input').val();
     var data = {room: aid, pid: pid, text: raw};
@@ -96,7 +96,7 @@ updatePara = function(para) {
     }));
 };
 
-updateBulk = function() {
+sendUpdateBulk = function() {
     if (Object.keys(changed).length > 0) {
         var data = {room: aid, paras: changed};
         client.sendCommand('update_bulk', data, on_success(() => {
@@ -108,27 +108,25 @@ updateBulk = function() {
     }
 };
 
-insertBefore = function(para) {
+sendInsertBefore = function(para) {
     var pid = para.attr('pid');
     var data = {room: aid, pid: pid};
     client.sendCommand('insert_before', data, on_success(() => {
         activePrevPara();
-        makeEditable();
-        placeCursor();
+        sendMakeEditable();
     }));
 };
 
-insertAfter = function(para) {
+sendInsertAfter = function(para) {
     var pid = para.attr('pid');
     var data = {room: aid, pid: pid};
     client.sendCommand('insert_after', data, on_success(() => {
         activeNextPara();
-        makeEditable();
-        placeCursor();
+        sendMakeEditable();
     }));
 };
 
-deletePara = function(para) {
+sendDeletePara = function(para) {
     var pid = para.attr('pid');
     var data = {room: aid, pid: pid};
     client.sendCommand('delete_para', data);
@@ -173,7 +171,7 @@ trueMakeEditable = function(rw=true) {
     client.schedCanary();
 };
 
-makeEditable = function() {
+sendMakeEditable = function() {
     $('.para').removeClass('editable');
     if (active_para) {
         if (writeable) {
@@ -310,7 +308,7 @@ editShift = function(para, up=true) {
     if (up == true) {
         if (top) {
             if (activePrevPara()) {
-                makeEditable();
+                sendMakeEditable();
                 placeCursor(begin=false);
                 return false;
             }
@@ -318,7 +316,7 @@ editShift = function(para, up=true) {
     } else {
         if (bot) {
             if (activeNextPara()) {
-                makeEditable();
+                sendMakeEditable();
                 placeCursor();
                 return false;
             }
@@ -355,7 +353,7 @@ $(document).keydown(function(e) {
         } else if (keymap['control'] && keymap['s']) {
             if (writeable) {
                 makeUnEditable();
-                updateBulk();
+                sendUpdateBulk();
             }
             return false;
         }
@@ -366,7 +364,7 @@ $(document).keydown(function(e) {
             }
         } else if (active_para && !editable) {
             if (keymap['enter'] || keymap['w']) {
-                makeEditable();
+                sendMakeEditable();
                 return false;
             } else if (keymap['arrowup']) {
                 activePrevPara();
@@ -379,14 +377,14 @@ $(document).keydown(function(e) {
             }
             if (writeable) { // if we are active but not in edit mode
                 if (keymap['a']) {
-                    insertBefore(active_para);
+                    sendInsertBefore(active_para);
                 } else if (keymap['b']) {
-                    insertAfter(active_para);
+                    sendInsertAfter(active_para);
                 } else if (keymap['shift'] && keymap['d']) {
                     if (!activeNextPara()) {
                         activePrevPara();
                     }
-                    deletePara(active_para);
+                    sendDeletePara(active_para);
                 }
             }
         } else if (active_para && editable) { // we are active and editable
@@ -399,7 +397,7 @@ $(document).keydown(function(e) {
             } else if (keymap['shift'] && keymap['enter']) {
                 makeUnEditable();
                 if (writeable) {
-                    updatePara(active_para);
+                    sendUpdatePara(active_para);
                 }
                 return false;
             }
@@ -423,7 +421,7 @@ $(document).on('click', '.para', function() {
     if (!para.hasClass('active')) {
         makeActive($(this));
     } else if (!editable) {
-        makeEditable();
+        sendMakeEditable();
     };
 });
 

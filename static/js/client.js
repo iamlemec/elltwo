@@ -40,6 +40,10 @@ function connect(url) {
         deletePara(...data);
     });
 
+    socket.on('applyDiff', function(data) {
+        applyDiff(data);
+    });
+
     socket.on('lock', function(pids) {
         lockParas(pids);
     });

@@ -279,13 +279,22 @@ def get_commits(data):
 @socketio.on('get_history')
 def get_history(data):
     paras = dbq.get_paras(aid=data['aid'], time=data['date'])
-    return {p.pid: p.text for p in paras}
+    return [(p.pid, p.text) for p in paras]
 
 @socketio.on('revert_history')
 def revert_history(data):
     print(f'revert_history: aid={data["aid"]} date={data["date"]}')
-    dbq.revert_art(data['aid'], time1=data['date'])
-    return True
+    diff = dbq.diff_article(data['aid'], data['date'])
+    dbq.revert_article(data['aid'], diff=diff)
+    print(diff)
+    edits = {
+        'para_add': diff['para_add'],
+        'para_del': diff['para_del'],
+        'para_upd': diff['para_upd'],
+        'position': dbq.order_links(diff['link_add']),
+    }
+    print(edits)
+    emit('applyDiff', edits, room=data['aid'])
 
 ###
 ### article editing
