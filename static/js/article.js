@@ -19,7 +19,7 @@ themeLink = function(name) {
 
 toggleSidebar = function() {
     $('#sidebar').animate({width: 'toggle'}, 100);
-    $('#logo').toggleClass("opened");
+    $('#logo').toggleClass('opened');
     sidebar_show = !sidebar_show;
 };
 
@@ -160,23 +160,23 @@ create_hist_map = function(data) {
     var radius = 4;
 
     var hist = d3.select('#hist');
-    hist.selectAll("*").remove();
+    hist.selectAll('*').remove();
     hist.append('svg')
         .attr('id', 'svgg')
         .attr('width', hist.node().getBoundingClientRect().width)
         .attr('height', hist.node().getBoundingClientRect().height);
 
-    var svg = d3.select("#svgg")
+    var svg = d3.select('#svgg')
         .on('click', generalClick);
 
-    var width = +svg.attr("width");
-    var height = +svg.attr("height");
+    var width = svg.attr('width');
+    var height = svg.attr('height');
 
     // scaleEx controls how zoomed we go
     var zoom = d3.zoom()
         .scaleExtent([1, 5000])
         .translateExtent([[-100, -100], [width + 90, height + 100]])
-        .on("zoom", zoomed);
+        .on('zoom', zoomed);
 
     // round to hour/day/week
     var xmax = new Date(Date.now());
@@ -198,49 +198,40 @@ create_hist_map = function(data) {
         .domain([xmin, xmax])
         .range([hpadding, width - hpadding]);
 
-    var view = svg.append("rect")
-        .attr("class", "view")
-        .attr("x", 0.5)
-        .attr("y", 0.5)
-        .attr("width", width - 1)
-        .attr("height", height - 1)
-        .attr("opacity", 0);
-
     var xAxis = d3.axisBottom(x)
         .ticks(10)
         .tickSize(5)
         .tickPadding(-20);
 
-    var gX = svg.append("g")
-        .attr("class", "axis axis--x")
-        .attr("transform", `translate(0,${height*.7})`)
+    var gX = svg.append('g')
+        .attr('class', 'axis axis--x')
+        .attr('transform', `translate(0,${0.7*height})`)
         .call(xAxis);
 
-    var gDot = svg.append("g")
-        .attr("fill", "none")
-        .attr("stroke-linecap", "round");
+    var gDot = svg.append('g')
+        .attr('fill', 'none')
+        .attr('stroke-linecap', 'round');
 
     gDot.selectAll('circle').data(data)
         .enter()
         .append('circle')
         .classed('commit', true)
         .attr('cx', d => x(d.date))
-        .attr('cy',height*.3)
+        .attr('cy', 0.3*height)
         .attr('r', radius)
-        .attr('opacity', '.5')
-        .on("mouseover", handleMouseOver)
-        .on("mouseout", handleMouseOut)
-        .on("click", handleClick);
+        .attr('opacity', 0.5)
+        .on('mouseover', handleMouseOver)
+        .on('mouseout', handleMouseOut)
+        .on('click', handleClick);
 
     svg.call(zoom);
 
     function zoomed() {
-        var t = d3.event.transform, xt = t.rescaleX(x);
-        view.attr("transform", t);
-        //var xScale = xAxis.scale(d3.event.transform.rescaleX(x));
-        //gX.call(xScale);
-        gX.call(xAxis.scale(xt));
-        gDot.selectAll("circle").attr("cx", function(d) { return xt(d.date); });
+        var xt = d3.event.transform.rescaleX(x);
+        var xa = xAxis.scale(xt);
+        gX.call(xa);
+        gDot.selectAll('circle')
+            .attr('cx', d => xt(d.date));
     }
 
     function handleMouseOver(d, i) {  // Add interactivity
@@ -249,15 +240,19 @@ create_hist_map = function(data) {
           .attr('r', radius + 2)
 
         // Specify where to put label of text
-        var tooltip = d3.select('#bg').append("div").attr('id',  "hp_" + i)  // Create an id for text so we can select it later for removing on mouseout
-            .attr('class', "hist_pop")
-            .text(function() {return d.date.toLocaleString(); });
+        var tooltip = d3.select('#bg').append('div')
+            .attr('id',  `hp_${i}`)  // Create an id for text so we can select it later for removing on mouseout
+            .attr('class', 'hist_pop')
+            .text(d.date.toLocaleString());
 
         var ttw = tooltip.node().getBoundingClientRect().width;
         var tth = tooltip.node().getBoundingClientRect().height;
 
-        tooltip.style("left", (d3.event.pageX - ttw/2) + "px")
-               .style("top", (d3.event.pageY - tth - 10) + "px")
+        var left = d3.event.pageX - ttw/2;
+        var right = d3.event.pageY - tth - 10
+
+        tooltip.style('left', `${left}px`)
+               .style('top', `${right}px`);
     }
 
     function handleMouseOut(d, i) {
@@ -266,7 +261,7 @@ create_hist_map = function(data) {
           .attr('r', radius)
 
         // Select text by id and then remove
-        d3.select("#hp_" + i).remove();  // Remove text location
+        d3.select(`#hp_${i}`).remove();  // Remove text location
     }
 
     function handleClick(d, i) {
