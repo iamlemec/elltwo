@@ -293,8 +293,8 @@ def revert_history(data):
         'para_upd': diff['para_upd'],
         'position': dbq.order_links(diff['link_add']),
     }
-    print(edits)
     emit('applyDiff', edits, room=data['aid'])
+    return True
 
 ###
 ### article editing
