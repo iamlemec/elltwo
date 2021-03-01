@@ -156,46 +156,32 @@ renderPreview = function(paras) {
 };
 
 create_hist_map = function(data) {
+    // fixed params
     var hpadding = 50;
     var radius = 4;
 
+    // these should be dynamic
+    var width = window.innerWidth;
+    var height = 100;
+
+    // clean house
     var hist = d3.select('#hist');
     hist.selectAll('*').remove();
-    hist.append('svg')
+
+    // create svg element
+    var svg = hist.append('svg')
         .attr('id', 'svgg')
-        .attr('width', hist.node().getBoundingClientRect().width)
-        .attr('height', hist.node().getBoundingClientRect().height);
-
-    var svg = d3.select('#svgg')
+        .attr('width', width)
+        .attr('height', height)
         .on('click', generalClick);
-
-    var width = svg.attr('width');
-    var height = svg.attr('height');
 
     // scaleEx controls how zoomed we go
     var zoom = d3.zoom()
-        .scaleExtent([1, 5000])
+        .scaleExtent([0.5, 5000])
         .translateExtent([[-100, -100], [width + 90, height + 100]])
         .on('zoom', zoomed);
 
-    // round to hour/day/week
-    var xmax = new Date(Date.now());
-    var xmin0 = d3.min(data.map(d => d.date));
-
-    var xrange = (xmax - xmin0)/(1000*60*60); // hours
-    if (xrange <= 1) {
-        xdel = 1;
-    } else if (xrange <= 24) {
-        xdel = 24;
-    } else {
-        xdel = xrange;
-    }
-
-    var xmin = new Date(xmax);
-    xmin.setHours(xmin.getHours()-xdel);
-
     var x = d3.scaleTime()
-        .domain([xmin, xmax])
         .range([hpadding, width - hpadding]);
 
     var xAxis = d3.axisBottom(x)
@@ -212,26 +198,19 @@ create_hist_map = function(data) {
         .attr('fill', 'none')
         .attr('stroke-linecap', 'round');
 
-    gDot.selectAll('circle').data(data)
-        .enter()
-        .append('circle')
-        .classed('commit', true)
-        .attr('cx', d => x(d.date))
-        .attr('cy', 0.3*height)
-        .attr('r', radius)
-        .attr('opacity', 0.5)
-        .on('mouseover', handleMouseOver)
-        .on('mouseout', handleMouseOut)
-        .on('click', handleClick);
-
     svg.call(zoom);
 
     function zoomed() {
-        var xt = d3.event.transform.rescaleX(x);
-        var xa = xAxis.scale(xt);
-        gX.call(xa);
+        // store transform
+        var zTrans = d3.event.transform.rescaleX(x);
+        xAxis.scale(zTrans);
+
+        // rescale axis
+        gX.call(xAxis);
+
+        // move circles
         gDot.selectAll('circle')
-            .attr('cx', d => xt(d.date));
+            .attr('cx', d => zTrans(d.date));
     }
 
     function handleMouseOver(d, i) {  // Add interactivity
@@ -288,16 +267,63 @@ create_hist_map = function(data) {
 
         hide_hist_preview();
     }
+
+    function updateCommits(data) {
+        // round to hour/day/week
+        var xmax = new Date(Date.now());
+        xmax.setHours(xmax.getHours()+1);
+
+        // get date min
+        var xmin0 = d3.min(data.map(d => d.date));
+
+        // round date range
+        var xrange = (xmax - xmin0)/(1000*60*60); // hours
+        if (xrange <= 1) {
+            xdel = 1;
+        } else if (xrange <= 24) {
+            xdel = 24;
+        } else {
+            xdel = xrange;
+        }
+
+        // set rounded min
+        var xmin = new Date(xmax);
+        xmin.setHours(xmin.getHours()-xdel-1);
+
+        // rescale axis
+        x.domain([xmin, xmax]);
+        gX.call(xAxis);
+
+        // remove old circles
+        gDot.selectAll('circle').remove();
+
+        // add new circles
+        var zTrans = xAxis.scale();
+        gDot.selectAll('cirlce')
+            .data(data).enter()
+            .append('circle')
+            .classed('commit', true)
+            .attr('cx', d => zTrans(d.date))
+            .attr('cy', 0.3*height)
+            .attr('r', radius)
+            .attr('opacity', 0.5)
+            .on('mouseover', handleMouseOver)
+            .on('mouseout', handleMouseOut)
+            .on('click', handleClick);
+    }
+
+    return updateCommits;
 };
 
 launch_hist_map = function() {
     client.sendCommand('get_commits', {'aid': aid}, function(dates) {
-        create_hist_map(
+        update_hist_map(
             dates.map(d => ({
                 'commit': d,
                 'date': local_date(d)
             }))
         );
+        $('#hist').show();
     });
 }
 
@@ -325,7 +351,6 @@ toggle_hist_map = function() {
     $('#hist').toggle();
     if (hist_vis) {
         hide_hist_preview();
-        $('#hist').empty();
     } else {
         launch_hist_map();
     }
@@ -344,6 +369,7 @@ revert_history = function() {
 };
 
 $(document).ready(function() {
+    update_hist_map = create_hist_map();
     $('#show_hist').click(toggle_hist_map);
     $('#revert_hist').click(revert_history);
 });

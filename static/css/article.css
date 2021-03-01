@@ -460,11 +460,9 @@ body {
 #hist {
     display: none;
     position: absolute;
-    width: 100%;
-    height: 300%;
-    background-color: var(--bg-hl2-col);
     bottom: 100%;
     left: 0;
+    background-color: var(--bg-hl2-col);
     border-top: 2px solid var(--hl-col);
 }
 
