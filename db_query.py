@@ -578,5 +578,5 @@ def order_links(links, single=True):
         if not found:
             groups.append([lin])
     if single:
-        groups = [[(pi, pr) for pi, pr, _ in gr[1:]] for gr in groups]
+        groups = [[(pi, pr) for pi, pr, _ in gr[:-1]] for gr in groups]
     return sum(groups, [])

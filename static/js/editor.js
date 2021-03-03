@@ -344,7 +344,7 @@ keymap = {
 
 $(document).keydown(function(e) {
     var key = e.key.toLowerCase();
-    console.log('keydown:', key);
+    console.log('keydown:', key, e.target);
     if (key in keymap) {
         keymap[key] = true;
         if (keymap['control'] && keymap['enter']) {
