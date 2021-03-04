@@ -95,6 +95,10 @@ button {
     display: none;
 }
 
+.editable > .error_footer {
+    display: none;
+}
+
 .editable > .p_input, .editable > .p_input_view {
     display: block;
 }

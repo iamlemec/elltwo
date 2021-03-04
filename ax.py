@@ -286,13 +286,15 @@ def revert_history(data):
     print(f'revert_history: aid={data["aid"]} date={data["date"]}')
     diff = dbq.diff_article(data['aid'], data['date'])
     dbq.revert_article(data['aid'], diff=diff)
+    order = dbq.order_links(diff['link_add'])
     print(diff)
     edits = {
         'para_add': diff['para_add'],
         'para_del': diff['para_del'],
         'para_upd': diff['para_upd'],
-        'position': dbq.order_links(diff['link_add']),
+        'position': order,
     }
+    print(edits)
     emit('applyDiff', edits, room=data['aid'])
     return True
 
