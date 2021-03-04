@@ -318,11 +318,15 @@ makeCounter = function(env, inc=1) {
     return $('<span>', {class: 'num', counter: env, inc: inc});
 }
 
-simpleEnv = function(ptxt, env, head='', tail='', num=false) {
+simpleEnv = function(ptxt, env, head='', tail='', num=false, name='') {
     var first = ptxt.first();
     var pre = $('<span>', {class: `env_add ${env}_header`, html: head});
     if (num) {
         var span = makeCounter(env);
+        pre.append([' ', span]);
+    }
+    if (name) {
+        var span = $('<span>', {class: `${env}_name`, html: name});
         pre.append([' ', span]);
     }
     pre.append('. ');
@@ -362,11 +366,16 @@ errorEnv = function(ptxt, args) {
 
 numberEnv = function(ptxt, env, head='', tail='', args={}) {
     var num = args.number || '';
-    return simpleEnv(ptxt, env, head, tail, num);
+    var name = args.name || '';
+    return simpleEnv(ptxt, env, head, tail, num, name);
 };
 
 theoremEnv = function(ptxt, args) {
     return numberEnv(ptxt, 'theorem', 'Theorem', '—', args);
+};
+
+lemmaEnv = function(ptxt, args) {
+    return numberEnv(ptxt, 'lemma', 'Lemma', '—', args);
 };
 
 proofEnv = function(ptxt, args) {
@@ -415,6 +424,7 @@ svgEnv = function(ptxt, args) {
 
 env_spec = {
     'theorem': theoremEnv,
+    'lemma': lemmaEnv,
     'proof': proofEnv,
     'example': exampleEnv,
     'heading': headingEnv,

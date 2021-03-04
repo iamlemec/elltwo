@@ -12,6 +12,7 @@ body {
 
 a {
     text-decoration: none;
+    color: var(--hl2-col);
 }
 
 
@@ -98,7 +99,7 @@ button:active {
 }
 
 a.reference {
-    color: var(--bor-col);
+    color: var(--hl2-col);
     text-decoration: none;
 }
 

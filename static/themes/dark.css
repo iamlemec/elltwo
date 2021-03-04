@@ -125,13 +125,12 @@ button:hover {
 
 /* text elements */
 
-.footnote{
-  color: var(--delimit-col);
-}
+
 
 .footnote > .num{
-   color: var(--font-col);
-
+  color: var(--hl-col);
+  font-size: 70%;
+  vertical-align: super;
 }
 
 .code{

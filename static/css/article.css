@@ -162,6 +162,18 @@ button {
     font-weight: bold;
 }
 
+.theorem_name {
+    font-weight: normal;
+}
+
+.theorem_name:before{
+    content: "(";
+}
+
+.theorem_name:after{
+    content: ")";
+}
+
 .proof_header {
     font-weight: bold;
 }
@@ -494,4 +506,25 @@ circle.commit:hover {
 
 circle.commit.active {
     fill: var(--hl-col);
+}
+
+#prog_bar{
+        position: absolute;
+        top:-1px;
+        left:-1px;
+        width:50%;
+        height: 1px;
+        background-color: var(--font-col-int);
+}
+
+#prog_bar:after{
+  content: "";
+  position: absolute;
+  right: 0px;
+  top: .5px;
+  transform:translate(50%,-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--font-col-int);
 }

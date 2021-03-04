@@ -1,6 +1,7 @@
 :root {
     --bg-col: #fdf6e3;
     --bg-hl-col: #eee8d5;
+    --bg-hl2-col: #93a1a1;
     --bor-col: #6c71c4; /* border and link color */
     --hl-col: #268bd2; /* highlight color */
     --hl2-col: #cb4b16; /* highlight color */
@@ -117,14 +118,12 @@ button:hover {
 
 /* text elements */
 
-.footnote{
-  color: var(--delimit-col);
-}
-
 .footnote > .num{
-   color: var(--font-col);
- 
+  color: var(--hl2-col);
+  font-size: 70%;
+  vertical-align: super;
 }
+ 
 
 .code{
   font-family: Fira;

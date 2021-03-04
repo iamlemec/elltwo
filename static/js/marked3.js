@@ -38,7 +38,7 @@ var block = {
 block._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
-block._refargs = /(?:\[([\w-\|\=]+)\])/;
+block._refargs = /(?:\[([\w-\|\=\s]+)\])/;
 
 block.image = replace(block.image)
   ('inside', block._inside)
@@ -1127,7 +1127,7 @@ DivRenderer.prototype.ref = function(args) {
 };
 
 DivRenderer.prototype.footnote = function(text) {
-  return `<span class="footnote pop_anchor" cite_type="footnote" citekey="_self_" pop_text="${text}">&#10218&#8239;<span class=num counter=footnote inc=1></span>&#8239;&#10219</span>`;
+  return `<span class="footnote pop_anchor" cite_type="footnote" citekey="_self_" pop_text="${text}"><span class=num counter=footnote inc=1></span></span>`;
 };
 
 DivRenderer.prototype.image = function(href, alt) {

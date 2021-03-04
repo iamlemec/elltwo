@@ -7,6 +7,7 @@
     --delimit-col: tomato;
     --pop-bg-col: rgba(0,0,0,.95);
     --pop-fg-col: white;
+    --font-col-int: steelblue;
 }
 
 @font-face {
@@ -43,6 +44,14 @@
     font-weight: 900;
     src: url('/static/fonts/Montserrat-Black.ttf') format('truetype');
 }
+
+@font-face {
+  font-family: 'Fira';
+  font-style: normal;
+  font-weight: 100;
+  src: url('/static/fonts/FiraCode.ttf') format('truetype');
+}
+
 
 
 /*global */
@@ -122,9 +131,11 @@ button:hover {
 }
 
 .footnote > .num{
-   color: var(--font-col);
- 
+  color: var(--hl-col);
+  font-size: 70%;
+  vertical-align: super;
 }
+
 
 .code{
   font-family: Fira;

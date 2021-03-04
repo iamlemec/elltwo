@@ -1,19 +1,60 @@
 #! Axiom L2
 
-Axiom is a project with lots of stuff going on.
+Axiom L2 is a browser based platform for decentralized and collaborative technical documents. It has a wiki like structure with an emphasis on typesetting and intelligent referencing. Axiom L2 articles are written in a simple markup language barrowing elements of [Markdown](https://en.wikipedia.org/wiki/Markdown) and [LaTeX](https://www.latex-project.org/).
 
-# Creating Content
+# Structure & Editing 
 
->>! theorem
+Each article (denoted by a URL) is a collection of cells. Cells contain text which can be styled and referenced individually. For example, a cell could be a paragraph of text (like this one), an equation, an SVG figure, a custom environment, etc. In the same way that articles can be references from other articles in any wiki-like platform, cells that contain a reference can be referenced elsewhere, including across articles. 
 
-has rank less than $m$ as a linear transformation. If $k \geq \max \{n-m+1,1\}$, then Sard's theorem asserts that the image of $X$ has measure zero as a subset of $M$. This formulation of the result follows from the version for Euclidean spaces by taking a countable set of coordinate patches. The conclusion of the theorem is a local statement, since a countable union of sets of measure zero is a set of measure zero, and the property of a subset of a coordinate patch having zero measure is invariant under diffeomorphism.
+Cells can be selected by clicking on them or by pressing `enter` and then navigating with the arrow keys. When a cell is selected, an addition click or `enter` with enter "edit mode." When in edit mode, the raw input of the cell is shown in an editable text box. When edit mode is escaped, by clicking elsewhere or pressing `esc`, changes will be rendered and the formatted text will be displayed. However, changes to the permanent (or global) until committed, either by pressing `shift + enter` while in edit mode or `ctrl + s` anytime (which will commit *all* uncommitted cells). Uncommitted cells are demarcated by a right border.
 
-# Variants
+#[form]Formatting 
 
-There are many variants of this lemma, which plays a basic role in singularity theory among other fields. The case $m=1$ was proven by Anthony P. Morse in 1939, and the general case by Arthur Sard in 1942.
+Inline text formatting follows Markdown syntax: single `*italic*` renders as *Italic*, `**bold**` for **bold**, etc. Verbatim text is delimited by left quotes. Inline TeX typesetting is handled by KaTeX and delimited by single dollar signs: `$f: x \mapsto e^x$` renders as $f: x \mapsto e^x$.
 
-A version for infinite-dimensional Banach manifolds was proven by Stephen Smale.
+##[env]Cell Level Formating
 
-The statement is quite powerful, and the proof involves analysis. In topology it is often quoted — as in the Brouwer fixed-point theorem and some applications in Morse theory — in order to prove the weaker corollary that “a non-constant smooth map has **at least one** regular value”.
+Formatting also takes place at the cell level. A cell is formated by use of a cell **prefix** or string of charecters at the beginging of the cell. 
 
-In 1965 Sard further generalized his theorem to state that if $f \colon \ N \rightarrow M$ is $C^{k}$ for $k \geq \max \{n-m+1,1\}$ and if $A_{r} \subseteq N$ is the set of points $x \in N$ such that $df_{x}$ has rank strictly less than $r$, then the r-dimensional Hausdorff measure of $f(A_{r})$ is zero. In particular the Hausdorff dimension of $f(A_{r})$ is at most r. Caveat: The Hausdorff dimension of $f(A_{r})$ can be arbitrarily close to r.
+ The most basic formated cell types are **section title cells**, with prefixes of between 1 and 6 `#`'s and *display style TeX cells*, with prefix `$$`. For example:
+
+`$$[id=geo] \sum_{i=1}^\infty \frac{1}{2^n} = 1`
+
+renders as
+
+$$[id=geo] \sum_{i=1}^\infty \frac{1}{2^n} = 1
+
+As seen above, you can pass arguments to the cell by means of placing `key=value` pairs inside brackets directly after the cell prefix. Mutiple arguments are separated by `|`.
+
+##[env]Enviorments
+
+Environments are used to format blocks of cells and function in a similar way to LaTeX enviorments. An enviorment is opened the prefix `>>` and closed by a subsequent cell with prefix `<<`. Single cell enviorments use the special prefix `>>!`. For example:
+
+`>> theorem [id=primes|name=Borel Cantelli] If the sum of the probabilities of the events $\{E_n\}_{n\in \mathbb{N}}$ is finite, then`
+
+`$$ \mu(\bigcap_{n=1}^{\infty }\bigcup_{k\geq n}^{\infty }E_{k}) = 0`
+
+`<<that is, the probability that infinitely many of them occur is 0.`
+
+will format as:
+
+>> theorem [id=primes|name=Borel Cantelli] If the sum of the probabilities of the events $\{E_n\}{n\in \mathbb{N}}$ is finite, then
+
+$$ \mu(\bigcap_{n=1}^{\infty }\bigcup_{k\geq n}^{\infty }E_{k}) = 0
+
+<<that is, the probability that infinitely many of them occur is 0.
+
+Prebuilt envrioments include **theorem**, **lemma**, **proof**, and **example**; others can be constructed by augmenting the render.js file.
+
+
+#[ref]Referencing 
+
+To create a hyperlink to another article simply encode its static name (i.e., the name corresponding to its URL) in double brackets. `[[howto]]` creates the link [[howto]]. References to existing articles will generate hoverable popups containing the beginning of the article. 
+
+Formatted cells or enviorments which has been passed an `id` argument can be referenced (n.b., id is the default argument, so `[geo]` is equivalent to `[id=geo]`). `@[id]` creates a reference (and, for most cell types, a hoverable popup). For example `@[geo]` creates the reference @[geo]; `@[ref]` creates a reference to this section; `@[primes]` creates a reference to @[primes].
+
+References can also be passed arguments via the same syntax. For example `@[primes|format=plain]` creates a reference to Theorem @[primes|format=plain] but renders only the number.
+
+References can be across articles. To reference an external article use `@[article_name:id]`; for example reference the above equation from a different page would require `@[howto:geo]`.
+
+

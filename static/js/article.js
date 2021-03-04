@@ -351,8 +351,10 @@ toggle_hist_map = function() {
     $('#hist').toggle();
     if (hist_vis) {
         hide_hist_preview();
+        $('#prog_bar').show();
     } else {
         launch_hist_map();
+        $('#prog_bar').hide();
     }
     hist_vis = !hist_vis;
     writeable = !readonly && !hist_vis;
@@ -373,6 +375,25 @@ $(document).ready(function() {
     $('#show_hist').click(toggle_hist_map);
     $('#revert_hist').click(revert_history);
 });
+
+// progress bar
+
+$(document).ready(function() {
+    $('#content').scroll(function(){
+        progress()
+    });
+});
+
+progress = function(){
+    el = $('#content');
+    let s = el.scrollTop();
+    let sh = el[0].scrollHeight;
+    let h = el.outerHeight();
+    let p = 100 * s / (sh - h);
+    $('#prog_bar').css('width',p + '%')
+};
+
+
 
 // Exporting
 

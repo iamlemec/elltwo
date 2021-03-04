@@ -98,7 +98,9 @@ button:hover {
 /* text elements */
 
 .footnote{
-  color: var(--font-col);
+  color: var(--hl2-col);
+  font-size: 80%;
+  vertical-align: super;
 }
 
 .footnote > .num{
@@ -109,9 +111,13 @@ button:hover {
 .code{
   font-family: Fira;
   font-size: 90%;
-  color: var(--hl-col);
+  color: var(--font-col-int);
   text-indent: 15px;
   background-color: var(--bg-hl-col);
+}
+
+.active  .code{
+   background-color: var(--bg-hl2-col);
 }
 
 .ref_error {
