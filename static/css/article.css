@@ -516,7 +516,7 @@ circle.commit.active {
         position: absolute;
         top:-1px;
         left:-1px;
-        width:50%;
+        width:0%;
         height: 1px;
         background-color: var(--font-col-int);
 }
