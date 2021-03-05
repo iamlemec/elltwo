@@ -1,14 +1,23 @@
 import os
+import argparse
 from datetime import datetime
 
-from db_setup import db, Article, Paragraph, Paralink, Bib, ExtRef
-from db_query import import_markdown
+from db_setup import AxiomDB, Article, Paragraph, Paralink, Bib, ExtRef
+import db_query as dbq
 
-ExtRef.query.delete()
-Bib.query.delete()
-Paralink.query.delete()
-Paragraph.query.delete()
-Article.query.delete()
+parser = argparse.ArgumentParser(description='Axiom2 server.')
+parser.add_argument('path', type=str, default='axiom.db', help='Path to sqlite database file')
+args = parser.parse_args()
+
+adb = AxiomDB(args.path)
+session = adb.session
+dbq.session = adb.session
+
+session.query(ExtRef).delete()
+session.query(Bib).delete()
+session.query(Paralink).delete()
+session.query(Paragraph).delete()
+session.query(Article).delete()
 
 now = datetime.utcnow()
 
@@ -20,12 +29,12 @@ lin0 = Paralink(aid=0, pid=0, next=1, create_time=now)
 lin1 = Paralink(aid=0, pid=1, prev=0, next=2, create_time=now)
 lin2 = Paralink(aid=0, pid=2, prev=1, create_time=now)
 
-db.session.add(art)
-db.session.add_all([par0, par1, par2])
-db.session.add_all([lin0, lin1, lin2])
-db.session.commit()
+session.add(art)
+session.add_all([par0, par1, par2])
+session.add_all([lin0, lin1, lin2])
+session.commit()
 
 for fname in os.listdir('testing'):
     title, _ = os.path.splitext(fname)
     mark = open(f'testing/{fname}').read()
-    import_markdown(title, mark, time=now)
+    dbq.import_markdown(title, mark, time=now)

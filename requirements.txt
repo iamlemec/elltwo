@@ -3,8 +3,5 @@ sqlalchemy
 flask
 flask_login
 flask_socketio>=5.0.0
-flask_sqlalchemy
-flask_msearch
-whoosh
 blinker
 eventlet

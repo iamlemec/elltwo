@@ -1,13 +1,15 @@
 import re
+from math import ceil
 from datetime import datetime
 from functools import partial
+
 from sqlalchemy import create_engine, or_, and_, distinct
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
-from math import ceil
+from werkzeug.security import generate_password_hash, check_password_hash
 
-from db_setup import db, Article, Paragraph, Paralink, Bib, ExtRef
-session = db.session
+from db_setup import Article, Paragraph, Paralink, Bib, ExtRef, User
+session = None
 
 ##
 ## diagnostic tools
@@ -353,14 +355,9 @@ def get_short(short):
     art = session.query(Article).filter_by(short_title=short_match).one_or_none()
     return [p.text for p in get_paras(art.aid)]
 
-def fuzzy_query(words, err=0.3):
-    toks = words.split()
-    dist = [ceil(err*len(s)) for s in toks]
-    return ' '.join([f'{s}~{e}' for s, e in zip(toks, dist)])
-
 def search_title(words, err=0.3):
-    quer = fuzzy_query(words, err=err)
-    return Article.query.msearch(quer, fields=['title']).all()
+    pattern = Article.title.like(f'%{words}%')
+    return session.query(Article).filter(pattern).all()
 
 ##
 ## citation methods
@@ -580,3 +577,19 @@ def order_links(links, single=True):
     if single:
         groups = [[(pi, pr) for pi, pr, _ in gr[:-1]] for gr in groups]
     return sum(groups, [])
+
+##
+## user manager
+##
+
+def load_user(id):
+    return session.query(User).get(int(id))
+
+def get_user(email):
+    return session.query(User).filter_by(email=email).one_or_none()
+
+def add_user(email, name, password):
+    hash = generate_password_hash(password, method='sha256')
+    new_user = User(email=email, name=name, password=hash)
+    session.add(new_user)
+    session.commit()

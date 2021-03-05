@@ -1,6 +1,5 @@
 from flask import Flask, request, redirect, url_for, render_template, jsonify, make_response, flash, send_from_directory
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
-#app = Flask(__name__)
 
 import os, re, json, argparse
 from datetime import datetime, timedelta
@@ -9,34 +8,49 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import current_user, login_user, logout_user, login_required
+from werkzeug.security import check_password_hash
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 
+# import DM models
+from db_setup import Article, Paragraph, Paralink, Bib, User, AxiomDB
 
-# from sqlalchemy.sql import func
-# from random import randint
-
-#import DM models
-from db_setup import User, Article, Paragraph, Paralink, Bib, db, app
-
-#import article mgmt
+# import article mgmt
 import db_query as dbq
 
 # other tools
 from tools import Multimap
 
-session = db.session
-
-# socket setup
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
-
 ###
-### Scheduler
+### initialize flask and friends
 ###
 
+parser = argparse.ArgumentParser(description='Axiom2 server.')
+parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
+parser.add_argument('--path', type=str, default='axiom.db', help='Path to sqlite database file')
+parser.add_argument('--timeout', type=int, default=180, help='Client timeout time in seconds')
+parser.add_argument('--debug', action='store_true', help='Run in debug mode')
+parser.add_argument('--login', action='store_true', help='Require login for editing')
+args = parser.parse_args()
+
+# start scheduler
 sched = BackgroundScheduler(daemon=True)
 sched.start()
+
+# load sqlalchemy and hook in query module
+adb = AxiomDB(path=args.path)
+dbq.session = adb.session
+
+# start flask app
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+app.debug = args.debug
+
+# login manager
+login = LoginManager(app)
+login.user_loader(dbq.load_user)
+
+# create socketio
+socketio = SocketIO(app)
 
 ###
 ### Create global variables for all templets
@@ -46,17 +60,14 @@ sched.start()
 def inject_dict_for_all_templates():
     return dict(login=args.login)
 
-
 ###
 ### Home Page
 ###
-
 
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                           'favicon.ico',mimetype='image/vnd.microsoft.icon')
-
 
 @app.route('/')
 @app.route('/home')
@@ -73,11 +84,9 @@ def Create():
         dbq.create_article(art_name)
         return redirect(url_for('RenderArticle', title=art_name))
 
-
 ###
 ### Auth Routes
 ###
-
 
 @app.route('/signup')
 def Signup():
@@ -98,18 +107,13 @@ def CreateUser():
     name = request.form.get('name')
     password = request.form.get('password')
 
-    user = User.query.filter_by(email=email).first() # if this returns a user, then the email already exists in database
+    user = dbq.get_user(email) # if this returns a user, then the email already exists in database
 
-    if user: # if a user is found, we want to redirect back to signup page so user can try again
+    if user is not None: # if a user is found, we want to redirect back to signup page so user can try again
         flash('Email address already exists')
         return redirect(url_for('Signup'))
 
-    # create a new user with the form data. Hash the password so the plaintext version isn't saved.
-    new_user = User(email=email, name=name, password=generate_password_hash(password, method='sha256'))
-
-    # add the new user to the database
-    db.session.add(new_user)
-    db.session.commit()
+    dbq.add_user(email, name, password)
 
     return redirect(url_for('Login'))
 
@@ -119,15 +123,14 @@ def LoginUser():
     password = request.form.get('password')
     next = request.form.get('next')
 
-    if next=='this':
+    if next == 'this':
         next = request.referrer.replace('/r/', '/a/', 1)
 
-
-    user = User.query.filter_by(email=email).first()
+    user = dbq.get_user(email)
 
     # check if the user actually exists
     # take the user-supplied password, hash it, and compare it to the hashed password in the database
-    if not user or not check_password_hash(user.password, password):
+    if user is None or not check_password_hash(user.password, password):
         flash('Please check your login details and try again.')
         return redirect(url_for('Login')) # if the user doesn't exist or password is wrong, reload the page
 
@@ -386,7 +389,6 @@ def get_ref(data):
 def update_ref(data):
     dbq.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'])
 
-
 ###
 ### locking
 ###
@@ -419,7 +421,6 @@ def locked_by_sid(sid):
         'room': roomed.loc(sid),
     }
 
-
 ###
 ### timeout
 ###
@@ -442,18 +443,9 @@ def canary(data):
     print(f'canary: {sid}')
     timeout_sched(sid)
 
+##
+## run that babeee
+##
 
-###
-### interface
-###
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Axiom2 server.')
-    parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
-    parser.add_argument('--timeout', type=int, default=180, help='Client timeout time in seconds')
-    parser.add_argument('--debug', action='store_true', help='Run in debug mode')
-    parser.add_argument('--login', action='store_true', help='Require login for editing')
-    args = parser.parse_args()
-
-    app.debug = args.debug
-    socketio.run(app, host='0.0.0.0', port=5000)
+# run socketio through flask event loop
+socketio.run(app, host='0.0.0.0', port=5000)

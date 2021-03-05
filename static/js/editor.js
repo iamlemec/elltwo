@@ -50,6 +50,7 @@ ensureVisible = function(para) {
 
 /// rendering and storage
 
+// store a change locally, if no change also unlock server side
 localChange = function(para, send=true) {
     var text = para.children('.p_input').val();
     var raw = para.attr('raw');
@@ -65,6 +66,7 @@ localChange = function(para, send=true) {
     rawToRender(para, false, text); // local changes only
 };
 
+// store change server side if any local changes
 storeChange = function(para) {
     var pid = para.attr('pid');
     if (pid in changed) {
@@ -212,27 +214,25 @@ paraTimeOut = function(){
     clearTimeout(lockout)
     lockout = setTimeout(function () {
         makeUnEditable();
-        data = {};
-        data.paras = changed;
-        data.room = aid;
+        data = {room: aid, paras: changed};
         client.sendCommand('update_bulk', data, function(success) {
             Object.keys(changed).map(function(pid) {
                 var para = getPara(pid);
                 storeChange(para);
             });
         });
-    }, 1000*60*3); //3mins
+    }, 1000*60*3); // 3 mins
 };
 */
 
-lockParas = function(pids){
+lockParas = function(pids) {
     pids.forEach(function(pid){
         var para = getPara(pid);
         para.addClass('locked');
     });
 };
 
-sendUnlockPara = function(pids){
+sendUnlockPara = function(pids) {
     var data = {};
     data.pids = pids;
     data.room = aid;
