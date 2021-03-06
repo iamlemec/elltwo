@@ -77,17 +77,20 @@ def order_links(links, single=True):
 ##
 
 class AxiomDB:
-    def __init__(self, path='axiom.db', name='Axiom', uri=None):
-        if uri is None:
-            uri = f'sqlite:///{path}'
+    def __init__(self, db=None, path='axiom.db', name='Axiom', uri=None):
+        if db is None:
+            if uri is None:
+                uri = f'sqlite:///{path}'
 
-        engine = create_engine(uri)
-        Session = sessionmaker(bind=engine)
-        session = Session()
+            self.engine = create_engine(uri)
+            Session = sessionmaker(bind=self.engine)
+            self.session = Session()
+        else:
+            self.engine = db.engine
+            self.session = db.session
 
-        Base.metadata.create_all(engine)
-
-        self.session = session
+    def create(self):
+        Base.metadata.create_all(bind=self.engine)
 
     ##
     ## diagnostic tools

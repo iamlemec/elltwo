@@ -1,11 +1,10 @@
 from flask import Flask, request, redirect, url_for, render_template, jsonify, make_response, flash, send_from_directory
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
+from flask_sqlalchemy import SQLAlchemy
 
 import os, re, json, argparse
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from werkzeug.security import check_password_hash
@@ -34,20 +33,27 @@ args = parser.parse_args()
 sched = BackgroundScheduler(daemon=True)
 sched.start()
 
-# load sqlalchemy and hook in query module
-adb = AxiomDB(path=args.path)
-
-# start flask app
+# create flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.path}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.debug = args.debug
+
+# load sqlalchemy
+db = SQLAlchemy(app)
+adb = AxiomDB(db=db)
 
 # login manager
 login = LoginManager(app)
-login.user_loader(adb.load_user)
 
 # create socketio
 socketio = SocketIO(app)
+
+@app.before_first_request
+def db_setup():
+    adb.create()
+    login.user_loader(adb.load_user)
 
 ###
 ### Create global variables for all templets
