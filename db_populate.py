@@ -3,10 +3,10 @@ import argparse
 from datetime import datetime
 
 from db_setup import Article, Paragraph, Paralink, Bib, ExtRef
-from db_query import AxiomDB, import_markdown
+from db_query import AxiomDB
 
 parser = argparse.ArgumentParser(description='Axiom2 server.')
-parser.add_argument('path', type=str, default='axiom.db', help='Path to sqlite database file')
+parser.add_argument('--path', type=str, default='axiom.db', help='Path to sqlite database file')
 args = parser.parse_args()
 
 adb = AxiomDB(args.path)
