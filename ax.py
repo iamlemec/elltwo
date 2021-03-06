@@ -11,11 +11,9 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from werkzeug.security import check_password_hash
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 
-# import DM models
-from db_setup import Article, Paragraph, Paralink, Bib, User, AxiomDB
-
-# import article mgmt
-import db_query as dbq
+# import db tools
+from db_setup import Article, Paragraph, Paralink, Bib, User
+from db_query import AxiomDB, order_links
 
 # other tools
 from tools import Multimap
@@ -38,7 +36,6 @@ sched.start()
 
 # load sqlalchemy and hook in query module
 adb = AxiomDB(path=args.path)
-dbq.session = adb.session
 
 # start flask app
 app = Flask(__name__)
@@ -47,7 +44,7 @@ app.debug = args.debug
 
 # login manager
 login = LoginManager(app)
-login.user_loader(dbq.load_user)
+login.user_loader(adb.load_user)
 
 # create socketio
 socketio = SocketIO(app)
@@ -77,11 +74,11 @@ def Home():
 @app.route('/create', methods=['POST'])
 def Create():
     art_name =request.form['new_art']
-    art = dbq.get_art_short(art_name)
+    art = adb.get_art_short(art_name)
     if art:
         return  redirect(url_for('RenderArticle', title=art_name))
     else:
-        dbq.create_article(art_name)
+        adb.create_article(art_name)
         return redirect(url_for('RenderArticle', title=art_name))
 
 ###
@@ -107,13 +104,13 @@ def CreateUser():
     name = request.form.get('name')
     password = request.form.get('password')
 
-    user = dbq.get_user(email) # if this returns a user, then the email already exists in database
+    user = adb.get_user(email) # if this returns a user, then the email already exists in database
 
     if user is not None: # if a user is found, we want to redirect back to signup page so user can try again
         flash('Email address already exists')
         return redirect(url_for('Signup'))
 
-    dbq.add_user(email, name, password)
+    adb.add_user(email, name, password)
 
     return redirect(url_for('Login'))
 
@@ -126,7 +123,7 @@ def LoginUser():
     if next == 'this':
         next = request.referrer.replace('/r/', '/a/', 1)
 
-    user = dbq.get_user(email)
+    user = adb.get_user(email)
 
     # check if the user actually exists
     # take the user-supplied password, hash it, and compare it to the hashed password in the database
@@ -149,10 +146,10 @@ def LogoutUser():
 
 def GetArtData(title, edit):
     themes = [t[:-4] for t in os.listdir('static/themes/')]
-    art = dbq.get_art_short(title)
+    art = adb.get_art_short(title)
     if art:
         aid = art.aid
-        paras = dbq.get_paras(aid)
+        paras = adb.get_paras(aid)
         return render_template(
             'article.html',
             title=art.title,
@@ -237,7 +234,7 @@ def socket_json(json):
 
 @socketio.on('update_para')
 def update_para(data):
-    dbq.update_para(data['pid'], data['text'])
+    adb.update_para(data['pid'], data['text'])
     emit('updatePara',
         [data['pid'], data['text']],
         include_self=False,
@@ -248,7 +245,7 @@ def update_para(data):
 @socketio.on('update_bulk')
 def update_bulk(data):
     paras = data['paras']
-    dbq.bulk_update(paras)
+    adb.bulk_update(paras)
     pids = list(paras.keys())
     emit('updateBulk', paras, include_self=False, room=data['room'])
     unlock({'room': data['room'], 'pids': pids})
@@ -257,39 +254,39 @@ def update_bulk(data):
 @socketio.on('insert_after')
 def insert_after(data):
     text = data.get('text', '')
-    par1 = dbq.insert_after(data['pid'], text)
+    par1 = adb.insert_after(data['pid'], text)
     emit('insertPara', [data['pid'], par1.pid, False, text], room=data['room'])
     return True
 
 @socketio.on('insert_before')
 def insert_before(data):
     text = data.get('text', '')
-    par1 = dbq.insert_before(data['pid'], text)
+    par1 = adb.insert_before(data['pid'], text)
     emit('insertPara', [data['pid'], par1.pid, True, text], room=data['room'])
     return True
 
 @socketio.on('delete_para')
 def delete_para(data):
-    dbq.delete_para(data['pid'])
+    adb.delete_para(data['pid'])
     emit('deletePara', [data['pid']], room=data['room'])
     return True
 
 @socketio.on('get_commits')
 def get_commits(data):
-    dates = dbq.get_commits(aid=data['aid'])
+    dates = adb.get_commits(aid=data['aid'])
     return [d.isoformat().replace('T', ' ') for d in dates]
 
 @socketio.on('get_history')
 def get_history(data):
-    paras = dbq.get_paras(aid=data['aid'], time=data['date'])
+    paras = adb.get_paras(aid=data['aid'], time=data['date'])
     return [(p.pid, p.text) for p in paras]
 
 @socketio.on('revert_history')
 def revert_history(data):
     print(f'revert_history: aid={data["aid"]} date={data["date"]}')
-    diff = dbq.diff_article(data['aid'], data['date'])
-    dbq.revert_article(data['aid'], diff=diff)
-    order = dbq.order_links(diff['link_add'])
+    diff = adb.diff_article(data['aid'], data['date'])
+    adb.revert_article(data['aid'], diff=diff)
+    order = order_links(diff['link_add'])
     print(diff)
     edits = {
         'para_add': diff['para_add'],
@@ -307,16 +304,16 @@ def revert_history(data):
 
 @socketio.on('create_art')
 def create_art(title):
-    art = dbq.get_art_short(title)
+    art = adb.get_art_short(title)
     if art:
         return url_for('RenderArticle', title=title)
     else:
-        dbq.create_article(title)
+        adb.create_article(title)
         return url_for('RenderArticle', title=title)
 
 @socketio.on('search_title')
 def search_title(data):
-    results = dbq.search_title(data)
+    results = adb.search_title(data)
     if (results):
         r = {}
         for art in results:
@@ -329,12 +326,12 @@ def search_title(data):
 def set_blurb(data):
     aid = data['aid']
     blurb = data['blurb']
-    dbq.set_blurb(aid, blurb)
+    adb.set_blurb(aid, blurb)
     return True
 
 @socketio.on('get_blurb')
 def get_blurb(title):
-    art = dbq.get_art_short(title)
+    art = adb.get_art_short(title)
     if art:
         return art.blurb
     else:
@@ -346,13 +343,13 @@ def get_blurb(title):
 
 @socketio.on('create_cite')
 def create_cite(data):
-    dbq.create_cite(data['citationKey'], data['entryType'], **data['entryTags'])
-    bib = dbq.get_bib_dict(keys=[data['citationKey']])
+    adb.create_cite(data['citationKey'], data['entryType'], **data['entryTags'])
+    bib = adb.get_bib_dict(keys=[data['citationKey']])
     send_command('renderBib', bib, broadcast=True)
 
 @socketio.on('delete_cite')
 def delete_cite(data):
-    dbq.delete_cite(data['key'])
+    adb.delete_cite(data['key'])
     send_command('deleteCite', data['key'], broadcast=True)
 
 @socketio.on('get_bib')
@@ -360,12 +357,12 @@ def get_bib(data):
     keys = data['keys']
     if not keys:
         keys=None
-    bib = dbq.get_bib_dict(keys=keys)
+    bib = adb.get_bib_dict(keys=keys)
     send_command('renderBib', bib)
 
 @socketio.on('get_cite')
 def get_cite(data):
-    bib = dbq.get_bib_dict(keys=data['keys'])
+    bib = adb.get_bib_dict(keys=data['keys'])
     return bib
 
 ###
@@ -374,9 +371,9 @@ def get_cite(data):
 
 @socketio.on('get_ref')
 def get_ref(data):
-    art = dbq.get_art_short(data['title'])
+    art = adb.get_art_short(data['title'])
     if art:
-        ref = dbq.get_ref(data['key'], art.aid)
+        ref = adb.get_ref(data['key'], art.aid)
         title = art.title
         if ref:
             return {'text': ref.text, 'cite_type': ref.cite_type, 'cite_env': ref.cite_env, 'title': title}
@@ -387,7 +384,7 @@ def get_ref(data):
 
 @socketio.on('update_ref')
 def update_ref(data):
-    dbq.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'])
+    adb.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'])
 
 ###
 ### locking

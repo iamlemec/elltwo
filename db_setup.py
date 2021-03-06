@@ -94,25 +94,3 @@ class User(UserMixin, Base):
     email = Column(String(100), unique=True)
     password = Column(String(100))
     name = Column(String(1000))
-
-# db interface
-class AxiomDB:
-    def __init__(self, path='axiom.db', name='Axiom', uri=None):
-        if uri is None:
-            uri = f'sqlite:///{path}'
-
-        engine = create_engine(uri)
-        Session = sessionmaker(bind=engine)
-        session = Session()
-
-        Base.metadata.create_all(engine)
-
-        self.session = session
-
-# create db usage
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Axiom2 server.')
-    parser.add_argument('path', type=str, default='axiom.db', help='Path to sqlite database file')
-    args = parser.parse_args()
-
-    adb = AxiomDB(args.path)
