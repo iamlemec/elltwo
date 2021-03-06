@@ -7,13 +7,13 @@
     --hl2-col: #dc322f ; /* highlight color */
     --pop-fg-col: #002b36; /* popup text color */
     --pop-bg-col: #93a1a1; /* popup background color */
-    --bg-font: 15px; /* popup background color */
     --font-col: #eee8d5;
     --font-col-int: #b58900;
     --dc-blue-col: rgb(33, 150, 243);
     --dollar-col: #859900;
     --brace-col: rgba(33, 150, 243, 0.2);
     --math-col: #3280F3;
+    --code-bg-col: #444;
 }
 
 @font-face {
@@ -148,11 +148,12 @@ button:hover {
 }
 
 .code {
-    font-family: Fira;
-    font-size: 90%;
-    color: var(--hl-col);
-    text-indent: 15px;
-    background-color: var(--bg-hl-col);
+    font-family: monospace;
+    font-size: 80%;
+    text-align: left;
+    background-color: var(--code-bg-col);
+    border-radius: 3px;
+    padding: 3px;
 }
 
 .ref_error {

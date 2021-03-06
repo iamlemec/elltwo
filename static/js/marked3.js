@@ -12,7 +12,7 @@
 
 var block = {
   newline: /^\n+/,
-  code: /^`` *\n(?:[^\n]+(?:\n|$))+/,
+  code: /^`` *(?:[^\n]+(?:\n|$))+/,
   fences: noop,
   hr: /^( *[-*_]){3,} *(?:\n+|$)/,
   heading: /^ *(#{1,6})(\*?) *(?:refargs)? *([^\n]+?) *#* *(?:\n+|$)/,
@@ -991,7 +991,7 @@ DivRenderer.prototype.code = function(code, lang, escaped) {
   code = escaped ? code : escape(code, true);
   lang = lang ? (this.options.langPrefix + escape(lang, true)) : '';
 
-  return `<div class="code ${lang}">\n${code}\n</div>\n\n`;
+  return `<div class="code ${lang}"><pre>\n${code}\n</pre></div>\n\n`;
 };
 
 DivRenderer.prototype.blockquote = function(quote) {

@@ -35,5 +35,5 @@ pip-delete-this-directory.txt
 *.log
 *.pot
 
-# Database
-axiom.db
+# Databases
+*.db
