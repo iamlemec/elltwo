@@ -131,7 +131,15 @@ sendInsertAfter = function(para) {
 sendDeletePara = function(para) {
     var pid = para.attr('pid');
     var data = {room: aid, pid: pid};
-    client.sendCommand('delete_para', data);
+    var next = para.next('.para');
+    if (next.length == 0) {
+        next = para.prev('.para');
+    }
+    client.sendCommand('delete_para', data, on_success(() => {
+        if (next) {
+            makeActive(next);
+        }
+    }));
 };
 
 // revertChange?
@@ -381,9 +389,6 @@ $(document).keydown(function(e) {
                 } else if (keymap['b']) {
                     sendInsertAfter(active_para);
                 } else if (keymap['shift'] && keymap['d']) {
-                    if (!activeNextPara()) {
-                        activePrevPara();
-                    }
                     sendDeletePara(active_para);
                 }
             }
@@ -425,7 +430,7 @@ $(document).on('click', '.para', function() {
     };
 });
 
-//click background to escape
+// click background to escape
 $(document).on('click', '#bg', function() {
     if (event.target.id=='bg' || event.target.id=='content') {
         makeUnEditable();
@@ -435,23 +440,20 @@ $(document).on('click', '#bg', function() {
 
 $(document).on('click', '.update', function() {
     var para = $(this).parents('.para');
-    updateFromTextarea(para);
+    sendUpdatePara(para);
 });
 
 $(document).on('click', '.before', function() {
     var para = $(this).parents('.para');
-    insertBefore(para);
+    sendInsertBefore(para);
 });
 
 $(document).on('click', '.after', function() {
     var para = $(this).parents('.para');
-    insertAfter(para);
+    sendInsertAfter(para);
 });
 
 $(document).on('click', '.delete', function() {
-    if (!activeNextPara()) {
-        activePrevPara();
-    }
     var para = $(this).parents('.para');
-    deletePara(para);
+    sendDeletePara(para);
 });
