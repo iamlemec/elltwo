@@ -252,7 +252,7 @@ create_hist_map = function(data) {
           .classed('active', true);
         d3.event.stopPropagation();
 
-        $('#revert_hist').show();
+        d3.select('#revert_hist').classed('selected', true);
 
         client.sendCommand('get_history', {'aid': aid, 'date': d.commit}, renderPreview);
     }
@@ -263,7 +263,7 @@ create_hist_map = function(data) {
         d3.selectAll('circle.active')
           .classed('active', false);
 
-        $('#revert_hist').hide();
+        d3.select('#revert_hist').classed('selected', false);
 
         hide_hist_preview();
     }

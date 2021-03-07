@@ -1,4 +1,4 @@
-var Client = (function(recvCommand) {
+var client = (function() {
 
 // socketio connection
 var socket;
@@ -18,10 +18,6 @@ function connect(url) {
 
     socket.on('close', function() {
         console.log("socket closed");
-    });
-
-    socket.on('json', function(json) {
-        recvCommand(json["cmd"], json["data"]);
     });
 
     socket.on('updatePara', function(data) {
@@ -52,6 +48,13 @@ function connect(url) {
         unlockParas(pids);
     });
 
+    socket.on('renderBib', function(refs) {
+        renderBib(refs);
+    });
+
+    socket.on('deleteCite', function(key) {
+        deleteCite(key);
+    });
 }
 
 function disconnect() {
@@ -60,20 +63,14 @@ function disconnect() {
     }
 }
 
-// function sendCommand(cmd, cont="", ack=function(){}) {
-//     console.log('sending', cmd, cont);
-//     var data = {"cmd": cmd, "data": cont};
-//     socket.emit("json", data, ack);
-// }
-
 function sendCommand(cmd, data="", ack=function(){}) {
-    console.log('sending', cmd, )//data);
+    console.log('sending', cmd);
     socket.emit(cmd, data, ack);
 }
 
 function schedCanary() {
     console.log(`schedCanary: ${canary_id}`);
-    if (canary_id != null) {
+    if (canary_id !== null) {
         return;
     }
     canary_id = setTimeout(function() {
@@ -89,23 +86,5 @@ return {
     schedCanary: schedCanary,
 };
 
-});
+})();
 
-
-//// SERVER INTERACTION ////
-
-// handle incoming commands from server
-client = Client(function(cmd, data) {
-    msg = JSON.stringify(data);
-    console.log("received [" + cmd + "]: " + msg);
-
-    if (cmd == 'status') {
-        console.log('status: ', data);
-    } else if (cmd == 'renderBib') {
-        renderBib(data);
-    } else if (cmd == 'deleteCite') {
-        deleteCite(data);
-    } else {
-        console.log('unknown: ', cmd);
-    }
-});

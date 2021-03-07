@@ -42,7 +42,10 @@ $(document).ready(function() {
 
     envClasses();
     createRefs();
-    setBlurb();
+
+    if (!readonly) {
+        setBlurb();
+    }
 });
 
 /////////////////// EDITING /////////

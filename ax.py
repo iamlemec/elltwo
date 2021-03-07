@@ -24,10 +24,15 @@ from tools import Multimap
 parser = argparse.ArgumentParser(description='Axiom2 server.')
 parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
 parser.add_argument('--path', type=str, default='axiom.db', help='Path to sqlite database file')
+parser.add_argument('--ip', type=str, default='127.0.0.1', help='IP address to serve on')
+parser.add_argument('--port', type=int, default=5000, help='Main port to serve on')
 parser.add_argument('--timeout', type=int, default=180, help='Client timeout time in seconds')
 parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 parser.add_argument('--login', action='store_true', help='Require login for editing')
 args = parser.parse_args()
+
+# login decorator with logging
+login_decor = login_required if args.login else (lambda f: f)
 
 # start scheduler
 sched = BackgroundScheduler(daemon=True)
@@ -50,6 +55,7 @@ login = LoginManager(app)
 # create socketio
 socketio = SocketIO(app)
 
+# initialize tables
 @app.before_first_request
 def db_setup():
     adb.create()
@@ -78,6 +84,7 @@ def Home():
     return render_template('home.html', theme=args.theme)
 
 @app.route('/create', methods=['POST'])
+@login_decor
 def Create():
     art_name =request.form['new_art']
     art = adb.get_art_short(art_name)
@@ -95,7 +102,7 @@ def Create():
 def Signup():
     return render_template('signup.html', theme=args.theme)
 
-@app.route('/login',  methods=['GET','POST'])
+@app.route('/login',  methods=['GET', 'POST'])
 def Login():
     if request.referrer:
         next = request.referrer.replace('/r/', '/a/', 1)
@@ -142,6 +149,7 @@ def LoginUser():
     return redirect(next)
 
 @app.route('/logout_user', methods=['POST'])
+@login_decor
 def LogoutUser():
     logout_user()
     return redirect(request.referrer)
@@ -191,9 +199,6 @@ def RenderBib():
 ### socketio handler
 ###
 
-def send_command(cmd, data=None, broadcast=False, include_self=True, room=False):
-    emit('json', {'cmd': cmd, 'data': data}, broadcast=broadcast, include_self=include_self,)
-
 @socketio.on('connect')
 def socket_connect():
     sid = request.sid
@@ -221,24 +226,11 @@ def room(data):
         return sum([locked.get(s) for s in roomed.get(room)], [])
 
 ###
-### arbitrary command
-###
-
-@socketio.on('json')
-def socket_json(json):
-    cmd = json['cmd']
-    data = json['data']
-    print(f'received [{cmd}]: {data}')
-    if cmd == 'echo':
-        return data
-    else:
-        print(f'Unknown command: {cmd}')
-
-###
 ### para editing
 ###
 
 @socketio.on('update_para')
+@login_decor
 def update_para(data):
     adb.update_para(data['pid'], data['text'])
     emit('updatePara',
@@ -249,6 +241,7 @@ def update_para(data):
     return True
 
 @socketio.on('update_bulk')
+@login_decor
 def update_bulk(data):
     paras = data['paras']
     adb.bulk_update(paras)
@@ -258,6 +251,7 @@ def update_bulk(data):
     return True
 
 @socketio.on('insert_after')
+@login_decor
 def insert_after(data):
     text = data.get('text', '')
     par1 = adb.insert_after(data['pid'], text)
@@ -265,6 +259,7 @@ def insert_after(data):
     return True
 
 @socketio.on('insert_before')
+@login_decor
 def insert_before(data):
     text = data.get('text', '')
     par1 = adb.insert_before(data['pid'], text)
@@ -272,6 +267,7 @@ def insert_before(data):
     return True
 
 @socketio.on('delete_para')
+@login_decor
 def delete_para(data):
     adb.delete_para(data['pid'])
     emit('deletePara', [data['pid']], room=data['room'])
@@ -288,6 +284,7 @@ def get_history(data):
     return [(p.pid, p.text) for p in paras]
 
 @socketio.on('revert_history')
+@login_decor
 def revert_history(data):
     print(f'revert_history: aid={data["aid"]} date={data["date"]}')
     diff = adb.diff_article(data['aid'], data['date'])
@@ -309,6 +306,7 @@ def revert_history(data):
 ###
 
 @socketio.on('create_art')
+@login_decor
 def create_art(title):
     art = adb.get_art_short(title)
     if art:
@@ -329,6 +327,7 @@ def search_title(data):
         return False
 
 @socketio.on('set_blurb')
+@login_decor
 def set_blurb(data):
     aid = data['aid']
     blurb = data['blurb']
@@ -348,15 +347,17 @@ def get_blurb(title):
 ###
 
 @socketio.on('create_cite')
+@login_decor
 def create_cite(data):
     adb.create_cite(data['citationKey'], data['entryType'], **data['entryTags'])
     bib = adb.get_bib_dict(keys=[data['citationKey']])
-    send_command('renderBib', bib, broadcast=True)
+    socketio.emit('renderBib', bib, broadcast=True)
 
 @socketio.on('delete_cite')
+@login_decor
 def delete_cite(data):
     adb.delete_cite(data['key'])
-    send_command('deleteCite', data['key'], broadcast=True)
+    socketio.emit('deleteCite', data['key'], broadcast=True)
 
 @socketio.on('get_bib')
 def get_bib(data):
@@ -364,7 +365,7 @@ def get_bib(data):
     if not keys:
         keys=None
     bib = adb.get_bib_dict(keys=keys)
-    send_command('renderBib', bib)
+    socketio.emit('renderBib', bib)
 
 @socketio.on('get_cite')
 def get_cite(data):
@@ -389,6 +390,7 @@ def get_ref(data):
         return {'text': "", 'cite_type': 'err'}
 
 @socketio.on('update_ref')
+@login_decor
 def update_ref(data):
     adb.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'])
 
@@ -400,6 +402,7 @@ roomed = Multimap()
 locked = Multimap()
 
 @socketio.on('lock')
+@login_decor
 def lock(data):
     pid = data['pid']
     aid = data['room']
@@ -412,6 +415,7 @@ def lock(data):
     return True
 
 @socketio.on('unlock')
+@login_decor
 def unlock(data):
     pids = data['pids']
     aid = data['room']
@@ -450,5 +454,5 @@ def canary(data):
 ## run that babeee
 ##
 
-# run socketio through flask event loop
-socketio.run(app, host='0.0.0.0', port=5000)
+# run through socketio event loop
+socketio.run(app, host=args.ip, port=args.port)

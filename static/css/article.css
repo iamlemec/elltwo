@@ -64,6 +64,10 @@
     padding-right: 8px;
 }
 
+#bg.readonly .control {
+    display: none;
+}
+
 .para.editable > .control {
     display: block;
 }
@@ -486,6 +490,14 @@ body {
 }
 
 #revert_hist {
+    display: none;
+}
+
+#revert_hist.selected {
+    display: inline;
+}
+
+#bg.readonly #revert_hist {
     display: none;
 }
 

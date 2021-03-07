@@ -17,7 +17,7 @@
 </head>
 
 <body>
-    <div id="bg">
+    <div id="bg" {% if not edit %}class="readonly"{% endif %}>
 
         {% block header %}{% endblock %}
 
