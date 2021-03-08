@@ -331,7 +331,7 @@ hide_hist_preview = function() {
     var preview = $('#preview');
     var content = $('#content');
 
-    $('#revert_hist').hide();
+    $('#revert_hist').removeClass('selected');
     $('.hist_pop').remove();
 
     content.show();
