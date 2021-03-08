@@ -320,11 +320,10 @@ button {
     padding-bottom: 10px;
 }
 
-#sidebar_inner{
+#sidebar_inner {
     overflow: hidden;
-    width: 200px;
+    width: 250px;
 }
-
 
 #options_title {
     font-size: 25px;

@@ -205,6 +205,8 @@ makeUnEditable = function(send=true) {
         .children('.p_input')
         .prop('readonly', true);
 
+    $('#content').focus();
+
     if (active_para && editable) {
         editable = false;
         if (writeable) {
@@ -300,6 +302,20 @@ activePrevPara = function() {
     }
 };
 
+activeFirstPara = function() {
+    var first = $('.para').first();
+    if (first.length > 0) {
+        makeActive(first);
+    }
+};
+
+activeLastPara = function() {
+    var last = $('.para').last();
+    if (last.length > 0) {
+        makeActive(last);
+    }
+};
+
 editShift = function(para, up=true) {
     var top, bot;
     if (writeable) {
@@ -343,6 +359,8 @@ keymap = {
     'arrowup': false,
     'arrowright': false,
     'arrowdown': false,
+    'home': false,
+    'end': false,
     'a': false,
     'b': false,
     'd': false,
@@ -380,6 +398,10 @@ $(document).keydown(function(e) {
             } else if (keymap['arrowdown']) {
                 activeNextPara();
                 return false;
+            } else if (keymap['control'] && keymap['home']) {
+                activeFirstPara();
+            } else if (keymap['control'] && keymap['end']) {
+                activeLastPara();
             } else if (keymap['escape']) {
                 makeActive(null);
             }

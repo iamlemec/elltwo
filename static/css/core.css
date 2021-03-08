@@ -67,6 +67,10 @@ textarea:focus, input:focus {
     padding-top: 70px;
 }
 
+#content:focus {
+    outline: 0;
+}
+
 #preview {
     overflow-y: scroll;
     scrollbar-width: none;
