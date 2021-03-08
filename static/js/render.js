@@ -1153,14 +1153,3 @@ braceHL = function(view, text, pos, para){
         syntaxHL(para)
     }, 800);
 };
-
-
-
-/// Exporting
-
-getMarkdown = function() {
-    return $('.para').map(function() {
-        var para = $(this);
-        return para.attr('raw');
-    }).toArray().join('\n\n');
-};

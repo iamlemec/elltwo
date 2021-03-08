@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, url_for, render_template, jsonify, make_response, flash, send_from_directory
+from flask import Flask, Response, request, redirect, url_for, render_template, jsonify, make_response, flash, send_from_directory
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy
 
@@ -177,7 +177,6 @@ def GetArtData(title, edit):
         flash(f'Article "{title}" does not exist.')
         return redirect(url_for('Home'))
 
-
 @app.route('/a/<title>', methods=['GET'])
 def RenderArticle(title):
     if current_user.is_authenticated or not args.login:
@@ -185,11 +184,21 @@ def RenderArticle(title):
     else:
         return redirect(url_for('RenderArticleRO', title=title))
 
-
 @app.route('/r/<title>', methods=['GET'])
 def RenderArticleRO(title):
     return GetArtData(title, False)
 
+@app.route('/em/<title>', methods=['GET'])
+def ExportMarkdown(title):
+    art = adb.get_art_short(title)
+    text = adb.get_art_text(art.aid)
+    fname = f'{title}.md'
+
+    resp = Response(text)
+    resp.headers['Content-Type'] = 'text/markdown'
+    resp.headers['Content-Disposition'] = f'attachment; filename={fname}'
+
+    return resp
 
 @app.route('/b', methods=['GET'])
 def RenderBib():

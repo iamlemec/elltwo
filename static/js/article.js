@@ -374,6 +374,7 @@ $(document).ready(function() {
     update_hist_map = create_hist_map();
     $('#show_hist').click(toggle_hist_map);
     $('#revert_hist').click(revert_history);
+    $('#export').click(export_markdown);
 });
 
 // progress bar
@@ -393,13 +394,8 @@ progress = function(){
     $('#prog_bar').css('width',p + '%')
 };
 
+// exporting
 
-
-// Exporting
-
-getMarkdown = function() {
-    return $('.para').map(function() {
-        var para = $(this);
-        return para.attr('raw');
-    }).toArray().join('\n\n');
-};
+export_markdown = function() {
+    window.location.replace(`/em/${title}`);
+}
