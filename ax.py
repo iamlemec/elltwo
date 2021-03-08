@@ -423,7 +423,7 @@ def trueUnlock(data):
 @socketio.on('unlock')
 @login_decor
 def unlock(data):
-    trueUnlock()
+    trueUnlock(data)
 
 def locked_by_sid(sid):
     return {
