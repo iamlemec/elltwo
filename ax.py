@@ -31,7 +31,7 @@ parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 parser.add_argument('--login', action='store_true', help='Require login for editing')
 args = parser.parse_args()
 
-# login decorator with logging
+# login decorator (or not)
 login_decor = login_required if args.login else (lambda f: f)
 
 # start scheduler
@@ -212,7 +212,7 @@ def socket_disconnect():
     if sched.get_job(sid) is not None:
         sched.remove_job(sid)
     if (data := locked_by_sid(sid)):
-        unlock(data)
+        trueUnlock(data)
     roomed.pop(sid)
     emit('status', 'disconnected')
 
@@ -414,13 +414,16 @@ def lock(data):
     emit('lock', [pid], room=aid, include_self=False)
     return True
 
-@socketio.on('unlock')
-@login_decor
-def unlock(data):
+def trueUnlock(data):
     pids = data['pids']
     aid = data['room']
     rpid = [p for p in pids if locked.pop(p) is not None]
     socketio.emit('unlock', rpid, room=aid) # since called exernally
+
+@socketio.on('unlock')
+@login_decor
+def unlock(data):
+    trueUnlock()
 
 def locked_by_sid(sid):
     return {
