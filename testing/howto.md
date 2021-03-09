@@ -26,6 +26,12 @@ $$[id=geo] \sum_{i=1}^\infty \frac{1}{2^n} = 1
 
 As seen above, you can pass arguments to the cell by means of placing `key=value` pairs inside brackets directly after the cell prefix. Mutiple arguments are separated by `|`.
 
+Cells can also contain figure and images, including HTML5 SVG images. The `&SVG` prefix creates a 100x100 HTML canvas, rendering directly and HTML SVG elements the follow.
+
+&svg [id=fig|caption=An SVG figure] <circle cx="40" cy="50" r="30", fill='goldenrod' opacity='.5'/>
+<circle cx="60" cy="50" r="30", fill='steelblue' opacity='.4'/>
+<circle cx="50" cy="70" r="30", fill='tomato' opacity='.3'/>
+
 ##[env]Enviorments
 
 Environments are used to format blocks of cells and function in a similar way to LaTeX enviorments. An enviorment is opened the prefix `>>` and closed by a subsequent cell with prefix `<<`. Single cell enviorments use the special prefix `>>!`. For example:
@@ -57,4 +63,7 @@ References can also be passed arguments via the same syntax. For example `@[prim
 
 References can be across articles. To reference an external article use `@[article_name:id]`; for example reference the above equation from a different page would require `@[howto:geo]`.
 
+#[ref] Version Control
+
+Prior versions of an article can be viewed by clicking the  `History` button on the footer of the article. This will open the history navigator, by which you can select to view the article at any prior state. Every commit creates a new instance of the article. The article can be reverted to a prior state by clicking on the particular version, and then clicking the `Revert` button. This will create a new instance of the article (that is, of course, identical to the historical version in question) at the current time. In this way, intermediate states between the current instance and the revision instance are not lost.
 

@@ -290,7 +290,9 @@ def get_commits(data):
 @socketio.on('get_history')
 def get_history(data):
     paras = adb.get_paras(aid=data['aid'], time=data['date'])
-    return [(p.pid, p.text) for p in paras]
+    diff = adb.diff_article(data['aid'], data['date'])
+    diff = set().union(diff['para_upd'], diff['para_add'])
+    return {'paras': [(p.pid, p.text) for p in paras], 'diff': list(diff)}
 
 @socketio.on('revert_history')
 @login_decor
@@ -392,7 +394,12 @@ def get_ref(data):
         ref = adb.get_ref(data['key'], art.aid)
         title = art.title
         if ref:
-            return {'text': ref.text, 'cite_type': ref.cite_type, 'cite_env': ref.cite_env, 'title': title}
+            return {
+                'text': ref.text,
+                'cite_type': ref.cite_type,
+                'cite_env': ref.cite_env,
+                'title': title
+                }
         else:
             return {'text': "", 'cite_type': 'err'}
     else:

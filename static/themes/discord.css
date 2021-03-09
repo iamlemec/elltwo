@@ -11,7 +11,7 @@
     --font-col-int: #b58900;
     --dc-blue-col: rgb(33, 150, 243);
     --dollar-col: #859900;
-    --brace-col: rgba(33, 150, 243, 0.2);
+    --brace-col: rgba(33, 150, 243, 0.3);
     --math-col: #3280F3;
     --code-bg-col: #444;
 }
@@ -121,6 +121,10 @@ button:hover {
 
 .para.changed {
     border-right: 2px solid var(--hl2-col);
+}
+
+.para.hl_change {
+    border-right: 2px solid var(--dc-blue-col);
 }
 
 .active {

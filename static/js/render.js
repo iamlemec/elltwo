@@ -8,7 +8,7 @@ inner_para = `
 <div class="control">
 <div class="controlDots">&#9776;</div>
 <div class="controlButs">
-<button class="update">Update</button>
+<button class="update">Commit</button>
 <button class="before">Before</button>
 <button class="after">After</button>
 <button class="delete">Delete</button>
@@ -415,6 +415,7 @@ equationEnv = function(ptxt, args) {
 };
 
 svgEnv = function(ptxt, args) {
+    if(args.caption!='none'){
     let num = (args.number) ? makeCounter('figure') : "";
     let space = (num) ? " " : ""
     let caption = args.caption || "";
@@ -423,6 +424,7 @@ svgEnv = function(ptxt, args) {
     span.append(['Figure', space, num, '. ']);
     div.append([span, caption])
     ptxt.append(div);
+    };
 };
 
 env_spec = {
@@ -737,6 +739,10 @@ refTheorem = function(ref, tro, ext) {
     refEnv(ref, tro, 'Theorem', ext);
 };
 
+refFigure = function(ref, tro, ext) {
+    refEnv(ref, tro, 'Figure', ext);
+};
+
 refSelf = function(ref) {
     var text = ref.attr('text');
     ref.text(text);
@@ -747,6 +753,7 @@ ref_spec = {
     'self': refSelf,
     'error': refError,
     'equation': refEquation,
+    'svg': refFigure,
     'heading': refSection,
     'theorem': refTheorem,
     'text': refText,
@@ -795,8 +802,8 @@ createBibEntry = function(cite) {
     );
 };
 
-//// POPUP FUNCTIONALITY
-
+//// POPUP FUNCTIONALITY //turned off for mobile for now
+if(!mobile){
 $(document).on({
     mouseenter: function() {
         var ref = $(this);
@@ -810,21 +817,24 @@ $(document).on({
         $(window).unbind('mousemove')
     },
 }, '.pop_anchor');
+}
 
-createPop = function(html='') {
-    var pop = $('<div>', {id: 'pop'});
+createPop = function(html='', link=false) {
+    var pop = $('<div>', {id: 'pop', href: link});
     pop.html(html);
-    $('#bg').append(pop);
+    $('#bg').append(pop)
 
     h = pop.height();
     w = pop.width();
 
+    if(!mobile){ //no mouse binding with moblie popups
     $(this).mousemove(function(event) {
         pop.css({
             'left': (event.pageX - 0.5*w - 10) + 'px', // offset 10px for padding
             'top': (event.pageY - h - 35) + 'px', // offset up by 35 px
         });
     });
+    };
 };
 
 // generates pop text from tro (only for internal refs)
@@ -854,7 +864,8 @@ renderPop = function(ref, tro, text, ext) {
     } else {
         var pop = popText(tro);
     };
-    createPop(pop);
+    link = mobile ? ref.attr('href'): false;
+    createPop(pop, link);
 }
 
 popError = function(err='not_found') {
@@ -898,6 +909,7 @@ pop_spec = {
     'theorem': popEnv,
     'cite': popCite,
     'equation': popEquation,
+    'svg': popEquation,
     'footnote': popSelf,
     'self': popSelf,
     'error': popError,
@@ -1028,11 +1040,12 @@ fArgs = function(argsraw){
 sytaxParseBlock = function(raw){
 
 var block = {
-  heading: /^(#{1,6})(\!?)(\*?)([\n\r\s]*)(?:\[([\w-\|\=]+)\])?([\n\r\s]*)([^\n]+?)? *#* *(?:\n+|$)/,
+  heading: /^(#{1,6})(\!?)(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]+?)? *#* *(?:\n+|$)/,
   text: /^[^\n]+/,
-  equation: /^\$\$(\*?)([\n\r\s]*)(?:\[([\w-\|\=]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
+  equation: /^\$\$(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
   figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
-  envbeg: /^\>\>(\!)?([\n\r\s]*)([\w-]+)?(\*)?( *)(?:\[([\w-\|\=]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
+  svg: /^\&svg(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n?)*)(?:$)/,
+  envbeg: /^\>\>(\!)?([\n\r\s]*)([\w-]+)?(\*)?( *)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
   envend: /^\<\<((?:[^\n]+\n?)*)/
 };
 
@@ -1058,6 +1071,13 @@ if (cap = block.envbeg.exec(raw)) {
     var id = (cap[6]) ? s(fArgs(cap[6]), 'ref'): "";
     var text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
     return s('>>', 'delimit') + bang + cap[2] + env + star + cap[5] + id + cap[7] + text;
+};
+
+if (cap = block.svg.exec(raw)) {
+    var star = (cap[1]) ? s('*', 'hl') : "";
+    var id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
+    var text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
+    return s('&', 'hl') + s('svg', 'delimit') + star + cap[2] + id + cap[4] + text;
 };
 
 if (cap = block.envend.exec(raw)) {

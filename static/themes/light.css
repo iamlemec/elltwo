@@ -11,6 +11,7 @@
     --font-col: #073642;
     --font-col-int: #6c71c4;
     --delimit-col: #859900;
+    --brace-col: rgba(0,0,0,.2);
 }
 
 @font-face {
@@ -100,6 +101,10 @@ button:hover {
 
 .para.changed {
     border-right: 2px solid var(--hl2-col);
+}
+
+.para.hl_change {
+    border-right: 2px solid var(--font-col-int);
 }
 
 /*.active:hover {

@@ -127,7 +127,8 @@ para_readonly = function(pid, raw) {
     return para;
 };
 
-renderPreview = function(paras) {
+renderPreview = function(hist) {
+    paras=hist.paras
     var preview = $('#preview');
     var content = $('#content');
 
@@ -150,19 +151,23 @@ renderPreview = function(paras) {
 
     envClasses(preview);
 
+    $.each(hist.diff, (i, pid) => {
+        $(`#preview > .para[pid="${pid}"`).addClass('hl_change');
+    });
+
     preview.show();
     content.hide();
     makeActive(new_active);
 };
 
 create_hist_map = function(data) {
-    // fixed params
-    var hpadding = 50;
-    var radius = 4;
+    // fixed params // different for mobile
+    var hpadding = mobile ? 20 : 50;
+    var radius = mobile ? 6 : 4;
 
     // these should be dynamic
     var width = window.innerWidth;
-    var height = 100;
+    var height = mobile ? 150 : 100;
 
     // clean house
     var hist = d3.select('#hist');
@@ -173,7 +178,8 @@ create_hist_map = function(data) {
         .attr('id', 'svgg')
         .attr('width', width)
         .attr('height', height)
-        .on('click', generalClick);
+        .on('click', generalClick)
+        .call(responsivefy);
 
     // scaleEx controls how zoomed we go
     var zoom = d3.zoom()
@@ -190,7 +196,7 @@ create_hist_map = function(data) {
         .tickPadding(-20);
 
     var gX = svg.append('g')
-        .attr('class', 'axis axis--x')
+        .attr('class', 'axis--x')
         .attr('transform', `translate(0,${0.7*height})`)
         .call(xAxis);
 
@@ -348,6 +354,7 @@ hide_hist_preview = function() {
 }
 
 toggle_hist_map = function() {
+
     $('#hist').toggle();
     if (hist_vis) {
         hide_hist_preview();
@@ -377,6 +384,27 @@ $(document).ready(function() {
     $('#export').click(export_markdown);
 });
 
+function responsivefy(svg) {
+    width = window.innerWidth
+    height = svg.attr('height'); //mobile ? 150 : 100;
+    aspect = width / height;
+
+      // add viewBox and preserveAspectRatio properties,
+      svg.attr("viewBox", "0 0 " + width + " " + height)
+          .attr("preserveAspectRatio", "xMinYMid")
+          .call(resize);
+
+      d3.select(window).on("resize", resize);
+
+      // get width of container and resize svg to fit it
+      function resize() {
+          var targetWidth = window.innerWidth;
+          svg.attr("width", targetWidth);
+          svg.attr("height", Math.round(targetWidth / aspect));
+      }
+    }
+
+
 // progress bar
 
 $(document).ready(function() {
@@ -399,3 +427,31 @@ progress = function(){
 export_markdown = function() {
     window.location.replace(`/em/${title}`);
 }
+
+//mobile hover eqiv
+
+
+if(mobile){
+    $(document).ready(function() {
+        $(document).on('click', '.pop_anchor', function(e){
+            e.preventDefault()
+            $('#pop').remove();
+            var ref = $(this);
+            ref.data('show_pop', true);
+            loc = {'x': 10, 'y': 40}
+            var html = getTro(ref, renderPop);
+            return false
+        });
+    });
+
+    $(document).click(function(e) {
+        if($(e.target).closest('#pop').length == 0){
+           $('#pop').remove();
+        } else {
+            window.location = $('#pop').attr('href');
+            $('#pop').remove();
+        };
+});
+}
+
+

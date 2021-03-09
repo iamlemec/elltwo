@@ -109,6 +109,10 @@ button:hover {
     border-right: 2px solid var(--hl2-col);
 }
 
+.para.hl_change {
+    border-right: 2px solid var(--hl-col);
+}
+
 /*.active:hover {
     border-left: 2px solid var(--hl-col);
 }*/
@@ -274,6 +278,11 @@ a.art_result{
 #foot {
     background-color:  var(--pop-bg-col);
     color: var(--pop-fg-col);
+}
+
+#hist {
+    background-color: var(--pop-bg-col);
+    border-top: 2px solid var(--hl-col);
 }
 
 .foot_butt{

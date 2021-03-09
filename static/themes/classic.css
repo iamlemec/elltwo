@@ -6,8 +6,9 @@
     --hl-col: goldenrod; /* highlight color */
     --hl2-col: tomato; /* highlight color */
     --pop-fg-col: rgb(255, 255, 255); /* popup text color */
-    --pop-bg-col: rgba(0, 0, 0, 0.85); /* popup background color */
+    --pop-bg-col: rgba(0, 0, 0, 0.95); /* popup background color */
     --delimit-col: steelblue; /* popup background color */
+    --brace-col: rgba(0,0,0,.2);
 }
 
 @font-face {
@@ -79,6 +80,10 @@ button:hover {
 
 .para.changed {
     border-right: 2px solid var(--hl2-col);
+}
+
+.para.hl_change {
+    border-right: 2px solid var(--font-col-int);
 }
 
 /*.active:hover {
@@ -165,6 +170,7 @@ button:hover {
 }
 
 .brace{
+    border-radius: 5px;
     background-color: var(--brace-col);
 }
 

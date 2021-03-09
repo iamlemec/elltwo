@@ -7,7 +7,10 @@
     --delimit-col: tomato;
     --pop-bg-col: rgba(0,0,0,.95);
     --pop-fg-col: white;
-    --font-col-int: steelblue;
+    --font-col-int: goldenrod;
+    --brace-col: rgba(33, 150, 243, 0.3);
+
+    
 }
 
 @font-face {
@@ -110,6 +113,10 @@ button:hover {
     border-right: 2px solid var(--hl2-col);
 }
 
+.para.hl_change {
+    border-right: 2px solid var(--font-col-int);
+}
+
 /*.active:hover {
     border-left: 2px solid var(--hl-col);
 }*/
@@ -190,6 +197,7 @@ button:hover {
 }
 
 .brace{
+    border-radius: 5px;
     background-color: var(--brace-col);
 }
 

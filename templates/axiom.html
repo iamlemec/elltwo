@@ -3,6 +3,7 @@
     >
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     {% block head %}
     <link type="text/css" rel="stylesheet" href={{url_for('static', filename='css/core.css')}} />
     {% if theme %}
@@ -12,6 +13,7 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.js"></script>
     <script src={{ url_for('static', filename='js/all.js') }} language="Javascript" type="text/javascript"></script>
+    <script type="text/javascript">var mobile = window.matchMedia('(max-width: 815px)').matches</script>
     {% endblock %}
     <title> {% block title %}{% endblock %} </title>
 </head>
@@ -29,11 +31,11 @@
         </div>
 
         <div id="foot">
-            <span class="hoot">[201p // iamlemec]</span>
+            <span id="hoot">[201p // iamlemec]</span>
             {% block foot_login %}
             {% if login %}
             {% if current_user.is_authenticated %}
-                <span>User: {{ current_user.name }}</span>
+                <span id="user_display">User: {{ current_user.name }}</span>
                 <form class=inline_form method="POST" action="/logout_user">
                     <button class="foot_butt">Log Out</button>
                 </form>

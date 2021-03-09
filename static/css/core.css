@@ -62,9 +62,11 @@ textarea:focus, input:focus {
     overflow-y: scroll;
     scrollbar-width: none;
     height: 100%;
-    width: 80%;
+    width: 100%;
     margin: auto;
     padding-top: 70px;
+    padding-left: 5%;
+    padding-right: 5%;
 }
 
 #content:focus {
@@ -92,10 +94,10 @@ textarea:focus, input:focus {
     height: 150px;
 }
 
-button:active {
+/* button:active {
     position:relative;
     top:1px;
-}
+} */
 
 ::-webkit-scrollbar {
     width: 0px;
@@ -111,7 +113,7 @@ a.reference {
     display: none;
 }
 
-.hoot {
+#hoot {
     margin-right: 50px;
 }
 
@@ -166,3 +168,71 @@ a.reference {
     display: inline;
     float: left;
 }
+
+/*  MOBILE CSS */
+
+
+ @media only screen and (max-width: 815px) {
+  
+ #foot {
+    align-items: center;
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    margin: 0px;
+    height: 40px;
+    padding-right: 15px;
+    padding-left: 15px;
+    font-size: 50%;
+    background-color:  var(--bg-hl2-col);
+}
+     
+#hoot {
+    position: absolute;
+    bottom: 2px;
+    right: 15px;
+    margin-right: 0;
+}
+     
+#user_display {
+    margin-right: 10px;
+    position: absolute;
+    bottom: 2px;
+    left: 15px;
+}
+     
+
+     
+.foot_butt {
+    display: inline;
+    font-size: 100%;
+    border: 1px solid var(--delimit-col);
+    margin-left: 0px;
+    margin-right: 5px;
+    margin-bottom: 12px;
+    top: 0;
+    width: 70px;
+}
+
+#bg {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    background-color: var(--bg-col)
+}
+
+#content {
+    overflow-y: scroll;
+    scrollbar-width: none;
+    height: 100%;
+    width: 100%;
+    margin: auto;
+    padding-top: 70px;
+    padding-left: 0%;
+    padding-right: 0%;
+    font-size: 80%;
+}
+
+
+}
+

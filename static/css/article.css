@@ -1,10 +1,5 @@
 /* VARIABLE ASSIGNMENT */
 
-#para_holder {
-    position: absolute;
-    width: 80%;
-    left: 10%;
-}
 
 .para {
     position: relative;
@@ -200,12 +195,13 @@ button {
     position: relative;
     width: 40%;
     left: 30%;
+    margin-bottom: 40px;
 }
 
 .svg_cap {
     position: relative;
-    left: 10%;
-    padding-bottom: 50px;
+    padding: 30px;
+    font-size: 85%;
 /*  hacky, margin does */
 }
 
@@ -246,7 +242,7 @@ button {
 #pop {
     padding: 10px;
     position: absolute;
-    z-index: 1000;
+    z-index: 20;
     min-width: 250px;
     min-height: 30px;
     max-width: 400px;
@@ -295,7 +291,7 @@ button {
 /* sidebar */
 
 #head {
-    z-index: 10;
+    z-index: 30;
     padding-top: 0;
     padding-bottom: 0;
 }
@@ -545,4 +541,95 @@ circle.commit.active {
   height: 7px;
   border-radius: 50%;
   background: var(--font-col-int);
+}
+
+
+/*  MOBILE CSS */
+
+
+ @media only screen and (max-width: 815px) {
+  
+     
+.para {
+    position: relative;
+    left: 12%;
+    width: 74%;
+    min-height: 30px;
+    margin-bottom: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+     
+#sidebar {
+    min-width: 250px;
+    width: 100%;
+    height: 100%;
+    padding: 5%;
+    z-index: 10;
+}
+     
+.custom-select-wrapper {
+    right: 15%;
+}
+     
+.control {
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 40px;
+    left: 0%;
+    top: unset;
+    bottom: 36px;
+    text-align: right;
+    padding-right: 0;
+    z-index: 3;
+    background-color: var(--bg-hl2-col)
+}
+
+#bg.readonly .control {
+    display: none;
+}
+
+.para.editable > .control {
+    display: block;
+}
+
+.controlButs {
+    padding-top: 5px;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+     
+.controlButs > button{
+    display: inline-block;
+    width: unset;
+    height: 25px;
+    margin: 3px;
+    flex-basis: 10px;
+    flex-grow: 1;
+    border: 1px solid var(--delimit-col)
+}
+
+.control:hover .controlButs {
+    display: flex;
+}
+
+
+.controlDots {
+    display: none;
+}
+     
+#pop {
+    padding: 10px;
+    position: absolute;
+    z-index: 20;
+    width:100%;
+    max-width: unset;
+    min-height: 60px;
+    left: 0;
+    bottom: 40px;
+    border-radius: 0;
+}
+     
 }
