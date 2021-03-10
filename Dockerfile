@@ -19,5 +19,9 @@ COPY *.py .
 COPY static static
 COPY templates templates
 
+# Load in sample content
+COPY testing testing
+RUN ["python", "db_populate.py"]
+
 # Run when the container launches
-CMD ["python", "-u", "ax.py", "--port=80"]
+CMD ["python", "-u", "ax.py", "--ip=0.0.0.0", "--port=80", "--debug"]
