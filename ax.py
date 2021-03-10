@@ -291,8 +291,10 @@ def get_commits(data):
 def get_history(data):
     paras = adb.get_paras(aid=data['aid'], time=data['date'])
     diff = adb.diff_article(data['aid'], data['date'])
-    diff = set().union(diff['para_upd'], diff['para_add'])
-    return {'paras': [(p.pid, p.text) for p in paras], 'diff': list(diff)}
+    return {
+        'paras': [(p.pid, p.text) for p in paras],
+        'diff': list(diff['para_upd'] | diff['para_add']),
+    }
 
 @socketio.on('revert_history')
 @login_decor

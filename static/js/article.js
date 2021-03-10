@@ -128,18 +128,17 @@ para_readonly = function(pid, raw) {
 };
 
 renderPreview = function(hist) {
-    paras=hist.paras
     var preview = $('#preview');
     var content = $('#content');
 
-    var pid0 = null;
-    if (active_para) {
-        pid0 = active_para.attr('pid');
-    }
+    var pid0 = active_para ? active_para.attr('pid') : null;
+    var ppos = active_para ? active_para.position().top : null;
+    var cpos = content.scrollTop();
+
     preview.empty();
 
     var new_active = null;
-    $.each(paras, (i, p) => {
+    $.each(hist.paras, (i, p) => {
         var [pid, raw] = p;
         var para = para_readonly(pid, raw);
         if (pid == pid0) {
@@ -157,7 +156,13 @@ renderPreview = function(hist) {
 
     preview.show();
     content.hide();
-    makeActive(new_active);
+
+    // make active and ensure same relative position
+    makeActive(new_active, false);
+    if (ppos !== null) {
+        cpos = preview.scrollTop() + active_para.position().top - ppos;
+    }
+    preview.scrollTop(cpos);
 };
 
 create_hist_map = function(data) {
@@ -340,21 +345,30 @@ hide_hist_preview = function() {
     $('#revert_hist').removeClass('selected');
     $('.hist_pop').remove();
 
+    var cpos = preview.scrollTop();
+    var ppos = active_para ? active_para.position().top : null;
+
     content.show();
     preview.hide();
 
     if (active_para) {
         var pid = active_para.attr('pid');
         var para = content.children(`[pid=${pid}]`);
-        var new_active = para ? para : null;
-        makeActive(new_active);
+        var new_active = (para.length > 0) ? para : null;
+
+        // make active and align scroll
+        makeActive(new_active, false);
+        if (ppos !== null) {
+            cpos = content.scrollTop() + active_para.position().top - ppos;
+        }
     }
 
+    content.scrollTop(cpos);
     preview.empty();
+    createTOC(content);
 }
 
 toggle_hist_map = function() {
-
     $('#hist').toggle();
     if (hist_vis) {
         hide_hist_preview();
@@ -453,5 +467,3 @@ if(mobile){
         };
 });
 }
-
-

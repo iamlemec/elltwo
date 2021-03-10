@@ -264,7 +264,7 @@ unlockParas = function(pids) {
 
 /// active para tracking
 
-makeActive = function(para) {
+makeActive = function(para, scroll=true) {
     makeUnEditable();
     $('.para').removeClass('active');
     if (active_para) {
@@ -273,7 +273,9 @@ makeActive = function(para) {
     active_para = para;
     if (active_para) {
         para.addClass('active');
-        ensureVisible(active_para);
+        if (scroll) {
+            ensureVisible(active_para);
+        }
     }
 };
 
