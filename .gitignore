@@ -37,3 +37,6 @@ pip-delete-this-directory.txt
 
 # Databases
 *.db
+
+# External logs
+screenlog.*
