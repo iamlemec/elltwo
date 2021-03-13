@@ -1,6 +1,5 @@
-
-
 {% extends "axiom.html" %}
+
 {% block head %}
   {{ super() }}
   <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/bib.css') }} />
@@ -10,6 +9,7 @@
   <script src={{ url_for('static', filename='js/bib.js') }} language="Javascript" type="text/javascript"></script>
   <script src={{ url_for('static', filename='js/bib_search.js') }} language="Javascript" type="text/javascript"></script>
 {% endblock %}
+
 {% block title %}Bib{% endblock %}
 
 {% block header %}Bib{% endblock %}
@@ -25,5 +25,4 @@
       <button id="search">Search</button>
 {% endblock %}
 
-{% block foot %}
-{% endblock %}
+{% block foot %}{% endblock %}

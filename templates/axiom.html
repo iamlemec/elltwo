@@ -11,10 +11,10 @@
     {% if theme %}
     <link id="theme" type="text/css" rel="stylesheet" href={{url_for('static', filename='themes/'+theme+'.css')}} />
     {% endif %}
-    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/katex.min.css') }} />
+    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='katex/dist/katex.min.css') }} />
 
     <script src={{ url_for('static', filename='js/jquery-3.5.0.min.js') }}> </script>
-    <script src={{ url_for('static', filename='js/katex.min.js') }}></script>
+    <script src={{ url_for('static', filename='katex/dist/katex.min.js') }}></script>
     <script src={{ url_for('static', filename='js/all.js') }} language="Javascript" type="text/javascript"></script>
     <script type="text/javascript">var mobile = window.matchMedia('(max-width: 815px)').matches</script>
 

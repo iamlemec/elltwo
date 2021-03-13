@@ -1,18 +1,20 @@
-
-
 {% extends "axiom.html" %}
+
 {% block title %}Ax.home{% endblock %}
+
 {% block head %}
     {{ super() }}
-    <link type="text/css" rel="stylesheet" href={{url_for('static', filename='css/home.css')}} />
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
+    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
+    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='katex/dist/katex.min.css') }} />
     <script src={{ url_for('static', filename='js/socket.io.js') }} language="Javascript" type="text/javascript"></script>
-  <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
+    <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
     <script src={{ url_for('static', filename='js/home.js') }} language="Javascript" type="text/javascript"></script>
 {% endblock %}
+
 {% block header %}{% endblock %}
+
 {% block content %}
-    {% if not current_user.is_authenticated %} 
+    {% if not current_user.is_authenticated %}
     <div id=prompt>Log In:</div>
         <div class="box">
         {% with messages = get_flashed_messages() %}
@@ -37,7 +39,7 @@
         </form>
     </div>
     {% endif %}
-    {% if current_user.is_authenticated %} 
+    {% if current_user.is_authenticated %}
             <div class="box">
             <div class="notification">
                 You are logged in as {{ current_user.name }}, log out?
@@ -50,10 +52,6 @@
         </form>
         </div>
     {% endif %}
-
-
 {% endblock %}
 
-{% block foot_login %}
-{% endblock %}
-
+{% block foot_login %}{% endblock %}
