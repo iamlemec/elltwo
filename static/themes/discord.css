@@ -74,14 +74,11 @@ button:hover {
     background-color: darkgray;
 }
 
-#content, #preview {
-    max-width: 650px;
-    padding: 25px;
+.para {
 }
 
-.para {
-    left: 0 !important;
-    width: 100% !important;
+.p_text {
+    text-align: left !important;
 }
 
 /* other elements */
@@ -109,14 +106,9 @@ button:hover {
 
 /* paras */
 
-#content:before, #preview:before {
-    content: "";
-    display: block;
-    height: 50px;
-}
-
 .para {
     border-left: 2px solid var(--bg-col);
+    border-right: 2px solid var(--bg-col);
 }
 
 .para.changed {

@@ -15,7 +15,6 @@ a {
     color: var(--hl2-col);
 }
 
-
 textarea, input, .p_input_view {
     resize: none;
     border: none;
@@ -58,15 +57,13 @@ textarea:focus, input:focus {
     background-color: var(--bg-col)
 }
 
-#content {
+#content, #preview {
     overflow-y: scroll;
     scrollbar-width: none;
     height: 100%;
     width: 100%;
     margin: auto;
-    padding-top: 70px;
-    padding-left: 5%;
-    padding-right: 5%;
+    padding-top: 100px;
 }
 
 #content:focus {
@@ -74,12 +71,6 @@ textarea:focus, input:focus {
 }
 
 #preview {
-    overflow-y: scroll;
-    scrollbar-width: none;
-    height: 100%;
-    width: 80%;
-    margin: auto;
-    padding-top: 70px;
     display: none;
 }
 
@@ -173,7 +164,7 @@ a.reference {
 
 
  @media only screen and (max-width: 815px) {
-  
+
  #foot {
     align-items: center;
     position: fixed;
@@ -186,23 +177,23 @@ a.reference {
     font-size: 50%;
     background-color:  var(--bg-hl2-col);
 }
-     
+
 #hoot {
     position: absolute;
     bottom: 2px;
     right: 15px;
     margin-right: 0;
 }
-     
+
 #user_display {
     margin-right: 10px;
     position: absolute;
     bottom: 2px;
     left: 15px;
 }
-     
 
-     
+
+
 .foot_butt {
     display: inline;
     font-size: 100%;
@@ -232,7 +223,3 @@ a.reference {
     padding-right: 0%;
     font-size: 80%;
 }
-
-
-}
-
