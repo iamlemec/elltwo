@@ -135,7 +135,19 @@ copy_citekey = function(cite) {
 }
 
 $(document).on('click', '.cite', function() {
+    $('.editable').removeClass('editable');
     copy_citekey(this);
+    $(this).addClass('editable');
+});
+
+$(document).click(function(e) {
+        if($(e.target).closest('.cite').length == 0){
+           $('.editable').removeClass('editable');
+           };
+       });
+
+$(document).on('click', '#search_results > .cite', function() {
+    editcite(this)
 });
 
 sortCite = function(id) {
@@ -146,16 +158,23 @@ sortCite = function(id) {
     $(id).html(alphabeticallyOrderedDivs);
 };
 
-$(document).on('click', '.update', function() {
-    var src = $(this).closest('.cite').attr('raw');
+editcite = function(el) {
+    var src = $(el).closest('.cite').attr('raw');
     $('#bib_input').val(src);
     $('#search_results').find('.cite').remove();
     $('.nr').remove()
     $('#search_results').hide();
+};
+
+$(document).on('click', '.update', function(e) {
+    editcite(this);
+    $('.editable').removeClass('editable');
+    e.stopPropagation();
 });
 
 $(document).on('click', '.delete', function() {
     var key = $(this).closest('.cite').attr('id');
     var data = {'key': key};
     client.sendCommand('delete_cite', data);
+    $('.editable').removeClass('editable');
 });

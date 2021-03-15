@@ -12,17 +12,23 @@
 {% endblock %}
 {% block title %}Bib{% endblock %}
 
-{% block header %}Bib{% endblock %}
+{% block header %}{% endblock %}
 
 {% block content %}
+
+    <div id=prompt><span id=title>Bibliography</span></span>
+     </div>
+
       <div id=para_holder>
       </div>
       <div id=search_results>
         <div id=s_heading>Search Results <span id=xsr>&#9746</span></div>
       </div>
-      <textarea id="bib_input"></textarea>
+      <textarea id="bib_input" placeholder="Search the web for citations, or enter bibtex directly..."></textarea>
+      <div id='search_button_wrap'>
       <button id="create">Create</button>
       <button id="search">Search</button>
+      </div>
 {% endblock %}
 
 {% block foot %}

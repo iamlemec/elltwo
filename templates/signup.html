@@ -1,7 +1,7 @@
 
 
 {% extends "axiom.html" %}
-{% block title %}Ax.home{% endblock %}
+{% block title %}Sign Up{% endblock %}
 {% block head %}
     {{ super() }}
     <link type="text/css" rel="stylesheet" href={{url_for('static', filename='css/home.css')}} />
@@ -13,7 +13,14 @@
 {% block header %}{% endblock %}
 {% block content %}
     {% if not current_user.is_authenticated %} 
-    <div id=prompt>Signup:</div>
+    <div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
+        <br>
+        Simple Beautiful Collabrative 
+
+        <br><br><br><br>
+
+        Create a login to enable editing. 
+     </div>
         <div class="box">
         {% with messages = get_flashed_messages() %}
         {% if messages %}

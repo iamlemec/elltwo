@@ -4,6 +4,7 @@ $(document).ready(function() {
     client.sendCommand('room', {'room': '__home'}, function(response) {
         console.log(response);
         });
+    renderKatex();
 });
 
 
@@ -55,5 +56,22 @@ createArt = function(){
         });
     };
 }
+
+renderKatex = function() {
+    $('body').find('span.latex').each(function() {
+        var tex = $(this);
+        var src = tex.text();
+        tex.empty();
+        try {
+          katex.render(src, tex[0],
+            //{macros: config["macros"]}
+            );
+        } catch (e) {
+          console.log(para.text());
+          console.log(src);
+          console.log(e);
+        }
+    });
+};
 
 

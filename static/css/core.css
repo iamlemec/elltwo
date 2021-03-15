@@ -117,6 +117,11 @@ a.reference {
     margin-right: 50px;
 }
 
+#toggle_ll{
+   width: 100px;
+}
+
+
 .foot_butt {
     display: inline;
     font-size: 90%;
@@ -161,7 +166,7 @@ a.reference {
     border-style: solid;
     border-color: var(--bg-hl2-col) transparent transparent transparent;
     bottom: -25px;
-    left: 20%;
+    left: 35%;
 }
 
 .inline_form {
@@ -201,7 +206,7 @@ a.reference {
     left: 15px;
 }
      
-
+    
      
 .foot_butt {
     display: inline;
@@ -213,6 +218,12 @@ a.reference {
     top: 0;
     width: 70px;
 }
+     
+#toggle_ll{
+   width: 100px;
+}
+
+     
 
 #bg {
     position: fixed;
