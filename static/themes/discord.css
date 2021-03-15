@@ -107,8 +107,11 @@ button:hover {
 /* paras */
 
 .para {
-    border-left: 2px solid var(--bg-col);
-    border-right: 2px solid var(--bg-col);
+}
+
+.para.active {
+    border-left: 2px solid var(--hl-col);
+    background-color: var(--bg-hl-col);
 }
 
 .para.changed {
@@ -117,11 +120,6 @@ button:hover {
 
 .para.hl_change {
     border-right: 2px solid var(--dc-blue-col);
-}
-
-.active {
-    border-left: 2px solid var(--hl-col);
-    background-color: var(--bg-hl-col);
 }
 
 .controlDots {

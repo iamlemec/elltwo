@@ -9,6 +9,9 @@
     margin-bottom: 20px;
     padding-left: 5px;
     padding-right: 5px;
+    max-width: 650px;
+    border-left: 2px solid var(--bg-col);
+    border-right: 2px solid var(--bg-col);
 }
 
 /*.para:hover {
@@ -551,7 +554,6 @@ circle.commit.active {
 
 
 .para {
-    position: relative;
     left: 12%;
     width: 74%;
     min-height: 30px;
