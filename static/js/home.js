@@ -15,9 +15,10 @@ $(document).on('click', '#submit', function() {
 
 let timeout = null;
 
-$(document).keydown(function(e) {
+$(document).on('keydown', function(e) {
     var key = e.key.toLowerCase();
     var real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
+    var andriod_is_fucking_stupid = e.keyCode == 229;
     var active = getActiveArt();
     if (e.ctrlKey && (key == 'enter')) {
         createArt();
@@ -26,7 +27,7 @@ $(document).keydown(function(e) {
             var url = active.attr('href');
             window.location = url;
         }
-    } else if (real || (key == 'backspace') || (key == 'delete')) {
+    } else if (real || (key == 'backspace') || (key == 'delete') || andriod_is_fucking_stupid) {
         clearTimeout(timeout);
         var last_url = active.attr('href');
         timeout = setTimeout(function() {
@@ -107,7 +108,7 @@ renderKatex = function() {
             //{macros: config["macros"]}
             );
         } catch (e) {
-          console.log(para.text());
+          console.log($(this).text());
           console.log(src);
           console.log(e);
         }

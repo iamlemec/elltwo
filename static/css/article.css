@@ -9,7 +9,7 @@
     margin-bottom: 20px;
     padding-left: 5px;
     padding-right: 5px;
-    max-width: 650px;
+    max-width: 700px;
     border-left: 2px solid var(--bg-col);
     border-right: 2px solid var(--bg-col);
 }
@@ -125,6 +125,8 @@ button {
 
 .title {
     font-size: 35px;
+    text-align: center;
+    margin-bottom: 30px;
 }
 
 .env__heading_h1 {
@@ -371,11 +373,6 @@ button {
 
 /* drop down */
 
-body {
-    background: #ededed;
-    font-family: 'Open Sans', sans-serif;
-}
-
 .center {
     position: absolute;
     display: inline-block;
@@ -581,7 +578,7 @@ circle.commit.active {
     height: 40px;
     left: 0%;
     top: unset;
-    bottom: 36px;
+    bottom: 0;
     text-align: right;
     padding-right: 0;
     z-index: 3;

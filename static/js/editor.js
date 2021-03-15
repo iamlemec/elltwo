@@ -175,6 +175,9 @@ trueMakeEditable = function(rw=true) {
     if (rw) {
         text.prop('readonly', false);
         placeCursor();
+        if(mobile){
+            $('#foot').hide();
+        };
     }
     syntaxHL(active_para);
 
@@ -212,6 +215,9 @@ makeUnEditable = function(send=true) {
         if (writeable) {
             localChange(active_para, send);
         }
+        if(mobile){
+            $('#foot').show();
+        };
     }
 };
 

@@ -28,10 +28,15 @@
   top: 30%;
 }
 
-::-moz-placeholder, ::-webkit-input-placeholder { /* Firefox 19+ */
+::-moz-placeholder { /* Firefox 19+ */
   color: var(--hl-col);
   font-size: 60%;
+}
 
+::-webkit-input-placeholder { 
+  color: var(--hl-col);
+  font-size: 60%;
+}
 
 .art_result {
     display: block;
@@ -45,20 +50,14 @@
     font-size: 120%;
     width: 60%;
     left: 20%;
-    top: 25%;
+    top: 40%;
+    overflow: scroll;
 }
 
 .blurb {
     margin-top: 5px;
     font-size: 60%;
 }
-
-#results{
-  position: fixed;
-  font-size: 120%;
-  width: 60%;
-  left: 20%;
-  top: 40%;
 
 
 .login_field > input, .login-button, .notification {
@@ -76,7 +75,7 @@
   background-color: var(--bg-hl2-col);
   padding: 15px;
   padding-top: 15px;
-
+}
 
 .notification {
     color: var(--hl2-col);
@@ -92,8 +91,15 @@
     border-left: 2px solid var(--hl-col);
 }
 
- @media only screen and (max-width: 815px) {
+@media only screen and (max-width: 815px) {
 
+#prompt{
+  position: absolute;
+  width: 100%;
+  min-height: 50px;
+  top: 5%;
+  text-align: center;
+}
 
 #title{
    font-size: 300%;
@@ -104,7 +110,7 @@
   width: 59%;
   left: 10%;
   font-size: 130%;
-  top: 30%;
+  top: 25%;
 }
 
 #submit{
@@ -113,7 +119,7 @@
   right: 10%;
   min-height: 40px;
   font-size: 130%;
-  top: 30%;
+  top: 25%;
 }
    
 .art_result{
@@ -129,12 +135,22 @@
   font-size: 110%;
   width: 80%;
   left: 10%;
-  top: 40%;
+  top: 35%;
 }
 
 .blurb{
   margin-top: 10px;
   font-size: 70%;
+}
+
+.box{
+  position: fixed;
+  width: 80%;
+  top: 30%;
+  left: 10%;
+  background-color: var(--bg-hl2-col);
+  padding: 15px;
+  padding-top: 15px;
 }
    
 }

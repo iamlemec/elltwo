@@ -15,7 +15,14 @@
 
 {% block content %}
     {% if not current_user.is_authenticated %}
-    <div id=prompt>Log In:</div>
+        <div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
+        <br>
+        Simple Beautiful Collabrative 
+
+        <br><br><br><br>
+
+        Login to enable editing.
+     </div>
         <div class="box">
         {% with messages = get_flashed_messages() %}
         {% if messages %}

@@ -38,7 +38,6 @@
 /*global */
 
 body {
-    font-family: Montserrat;
     font-weight: 300;
     font-size: 18px;
     color: var(--font-col);
@@ -74,6 +73,7 @@ button:hover {
 /* paras */
 
 .para {
+    font-family: CM;
 }
 
 .para.active {

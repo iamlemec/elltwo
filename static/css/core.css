@@ -1,5 +1,10 @@
+@font-face {
+    font-family: 'CM';
+    src: url(/static/fonts/lmroman10-regular.otf);
+}
+
 body {
-    font-family: CM;
+    font-family: 'Open Sans', sans-serif;
 }
 
 * {
@@ -44,10 +49,10 @@ textarea:focus, input:focus {
     bottom: 0px;
     width: 100%;
     margin: 0px;
-    padding-left: 5px;
-    padding-bottom: 5px;
+    padding: 5px;
     font-size: 70%;
     background-color:  var(--bg-hl2-col);
+    font-family: 'Open Sans', sans-serif;
 }
 
 #bg {
@@ -85,10 +90,9 @@ textarea:focus, input:focus {
     height: 150px;
 }
 
-/* button:active {
-    position:relative;
-    top:1px;
-} */
+button {
+    font-family : inherit;
+} 
 
 ::-webkit-scrollbar {
     width: 0px;
@@ -112,6 +116,10 @@ a.reference {
    width: 100px;
 }
 
+#title{
+    font-family: CM;
+}
+
 
 .foot_butt {
     display: inline;
@@ -119,6 +127,7 @@ a.reference {
     border: 1px solid var(--delimit-col);
     margin-left: 5px;
     margin-right: 5px;
+    padding: 2px;
     top: 0;
     width: 70px;
 }
@@ -177,24 +186,23 @@ a.reference {
     width: 100%;
     margin: 0px;
     height: 40px;
-    padding-right: 15px;
-    padding-left: 15px;
-    font-size: 50%;
+    padding-right: 30px;
+    padding-left: 30px;
+    font-size: 70%;
     background-color:  var(--bg-hl2-col);
 }
 
 #hoot {
     position: absolute;
     bottom: 2px;
-    right: 15px;
-    margin-right: 0;
+    left: 30px;
 }
 
 #user_display {
     margin-right: 10px;
     position: absolute;
     bottom: 2px;
-    left: 15px;
+    left: 150px;
 }
 
 .foot_butt {
@@ -203,7 +211,7 @@ a.reference {
     border: 1px solid var(--delimit-col);
     margin-left: 0px;
     margin-right: 5px;
-    margin-bottom: 12px;
+    margin-bottom: 18px;
     top: 0;
     width: 70px;
 }
@@ -231,4 +239,13 @@ a.reference {
     padding-left: 0%;
     padding-right: 0%;
     font-size: 80%;
+}
+     
+#locallogin {
+    width: 90%;
+}
+
+#locallogin:after {
+    left: 10%;
+}
 }

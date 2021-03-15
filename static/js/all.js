@@ -9,3 +9,15 @@ $(document).on('click', '#toggle_ll', function() {
         el.html(msg);
     });
 });
+
+// if(mobile){ //remove footer for mobile when keyboard is up
+
+//     $(document).on('focus', 'input', function() {
+//         $('#foot').hide();
+//     });
+
+//     $(document).on('focusout', 'input', function() {
+//         $('#foot').show();
+//     });
+
+// }

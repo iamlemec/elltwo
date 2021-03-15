@@ -20,7 +20,7 @@
 
         <br><br><br><br>
 
-        Create a login to enable editing. 
+        Create a login to enable editing. Already have an account? <a href="{{ url_for('Login') }}">Sign In</a>.
      </div>
         <div class="box">
         {% with messages = get_flashed_messages() %}
@@ -48,6 +48,10 @@
     </div>
     {% endif %}
     {% if current_user.is_authenticated %}
+        <div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
+        <br>
+        Simple Beautiful Collabrative  
+     </div>
             <div class="box">
             <div class="notification">
                 You are logged in as {{ current_user.name }}, log out?
