@@ -21,6 +21,7 @@
     src: url("/static/fonts/lmroman10-bold.otf");
     font-weight: bold;
 }
+
 @font-face {
     font-family: 'CM';
     src: url("/static/fonts/lmroman10-italic.otf");
@@ -28,13 +29,11 @@
 }
 
 @font-face {
-  font-family: 'Fira';
-  font-style: normal;
-  font-weight: 100;
-  src: url('/static/fonts/FiraCode.ttf') format('truetype');
+    font-family: 'Fira';
+    font-style: normal;
+    font-weight: 100;
+    src: url('/static/fonts/FiraCode.ttf') format('truetype');
 }
-
-
 
 /*global */
 
@@ -65,17 +64,21 @@ button:hover {
 }
 
 #logo_placeholder {
-/*    border-bottom: 1px dashed black;*/
+    /* border-bottom: 1px dashed black; */
 }
 
-.toc_entry{
- color: var(--font-col);
+.toc_entry {
+    color: var(--font-col);
 }
 
 /* paras */
 
 .para {
-    border-left: 2px solid var(--bg-col);
+}
+
+.para.active {
+    border-left: 2px solid var(--hl-col);
+    background-color: var(--bg-hl-col);
 }
 
 .para.changed {
@@ -86,43 +89,28 @@ button:hover {
     border-right: 2px solid var(--font-col-int);
 }
 
-/*.active:hover {
-    border-left: 2px solid var(--hl-col);
-}*/
-
-.active {
-   border-left: 2px solid var(--hl-col);
-   background-color: var(--bg-hl-col);
-}
-
-/*.active.changed {
-   border-image-source: linear-gradient(var(--hl-col) 0%, var(--hl-col) 50%, var(--hl2-col) 50%, var(--hl2-col));
-   border-image-slice: 1;
-}*/
-
 /* text elements */
 
-.footnote{
-  color: var(--hl2-col);
-  font-size: 80%;
-  vertical-align: super;
+.footnote {
+    color: var(--hl2-col);
+    font-size: 80%;
+    vertical-align: super;
 }
 
-.footnote > .num{
-   color: var(--font-col);
-
+.footnote > .num {
+    color: var(--font-col);
 }
 
-.code{
-  font-family: Fira;
-  font-size: 90%;
-  color: var(--font-col-int);
-  text-indent: 15px;
-  background-color: var(--bg-hl-col);
+.code {
+    font-family: Fira;
+    font-size: 90%;
+    color: var(--font-col-int);
+    text-indent: 15px;
+    background-color: var(--bg-hl-col);
 }
 
-.active  .code{
-   background-color: var(--bg-hl2-col);
+.active .code {
+    background-color: var(--bg-hl2-col);
 }
 
 .ref_error {
@@ -140,7 +128,7 @@ button:hover {
 }
 
 #pop:after {
-  border: var(--pop-bg-col);
+    border: var(--pop-bg-col);
 }
 
 #pop .heading {
@@ -153,64 +141,64 @@ button:hover {
 
 /* syntax highlighting */
 
-.syn_hl{
+.syn_hl {
     color: var(--hl2-col);
 }
 
-.syn_math{
+.syn_math {
     color: var(--hl-col);
 }
 
-.syn_ref{
+.syn_ref {
     color: var(--font-col-int);
 }
 
-.syn_delimit{
+.syn_delimit {
     color: var(--delimit-col);
 }
 
-.brace{
+.brace {
     border-radius: 5px;
     background-color: var(--brace-col);
 }
 
 /* home page */
 
-#new_art_id{
-  background-color: var(--bg-hl-col);
-  color: var(--font-col);
+#new_art_id {
+    background-color: var(--bg-hl-col);
+    color: var(--font-col);
 }
 
-#submit{
-  background-color: var(--bg-hl-col);
-  border: none;
-  color: var(--font-col);
+#submit {
+    background-color: var(--bg-hl-col);
+    border: none;
+    color: var(--font-col);
 }
 
 
-.art_result{
-  background-color: var(--bg-hl-col);
+.art_result {
+    background-color: var(--bg-hl-col);
 }
 
-a.art_result{
-  color:  var(--font-col);
+a.art_result {
+    color:  var(--font-col);
 }
 
-.blurb{
-  color: var(--font-col);
+.blurb {
+    color: var(--font-col);
 }
 
-.heading{
-  color: var(--hl2-col)
+.heading {
+    color: var(--hl2-col)
 }
 
 /* bib */
 
-#bib_input{
-  background-color: var(--bg-hl-col);
+#bib_input {
+    background-color: var(--bg-hl-col);
 }
 
-.cite > a{
+.cite > a {
     color: var(--delimit-col);
 }
 
@@ -219,38 +207,37 @@ a.art_result{
 }
 
 .cite {
-       background-color: var(--bg-hl-col);
+    background-color: var(--bg-hl-col);
 }
 
 .citekey {
     color: var(--hl-col)
 }
 
-.custom-select-trigger:after{
+.custom-select-trigger:after {
     border-bottom: 2px solid;
     border-right: 2px solid;
     border-color: var(--hl2-col);
 }
 
-.custom-select-trigger{
-        background: var(--bg-hl2-col);
+.custom-select-trigger {
+    background: var(--bg-hl2-col);
     color: var(--delimit-col);
 }
 
-.custom-options{
+.custom-options {
     background: var(--bg-col);
 }
 
-.custom-option{
+.custom-option {
     border-bottom: 1px solid var(--bg-hl2-col);
 }
 
-.custom-option{
+.custom-option {
     background-color: var(--delimit-col);
-        color: var(--hl-col);
-
+    color: var(--hl-col);
 }
 
-.custom-option:hover{
+.custom-option:hover {
     background-color: var(--bg-hl2-col);
 }

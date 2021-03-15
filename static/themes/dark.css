@@ -102,7 +102,11 @@ button:hover {
 /* paras */
 
 .para {
-    border-left: 2px solid var(--bg-col);
+}
+
+.para.active {
+   border-left: 2px solid var(--hl-col);
+   background-color: var(--bg-hl-col);
 }
 
 .para.changed {
@@ -112,20 +116,6 @@ button:hover {
 .para.hl_change {
     border-right: 2px solid var(--hl-col);
 }
-
-/*.active:hover {
-    border-left: 2px solid var(--hl-col);
-}*/
-
-.active {
-   border-left: 2px solid var(--hl-col);
-   background-color: var(--bg-hl-col);
-}
-
-/*.active.changed {
-   border-image-source: linear-gradient(var(--hl-col) 0%, var(--hl-col) 50%, var(--hl2-col) 50%, var(--hl2-col));
-   border-image-slice: 1;
-}*/
 
 /* text elements */
 

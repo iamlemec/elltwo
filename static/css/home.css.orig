@@ -53,13 +53,24 @@
     font-size: 60%;
 }
 
+<<<<<<< HEAD
 #results{
   position: fixed;
   font-size: 120%;
   width: 60%;
   left: 20%;
   top: 40%;
-
+=======
+.box {
+    position: fixed;
+    width: 30%;
+    top: 20%;
+    left: 35%;
+    background-color: var(--bg-hl2-col);
+    padding: 15px;
+    padding-top: 15px;
+>>>>>>> 6e3c416b1f83fad3b05befd8a686f183a56d882e
+}
 
 .login_field > input, .login-button, .notification {
     width: 100%;
@@ -68,6 +79,7 @@
     font-size: 110%;
 }
 
+<<<<<<< HEAD
 .box{
   position: fixed;
   width: 40%;
@@ -76,7 +88,12 @@
   background-color: var(--bg-hl2-col);
   padding: 15px;
   padding-top: 15px;
-
+=======
+.login-button {
+    margin: 20px 10px 0px 0px;
+    background-color: var(--delimit-col);
+>>>>>>> 6e3c416b1f83fad3b05befd8a686f183a56d882e
+}
 
 .notification {
     color: var(--hl2-col);

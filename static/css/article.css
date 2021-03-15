@@ -3,12 +3,15 @@
 
 .para {
     position: relative;
-    left: 20%;
-    width: 60%;
+    left: 23%;
+    width: 54%;
     min-height: 30px;
     margin-bottom: 20px;
     padding-left: 5px;
     padding-right: 5px;
+    max-width: 650px;
+    border-left: 2px solid var(--bg-col);
+    border-right: 2px solid var(--bg-col);
 }
 
 /*.para:hover {
@@ -548,10 +551,9 @@ circle.commit.active {
 
 
  @media only screen and (max-width: 815px) {
-  
-     
+
+
 .para {
-    position: relative;
     left: 12%;
     width: 74%;
     min-height: 30px;
@@ -559,7 +561,7 @@ circle.commit.active {
     padding-left: 5px;
     padding-right: 5px;
 }
-     
+
 #sidebar {
     min-width: 250px;
     width: 100%;
@@ -567,11 +569,11 @@ circle.commit.active {
     padding: 5%;
     z-index: 10;
 }
-     
+
 .custom-select-wrapper {
     right: 15%;
 }
-     
+
 .control {
     display: none;
     position: fixed;
@@ -600,7 +602,7 @@ circle.commit.active {
     width: 100%;
     justify-content: center;
 }
-     
+
 .controlButs > button{
     display: inline-block;
     width: unset;
@@ -619,7 +621,7 @@ circle.commit.active {
 .controlDots {
     display: none;
 }
-     
+
 #pop {
     padding: 10px;
     position: absolute;
@@ -631,5 +633,5 @@ circle.commit.active {
     bottom: 40px;
     border-radius: 0;
 }
-     
+
 }

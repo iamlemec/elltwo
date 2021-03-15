@@ -95,7 +95,8 @@ createArt = function() {
             window.location = response;
         });
     };
-};
+<<<<<<< HEAD
+}
 
 renderKatex = function() {
     $('body').find('span.latex').each(function() {
@@ -115,4 +116,6 @@ renderKatex = function() {
 };
 
 
-
+=======
+};
+>>>>>>> 6e3c416b1f83fad3b05befd8a686f183a56d882e
