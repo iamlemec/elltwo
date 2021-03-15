@@ -115,6 +115,17 @@ class AxiomDB:
                 k.delete_time = None
             self.session.commit()
 
+    def expunge_article(self, aid, klass=None, commit=True):
+        if klass is None:
+            self.expunge_article(aid, klass=Article, commit=False)
+            self.expunge_article(aid, klass=Paragraph, commit=False)
+            self.expunge_article(aid, klass=Paralink, commit=False)
+            self.expunge_article(aid, klass=ExtRef, commit=False)
+        else:
+            self.session.query(klass).filter_by(aid=aid).delete()
+        if commit:
+            self.session.commit()
+
     ##
     ## query methods
     ##

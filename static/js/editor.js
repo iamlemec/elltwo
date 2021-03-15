@@ -487,3 +487,7 @@ $(document).on('click', '.delete', function() {
     var para = $(this).parents('.para');
     sendDeletePara(para);
 });
+
+$(document).ready(function() {
+    $('#content').focus();
+});
