@@ -444,26 +444,24 @@ export_markdown = function() {
 
 //mobile hover eqiv
 
-
-if(mobile){
+if (mobile) {
     $(document).ready(function() {
         $(document).on('click', '.pop_anchor', function(e){
-            e.preventDefault()
+            e.preventDefault();
             $('#pop').remove();
             var ref = $(this);
             ref.data('show_pop', true);
-            loc = {'x': 10, 'y': 40}
             var html = getTro(ref, renderPop);
-            return false
+            return false;
         });
     });
 
     $(document).click(function(e) {
-        if($(e.target).closest('#pop').length == 0){
-           $('#pop').remove();
+        if ($(e.target).closest('#pop').length == 0) {
+            $('#pop').remove();
         } else {
             window.location = $('#pop').attr('href');
             $('#pop').remove();
-        };
-});
+        }
+    });
 }

@@ -446,13 +446,11 @@ renderKatex = function(para) {
         var src = tex.text();
         tex.empty();
         try {
-          katex.render(src, tex[0],
-            //{macros: config["macros"]}
-            );
+            katex.render(src, tex[0]);
         } catch (e) {
-          console.log(para.text());
-          console.log(src);
-          console.log(e);
+            console.log(para.text());
+            console.log(src);
+            console.log(e);
         }
     });
     para.find('div.latex').each(function() {

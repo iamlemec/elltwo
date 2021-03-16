@@ -33,7 +33,7 @@
   font-size: 60%;
 }
 
-::-webkit-input-placeholder { 
+::-webkit-input-placeholder {
   color: var(--hl-col);
   font-size: 60%;
 }
@@ -47,6 +47,7 @@
 
 #results {
     position: fixed;
+    scrollbar-width: none;
     font-size: 120%;
     width: 60%;
     left: 20%;
@@ -121,7 +122,7 @@
   font-size: 130%;
   top: 25%;
 }
-   
+
 .art_result{
   display: block;
   margin-bottom: 20px;
@@ -152,5 +153,5 @@
   padding: 15px;
   padding-top: 15px;
 }
-   
+
 }
