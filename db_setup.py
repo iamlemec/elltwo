@@ -1,6 +1,6 @@
 import argparse
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from flask_login import UserMixin
 
@@ -93,3 +93,6 @@ class User(UserMixin, Base):
     email = Column(String(100), unique=True)
     password = Column(String(100))
     name = Column(String(1000))
+    registered_on = Column(DateTime, nullable=False, default=datetime.utcnow)
+    confirmed = Column(Boolean, nullable=False, default=False)
+    confirmed_on = Column(DateTime, nullable=True)

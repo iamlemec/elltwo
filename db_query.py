@@ -622,3 +622,9 @@ class AxiomDB:
         new_user = User(email=email, name=name, password=hash)
         self.session.add(new_user)
         self.session.commit()
+
+    def confirm_user(self, user):   
+        user.confirmed = True
+        user.confirmed_on = datetime.now()
+        self.session.add(user)
+        self.session.commit()

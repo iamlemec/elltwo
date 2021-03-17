@@ -2,7 +2,7 @@ import os
 import argparse
 from datetime import datetime
 
-from db_setup import Article, Paragraph, Paralink, Bib, ExtRef
+from db_setup import Article, Paragraph, Paralink, Bib, ExtRef, User
 from db_query import AxiomDB
 
 parser = argparse.ArgumentParser(description='Axiom2 server.')
@@ -17,6 +17,8 @@ adb.session.query(Bib).delete()
 adb.session.query(Paralink).delete()
 adb.session.query(Paragraph).delete()
 adb.session.query(Article).delete()
+adb.session.query(User).delete()
+
 
 now = datetime.utcnow()
 

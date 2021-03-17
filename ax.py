@@ -1,6 +1,8 @@
 from flask import Flask, Response, request, redirect, url_for, render_template, jsonify, make_response, flash, send_from_directory
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail, Message
+
 
 import os, re, json, argparse
 from datetime import datetime, timedelta
@@ -9,6 +11,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from werkzeug.security import check_password_hash
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
+from itsdangerous import URLSafeTimedSerializer
 
 # import db tools
 from db_setup import Article, Paragraph, Paralink, Bib, User
@@ -16,6 +19,7 @@ from db_query import AxiomDB, order_links
 
 # other tools
 from tools import Multimap
+from pathlib import Path
 
 ###
 ### initialize flask and friends
@@ -40,10 +44,26 @@ sched.start()
 
 # create flask app
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.path}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+# app.config['SECRET_KEY'] = 'secret!'
+# app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.path}'
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.debug = args.debug
+
+app.config.update(dict(
+    DEBUG = True,
+    MAIL_SERVER = 'smtp.gmail.com',
+    MAIL_PORT = 587,
+    MAIL_USE_TLS = True,
+    MAIL_USE_SSL = False,
+    MAIL_USERNAME = 'axiomelltwo@gmail.com',
+    MAIL_PASSWORD = 'uxG2XcC2aZcuSJZ', #actual gmail password for account!
+    MAIL_DEFAULT_SENDER = 'axiomelltwo@gmail.com',
+    SQLALCHEMY_TRACK_MODIFICATIONS = True,
+    SQLALCHEMY_DATABASE_URI = f'sqlite:///{args.path}',
+    SECRET_KEY = 'secret!',
+    SECURITY_PASSWORD_SALT = 'another_secret!',
+))
+mail = Mail(app)
 
 # load sqlalchemy
 db = SQLAlchemy(app)
@@ -108,7 +128,6 @@ def Login():
         next = request.referrer.replace('/r/', '/a/', 1)
     else:
         next = url_for('Home')
-    print(next, type(next))
     return render_template('login.html', next=next, theme=args.theme)
 
 @app.route('/create_user', methods=['POST'])
@@ -124,8 +143,27 @@ def CreateUser():
         return redirect(url_for('Signup'))
 
     adb.add_user(email, name, password)
-
+    send_confirmation_email(email)
+    flash('Check your email to activate your account')
     return redirect(url_for('Login'))
+
+@app.route('/confirm/<token>')
+def confirm_email(token):
+    try:
+        email = confirm_token(token)
+        user = adb.get_user(email)
+    except:
+        flash('The confirmation link is invalid or has expired.')
+        return redirect(url_for('Signup'))
+    if user.confirmed:
+        flash('The account is already confirmed. Please login.')
+        return redirect(url_for('Login'))
+    else:
+        adb.confirm_user(user)
+        login_user(user, remember=True) #currently we always store cookies, could make it option
+        flash('You have confirmed your account. Thanks!')
+    return redirect(url_for('Home'))
+
 
 @app.route('/login_user', methods=['POST'])
 def LoginUser():
@@ -142,10 +180,10 @@ def LoginUser():
     # take the user-supplied password, hash it, and compare it to the hashed password in the database
     if user is None or not check_password_hash(user.password, password):
         flash('Please check your login details and try again.')
-        return redirect(url_for('Login')) # if the user doesn't exist or password is wrong, reload the page
+        return redirect(url_for('Login')) 
 
     # if the above check passes, then we know the user has the right credentials
-    login_user(user, remember=True)
+    login_user(user, remember=True) #currently we always store cookies, could make it option
     return redirect(next)
 
 @app.route('/logout_user', methods=['POST'])
@@ -153,6 +191,47 @@ def LoginUser():
 def LogoutUser():
     logout_user()
     return redirect(request.referrer)
+
+
+def send_confirmation_email(email):
+    subject = "Confirm your Axiom L2 account"
+    token = create_token(email)
+    confirm_url = url_for('confirm_email', token=token, _external=True)
+    html = render_template('email_conf.html', confirm_url=confirm_url)
+    send_email('evan.piermont@gmail.com', subject, html)
+    return redirect(url_for('Home'))
+
+def send_email(to, subject, template, logo=True):
+    msg = Message(
+        subject,
+        recipients=[to],
+        html=template,
+        sender=app.config['MAIL_DEFAULT_SENDER']
+        )
+    if logo:
+        fpp = Path(__file__).parent / "static/img/logofull.png"
+        with app.open_resource(fpp) as fp:
+                msg.attach(filename="axlogo.png", content_type="image/png", data=fp.read(), 
+                               disposition="inline", headers=[['Content-ID', '<logo>']])
+
+    mail.send(msg)
+
+def create_token(email):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    return serializer.dumps(email, salt=app.config['SECURITY_PASSWORD_SALT'])
+
+
+def confirm_token(token, expiration=3600):
+    serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+    try:
+        out = serializer.loads(
+            token,
+            salt=app.config['SECURITY_PASSWORD_SALT'],
+            max_age=expiration
+        )
+    except:
+        return False
+    return out
 
 ###
 ### Article
