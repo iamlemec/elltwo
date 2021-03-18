@@ -1,0 +1,78 @@
+{% raw %}
+%
+% This .tex file was created with Axiom \ell^2
+% [201p // iamlemec] 
+%
+
+\documentclass[12pt]{article}
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm,amssymb} % Math packages
+\usepackage{array}
+\usepackage{fullpage}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage[authoryear]{natbib} %bib
+\usepackage[unicode]{hyperref} %hyperlinks
+\usepackage{xcolor} %colors
+\usepackage{cleveref} %references
+\usepackage{newverbs}
+\usepackage{fancyvrb}
+\usepackage{geometry}
+
+\geometry{margin=1.25in}
+
+%%colors 
+\definecolor{lam1}{HTML}{127DFF}
+\definecolor{lam2}{HTML}{95B204}
+\definecolor{err}{HTML}{B30000}
+\definecolor{code}{HTML}{95B204}
+
+\hypersetup{
+colorlinks=true,
+linkcolor=lam1,
+urlcolor=lam1,
+citecolor=lam1 
+}
+
+%%new commands
+\renewcommand{\blacksquare}{\vrule height7pt width4pt depth1pt}
+\newcommand{\hl}[1]{\textcolor{err}{\textsc{#1}} }
+\newverbcommand{\cverb}{\color{code}}{}
+\DefineVerbatimEnvironment{blockcode}
+  {Verbatim}
+  {fontsize=\small,formatcom=\color{blue}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem*{theorem*}{Theorem}
+\newtheorem*{example*}{example}
+\newtheorem{example}{example}
+\newtheorem*{lemma*}{Lemma}
+\newtheorem{lemma}{Lemma}
+
+{% endraw %}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+
+\title{ {{in_title}}\thanks{This .tex file was created via Axiom $\ell^2$ on {{date}}.} }
+
+
+\maketitle
+
+{% for p in paras %}
+{{p}}
+{% endfor%}
+
+
+\end{document}
+

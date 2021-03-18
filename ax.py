@@ -279,6 +279,20 @@ def ExportMarkdown(title):
 
     return resp
 
+@app.route('/et', methods=['GET','POST'])
+def export_tex():
+    data =request.form['data']
+    data = json.loads(data)
+    title = data['title'];
+    in_title = data['in_title'];
+    paras = data['paras'];
+    tex = render_template('template.tex', in_title=in_title, paras=paras, date=datetime.now())
+    resp = make_response(tex)
+    fname = f'{title}.tex'
+    resp.headers['Content-Type'] = 'text/tex'
+    resp.headers['Content-Disposition'] = f'attachment; filename={fname}'
+    return resp
+
 @app.route('/b', methods=['GET'])
 def RenderBib():
     return render_template('bib.html', theme=args.theme)

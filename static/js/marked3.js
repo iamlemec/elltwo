@@ -27,7 +27,7 @@ var block = {
   text: /^[^\n]+/,
   equation: /^\$\$(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
   svg: /^\&svg(\*)? *(?:refargs)?[\s\n]*((?:[^\n]+\n?)*)(?:$)/,
-  title: /^#! *([^\n]*)(?:\n+|$)/,
+  title: /^#! *(?:refargs)? *([^\n]*)(?:\n+|$)/,
   image: /^!\[(inside)\]\(href\)(?:\n+|$)/,
   biblio: /^@@ *(?:refid) *\n?((?:[^\n]+\n?)*)(?:\n+|$)/,
   figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n?)*)(?:\n+|$)/,
@@ -50,6 +50,10 @@ block.heading = replace(block.heading)
   ();
 
 block.equation = replace(block.equation)
+  ('refargs', block._refargs)
+  ();
+
+block.title = replace(block.title)
   ('refargs', block._refargs)
   ();
 
@@ -313,14 +317,17 @@ Lexer.prototype.token = function(src, top, bq) {
     // title
     if (cap = this.rules.title.exec(src)) {
       src = src.substring(cap[0].length);
+      var argsraw = cap[1] || '';
+      var args = parseArgs(argsraw, number);
       this.tokens.push({
         type: 'title',
-        text: cap[1]
+        args: args,
+        text: cap[2],
       });
       continue;
     }
 
-        // title
+        // svg
     if (cap = this.rules.svg.exec(src)) {
       src = src.substring(cap[0].length);
       var number = cap[1] == undefined;
@@ -609,7 +616,6 @@ Lexer.prototype.token = function(src, top, bq) {
         Error('Infinite loop on byte: ' + src.charCodeAt(0));
     }
   }
-
   return this.tokens;
 };
 
@@ -972,7 +978,7 @@ InlineLexer.prototype.mangle = function(text) {
 };
 
 /**
- * Renderer
+ *  DIV Renderer
  */
 
 function DivRenderer(options) {
@@ -1150,6 +1156,173 @@ DivRenderer.prototype.biblio = function(id, info) {
 };
 
 /**
+ *  TEX Renderer
+ */
+
+function TexRenderer(options) {
+  this.options = options || {};
+}
+
+TexRenderer.prototype.code = function(code, lang, escaped) {
+  if (this.options.highlight) {
+    var out = this.options.highlight(code, lang);
+    if (out != null && out !== code) {
+      escaped = true;
+      code = out;
+    }
+  }
+
+  code = escaped ? code : escape_latex(code, true);
+  lang = lang ? (this.options.langPrefix + escape(lang, true)) : '';
+
+  return `\\begin{blockcode}\n${code}\n\\end{blockcode}`;
+};
+
+TexRenderer.prototype.blockquote = function(quote) {
+  return `\\verb\`${quote}\``;
+};
+
+TexRenderer.prototype.html = function(html) {
+  return `\\verb\`${html}\``;
+};
+
+TexRenderer.prototype.title = function(title) {
+  return title;
+};
+
+TexRenderer.prototype.heading = function(text) {
+  return text;
+};
+
+TexRenderer.prototype.svg = function(svg) {
+  return "SVG"
+};
+
+TexRenderer.prototype.envbeg = function(text) {
+  return text;
+};
+
+TexRenderer.prototype.envend = function(text) {
+  return text;
+};
+
+TexRenderer.prototype.hr = function() {
+  return `\\rule{\\textwidth}{0.4pt}`;
+};
+
+// DivRenderer.prototype.list = function(body, ordered) {
+//   var type = ordered ? 'ordered' : 'unordered';
+//   return `<div class="list ${type}">\n${body}</div>\n\n`;
+// };
+
+// DivRenderer.prototype.listitem = function(text) {
+//   return `<div class="list-item">${text}</div>\n`;
+// };
+
+TexRenderer.prototype.paragraph = function(text, terse) {
+  return `${text}`;
+};
+
+// DivRenderer.prototype.table = function(header, body) {
+//   return `<div class="table">\n<div class="table-header">\n${header}</div>\n<div class="table-body">\n${body}</div>\n</div>\n\n`;
+// };
+
+// DivRenderer.prototype.tablerow = function(content) {
+//   return `<div class="table-row">${content}</div>\n`;
+// };
+
+// DivRenderer.prototype.tablecell = function(content, flags) {
+//   return `<div class="table-cell">${content}</div>`;
+// };
+
+// span level TexRenderer
+TexRenderer.prototype.strong = function(text) {
+  return `\\textbf{${text}}`;
+};
+
+TexRenderer.prototype.em = function(text) {
+  return `\\textit{${text}}`;     
+};  
+
+TexRenderer.prototype.codespan = function(code) {
+  //text = escape_latex(text, true);
+  return `\\cverb\`${code}\``;
+};
+
+TexRenderer.prototype.br = function() {
+  return `\\bigskip`;
+};
+
+// DivRenderer.prototype.del = function(text) {
+//   return `<span class="del">${text}</span>`;
+// };
+
+TexRenderer.prototype.link = function(href, title, text) {
+  if (this.options.sanitize) {
+    try {
+      var prot = decodeURIComponent(unescape(href))
+        .replace(/[^\w:]/g, '')
+        .toLowerCase();
+    } catch (e) {
+      return '';
+    }
+    if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0) {
+      return '';
+    }
+  }
+  text = escape_latex(text);
+
+  return `\\href{${href}}{${text}}`
+};
+
+TexRenderer.prototype.ilink = function(href) {
+  return `\\href{${window.location.origin}/r/${href}}{${href}}`
+};
+
+TexRenderer.prototype.escape = function(esc) {
+  return escape_latex(esc);
+};
+
+TexRenderer.prototype.text = function(text) {
+   return escape_latex(text);
+ };
+
+TexRenderer.prototype.math = function(tex) {
+   return `$${tex}$`;
+ };
+
+TexRenderer.prototype.equation = function(tex) {
+  return `${tex}`;
+};
+
+TexRenderer.prototype.ref = function(args) {
+  var id = args['id'];
+  var ext = id.includes(':');
+  var format = args['format'] || args['fmt'] || args['f'] || '';
+  var c = (format == 'plain') ? '': 'c';
+  var text = args['text'] || args['txt'] || args['t'];
+  var htext =  (text != undefined) ? `text="${text}"`: '';
+  var pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
+  var ptext = ('poptext' in args) ? `poptext="${args['poptext']}"`: '';
+  return `\\${c}ref{${id}}`
+
+};
+
+TexRenderer.prototype.footnote = function(text) {
+   return `\\footnote{${text}}`;
+ };
+
+// DivRenderer.prototype.image = function(href, alt) {
+//   return `<img src="${href}" alt="${alt}">`;
+// };
+
+// DivRenderer.prototype.figure = function(ftype, tag, title, body) {
+//   var tagtxt = (tag != undefined) ? `id="${tag}"`: '';
+//   var captxt = (title != undefined) ? `<figcaption>${title}</figcaption>` : '';
+//   return `<figure class="${ftype}" ${tagtxt}>\n${body}\n${captxt}\n</figure>\n\n`;
+// };
+
+/**
  * Parsing & Compiling
  */
 
@@ -1235,6 +1408,11 @@ Parser.prototype.tok = function() {
       return this.renderer.hr();
     }
     case 'title': {
+      this.env = {
+        type: 'env_one',
+        env: 'title',
+        args: this.token.args
+      }
       return this.renderer.title(this.inline.output(this.token.text));
     }
     case 'svg': {
@@ -1267,7 +1445,7 @@ Parser.prototype.tok = function() {
         args: this.token.args
       };
       return this.renderer.envbeg(
-        this.inline.output(this.token.text)
+        this.inline.output(this.token.text), this.token.args
       );
     }
     case 'envend': {
@@ -1600,6 +1778,7 @@ marked.Parser = Parser;
 marked.parser = Parser.parse;
 
 marked.Renderer = DivRenderer;
+marked.texRenderer = TexRenderer;
 
 marked.Lexer = Lexer;
 marked.lexer = Lexer.lex;

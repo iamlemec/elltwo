@@ -543,6 +543,36 @@ circle.commit.active {
   background: var(--font-col-int);
 }
 
+#export_options {
+    display: none;
+    position: absolute;
+    width: 80px;
+    bottom: 150%;
+    right: 5px;
+    background-color: var(--bg-hl2-col);
+    padding: 0px 5px 0px 5px
+}
+
+.export_butt {
+    width: 100%;
+    min-height: 20px;
+    font-size: 110%;
+    margin: 5px 0px 5px 0px;
+    background-color: var(--bg-hl-col);
+    border: 1px solid var(--delimit-col);
+    font-size: 90%;
+}
+
+
+#export_options:after {
+    content: "";
+    position: absolute;
+    border-width: 10px;
+    border-style: solid;
+    border-color: var(--bg-hl2-col) transparent transparent transparent;
+    bottom: -20px;
+    left: 40%;
+}
 
 /*  MOBILE CSS */
 
@@ -630,5 +660,9 @@ circle.commit.active {
     bottom: 40px;
     border-radius: 0;
 }
+     
+     #export_options{
+         right: 30px;
+     }
 
 }

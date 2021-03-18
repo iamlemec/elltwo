@@ -385,6 +385,10 @@ proofEnv = function(ptxt, args) {
     return simpleEnv(ptxt, 'proof', 'Proof', `— <span class='qed'>&#8718;</span>`, false);
 };
 
+titleEnv = function(ptxt, args) {
+    return ptxt;
+};
+
 exampleEnv = function(ptxt, args) {
     return numberEnv(ptxt, 'example', 'Example', '', args);
 };
@@ -434,6 +438,7 @@ env_spec = {
     'example': exampleEnv,
     'heading': headingEnv,
     'equation': equationEnv,
+    'title': titleEnv,
     'svg': svgEnv,
     'error': errorEnv,
 };

@@ -104,10 +104,6 @@ a.reference {
     text-decoration: none;
 }
 
-#locallogin {
-    display: none;
-}
-
 #hoot {
     margin-right: 50px;
 }
@@ -137,6 +133,7 @@ a.reference {
 }
 
 #locallogin {
+    display: none;
     position: absolute;
     width: 30%;
     bottom: 150%;

@@ -395,7 +395,6 @@ $(document).ready(function() {
     update_hist_map = create_hist_map();
     $('#show_hist').click(toggle_hist_map);
     $('#revert_hist').click(revert_history);
-    $('#export').click(export_markdown);
 });
 
 function responsivefy(svg) {
@@ -436,11 +435,6 @@ progress = function(){
     $('#prog_bar').css('width',p + '%')
 };
 
-// exporting
-
-export_markdown = function() {
-    window.location.replace(`/em/${title}`);
-}
 
 //mobile hover eqiv
 

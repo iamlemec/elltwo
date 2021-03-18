@@ -45,7 +45,7 @@
             {% endif %}
             {% if not current_user.is_authenticated %}
                 <button class="foot_butt" id="toggle_ll">LogIn to Edit</button>
-                <div id=locallogin>
+                <div id=locallogin class=box>
                 <form method="POST" action="/login_user">
                 <div class="login_field">
                     <input class="input" type="email" name="email" placeholder="Email" autofocus="">

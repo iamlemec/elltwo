@@ -2,6 +2,16 @@
 
 {% block head %}
    {{ super() }}
+   <script type="text/javascript">
+    title = '{{title}}';
+    aid = '{{aid}}';
+    theme = '{{theme}}';
+    {% if edit %}
+    readonly = false;
+    {% else %}
+    readonly = true;
+    {% endif %}
+</script>
    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
    <script src={{ url_for('static', filename='libs/socket.io.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='libs/d3.v5.min.js') }} language="Javascript" type="text/javascript"></script>
@@ -9,6 +19,7 @@
    <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='js/article.js') }} language="Javascript" type="text/javascript"></script>
    <script src={{ url_for('static', filename='js/render.js') }} language="Javascript" type="text/javascript"></script>
+   <script src={{ url_for('static', filename='js/export.js') }} language="Javascript" type="text/javascript"></script>
 {% endblock %}
 
 {% block title %}{{title}}{% endblock %}
@@ -70,16 +81,11 @@ Font
 <button id="show_hist" class="foot_butt">History</button>
 <button id="export" class="foot_butt">Export</button>
 
-<script type="text/javascript">
-    title = '{{title}}';
-    aid = '{{aid}}';
-    theme = '{{theme}}';
-    {% if edit %}
-    readonly = false;
-    {% else %}
-    readonly = true;
-    {% endif %}
-</script>
+<div id=export_options class=box>
+<button id="export_tex" class="export_butt">TeX</button>
+<button id="export_md" class="export_butt">MarkDown</button>
+</div>
+
 <script src={{ url_for('static', filename='js/editor.js') }} language="Javascript" type="text/javascript"></script>
 
 {% endblock %}
