@@ -1195,7 +1195,7 @@ TexRenderer.prototype.heading = function(text) {
 };
 
 TexRenderer.prototype.svg = function(svg) {
-  return "SVG"
+  return 'SVG';
 };
 
 TexRenderer.prototype.envbeg = function(text) {
@@ -1241,8 +1241,8 @@ TexRenderer.prototype.strong = function(text) {
 };
 
 TexRenderer.prototype.em = function(text) {
-  return `\\textit{${text}}`;     
-};  
+  return `\\textit{${text}}`;
+};
 
 TexRenderer.prototype.codespan = function(code) {
   //text = escape_latex(text, true);

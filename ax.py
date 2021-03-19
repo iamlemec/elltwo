@@ -1,10 +1,9 @@
-from flask import Flask, Response, request, redirect, url_for, render_template, jsonify, make_response, flash, send_from_directory
+from flask import Flask, Response, request, redirect, url_for, render_template, jsonify, flash, send_from_directory
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
 
-
-import os, re, json, argparse
+import os, re, json, argparse, toml
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -33,6 +32,7 @@ parser.add_argument('--port', type=int, default=5000, help='Main port to serve o
 parser.add_argument('--timeout', type=int, default=180, help='Client timeout time in seconds')
 parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 parser.add_argument('--login', action='store_true', help='Require login for editing')
+parser.add_argument('--auth', type=str, default='auth.toml', help='mail authorization config')
 args = parser.parse_args()
 
 # login decorator (or not)
@@ -44,25 +44,15 @@ sched.start()
 
 # create flask app
 app = Flask(__name__)
-# app.config['SECRET_KEY'] = 'secret!'
-# app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.path}'
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.debug = args.debug
+app.config['DEBUG'] = args.debug
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.path}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
-app.config.update(dict(
-    DEBUG = True,
-    MAIL_SERVER = 'smtp.gmail.com',
-    MAIL_PORT = 587,
-    MAIL_USE_TLS = True,
-    MAIL_USE_SSL = False,
-    MAIL_USERNAME = 'axiomelltwo@gmail.com',
-    MAIL_PASSWORD = 'uxG2XcC2aZcuSJZ', #actual gmail password for account!
-    MAIL_DEFAULT_SENDER = 'axiomelltwo@gmail.com',
-    SQLALCHEMY_TRACK_MODIFICATIONS = True,
-    SQLALCHEMY_DATABASE_URI = f'sqlite:///{args.path}',
-    SECRET_KEY = 'secret!',
-    SECURITY_PASSWORD_SALT = 'another_secret!',
-))
+# load security config
+auth = toml.load(args.auth)
+app.config.update(auth)
+
+# mail thinger
 mail = Mail(app)
 
 # load sqlalchemy
@@ -180,7 +170,7 @@ def LoginUser():
     # take the user-supplied password, hash it, and compare it to the hashed password in the database
     if user is None or not check_password_hash(user.password, password):
         flash('Please check your login details and try again.')
-        return redirect(url_for('Login')) 
+        return redirect(url_for('Login'))
 
     # if the above check passes, then we know the user has the right credentials
     login_user(user, remember=True) #currently we always store cookies, could make it option
@@ -211,7 +201,7 @@ def send_email(to, subject, template, logo=True):
     if logo:
         fpp = Path(__file__).parent / "static/img/logofull.png"
         with app.open_resource(fpp) as fp:
-                msg.attach(filename="axlogo.png", content_type="image/png", data=fp.read(), 
+                msg.attach(filename="axlogo.png", content_type="image/png", data=fp.read(),
                                disposition="inline", headers=[['Content-ID', '<logo>']])
 
     mail.send(msg)
@@ -270,27 +260,31 @@ def RenderArticleRO(title):
 @app.route('/em/<title>', methods=['GET'])
 def ExportMarkdown(title):
     art = adb.get_art_short(title)
-    text = adb.get_art_text(art.aid)
+    md = adb.get_art_text(art.aid)
     fname = f'{title}.md'
 
-    resp = Response(text)
+    resp = Response(md)
     resp.headers['Content-Type'] = 'text/markdown'
     resp.headers['Content-Disposition'] = f'attachment; filename={fname}'
 
     return resp
 
-@app.route('/et', methods=['GET','POST'])
+@app.route('/et', methods=['GET', 'POST'])
 def export_tex():
-    data =request.form['data']
+    data = request.form['data']
     data = json.loads(data)
-    title = data['title'];
-    in_title = data['in_title'];
-    paras = data['paras'];
-    tex = render_template('template.tex', in_title=in_title, paras=paras, date=datetime.now())
-    resp = make_response(tex)
+
+    title = data['title']
+    in_title = data['in_title']
+    paras = data['paras']
     fname = f'{title}.tex'
+
+    tex = render_template('template.tex', in_title=in_title, paras=paras, date=datetime.now())
+
+    resp = Response(tex)
     resp.headers['Content-Type'] = 'text/tex'
     resp.headers['Content-Disposition'] = f'attachment; filename={fname}'
+
     return resp
 
 @app.route('/b', methods=['GET'])

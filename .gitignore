@@ -40,3 +40,6 @@ pip-delete-this-directory.txt
 
 # External logs
 screenlog.*
+
+# Config / Auth
+auth.toml
