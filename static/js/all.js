@@ -20,7 +20,7 @@ toggleBox = function(bool, button, box) {
             var targ = $(e.target);
             var close_butt = targ.closest('button');
             var close_box = targ.closest('box');
-            if ((close_butt.length == 0) && (close_box.lenght == 0)) {
+            if ((close_butt.length == 0) && (close_box.length == 0)) {
                 $(box).hide();
                 bool = false;
             }

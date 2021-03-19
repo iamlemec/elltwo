@@ -5,8 +5,10 @@
     --bor-col: #6c71c4; /* border and link color */
     --hl-col: #859900; /* highlight color */
     --hl2-col: #dc322f ; /* highlight color */
-    --pop-fg-col: #002b36; /* popup text color */
-    --pop-bg-col: #93a1a1; /* popup background color */
+    --pop-fg-col: #eee8d5; /* popup text color */
+    --pop-bg-col: rgb(81, 81, 81); /* #93a1a1; */ /* popup background color */
+    --butt-fg-col: #eee8d5;
+    --butt-bg-col: rgb(81, 81, 81);
     --font-col: #eee8d5;
     --font-col-int: #b58900;
     --dc-blue-col: rgb(33, 150, 243);
@@ -63,15 +65,20 @@ body {
 }
 
 button {
-    background-color: var(--pop-bg-col);
-    color: var(--pop-fg-col);
+    background-color: var(--butt-bg-col);
+    color: var(--butt-fg-col);
     border: none;
     display: inline-block;
     cursor: pointer;
+    border-radius: 2px;
 }
 
 button:hover {
-    background-color: darkgray;
+    background-color: rgb(101, 101, 101) !important;
+}
+
+#export_options {
+    border-radius: 2px;
 }
 
 .para {
