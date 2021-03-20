@@ -298,3 +298,8 @@ a.art_result {
 #sidebar {
     white-space: nowrap;
 }
+
+#axell > svg {
+    stroke: white;
+    fill: white;
+}

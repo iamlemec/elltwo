@@ -241,3 +241,9 @@ a.art_result {
 .custom-option:hover {
     background-color: var(--bg-hl2-col);
 }
+
+#axell > svg {
+    stroke: black;
+    fill: black;
+    opacity: 0.8;
+}

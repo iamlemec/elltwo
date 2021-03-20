@@ -119,11 +119,6 @@ a.reference {
     margin-bottom: -5px;
 }
 
-#axell > svg > g {
-    stroke: white;
-    fill: white;
-}
-
 #toggle_ll {
    width: 100px;
 }
