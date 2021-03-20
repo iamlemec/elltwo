@@ -109,12 +109,19 @@ a.reference {
 }
 
 #axell {
-    height: 20px;
-    margin-right: 5px;
+    margin-left: 5px;
+    margin-right: 10px;
 }
 
-#axell > img {
-    height: 100%;
+#axell > svg {
+    font-family: serif;
+    opacity: 0.6;
+    margin-bottom: -5px;
+}
+
+#axell > svg > g {
+    stroke: white;
+    fill: white;
 }
 
 #toggle_ll {
