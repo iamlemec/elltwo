@@ -92,7 +92,7 @@ textarea:focus, input:focus {
 
 button {
     font-family : inherit;
-} 
+}
 
 ::-webkit-scrollbar {
     width: 0px;
@@ -108,14 +108,22 @@ a.reference {
     margin-right: 50px;
 }
 
-#toggle_ll{
+#axell {
+    height: 20px;
+    margin-right: 5px;
+}
+
+#axell > img {
+    height: 100%;
+}
+
+#toggle_ll {
    width: 100px;
 }
 
-#title{
+#title {
     font-family: CM;
 }
-
 
 .foot_butt {
     display: inline;
@@ -212,12 +220,10 @@ a.reference {
     top: 0;
     width: 70px;
 }
-     
-#toggle_ll{
+
+#toggle_ll {
    width: 100px;
 }
-
-     
 
 #bg {
     position: fixed;
@@ -237,7 +243,7 @@ a.reference {
     padding-right: 0%;
     font-size: 80%;
 }
-     
+
 #locallogin {
     width: 90%;
 }
@@ -245,4 +251,5 @@ a.reference {
 #locallogin:after {
     left: 10%;
 }
+
 }

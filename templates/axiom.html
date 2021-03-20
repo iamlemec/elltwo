@@ -7,15 +7,15 @@
 
     {% block head %}
 
-    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/core.css') }} />
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/core.css') }}" />
     {% if theme %}
-    <link id="theme" type="text/css" rel="stylesheet" href={{url_for('static', filename='themes/'+theme+'.css')}} />
+    <link id="theme" type="text/css" rel="stylesheet" href="{{ url_for('static', filename='themes/'+theme+'.css') }}" />
     {% endif %}
-    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='katex/dist/katex.min.css') }} />
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='katex/dist/katex.min.css') }}" />
     <script type="text/javascript">var mobile = window.matchMedia('(max-width: 815px)').matches</script>
-    <script src={{ url_for('static', filename='libs/jquery-3.5.0.min.js') }}> </script>
-    <script src={{ url_for('static', filename='katex/dist/katex.min.js') }}></script>
-    <script src={{ url_for('static', filename='js/all.js') }} language="Javascript" type="text/javascript"></script>
+    <script src="{{ url_for('static', filename='libs/jquery-3.5.0.min.js') }}"> </script>
+    <script src="{{ url_for('static', filename='katex/dist/katex.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/all.js') }}" language="Javascript" type="text/javascript"></script>
     {% endblock %}
 
     <title> {% block title %}{% endblock %} </title>
@@ -34,6 +34,7 @@
         </div>
 
         <div id="foot">
+            <a id="axell" href="/"><img src="{{ url_for('static', filename='img/axell.svg') }}" /></a>
             <span id="hoot">[201p // iamlemec]</span>
             {% block foot_login %}
             {% if login %}

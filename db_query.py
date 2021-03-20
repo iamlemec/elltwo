@@ -77,7 +77,7 @@ def order_links(links, single=True):
 ##
 
 class AxiomDB:
-    def __init__(self, db=None, path='axiom.db', name='Axiom', uri=None):
+    def __init__(self, db=None, path='axiom.db', uri=None):
         if db is None:
             if uri is None:
                 uri = f'sqlite:///{path}'
@@ -623,7 +623,7 @@ class AxiomDB:
         self.session.add(new_user)
         self.session.commit()
 
-    def confirm_user(self, user):   
+    def confirm_user(self, user):
         user.confirmed = True
         user.confirmed_on = datetime.now()
         self.session.add(user)
