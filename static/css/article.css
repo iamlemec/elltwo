@@ -162,6 +162,15 @@ button {
     margin-bottom: 5px;
 }
 
+.list.ordered{
+   counter-reset: olist; 
+}
+
+.list.ordered > .list-item:before{
+    counter-increment: olist;
+    content: counter(olist)". s";
+}
+
 .strong {
     font-weight: bold;
 }
@@ -194,6 +203,16 @@ button {
 
 .footnote {
     cursor: pointer;
+}
+
+.p_text > img{
+    position: relative;
+    left: 10%;
+    width: 80%;
+}
+
+#pop > img{
+    width: 200px;
 }
 
 .svg_fig {

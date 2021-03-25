@@ -18,8 +18,9 @@ toggleBox = function(bool, button, box) {
     $(document).click(function(e) {
         if (bool) {
             var targ = $(e.target);
-            var close_butt = targ.closest('button');
-            var close_box = targ.closest('box');
+            var close_butt = targ.closest(button);
+            var close_box = targ.closest(box);
+            console.log(targ, close_butt,close_box)
             if ((close_butt.length == 0) && (close_box.length == 0)) {
                 $(box).hide();
                 bool = false;

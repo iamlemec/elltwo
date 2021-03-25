@@ -133,9 +133,10 @@ a.reference {
     border: 1px solid var(--delimit-col);
     margin-left: 5px;
     margin-right: 5px;
-    padding: 2px;
+    padding: 3px;
     top: 0;
     width: 70px;
+    margin-bottom: 2px;
 }
 
 .push {
@@ -161,8 +162,7 @@ a.reference {
 }
 
 .login-button {
-    margin: 20px 10px 0px 0px;
-    background-color: var(--delimit-col);
+    margin: 10px 10px 15px 0px;
 }
 
 
@@ -200,6 +200,12 @@ a.reference {
 }
 
 #hoot {
+    position: absolute;
+    bottom: 2px;
+    left: 60px;
+}
+     
+#axell {
     position: absolute;
     bottom: 2px;
     left: 30px;
@@ -253,5 +259,6 @@ a.reference {
 #locallogin:after {
     left: 10%;
 }
+     
 
 }

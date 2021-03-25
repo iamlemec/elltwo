@@ -20,13 +20,13 @@
 
         <br><br><br><br>
 
-        Create a login to enable editing. Already have an account? <a href="{{ url_for('Login') }}">Sign In</a>.
+        Create a login to enable editing. Already have an account? <a href="{{ url_for('Login') }}">Log in</a>.
      </div>
         <div class="box">
         {% with messages = get_flashed_messages() %}
         {% if messages %}
-            <div class="notification is-danger">
-                {{ messages[0] }}. Go to <a href="{{ url_for('Login') }}">login page</a>.
+            <div class="notification">
+                {{ messages[0] }}
             </div>
         {% endif %}
         {% endwith %}

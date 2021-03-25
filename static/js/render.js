@@ -418,7 +418,7 @@ equationEnv = function(ptxt, args) {
     }
 };
 
-svgEnv = function(ptxt, args) {
+figEnv = function(ptxt, args) {
     if(args.caption!='none'){
     let num = (args.number) ? makeCounter('figure') : "";
     let space = (num) ? " " : ""
@@ -439,7 +439,8 @@ env_spec = {
     'heading': headingEnv,
     'equation': equationEnv,
     'title': titleEnv,
-    'svg': svgEnv,
+    'svg': figEnv,
+    'image': figEnv,
     'error': errorEnv,
 };
 
@@ -757,6 +758,7 @@ ref_spec = {
     'error': refError,
     'equation': refEquation,
     'svg': refFigure,
+    'image': refFigure,
     'heading': refSection,
     'theorem': refTheorem,
     'text': refText,
@@ -913,6 +915,7 @@ pop_spec = {
     'cite': popCite,
     'equation': popEquation,
     'svg': popEquation,
+    'image': popEquation,
     'footnote': popSelf,
     'self': popSelf,
     'error': popError,
@@ -1048,6 +1051,7 @@ var block = {
   equation: /^\$\$(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
   figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
   svg: /^\&svg(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n?)*)(?:$)/,
+  image: /^!(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])(\s*)(\()([\w-:#/.&%=]*)(\))?([\s\S]*)/,
   envbeg: /^\>\>(\!)?([\n\r\s]*)([\w-]+)?(\*)?( *)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
   envend: /^\<\<((?:[^\n]+\n?)*)/
 };
@@ -1081,6 +1085,16 @@ if (cap = block.svg.exec(raw)) {
     var id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
     var text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
     return s('&', 'hl') + s('svg', 'delimit') + star + cap[2] + id + cap[4] + text;
+};
+
+if (cap = block.image.exec(raw)) {
+    var star = (cap[1]) ? s('*', 'hl') : "";
+    var id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
+    var l = (cap[5]) ? s('(', 'delimit') : "";
+    var href = (cap[6]) ? s(cap[6], 'hl') : "";
+    var r = (cap[7]) ? s(')', 'delimit') : "";
+    var text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
+    return s('!', 'hl') + star + cap[2] + id + cap[4] + l + href + r + text;
 };
 
 if (cap = block.envend.exec(raw)) {

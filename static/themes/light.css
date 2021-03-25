@@ -68,8 +68,8 @@ body {
 }
 
 button {
-    background-color: var(--bg-hl-col);
-    color: var(--pop-bg-col);
+    background-color: var(--bor-col);
+    color: var(--pop-fg-col);
     border: none;
     display:inline-block;
     cursor:pointer;

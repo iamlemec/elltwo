@@ -378,7 +378,6 @@ keymap = {
 
 $(document).keydown(function(e) {
     var key = e.key.toLowerCase();
-    console.log('keydown:', key, e.target);
     if (key in keymap) {
         keymap[key] = true;
         if (keymap['control'] && keymap['enter']) {
@@ -442,7 +441,6 @@ $(document).keydown(function(e) {
 
 $(document).keyup(function(e) {
     var key = e.key.toLowerCase();
-    console.log('keyup:', key);
     if (key in keymap) {
         keymap[key] = false;
     };

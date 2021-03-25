@@ -628,3 +628,9 @@ class AxiomDB:
         user.confirmed_on = datetime.now()
         self.session.add(user)
         self.session.commit()
+
+    def update_password(self, user, password):
+        hash = generate_password_hash(password, method='sha256')
+        user.password = hash
+        self.session.add(user)
+        self.session.commit()

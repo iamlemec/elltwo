@@ -3,15 +3,17 @@
 :root {
     /*background colors*/
     --bg-col: #073642; /* background color */
-    --bg-hl-col: #002b36; /* background highlight color (lighter or darker) */
+    --bg-hl-col: #93a1a1 ; /* background highlight color (lighter or darker) */
+    --bg-hl2-col: #93a1a1; /* background highlight color (lighter or darker) */
+
     /* font colors */
     --font-col: #eee8d5; /* main font */
     --font-col-int: #b58900 ; /* aux font */
     --brace-col: rgba(200,200,200, .3); /* brace matching */
     --delimit-col: #6c71c4; /* syntax hl delimts */
     /* border colors for active and changed classes, also syn hl*/
-    --hl-col: #859900; /* highlight color, for changed, syntax hl  */
-    --hl2-col: #dc322f ; /* highlight color */
+    --hl2-col: #859900; /* highlight color, for changed, syntax hl  */
+    --hl-col: #dc322f ; /* highlight color */
     /* pop ups */
     --pop-fg-col:  	#002b36; /* popup text color */
     --pop-bg-col: #93a1a1; /* popup background color */
@@ -132,7 +134,7 @@ button:hover {
   font-size: 90%;
   color: var(--hl-col);
   text-indent: 15px;
-  background-color: var(--bg-hl-col);
+  background-color: var(--pop-fg-col)!important;
 }
 
 .ref_error {
@@ -199,6 +201,11 @@ button:hover {
 
 .art_result{
   background-color: var(--bg-hl-col);
+}
+
+.code{
+   background-color: var(--bg-col);
+
 }
 
 a.art_result{
@@ -276,7 +283,15 @@ a.art_result{
 }
 
 .foot_butt{
-    background-color:  var(--hl-col);
+    background-color:  var(--bg-col);
     border: none;
-    color: var(--pop-fg-col);
+    color: var(--font-col-int);
+}
+
+.login-button{
+  background-color:  var(--font-col-int);
+}
+
+.export_butt{
+    background-color: var(--font-col-int) !important;
 }

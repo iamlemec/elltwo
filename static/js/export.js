@@ -1,6 +1,7 @@
 var in_title = title;
 
 createTex = function() {
+    keys = getBibRefs();
     var output = [];
     $('.para').each(function() {
         raw = $(this).attr('raw');
@@ -10,15 +11,38 @@ createTex = function() {
         } else {
             tex = markout.src;
         }
+        tex = replaceCites(keys, tex)
         output.push(tex);
     });
 
+
     var dict = {
         'paras': output,
+        'keys': keys,
         'in_title': in_title,
         'title': title,
     };
     return dict;
+};
+
+getBibRefs = function(){
+    var citeKeys = [];
+    $('.cite').each(function() {
+        citeKeys.push($(this).attr('id'));
+    });
+    return citeKeys
+};
+
+replaceCites = function(keys, text){
+    let ref = /\\(c)?ref\{([\w-:]+)\}/g;
+    text = text.replaceAll(ref, function(m, p1, p2){
+        if (keys.includes(p2)) {
+            return `\\cite{${p2}}`;
+        } else {
+            return m;
+        };
+    });
+    return text;
 };
 
 var current_tex_env = null;
@@ -28,8 +52,9 @@ texEnv = function(m) {
     var env = m.env;
     var spec = env.env;
     if (env.type == 'env_end') {
-        return tex_spec.end(m.src, current_tex_env);
+        cte = current_tex_env;
         current_tex_env = null;
+        return tex_spec.end(m.src, cte);
     }
     if (spec in tex_spec) {
         return tex_spec[spec](m.src, env);
@@ -81,7 +106,7 @@ texEndEnv = function(src, env) {
 };
 
 texError = function(src, env) {
-    return `\\hl{ERROR} enviorment '${env.env}' not defined`;
+    return `\\hl{ERROR} enviorment \`${env.env}' not defined`;
 }
 
 var tex_spec = {
@@ -103,6 +128,7 @@ export_tex = function() {
     var dict = createTex();
     var data = JSON.stringify(dict);
     export_download('/et', 'data', data);
+    //console.log(data)
 };
 
 export_download = function(url, key, data) {

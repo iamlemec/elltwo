@@ -17,7 +17,10 @@
 \usepackage{cleveref} %references
 \usepackage{newverbs}
 \usepackage{fancyvrb}
+\usepackage{fvextra}
 \usepackage{geometry}
+\usepackage{filecontents} %for bib
+
 
 \geometry{margin=1.25in}
 
@@ -40,7 +43,7 @@ citecolor=lam1
 \newverbcommand{\cverb}{\color{code}}{}
 \DefineVerbatimEnvironment{blockcode}
   {Verbatim}
-  {fontsize=\small,formatcom=\color{blue}}
+  {fontsize=\small,formatcom=\color{blue},breaklines=true}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -55,10 +58,18 @@ citecolor=lam1
 \newtheorem*{lemma*}{Lemma}
 \newtheorem{lemma}{Lemma}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 {% endraw %}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{filecontents}{\jobname.bib}
+{% for b in bib %}
+{{b.raw}}
+{% endfor%}
+\end{filecontents}
 
 
 \begin{document}
@@ -73,6 +84,7 @@ citecolor=lam1
 {{p}}
 {% endfor%}
 
-
+\bibliographystyle{plainnat}
+\bibliography{\jobname} 
 \end{document}
 

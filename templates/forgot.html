@@ -1,6 +1,5 @@
 {% extends "axiom.html" %}
-
-{% block title %}Ax.home{% endblock %}
+{% block title %}Sign Up{% endblock %}
 
 {% block head %}
     {{ super() }}
@@ -15,15 +14,13 @@
 
 {% block content %}
     {% if not current_user.is_authenticated %}
-        <div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
+    <div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
         <br>
         Simple Beautiful Collabrative
 
         <br><br><br><br>
 
-        Log in to enable editing or <a href="{{ url_for('Signup') }}">create an account</a>.
-        <br>
-        Forgot your password? <a href="{{ url_for('Forgot') }}">Click here to reset it</a>.
+        Send an email to reset your password.
      </div>
         <div class="box">
         {% with messages = get_flashed_messages() %}
@@ -33,22 +30,19 @@
             </div>
         {% endif %}
         {% endwith %}
-        <form method="POST" action="/login_user">
+        <form method="POST" action="/reset_email">
                 <div class="login_field">
                     <input class="input" type="email" name="email" placeholder="Email" autofocus="">
                 </div>
-
-                <div class="login_field">
-                    <input class="input" type="password" name="password" placeholder="Password">
-                </div>
-
-            <input type="hidden" name="next" value="{{next}}"/>
-
-            <button class="login-button">Log In</button>
+            <button class="login-button">Send Reset Link</button>
         </form>
     </div>
     {% endif %}
     {% if current_user.is_authenticated %}
+        <div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
+        <br>
+        Simple Beautiful Collabrative
+     </div>
             <div class="box">
             <div class="notification">
                 You are logged in as {{ current_user.name }}, log out?

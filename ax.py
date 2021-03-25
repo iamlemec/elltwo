@@ -1,4 +1,4 @@
-from flask import Flask, Response, request, redirect, url_for, render_template, jsonify, flash, send_from_directory
+from flask import Flask, Response, Markup, request, redirect, url_for, render_template, jsonify, flash, send_from_directory
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
@@ -129,12 +129,16 @@ def CreateUser():
     user = adb.get_user(email) # if this returns a user, then the email already exists in database
 
     if user is not None: # if a user is found, we want to redirect back to signup page so user can try again
-        flash('Email address already exists')
+        lg = url_for('Login')
+        msg = Markup(f'An account with this email already exists. <br> <a href={lg} class="alert-link">Click here to log in.</a>')
+        flash(msg)
         return redirect(url_for('Signup'))
 
     adb.add_user(email, name, password)
     send_confirmation_email(email)
-    flash('Check your email to activate your account')
+    rs = url_for('Resend', email=email)
+    msg = Markup(f'Check your email to activate your account. <br> <a href={rs} class="alert-link">Resend.</a>')
+    flash(msg)
     return redirect(url_for('Login'))
 
 @app.route('/confirm/<token>')
@@ -146,13 +150,61 @@ def confirm_email(token):
         flash('The confirmation link is invalid or has expired.')
         return redirect(url_for('Signup'))
     if user.confirmed:
-        flash('The account is already confirmed. Please login.')
+        lg = url_for('Login')
+        msg = Markup(f'The account is already confirmed. <br> <a href={lg} class="alert-link">Click here to log in.</a>')
+        flash(msg)
         return redirect(url_for('Login'))
     else:
         adb.confirm_user(user)
         login_user(user, remember=True) #currently we always store cookies, could make it option
         flash('You have confirmed your account. Thanks!')
     return redirect(url_for('Home'))
+
+@app.route('/resend/<email>')
+def Resend(email):
+    send_confirmation_email(email)
+    rs = url_for('Resend', email=email)
+    msg = Markup(f'Check your email to activate your account. <br> <a href={rs} class="alert-link">Resend.</a>')
+    flash(msg)
+    return redirect(url_for('Home'))
+
+@app.route('/forgot',  methods=['GET', 'POST'])
+def Forgot():
+    return render_template('forgot.html', theme=args.theme)
+
+@app.route('/reset_email', methods=['POST'])
+def ResetEmail():
+    email = request.form.get('email')
+    user = adb.get_user(email) 
+
+    if user is not None: 
+        send_reset_email(email)
+        msg = Markup(f'Check your email for a password reset link.')
+        flash(msg)
+        return redirect(url_for('Home'))
+    else:
+        msg = Markup(f'No account with email {email}.')
+        flash(msg)
+        return redirect(url_for('Forgot'))
+
+@app.route('/reset/<email>/<token>', methods=['GET'])
+def Reset(email, token):
+    return render_template('reset.html', email=email, token=token, theme=args.theme)
+
+@app.route('/reset_with_token/<token>', methods=['POST'])
+def ResetWithToken(token):
+    password = request.form.get('password')
+    try:
+        email = confirm_token(token)
+        user = adb.get_user(email)
+    except:
+        flash('The reset link is invalid or has expired.')
+        return redirect(url_for('Forgot'))
+    adb.update_password(user, password)
+    login_user(user, remember=True) #currently we always store cookies, could make it option
+    flash('You have reset your password and are logged in.')
+    return redirect(url_for('Home'))
+
 
 
 @app.route('/login_user', methods=['POST'])
@@ -171,6 +223,12 @@ def LoginUser():
     if user is None or not check_password_hash(user.password, password):
         flash('Please check your login details and try again.')
         return redirect(url_for('Login'))
+    if not user.confirmed:
+        rs = url_for('Resend', email=email)
+        msg = Markup(f'Activate your account. <br> <a href={rs} class="alert-link">Click here to resend a confirmation email.</a>')
+        flash(msg)
+        return redirect(url_for('Login'))
+
 
     # if the above check passes, then we know the user has the right credentials
     login_user(user, remember=True) #currently we always store cookies, could make it option
@@ -187,9 +245,17 @@ def send_confirmation_email(email):
     subject = "Confirm your Axiom L2 account"
     token = create_token(email)
     confirm_url = url_for('confirm_email', token=token, _external=True)
-    html = render_template('email_conf.html', confirm_url=confirm_url)
-    send_email('evan.piermont@gmail.com', subject, html)
-    return redirect(url_for('Home'))
+    html = render_template('email_conf.html', confirm_url=confirm_url, confirm=True)
+    send_email(email, subject, html)
+    # return redirect(url_for('Home'))
+
+def send_reset_email(email):
+    subject = "Password Reset: Axiom L2 account"
+    token = create_token(email)
+    confirm_url = url_for('Reset', email=email, token=token, _external=True)
+    html = render_template('email_conf.html', confirm_url=confirm_url, confirm=False)
+    send_email(email, subject, html)
+    # return redirect(url_for('Home'))
 
 def send_email(to, subject, template, logo=True):
     msg = Message(
@@ -257,6 +323,8 @@ def RenderArticle(title):
 def RenderArticleRO(title):
     return GetArtData(title, False)
 
+### exporting
+
 @app.route('/em/<title>', methods=['GET'])
 def ExportMarkdown(title):
     art = adb.get_art_short(title)
@@ -277,9 +345,11 @@ def export_tex():
     title = data['title']
     in_title = data['in_title']
     paras = data['paras']
+    bib = adb.get_bib_dict(keys=data['keys'])
+
     fname = f'{title}.tex'
 
-    tex = render_template('template.tex', in_title=in_title, paras=paras, date=datetime.now())
+    tex = render_template('template.tex', in_title=in_title, paras=paras, bib=bib, date=datetime.now())
 
     resp = Response(tex)
     resp.headers['Content-Type'] = 'text/tex'

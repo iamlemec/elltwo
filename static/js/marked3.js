@@ -18,7 +18,7 @@ var block = {
   heading: /^ *(#{1,6})(\*?) *(?:refargs)? *([^\n]+?) *#* *(?:\n+|$)/,
   nptable: noop,
   lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
-  blockquote: /^( q*>[^\n]+(\n(?!def)[^\n]+)*\n*)+/, //added q
+  blockquote: /^(q*>[^\n]+(\n(?!def)[^\n]+)*\n*)+/, //added q
   list: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
   html: /^ *(?:comment *(?:\n|\s*$)|closed *(?:\n{2,}|\s*$)|closing *(?:\n{2,}|\s*$))/,
   def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/,
@@ -28,7 +28,7 @@ var block = {
   equation: /^\$\$(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
   svg: /^\&svg(\*)? *(?:refargs)?[\s\n]*((?:[^\n]+\n?)*)(?:$)/,
   title: /^#! *(?:refargs)? *([^\n]*)(?:\n+|$)/,
-  image: /^!\[(inside)\]\(href\)(?:\n+|$)/,
+  image: /^!(\*)? *(?:refargs)? *\(href\)(?:\n+|$)/,
   biblio: /^@@ *(?:refid) *\n?((?:[^\n]+\n?)*)(?:\n+|$)/,
   figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n?)*)(?:\n+|$)/,
   envbeg: /^\>\>(\!)? ([\w-]+)(\*)? (?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
@@ -41,7 +41,7 @@ block._refid = /\[([\w-]+)\]/;
 block._refargs = /(?:\[([\w-\|\=\s]+)\])/;
 
 block.image = replace(block.image)
-  ('inside', block._inside)
+  ('refargs', block._refargs)
   ('href', block._href)
   ();
 
@@ -243,16 +243,19 @@ Lexer.prototype.token = function(src, top, bq) {
       continue;
     }
 
-    // image
     if (cap = this.rules.image.exec(src)) {
       src = src.substring(cap[0].length);
+      var number = cap[1] == undefined;
+      var argsraw = cap[2] || '';
+      var args = parseArgs(argsraw, number);
       this.tokens.push({
         type: 'image',
-        alt: cap[1],
-        href: cap[2]
+        args: args,
+        href: cap[3]
       });
       continue;
     }
+
 
     // figure
     if (cap = this.rules.figure.exec(src)) {
@@ -1136,8 +1139,8 @@ DivRenderer.prototype.footnote = function(text) {
   return `<span class="footnote pop_anchor" cite_type="footnote" citekey="_self_" pop_text="${text}"><span class=num counter=footnote inc=1></span></span>`;
 };
 
-DivRenderer.prototype.image = function(href, alt) {
-  return `<img src="${href}" alt="${alt}">`;
+DivRenderer.prototype.image = function(href) {
+  return `<img src="${href}">`;
 };
 
 DivRenderer.prototype.figure = function(ftype, tag, title, body) {
@@ -1210,14 +1213,14 @@ TexRenderer.prototype.hr = function() {
   return `\\rule{\\textwidth}{0.4pt}`;
 };
 
-// DivRenderer.prototype.list = function(body, ordered) {
-//   var type = ordered ? 'ordered' : 'unordered';
-//   return `<div class="list ${type}">\n${body}</div>\n\n`;
-// };
+TexRenderer.prototype.list = function(body, ordered) {
+  var type = ordered ? 'enumerate' : 'itemize';
+  return `\\begin{${type}}\n${body}\n\\end{${type}}`;
+};
 
-// DivRenderer.prototype.listitem = function(text) {
-//   return `<div class="list-item">${text}</div>\n`;
-// };
+TexRenderer.prototype.listitem = function(text) {
+  return `\\item ${text}\n`;
+};
 
 TexRenderer.prototype.paragraph = function(text, terse) {
   return `${text}`;
@@ -1559,7 +1562,12 @@ Parser.prototype.tok = function() {
       return this.renderer.paragraph(this.parseText());
     }
     case 'image': {
-      return this.renderer.image(this.token.href, this.token.alt);
+      this.env = {
+        type: 'env_one',
+        env: 'image',
+        args: this.token.args
+      }
+      return this.renderer.image(this.token.href);
     }
     case 'figure_start': {
       var ftype = this.token.ftype;
