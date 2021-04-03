@@ -5,6 +5,7 @@ from flask_mail import Mail, Message
 
 import os, re, json, argparse, toml
 from datetime import datetime, timedelta
+from collections import namedtuple
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -32,7 +33,8 @@ parser.add_argument('--port', type=int, default=5000, help='Main port to serve o
 parser.add_argument('--timeout', type=int, default=180, help='Client timeout time in seconds')
 parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 parser.add_argument('--login', action='store_true', help='Require login for editing')
-parser.add_argument('--auth', type=str, default='auth.toml', help='mail authorization config')
+parser.add_argument('--auth', type=str, default='auth.toml', help='user authorization config')
+parser.add_argument('--mail', type=str, default=None, help='mail authorization config')
 args = parser.parse_args()
 
 # login decorator (or not)
@@ -48,12 +50,19 @@ app.config['DEBUG'] = args.debug
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
-# load security config
-auth = toml.load(args.auth)
-app.config.update(auth)
+# load user security config
+if args.auth is not None:
+    auth = toml.load(args.auth)
+    app.config.update(auth)
 
-# mail thinger
-mail = Mail(app)
+# load mail security config
+if args.mail is not None:
+    mail_auth = toml.load(args.mail)
+    app.config.update(mail_auth)
+    mail = Mail(app)
+else:
+    MailNull = namedtuple('MailNull', ['send'])
+    mail = MailNull(send=lambda: None)
 
 # load sqlalchemy
 db = SQLAlchemy(app)
@@ -175,9 +184,9 @@ def Forgot():
 @app.route('/reset_email', methods=['POST'])
 def ResetEmail():
     email = request.form.get('email')
-    user = adb.get_user(email) 
+    user = adb.get_user(email)
 
-    if user is not None: 
+    if user is not None:
         send_reset_email(email)
         msg = Markup(f'Check your email for a password reset link.')
         flash(msg)
@@ -205,8 +214,6 @@ def ResetWithToken(token):
     flash('You have reset your password and are logged in.')
     return redirect(url_for('Home'))
 
-
-
 @app.route('/login_user', methods=['POST'])
 def LoginUser():
     email = request.form.get('email')
@@ -229,7 +236,6 @@ def LoginUser():
         flash(msg)
         return redirect(url_for('Login'))
 
-
     # if the above check passes, then we know the user has the right credentials
     login_user(user, remember=True) #currently we always store cookies, could make it option
     return redirect(next)
@@ -239,7 +245,6 @@ def LoginUser():
 def LogoutUser():
     logout_user()
     return redirect(request.referrer)
-
 
 def send_confirmation_email(email):
     subject = "Confirm your Axiom L2 account"
@@ -275,7 +280,6 @@ def send_email(to, subject, template, logo=True):
 def create_token(email):
     serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
     return serializer.dumps(email, salt=app.config['SECURITY_PASSWORD_SALT'])
-
 
 def confirm_token(token, expiration=3600):
     serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])

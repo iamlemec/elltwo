@@ -16,13 +16,18 @@ EXPOSE 80
 
 # Copy application code
 COPY *.py .
-COPY static/js static/js
 COPY static/css static/css
-COPY static/themes static/themes
 COPY static/fonts static/fonts
+COPY static/img static/img
+COPY static/js static/js
 COPY static/katex/dist static/katex/dist
-COPY static/favicon.ico static/faceicon.ico
+COPY static/libs static/libs
+COPY static/themes static/themes
+COPY static/favicon.ico static/faveicon.ico
 COPY templates templates
+
+# Load in cookie secret (SECRET_KEY and SECURITY_PASSWORD_SALT)
+COPY auth.toml .
 
 # Load in sample content
 COPY testing testing
