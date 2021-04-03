@@ -6,6 +6,7 @@ from flask_mail import Mail, Message
 import os, re, json, argparse, toml
 from datetime import datetime, timedelta
 from collections import namedtuple
+from random import getrandbits
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -95,7 +96,7 @@ def inject_dict_for_all_templates():
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
-                          'favicon.ico',mimetype='image/vnd.microsoft.icon')
+                          'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/')
 @app.route('/home')
@@ -112,6 +113,19 @@ def Create():
     else:
         adb.create_article(art_name)
         return redirect(url_for('RenderArticle', title=art_name))
+
+# demo setup
+demo_path = 'testing/howto.md'
+rand_hex = lambda s: hex(getrandbits(4*s))[2:].zfill(s)
+
+@app.route('/demo')
+def Demo():
+    hash_tag = rand_hex(8)
+    art_name = f'demo_{hash_tag}'
+    with open(demo_path) as fid:
+        demo_mark = fid.read()
+    adb.import_markdown(art_name, demo_mark)
+    return redirect(url_for('RenderArticle', title=art_name))
 
 ###
 ### Auth Routes
