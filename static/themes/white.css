@@ -4,6 +4,7 @@
     --bg-col: white;
     --bg-hl-col: whitesmoke;
     --bg-hl2-col: rgb(200,200,200);
+    --comment: rgb(150,150,150);
     --delimit-col: tomato;
     --pop-bg-col: rgba(0,0,0,.95);
     --pop-fg-col: white;
@@ -156,6 +157,28 @@ button:hover {
     border-radius: 5px;
 }
 
+#cc_pop {
+    color: var(--hl-col);
+    background-color: var(--pop-bg-col);
+    opacity: .95;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 80%;
+}
+
+.cc_row {
+    padding: 2px 0px 2px 3px;
+    border-top: 1px solid var(--hl-col);
+}
+
+.cc_row:last-child {
+    border-bottom: 1px solid var(--hl-col);
+}
+
+.cc_choice{
+    color: var(--pop-fg-col);
+}
+
 #pop:after {
   border: var(--pop-bg-col);
 }
@@ -186,6 +209,15 @@ button:hover {
     color: var(--delimit-col);
 }
 
+.syn_comment_head{
+    color: var(--font-col-int);
+}
+
+.syn_comment{
+    color: var(--comment);
+}
+
+
 .brace{
     border-radius: 5px;
     background-color: var(--brace-col);
@@ -202,6 +234,10 @@ button:hover {
   background-color: var(--bg-hl-col);
   border: none;
   color: var(--font-col);
+}
+
+.foot_butt{
+    border: .5px solid black;
 }
 
 

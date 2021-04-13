@@ -183,6 +183,28 @@ button:hover {
     color: teal;
 }
 
+
+#cc_pop {
+    color: var(--hl-col);
+    background-color: var(--pop-bg-col);
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 80%;
+}
+
+.cc_row {
+    padding: 3px 0px 3px 3px;
+    border-top: 1px solid var(--math-col);
+}
+
+.cc_row:last-child {
+    border-bottom: 1px solid var(--math-col);
+}
+
+.cc_choice{
+    color: var(--pop-fg-col);
+}
+
 /* syntax highlighting */
 
 .syn_hl {
@@ -200,6 +222,15 @@ button:hover {
 .syn_delimit {
     color: var(--dollar-col);
 }
+
+.syn_comment_head{
+    color: var(--font-col-int);
+}
+
+.syn_comment{
+    color: var(--bor-col);
+}
+
 
 .brace {
     background-color: var(--brace-col);

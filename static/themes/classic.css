@@ -5,6 +5,7 @@
     --font-col-int: darkcyan; /* border color */
     --hl-col: goldenrod; /* highlight color */
     --hl2-col: tomato; /* highlight color */
+    --comment: rgb(150,150,150);
     --pop-fg-col: rgb(255, 255, 255); /* popup text color */
     --pop-bg-col: rgba(0, 0, 0, 0.95); /* popup background color */
     --delimit-col: steelblue; /* popup background color */
@@ -55,6 +56,11 @@ button {
 button:hover {
     background-color:darkgray;
 }
+
+.foot_butt{
+    border: .5px solid black;
+}
+
 
 /* other elements */
 
@@ -127,6 +133,28 @@ button:hover {
     border-radius: 5px;
 }
 
+#cc_pop {
+    color: var(--delimit-col);
+    background-color: var(--pop-bg-col);
+    opacity: .95;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 80%;
+}
+
+.cc_row {
+    padding: 2px 0px 2px 3px;
+    border-top: 1px solid var(--delimit-col);
+}
+
+.cc_row:last-child {
+    border-bottom: 1px solid var(--delimit-col);
+}
+
+.cc_choice{
+    color: var(--hl2-col);
+}
+
 #pop:after {
     border: var(--pop-bg-col);
 }
@@ -155,6 +183,14 @@ button:hover {
 
 .syn_delimit {
     color: var(--delimit-col);
+}
+
+.syn_comment_head{
+    color: var(--font-col-int);
+}
+
+.syn_comment{
+    color: var(--comment);
 }
 
 .brace {

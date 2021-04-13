@@ -27,7 +27,7 @@ var block = {
   text: /^[^\n]+/,
   equation: /^\$\$(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
   svg: /^\&svg(\*)? *(?:refargs)?[\s\n]*((?:[^\n]+\n?)*)(?:$)/,
-  title: /^#! *(?:refargs)? *([^\n]*)(?:\n+|$)/,
+  title: /^#! *(?:refargs)? *([^\n]*)([\n\r]*)([\s\S]*)(?:$)/,
   image: /^!(\*)? *(?:refargs)? *\(href\)(?:\n+|$)/,
   biblio: /^@@ *(?:refid) *\n?((?:[^\n]+\n?)*)(?:\n+|$)/,
   figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n?)*)(?:\n+|$)/,
@@ -151,12 +151,16 @@ function parseArgs(argsraw, number=true) {
          .filter(x => x.length > 1)
          .forEach(x => args[x[0]] = x[1]);
 
+
   if ((Object.keys(args).length==0) && argsraw) {
     args['id'] = argsraw;
   }
 
   if (!('id' in args)) {
-    args['id'] = argsraw.split('|')[0];
+    fst = argsraw.split('|')[0];
+    if (!(fst.includes("="))){
+      args['id'] = argsraw.split('|')[0];
+    }
   }
 
   if (!('number' in args)) {
@@ -326,6 +330,7 @@ Lexer.prototype.token = function(src, top, bq) {
         type: 'title',
         args: args,
         text: cap[2],
+        preamble: cap[4]
       });
       continue;
     }
@@ -627,7 +632,8 @@ Lexer.prototype.token = function(src, top, bq) {
  */
 
 var inline = {
-  escape: /^\\([\\`*{}\[\]()#+\-.!_>\$])/,
+  escape: /^\\([\\`*{}\[\]()#+\-.!_>\$%])/,
+  comment: /^%(?:[^\n]+?)(?:\n|$)/,
   autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
   url: noop,
   tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^'">])*?>/,
@@ -640,7 +646,7 @@ var inline = {
   code: /^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/,
   br: /^ {2,}\n(?!\s*$)/,
   del: noop,
-  text: /^[\s\S]+?(?=[\\<!\[_*`\$\^@]| {2,}\n|$)/,
+  text: /^[\s\S]+?(?=[\\<!\[_*`\$\^@%]| {2,}\n|$)/,
   math: /^\$((?:\\\$|[\s\S])+?)\$/,
   ref: /^@\[([\w-\|\=\:]+)\]/,
   footnote: /^\^\[(inside)\]/
@@ -778,6 +784,13 @@ InlineLexer.prototype.output = function(src) {
       continue;
     }
 
+    // comment
+    if (cap = this.rules.comment.exec(src)) {
+      src = src.substring(cap[0].length);
+      out += this.renderer.comment(cap[0]); //passes entire comment to rendere (for tex)
+      continue;
+    }
+
     // ref
     if (cap = this.rules.ref.exec(src)) {
       src = src.substring(cap[0].length);
@@ -797,8 +810,9 @@ InlineLexer.prototype.output = function(src) {
     // internal link
     if (cap = this.rules.ilink.exec(src)) {
       src = src.substring(cap[0].length);
-      href = cap[1];
-      out += this.renderer.ilink(href);
+      href = cap[1].split('|')[0];
+      text = cap[1].split('|')[1] || href;
+      out += this.renderer.ilink(href, text);
     }
 
     // autolink
@@ -1071,6 +1085,10 @@ DivRenderer.prototype.em = function(text) {
   return `<span class="em">${text}</span>`;
 };
 
+DivRenderer.prototype.comment = function(text) {
+  return "";
+};
+
 DivRenderer.prototype.codespan = function(text) {
   text = escape(text, true);
   return `<span class="code">${text}</span>`;
@@ -1104,8 +1122,8 @@ DivRenderer.prototype.link = function(href, title, text) {
   return `<a href="${href}" ${title}>${text}</a>`;
 };
 
-DivRenderer.prototype.ilink = function(href) {
-  return `<a class="reference pop_anchor" citekey="_ilink_" href="${href}" data-extern='true'>${href}</a>`;
+DivRenderer.prototype.ilink = function(href, text) {
+  return `<a class="reference pop_anchor" citekey="_ilink_" href="${href}" data-extern='true'>${text}</a>`;
 };
 
 DivRenderer.prototype.escape = function(esc) {
@@ -1136,7 +1154,7 @@ DivRenderer.prototype.ref = function(args) {
 };
 
 DivRenderer.prototype.footnote = function(text) {
-  return `<span class="footnote pop_anchor" cite_type="footnote" citekey="_self_" pop_text="${text}"><span class=num counter=footnote inc=1></span></span>`;
+  return `<span class="footnote pop_anchor" cite_type="footnote" citekey="_self_"><span class=num counter=footnote inc=1></span><span class="ft_content">${text}</span></span>`;
 };
 
 DivRenderer.prototype.image = function(href) {
@@ -1245,6 +1263,10 @@ TexRenderer.prototype.strong = function(text) {
 
 TexRenderer.prototype.em = function(text) {
   return `\\textit{${text}}`;
+};
+
+TexRenderer.prototype.comment = function(comment) {
+  return comment;
 };
 
 TexRenderer.prototype.codespan = function(code) {
@@ -1414,7 +1436,8 @@ Parser.prototype.tok = function() {
       this.env = {
         type: 'env_one',
         env: 'title',
-        args: this.token.args
+        args: this.token.args,
+        preamble: this.token.preamble,
       }
       return this.renderer.title(this.inline.output(this.token.text));
     }
@@ -1598,7 +1621,8 @@ function escape(html, encode) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/'/g, '&#39;')
+    .replace(/%/g, '&#37;');
 }
 
 function escape_latex(tex) {

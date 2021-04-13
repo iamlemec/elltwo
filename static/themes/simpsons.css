@@ -129,6 +129,29 @@ button:hover {
     color: var(--pop-fg-col);
 }
 
+
+#cc_pop {
+    color: black;
+    background-color: var(--pop-bg-col);
+    opacity: .95;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 80%;
+}
+
+.cc_row {
+    padding: 2px 0px 2px 3px;
+    border-top: 1px solid black;
+}
+
+.cc_row:last-child {
+    border-bottom: 1px solid black;
+}
+
+.cc_choice{
+    color: white;
+}
+
 /* syntax highlighting */
 
 .syn_hl {

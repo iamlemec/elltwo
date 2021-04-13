@@ -93,10 +93,10 @@ def inject_dict_for_all_templates():
 ### Home Page
 ###
 
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                          'favicon.ico', mimetype='image/vnd.microsoft.icon')
+# @app.route('/favicon.ico')
+# def favicon():
+#     return send_from_directory(os.path.join(app.root_path, 'static'),
+#                           'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 @app.route('/')
 @app.route('/home')
@@ -317,6 +317,11 @@ def GetArtData(title, edit):
     if art:
         aid = art.aid
         paras = adb.get_paras(aid)
+        ref_list = []
+        if edit:    
+            bib_list = [cite.citekey for cite in adb.get_bib()]
+            ref_list = adb.get_refs(aid)
+            ref_list += bib_list
         return render_template(
             'article.html',
             title=art.title,
@@ -325,6 +330,7 @@ def GetArtData(title, edit):
             theme=args.theme,
             themes=themes,
             edit=edit,
+            ref_list=ref_list,
         )
     else:
         flash(f'Article "{title}" does not exist.')
@@ -471,6 +477,7 @@ def get_history(data):
         'diff': list(diff['para_upd'] | diff['para_add']),
     }
 
+
 @socketio.on('revert_history')
 @login_decor
 def revert_history(data):
@@ -578,14 +585,20 @@ def get_ref(data):
                 'title': title
                 }
         else:
-            return {'text': "", 'cite_type': 'err'}
+            return {'text': "ref not found", 'cite_type': 'err'}
     else:
-        return {'text': "", 'cite_type': 'err'}
+        return {'text': "art not found", 'cite_type': 'err'}
 
 @socketio.on('update_ref')
 @login_decor
 def update_ref(data):
     adb.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'])
+
+@socketio.on('delete_ref')
+@login_decor
+def delete_ref(data):
+    adb.delete_ref(data['key'],data['aid'])
+    #socketio.emit('deleteRef', data['key'], broadcast=True)
 
 ###
 ### locking

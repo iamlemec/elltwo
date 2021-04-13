@@ -441,6 +441,7 @@ class AxiomDB:
             return
 
         bib.delete_time = now
+        self.session.add(bib)
         self.session.commit()
 
     def get_bib(self, keys=None, time=None):
@@ -477,6 +478,12 @@ class AxiomDB:
     ##
     ## exteral references
     ##
+    def get_refs(self, aid, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        query = self.session.query(ExtRef).filter_by(aid=aid).filter(reftime(time)).all()
+        return [r.key for r in query]
+
 
     def get_ref(self, key, aid, time=None):
         if time is None:
@@ -486,7 +493,7 @@ class AxiomDB:
     def create_ref(self, key, aid, cite_type, cite_env, text):
         now = datetime.utcnow()
 
-        if (ref := get_ref(key, aid)) is None:
+        if (ref := self.get_ref(key, aid)) is None:
             ref1 = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, create_time=now,)
             self.session.add(ref1)
             self.session.commit()
@@ -497,13 +504,14 @@ class AxiomDB:
             self.session.add(ref1)
             self.session.commit()
 
-    def delete_cite(self, key, aid):
+    def delete_ref(self, key, aid):
         now = datetime.utcnow()
 
         if (ref := self.get_ref(key, aid)) is None:
             return
 
         ref.delete_time = now
+        self.session.add(ref)
         self.session.commit()
 
     ##

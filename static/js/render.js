@@ -81,6 +81,9 @@ rawToRender = function(para, defer, raw=null) {
 
     // fill in env identifiers
     if (env_info != null) {
+        if ('preamble' in env_info) {
+            parse_preamble(env_info.preamble);
+        };
         if ('env' in env_info) {
             para.attr('env', env_info.env);
         }
@@ -306,12 +309,15 @@ envClasses = function(outer) {
     createTOC(outer);
 };
 
-envFormat = function(paras, env, args) {
+envFormat = function(ptxt, env, args) {
     if (env in env_spec) {
-        env_spec[env](paras, args);
-    } else {
+        env_spec[env](ptxt, args);
+    }else if(env in s_env_spec){
+        let spec = s_env_spec[env];
+        return simpleEnv(ptxt, env, spec.head, spec.tail, spec.number, args);
+    }else {
         var args = {code: 'undef', env: env};
-        env_spec.error(paras, args);
+        env_spec.error(ptxt, args);
     }
 }
 
@@ -321,9 +327,11 @@ makeCounter = function(env, inc=1) {
     return $('<span>', {class: 'num', counter: env, inc: inc});
 }
 
-simpleEnv = function(ptxt, env, head='', tail='', num=false, name='') {
-    var first = ptxt.first();
-    var pre = $('<span>', {class: `env_add ${env}_header`, html: head});
+simpleEnv = function(ptxt, env, head='', tail='', number=true, args={}) {
+    let num = (args.number) && number;
+    let name = args.name || '';
+    let first = ptxt.first();
+    let pre = $('<span>', {class: `env_add ${env}_header`, html: head});
     if (num) {
         var span = makeCounter(env);
         pre.append([' ', span]);
@@ -335,8 +343,8 @@ simpleEnv = function(ptxt, env, head='', tail='', num=false, name='') {
     pre.append('. ');
     first.prepend(pre);
 
-    var last = ptxt.last();
-    var pos = $('<span>', {class: `env_add ${env}_footer`, html: tail});
+    let last = ptxt.last();
+    let pos = $('<span>', {class: `env_add ${env}_footer`, html: tail});
     pos.prepend(' ');
     last.append(pos);
 };
@@ -367,30 +375,8 @@ errorEnv = function(ptxt, args) {
     ptxt.append(pre);
 };
 
-numberEnv = function(ptxt, env, head='', tail='', args={}) {
-    var num = args.number || '';
-    var name = args.name || '';
-    return simpleEnv(ptxt, env, head, tail, num, name);
-};
-
-theoremEnv = function(ptxt, args) {
-    return numberEnv(ptxt, 'theorem', 'Theorem', '—', args);
-};
-
-lemmaEnv = function(ptxt, args) {
-    return numberEnv(ptxt, 'lemma', 'Lemma', '—', args);
-};
-
-proofEnv = function(ptxt, args) {
-    return simpleEnv(ptxt, 'proof', 'Proof', `— <span class='qed'>&#8718;</span>`, false);
-};
-
 titleEnv = function(ptxt, args) {
     return ptxt;
-};
-
-exampleEnv = function(ptxt, args) {
-    return numberEnv(ptxt, 'example', 'Example', '', args);
 };
 
 headingEnv = function(ptxt, args) {
@@ -431,11 +417,18 @@ figEnv = function(ptxt, args) {
     };
 };
 
+//simple envs for user creation and simpler setup
+//number is if number is defult (can be overidden with *)
+s_env_spec = {
+'theorem': {head: 'Theorem', tail: '--', number: true},
+'lemma': {head: 'Lemma', tail: '--', number: true},
+'axiom': {head: 'Axiom', tail: '--', number: true},
+'definition': {head: 'Definition', tail: '--', number: false},
+'example': {head: 'Example', tail: `<span class='qed'>&#8718;</span>`, number: true},
+'proof': {head: 'Proof', tail: `<span class='qed'>&#8718;</span>`, number: false},
+};
+
 env_spec = {
-    'theorem': theoremEnv,
-    'lemma': lemmaEnv,
-    'proof': proofEnv,
-    'example': exampleEnv,
     'heading': headingEnv,
     'equation': equationEnv,
     'title': titleEnv,
@@ -446,13 +439,25 @@ env_spec = {
 
 //// KATEX
 
+parse_preamble = function(raw){
+    int_macros = {}; //internal macros
+    macro_list = raw.split(/[\n,]+/)//split on \n or comma
+    .filter(macraw => macraw.includes(':')) //is it a macro?
+    .map(macraw => macraw.split(':'))//split on :
+    .forEach(el => int_macros[el[0]] = el[1]);//save internal macros
+    macros = Object.assign({}, int_macros, ext_macros);//merge internal and ext macros,overwrites internal
+};
+
+ext_macros = {};
+macros = ext_macros;
+
 renderKatex = function(para) {
     para.find('span.latex').each(function() {
         var tex = $(this);
         var src = tex.text();
         tex.empty();
         try {
-            katex.render(src, tex[0]);
+            katex.render(src, tex[0], {macros: macros});
         } catch (e) {
             console.log(para.text());
             console.log(src);
@@ -465,7 +470,7 @@ renderKatex = function(para) {
         $(this).empty();
         try {
             katex.render(src, tex[0], {displayMode: true,
-                //macros: config["macros"]
+                macros: macros
             });
         } catch (e) {
             console.log(para.text());
@@ -658,6 +663,8 @@ renderRef = function(ref, tro, text, ext) {
     } else if (tro.cite_type == 'env') {
         if (tro.cite_env in ref_spec) {
             ref_spec[tro.cite_env](ref, tro.tro, ext=ext);
+        } else if (tro.cite_env in s_env_spec){ //simple env
+            refEnv(ref, tro.tro, s_env_spec[tro.cite_env].head, ext);
         } else {
             ref_spec.error(ref);
         };
@@ -739,10 +746,6 @@ refSection = function(ref, tro, ext) {
     refEnv(ref, tro, 'Section', ext);
 };
 
-refTheorem = function(ref, tro, ext) {
-    refEnv(ref, tro, 'Theorem', ext);
-};
-
 refFigure = function(ref, tro, ext) {
     refEnv(ref, tro, 'Figure', ext);
 };
@@ -760,7 +763,6 @@ ref_spec = {
     'svg': refFigure,
     'image': refFigure,
     'heading': refSection,
-    'theorem': refTheorem,
     'text': refText,
 };
 
@@ -807,6 +809,7 @@ createBibEntry = function(cite) {
     );
 };
 
+
 //// POPUP FUNCTIONALITY //turned off for mobile for now
 if(!mobile){
 $(document).on({
@@ -829,17 +832,22 @@ createPop = function(html='', link=false) {
     pop.html(html);
     $('#bg').append(pop)
 
-    h = pop.height();
-    w = pop.width();
+        h = pop.height();
+        w = pop.width();
 
-    if(!mobile){ //no mouse binding with moblie popups
-    $(this).mousemove(function(event) {
-        pop.css({
-            'left': (event.pageX - 0.5*w - 10) + 'px', // offset 10px for padding
-            'top': (event.pageY - h - 35) + 'px', // offset up by 35 px
+        if(!mobile){ //no mouse binding with moblie popups
+        $(this).mousemove(function(event) {
+            let mid = window.innerHeight / 2
+            let y = event.pageY - h - 35
+            if(event.pageY < mid){//if on top half of page
+                y = event.pageY + 35
+            } 
+            pop.css({
+                'left': (event.pageX - 0.5*w - 10) + 'px', // offset 10px for padding
+                'top': (y) + 'px', // offset up by 35 px
+            });
         });
-    });
-    };
+        };
 };
 
 // generates pop text from tro (only for internal refs)
@@ -850,6 +858,9 @@ popText = function(tro) {
         if (tro.cite_env in pop_spec) {
             var paras = $(tro.cite_sel);
             return pop_spec[tro.cite_env](paras);
+        } else if(tro.cite_env in s_env_spec){ //simple env
+            var paras = $(tro.cite_sel);
+            return popEnv(paras)
         } else {
             return pop_spec.error('not_found');
         }
@@ -896,7 +907,7 @@ popCite = function(tro) {
 };
 
 popSelf = function(tro) {
-    return tro.attr('pop_text');
+    return tro.find('.ft_content').html();
 };
 
 popEnv = function(tro) {
@@ -911,7 +922,6 @@ popEnv = function(tro) {
 
 pop_spec = {
     'heading': popSection,
-    'theorem': popEnv,
     'cite': popCite,
     'equation': popEquation,
     'svg': popEquation,
@@ -936,21 +946,35 @@ createExtRef = function(id) {
 };
 
 updateRefHTML = function(para) {
-    var new_id = para.attr('id') || para.attr('env_id');
-    var old_id = para.attr('old_id');
+    let new_id = para.attr('id') || para.attr('env_id');
+    let old_id = para.attr('old_id');
 
     if (new_id) {
-        var ref = createExtRef(new_id);
+        ref_list.push(new_id)
+        let ref = createExtRef(new_id);
         client.sendCommand('update_ref', ref, function(success) {
-            console.log('success');
+            console.log('success: updated ref');
         });
     }
 
-    if (old_id && ($('#'+old_id).length > 0)) {
-        var ref = createExtRef(old_id);
-        client.sendCommand('update_ref', ref, function(success) {
-            console.log('success');
-        });
+    if (old_id) {
+        if($('#'+old_id).length > 0){
+            let ref = createExtRef(old_id);
+            client.sendCommand('update_ref', ref, function(success) {
+                console.log('success: updated ref');
+            });
+        } else {
+            let i = ref_list.indexOf(old_id);
+            if (index !== -1) {
+                ref_list.splice(i, 1)
+            }
+            let ref = {};
+            ref.aid = aid;
+            ref.key = old_id;
+            client.sendCommand('delete_ref', ref, function(success) {
+                console.log('success: deleted ref');
+            });
+        }
     }
 };
 
@@ -995,6 +1019,7 @@ syntaxHL = function(para) {
     var text = para.children('.p_input');
     var view = para.children('.p_input_view');
     var raw = text.val();
+    cc_refs(raw,view);
     var parsed = sytaxParseBlock(raw);
     view.html(parsed);
 };
@@ -1006,21 +1031,70 @@ $(document).on('input', '.p_input', function(){
     syntaxHL(para);
 });
 
+/// command completion
+var cc = false; //is there a cc window open?
+
+cc_refs = function(raw, view){
+    cc = false;
+    $('#cc_pop').remove();
+    let open_ref = /@\[?([\w-\|\=\:^]+)?(?!.*\])(?!\s)/
+    if (cap = open_ref.exec(raw)) {
+        raw = raw.replace(cap[0], function(){
+            return `<span id=cc_pos>${cap[0]}</span>`
+        });
+
+        view.html(raw);
+        let off = $('#cc_pos').offset();
+        let h = $('#cc_pos').height();
+
+        let search = cap[1] || "";
+        let cc_refs = ref_list.filter(ref => ref.includes(search))
+        if(cc_refs.length > 0){
+            cc = true;
+            let pop = $('<div>', {id: 'cc_pop'});
+            cc_refs.forEach((r,index) => {
+                let cc_row = $('<div>', {class: 'cc_row'});
+                cc_row.text(r);
+                if(index==0){
+                    cc_row.addClass('cc_choice')
+                }
+                pop.append(cc_row);
+            });
+            $('#bg').append(pop)
+    
+            pop.css({
+                'left': off.left + 'px', // offset 10px for padding
+                'top': off.top + h + 'px', // offset up by 35 px
+        });
+    }   ;
+
+//     h = pop.height();
+//     w = pop.width();
+    };
+ };
+
 sytaxParseInline = function(raw){
     html = raw;
     html = html.replace(/\</g, '&LT'); //html escape
     html = html.replace(/\>/g, '&GT'); //html escape
     //html = html.replace(/\n/g, '<br>\n'); //whitespace
+    comment = /%([^\n]+?)(\n|$)/g
     ftnt = /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/
     math = /\$((?:\\\$|[\s\S])+?)\$/g;
     ref = /@\[([\w-\|\=\:]+)\]/g;
     ilink = /\[\[([^\]]+)\]\]/g;
+
+
     html = html.replace(ftnt, function(a,b){
         b = b.replace('|', '<span class=syn_hl>|</span>');
         return s('^[', 'delimit') +  b + s(']', 'delimit');
     });
     html = html.replace(math, function(a,b){
         return s('$', 'delimit') + s(b, 'math') + s('$', 'delimit');
+
+    });
+    html = html.replace(comment, function(a,b,c){
+        return s('%', 'comment_head') + s(b, 'comment') + c;
 
     });
     html = html.replace(ref, function(a,b){
@@ -1046,7 +1120,8 @@ fArgs = function(argsraw){
 sytaxParseBlock = function(raw){
 
 var block = {
-  heading: /^(#{1,6})(\!?)(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]+?)? *#* *(?:\n+|$)/,
+  title: /^#\!([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]*)([\n\r]*)([\s\S]*)/,
+  heading: /^(#{1,6})(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]+?)? *#* *(?:\n+|$)/,
   text: /^[^\n]+/,
   equation: /^\$\$(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
   figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
@@ -1056,44 +1131,51 @@ var block = {
   envend: /^\<\<((?:[^\n]+\n?)*)/
 };
 
+
+if (cap = block.title.exec(raw)) {
+    let id = (cap[2]) ? s(fArgs(cap[2]), 'ref') : "";
+    let tit = (cap[4]) ? sytaxParseInline(cap[4]) : "";
+    let pre = (cap[6]) ? s(sytaxParseInline(cap[6]) , 'ref'): "";
+    return s('#!', 'hl') + cap[1] + id + cap[3] + tit + cap[5] + pre;
+};
+
 if (cap = block.heading.exec(raw)) {
-    var bang = (cap[2]) ? s(cap[2], 'hl') : "";
-    var star = (cap[3]) ? s(cap[3], 'hl') : "";
-    var id = (cap[5]) ? s(fArgs(cap[5]), 'ref') : "";
-    var text = (cap[7]) ? sytaxParseInline(cap[7]) : "";
-    return s(cap[1], 'delimit') + bang + star + cap[4] + id + cap[6] + text;
+    let star = (cap[2]) ? s(cap[2], 'hl') : "";
+    let id = (cap[4]) ? s(fArgs(cap[4]), 'ref') : "";
+    let text = (cap[6]) ? sytaxParseInline(cap[6]) : "";
+    return s(cap[1], 'delimit') + star + cap[3] + id + cap[5] + text;
 };
 
 if (cap = block.equation.exec(raw)) {
-    var id = (cap[3]) ? s(fArgs(cap[3]), 'ref') : "";
-    var star = (cap[1]) ? s(cap[1], 'hl') : "";
-    var text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
+    let id = (cap[3]) ? s(fArgs(cap[3]), 'ref') : "";
+    let star = (cap[1]) ? s(cap[1], 'hl') : "";
+    let text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
     return s('$$', 'delimit') + star + cap[2] + id + cap[4] + text;
 };
 
 if (cap = block.envbeg.exec(raw)) {
-    var bang = (cap[1]) ? s('!', 'hl') : "";
-    var env = (cap[3]) ? s(cap[3], 'ref') : "";
-    var star = (cap[4]) ? s(cap[4], 'hl') : "";
-    var id = (cap[6]) ? s(fArgs(cap[6]), 'ref'): "";
-    var text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
+    let bang = (cap[1]) ? s('!', 'hl') : "";
+    let env = (cap[3]) ? s(cap[3], 'ref') : "";
+    let star = (cap[4]) ? s(cap[4], 'hl') : "";
+    let id = (cap[6]) ? s(fArgs(cap[6]), 'ref'): "";
+    let text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
     return s('>>', 'delimit') + bang + cap[2] + env + star + cap[5] + id + cap[7] + text;
 };
 
 if (cap = block.svg.exec(raw)) {
-    var star = (cap[1]) ? s('*', 'hl') : "";
-    var id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
-    var text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
+    let star = (cap[1]) ? s('*', 'hl') : "";
+    let id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
+    let text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
     return s('&', 'hl') + s('svg', 'delimit') + star + cap[2] + id + cap[4] + text;
 };
 
 if (cap = block.image.exec(raw)) {
-    var star = (cap[1]) ? s('*', 'hl') : "";
-    var id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
-    var l = (cap[5]) ? s('(', 'delimit') : "";
-    var href = (cap[6]) ? s(cap[6], 'hl') : "";
-    var r = (cap[7]) ? s(')', 'delimit') : "";
-    var text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
+    let star = (cap[1]) ? s('*', 'hl') : "";
+    let id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
+    let l = (cap[5]) ? s('(', 'delimit') : "";
+    let href = (cap[6]) ? s(cap[6], 'hl') : "";
+    let r = (cap[7]) ? s(')', 'delimit') : "";
+    let text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
     return s('!', 'hl') + star + cap[2] + id + cap[4] + l + href + r + text;
 };
 

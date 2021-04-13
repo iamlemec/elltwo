@@ -3,7 +3,7 @@
 :root {
     /*background colors*/
     --bg-col: #073642; /* background color */
-    --bg-hl-col: #93a1a1 ; /* background highlight color (lighter or darker) */
+    --bg-hl-col: #646e6e; /* background highlight color (lighter or darker) */
     --bg-hl2-col: #93a1a1; /* background highlight color (lighter or darker) */
 
     /* font colors */
@@ -107,12 +107,12 @@ button:hover {
 }
 
 .para.active {
-   border-left: 2px solid var(--hl-col);
-   background-color: var(--bg-hl-col);
+   border-left: 2px solid var(--hl2-col);
+   background-color: var(--pop-fg-col);
 }
 
 .para.changed {
-    border-right: 2px solid var(--hl2-col);
+    border-right: 2px solid var(--hl-col);
 }
 
 .para.hl_change {
@@ -163,14 +163,36 @@ button:hover {
     color: teal;
 }
 
+#cc_pop {
+    color: var(--bg-col);
+    background-color: var(--pop-bg-col);
+    opacity: .99;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 80%;
+}
+
+.cc_row {
+    padding: 3px 0px 3px 3px;
+}
+
+.cc_row:last-child {
+}
+
+.cc_choice{
+    color: var(--hl2-col);
+    background-color: var(--bg-hl-col);
+
+}
+
 /* syntax highlighting */
 
 .syn_hl{
-    color: var(--hl2-col);
+    color: var(--hl-col);
 }
 
 .syn_math{
-    color: var(--hl-col);
+    color: var(--hl2-col);
 }
 
 .syn_ref{
@@ -178,7 +200,15 @@ button:hover {
 }
 
 .syn_delimit{
-    color: var(--delimit-col);
+    color: var(--font-col-int);
+}
+
+.syn_comment_head{
+    color: var(--font-col-int);
+}
+
+.syn_comment{
+    color: var(--bg-hl2-col);
 }
 
 .brace{
@@ -286,6 +316,8 @@ a.art_result{
     background-color:  var(--bg-col);
     border: none;
     color: var(--font-col-int);
+    border-radius: 10px;
+    font-family: fira;
 }
 
 .login-button{
@@ -294,4 +326,10 @@ a.art_result{
 
 .export_butt{
     background-color: var(--font-col-int) !important;
+    border-radius: 10px;
+    font-family: fira;
+}
+
+.export_butt:hover{
+    background-color: darkgray !important;
 }

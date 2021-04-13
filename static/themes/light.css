@@ -79,6 +79,28 @@ button:hover {
     background-color:darkgray;
 }
 
+.foot_butt{
+    background-color:  var(--bg-hl-col);
+    border: none;
+    color: var(--font-col);
+    border-radius: 10px;
+    font-family: fira;
+}
+
+.login-button{
+  background-color:  var(--bg-hl-col);
+}
+
+.export_butt{
+    background-color: var(--font-col-int) !important;
+    border-radius: 10px;
+    font-family: fira;
+}
+
+.export_butt:hover{
+    background-color: darkgray !important;
+}
+
 /* other elements */
 
 #sidebar {
@@ -154,6 +176,28 @@ button:hover {
     color: teal;
 }
 
+#cc_pop {
+    color: var(--delimit-col);
+    background-color: var(--pop-bg-col);
+    opacity: .95;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 80%;
+}
+
+.cc_row {
+    padding: 3px 0px 3px 3px;
+}
+
+.cc_row:last-child {
+}
+
+.cc_choice{
+    color: var(--pop-bg-col);
+    background-color: var(--bg-hl2-col);
+
+}
+
 /* syntax highlighting */
 
 .syn_hl{
@@ -170,6 +214,14 @@ button:hover {
 
 .syn_delimit{
     color: var(--delimit-col);
+}
+
+.syn_comment_head{
+    color: var(--font-col-int);
+}
+
+.syn_comment{
+    color: var(--bg-hl2-col);
 }
 
 .brace{

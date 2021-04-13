@@ -6,6 +6,10 @@
     title = '{{title}}';
     aid = '{{aid}}';
     theme = '{{theme}}';
+    ref_list = []
+    {% for r in ref_list%}
+        ref_list.push('{{r}}');
+    {% endfor %}
     {% if edit %}
     readonly = false;
     {% else %}

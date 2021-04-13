@@ -38,6 +38,8 @@
     caret-color: inherit;
     color: rgba(0, 0, 0, 0);
     background-color: rgba(0, 0, 0, 0);
+    padding-right: 5px;
+
 }
 
 .p_input_view {
@@ -50,6 +52,7 @@
     display: none;
     border: none;
     font-family: monospace;
+    padding-right: 5px;
 }
 
 .control {
@@ -117,6 +120,10 @@ button {
     display: none;
 }
 
+.ft_content{
+    display: none;
+}
+
 .qed {
     position: absolute;
     right: 0;
@@ -175,19 +182,19 @@ button {
     font-weight: bold;
 }
 
-.theorem_header {
+.theorem_header, .axiom_header {
     font-weight: bold;
 }
 
-.theorem_name {
+.theorem_name, .axiom_name {
     font-weight: normal;
 }
 
-.theorem_name:before{
+.theorem_name:before, .axiom_name:before{
     content: "(";
 }
 
-.theorem_name:after{
+.theorem_name:after, .axiom_name:after{
     content: ")";
 }
 
@@ -283,6 +290,15 @@ button {
 	pointer-events: none;
 	border-width: 10px;
 	margin-left: -10px;
+}
+
+#cc_pop {
+    padding: 10px;
+    position: absolute;
+    z-index: 20;
+    min-width: 150px;
+    min-height: 30px;
+    max-width: 400px;
 }
 
 .head_level2 {

@@ -210,6 +210,9 @@ makeUnEditable = function(send=true) {
 
     $('#content').focus();
 
+    cc = false;
+    $('#cc_pop').remove();
+
     if (active_para && editable) {
         editable = false;
         if (writeable) {
@@ -356,6 +359,41 @@ editShift = function(para, up=true) {
     }
 };
 
+next_cc = function(){
+    let cc = $('.cc_choice').first();
+    cc.removeClass('cc_choice');
+    let nxt = cc.next('.cc_row');
+    if (nxt.length == 0){
+        nxt = cc.siblings('.cc_row').first();
+    };
+    nxt.addClass('cc_choice');
+}
+
+prev_cc = function(){
+    let cc = $('.cc_choice').first();
+    cc.removeClass('cc_choice');
+    let prv = cc.prev('.cc_row');
+    if (prv.length == 0){
+        prv = cc.siblings('.cc_row').last();
+    };
+    prv.addClass('cc_choice');
+}
+
+make_cc = function(){
+    let cc = $('.cc_choice').first().text();
+    let input = active_para.children('.p_input');
+    raw = input.val();
+    let open_ref = /@\[?([\w-\|\=\:^]+)?(?!.*\])(?!\s)/
+    raw = raw.replace(open_ref, function(){
+            return `@[${cc}]`
+        });
+    input.val(raw);
+    syntaxHL(active_para);
+    cc = false;
+    $('#cc_pop').remove();
+
+}
+
 /// KEYBOARD NAV
 
 keymap = {
@@ -423,18 +461,38 @@ $(document).keydown(function(e) {
             }
         } else if (active_para && editable) { // we are active and editable
             if (keymap['arrowup'] || keymap['arrowleft']) {
+                if(cc){ //if there is an open command completion window
+                    prev_cc();
+                    return false;
+                }else{
                 return editShift(active_para);
+                };
             } else if (keymap['arrowdown'] || keymap['arrowright']) {
-                return editShift(active_para, up=false);
+                if(cc){ //if there is an open command completion window
+                    next_cc();
+                    return false;
+                }else{
+                    return editShift(active_para, up=false);
+                };
             } else if (keymap['escape']) {
-                makeUnEditable();
+                if(cc){ //if there is an open command completion window
+                    cc = false;
+                    $('#cc_pop').remove();
+                }else{
+                    makeUnEditable();
+                };
+            } else if (keymap['enter']) {
+                if(cc){ //if there is an open command completion window
+                    make_cc();
+                    return false;
+                }
             } else if (keymap['shift'] && keymap['enter']) {
                 makeUnEditable();
                 if (writeable) {
                     sendUpdatePara(active_para);
                 }
                 return false;
-            }
+            } 
         }
     }
 })

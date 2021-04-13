@@ -67,7 +67,7 @@ searchTitle = function(query, last_url) {
             for (var title in response) {
                 var art = response[title];
                 var url = `a/${art.url}`;
-                var artdiv = $('<a>', {class: 'art_result', href: url, html: title});
+                var artdiv = $('<a>', {class: 'art_result', href: url});
                 if (art.blurb) {
                     var b = $('<div>', {class: 'blurb', html: art.blurb});
                     artdiv.append(b);
