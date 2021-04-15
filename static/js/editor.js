@@ -359,34 +359,38 @@ editShift = function(para, up=true) {
     }
 };
 
-next_cc = function(){
-    let cc = $('.cc_choice').first();
-    cc.removeClass('cc_choice');
-    let nxt = cc.next('.cc_row');
-    if (nxt.length == 0){
-        nxt = cc.siblings('.cc_row').first();
-    };
-    nxt.addClass('cc_choice');
-}
-
-prev_cc = function(){
-    let cc = $('.cc_choice').first();
-    cc.removeClass('cc_choice');
-    let prv = cc.prev('.cc_row');
-    if (prv.length == 0){
-        prv = cc.siblings('.cc_row').last();
-    };
-    prv.addClass('cc_choice');
+next_cc = function(up=true){
+    let cc = $('#cc_pop')[0];
+    if(up){
+        f = cc.firstElementChild;
+        cc.appendChild(f); //apend first to end
+    } else {
+        l = cc.lastElementChild
+        cc.prepend(l); //append last child before first
+    }
 }
 
 make_cc = function(){
-    let cc = $('.cc_choice').first().text();
+    let cc = $('.cc_row').first().text();
     let input = active_para.children('.p_input');
     raw = input.val();
-    let open_ref = /@\[?([\w-\|\=\:^]+)?(?!.*\])(?!\s)/
-    raw = raw.replace(open_ref, function(){
-            return `@[${cc}]`
-        });
+    let open_ref = /@\[?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!\s)/
+    if (cap = open_ref.exec(raw)) {
+        if(cap[2] && !cap[1]){ //searching for ext page
+           raw = raw.replace(open_ref, function(){
+                return `@[${cc}:`
+            });         
+        } else if (cap[1] && cap[2]){
+            raw = raw.replace(open_ref, function(){
+                return `@[${cap[1]}:${cc}]`
+            });  
+    
+        } else {
+            raw = raw.replace(open_ref, function(){
+                return `@[${cc}]`
+            });  
+        };
+    };
     input.val(raw);
     syntaxHL(active_para);
     cc = false;
@@ -462,14 +466,14 @@ $(document).keydown(function(e) {
         } else if (active_para && editable) { // we are active and editable
             if (keymap['arrowup'] || keymap['arrowleft']) {
                 if(cc){ //if there is an open command completion window
-                    prev_cc();
+                    next_cc(up=false);
                     return false;
                 }else{
                 return editShift(active_para);
                 };
             } else if (keymap['arrowdown'] || keymap['arrowright']) {
                 if(cc){ //if there is an open command completion window
-                    next_cc();
+                    next_cc(up=true);
                     return false;
                 }else{
                     return editShift(active_para, up=false);

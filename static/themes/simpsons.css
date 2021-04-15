@@ -148,7 +148,7 @@ button:hover {
     border-bottom: 1px solid black;
 }
 
-.cc_choice{
+.cc_row:first-child{
     color: white;
 }
 

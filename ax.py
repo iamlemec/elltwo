@@ -370,10 +370,17 @@ def export_tex():
     in_title = data['in_title']
     paras = data['paras']
     bib = adb.get_bib_dict(keys=data['keys'])
+    macros = data['macros']
+    s_envs = data['s_envs']
 
     fname = f'{title}.tex'
 
-    tex = render_template('template.tex', in_title=in_title, paras=paras, bib=bib, date=datetime.now())
+    tex = render_template('template.tex',
+        in_title=in_title,
+        paras=paras, bib=bib,
+        macros=macros,
+        s_envs=s_envs,
+        date=datetime.now())
 
     resp = Response(tex)
     resp.headers['Content-Type'] = 'text/tex'
@@ -588,6 +595,21 @@ def get_ref(data):
             return {'text': "ref not found", 'cite_type': 'err'}
     else:
         return {'text': "art not found", 'cite_type': 'err'}
+
+@socketio.on('get_refs')
+def get_refs(data):
+    title = data['title']
+    art = adb.get_art_short(title)
+    if art:
+        refs = adb.get_refs(art.aid)
+        return {'refs' : refs, 'title': title }
+    else:
+        return {'refs': [], 'title': ''}
+
+@socketio.on('get_arts')
+def get_arts(data):
+    return {art: [] for art in adb.get_arts()}
+
 
 @socketio.on('update_ref')
 @login_decor

@@ -448,8 +448,8 @@ parse_preamble = function(raw){
     macros = Object.assign({}, int_macros, ext_macros);//merge internal and ext macros,overwrites internal
 };
 
-ext_macros = {};
-macros = ext_macros;
+var ext_macros = {};
+var macros = ext_macros;
 
 renderKatex = function(para) {
     para.find('span.latex').each(function() {
@@ -696,23 +696,20 @@ refCite = function(ref, tro) {
     }
 
     ref.text(citeText);
-    ref.attr('href', href);
+    ref.attr('href', "");
 };
 
 refEquation = function(ref, tro, ext) {
     var num = tro.find('.num')[0];
     var text = $(num).text();
     var citeText = (ext) ? `(${ext}, Eq. ${text})` :`(${text})`;
-    var href = '#' + tro.attr('id');
     ref.text(citeText);
-    ref.attr('href', href);
 };
 
 refEnv = function(ref, tro, env, ext) {
     var format = ref.attr('format') || '';
     var num = tro.find('.num')[0];
     var text = $(num).text();
-    var href = '#' + tro.attr('id');
 
     var citeText;
     if (format == 'plain') {
@@ -726,15 +723,10 @@ refEnv = function(ref, tro, env, ext) {
     }
 
     ref.text(citeText);
-    ref.attr('href', href);
-    // ref.removeClass('pop_anchor') // just for now
 };
 
 refText = function(ref, tro, text) {
-    var href = '#' + tro.attr('id');
-
     ref.text(text);
-    ref.attr('href', href);
 };
 
 refError = function(ref) {
@@ -1015,61 +1007,97 @@ setBlurb = function() {
 
 /// SyntaxHighlighting
 
-syntaxHL = function(para) {
+syntaxHL = function(para,e=null) {
     var text = para.children('.p_input');
     var view = para.children('.p_input_view');
     var raw = text.val();
-    cc_refs(raw,view);
+    if(e){
+        cc_refs(raw,view,e);
+    }
     var parsed = sytaxParseBlock(raw);
     view.html(parsed);
 };
 
-$(document).on('input', '.p_input', function(){
+$(document).on('input', '.p_input', function(e){
     para=$(this).parent('.para');
     // paraTimeOut();
     client.schedCanary();
-    syntaxHL(para);
+    syntaxHL(para,e);
 });
 
 /// command completion
 var cc = false; //is there a cc window open?
+var ext_refs = {}
 
-cc_refs = function(raw, view){
-    cc = false;
-    $('#cc_pop').remove();
-    let open_ref = /@\[?([\w-\|\=\:^]+)?(?!.*\])(?!\s)/
-    if (cap = open_ref.exec(raw)) {
-        raw = raw.replace(cap[0], function(){
-            return `<span id=cc_pos>${cap[0]}</span>`
-        });
-
-        view.html(raw);
-        let off = $('#cc_pos').offset();
-        let h = $('#cc_pos').height();
-
-        let search = cap[1] || "";
-        let cc_refs = ref_list.filter(ref => ref.includes(search))
-        if(cc_refs.length > 0){
+cc_search = function(list, search, placement){
+    console.log(list, search)
+    list = list.filter(el => el.includes(search))
+        if(list.length > 0){
             cc = true;
             let pop = $('<div>', {id: 'cc_pop'});
-            cc_refs.forEach((r,index) => {
+            list.forEach(r => {
                 let cc_row = $('<div>', {class: 'cc_row'});
                 cc_row.text(r);
-                if(index==0){
-                    cc_row.addClass('cc_choice')
-                }
                 pop.append(cc_row);
             });
             $('#bg').append(pop)
     
             pop.css({
-                'left': off.left + 'px', // offset 10px for padding
-                'top': off.top + h + 'px', // offset up by 35 px
-        });
-    }   ;
+                'left': placement.left + 'px', // offset 10px for padding
+                'top': placement.top + 'px', // offset up by 35 px
+            });
+        };
+};
 
-//     h = pop.height();
-//     w = pop.width();
+cc_refs = function(raw, view, e){
+    cc = false;
+    $('#cc_pop').remove();
+    let open_ref = /@\[?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!\s)/
+    if (cap = open_ref.exec(raw)) {
+        cur = e.target.selectionStart
+        //if cursor is near the match
+        if(cur >= cap.index && cur <= cap.index + cap[0].length){
+            if(cap[1]){
+            raw = raw.replace(cap[0], function(){
+                    return `@[${cap[1]}<span id=cc_pos></span>`
+                });
+            }else{
+            raw = raw.replace(cap[0], function(){
+                    return `<span id=cc_pos>${cap[0]}</span>`
+                });   
+            };
+
+            view.html(raw);
+            let off = $('#cc_pos').offset();
+            let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+
+            if(cap[2] && !cap[1]){ //searching for ext page
+                let ex_keys = Object.keys(ext_refs);
+                if(ex_keys.length == 0){ //if we have not made request
+                    client.sendCommand('get_arts', "", function(arts) {
+                        ext_refs = arts;
+                        search = "";
+                        cc_search(Object.keys(arts), search, p);
+                    });
+                } else {
+                    search = cap[3] || "";
+                    cc_search(ex_keys, search, p)
+                }; 
+
+            } else if (cap[1] && cap[2]){
+                client.sendCommand('get_refs', {'title': cap[1]}, function(data) {
+                    if(data.refs.length > 0){
+                        ext_refs[data.title] = data.refs;
+                    }
+                    search = "";
+                    cc_search(data.refs, search, p);
+                });
+            } else {
+                let search = cap[3] || cap[1] || "";
+                console.log(search)
+                cc_search(ref_list, search, p)
+        };
+    };
     };
  };
 

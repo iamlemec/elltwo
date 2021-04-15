@@ -151,7 +151,7 @@ button:hover {
     border-bottom: 1px solid var(--delimit-col);
 }
 
-.cc_choice{
+.cc_row:first-child{
     color: var(--hl2-col);
 }
 

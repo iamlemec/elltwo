@@ -301,6 +301,13 @@ button {
     max-width: 400px;
 }
 
+.cc_row{
+    display: none;
+}
+.cc_row:nth-child(-n+5) {
+  display: block;
+}
+
 .head_level2 {
     padding-left: 20px;
     font-size: 80%;

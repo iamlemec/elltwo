@@ -1143,14 +1143,15 @@ DivRenderer.prototype.equation = function(tex) {
 };
 
 DivRenderer.prototype.ref = function(args) {
-  var id = args['id'];
-  var ext = id.includes(':');
-  var format = args['format'] || args['fmt'] || args['f'] || '';
-  var text = args['text'] || args['txt'] || args['t'];
-  var htext =  (text != undefined) ? `text="${text}"`: '';
-  var pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
-  var ptext = ('poptext' in args) ? `poptext="${args['poptext']}"`: '';
-  return `<a class="reference ${pclass}" citekey="${id}" data-extern="${ext}" format="${format}" ${htext} ${ptext}></a>`;
+  const id = args['id'];
+  const ext = id.includes(':');
+  const format = args['format'] || args['fmt'] || args['f'] || '';
+  const text = args['text'] || args['txt'] || args['t'];
+  const htext =  (text != undefined) ? `text="${text}"`: '';
+  const pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
+  const ptext = ('poptext' in args) ? `poptext="${args['poptext']}"`: '';
+  const href = (ext) ? `${window.location.origin}/r/${id.split(':')[0]}\#${id.split(':')[1]}` : `\#${id}`;
+  return `<a href="${href}" class="reference ${pclass}" citekey="${id}" data-extern="${ext}" format="${format}" ${htext} ${ptext}></a>`;
 };
 
 DivRenderer.prototype.footnote = function(text) {
@@ -1321,15 +1322,21 @@ TexRenderer.prototype.equation = function(tex) {
 };
 
 TexRenderer.prototype.ref = function(args) {
-  var id = args['id'];
-  var ext = id.includes(':');
-  var format = args['format'] || args['fmt'] || args['f'] || '';
-  var c = (format == 'plain') ? '': 'c';
-  var text = args['text'] || args['txt'] || args['t'];
-  var htext =  (text != undefined) ? `text="${text}"`: '';
-  var pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
-  var ptext = ('poptext' in args) ? `poptext="${args['poptext']}"`: '';
+  let id = args['id'];
+  let ext = id.includes(':');
+  let format = args['format'] || args['fmt'] || args['f'] || '';
+  let c = (format == 'plain') ? '': 'c';
+  let text = args['text'] || args['txt'] || args['t'];
+  let pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
+  //var ptext = ('poptext' in args) ? `poptext="${args['poptext']}"`: '';
+  if(ext){
+    let inner = (text) ? text : `<!!<${id}>!!>`
+    return `\\href{${window.location.origin}/r/${id.split(':')[0]}\\\#${id.split(':')[1]}}{${inner}}`
+  }else if (text){
+    return `\\hyperref[${id}]{${text}}`
+  } else {
   return `\\${c}ref{${id}}`
+  }
 
 };
 

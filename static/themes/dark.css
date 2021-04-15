@@ -179,7 +179,7 @@ button:hover {
 .cc_row:last-child {
 }
 
-.cc_choice{
+.cc_row:first-child{
     color: var(--hl2-col);
     background-color: var(--bg-hl-col);
 

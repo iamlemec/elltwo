@@ -162,6 +162,17 @@ class AxiomDB:
         index = {p.pid: p for p in paras}
         return [index[p] for p in pids]
 
+    def get_arts(self, time=None):
+        if time is None:
+            time = datetime.utcnow()
+
+        arts = (self.session
+            .query(Article)
+            .filter(arttime(time))
+            .all()
+        )
+        return [art.short_title for art in arts]
+
     def get_art(self, aid, time=None):
         if time is None:
             time = datetime.utcnow()

@@ -15,12 +15,16 @@ createTex = function() {
         output.push(tex);
     });
 
+    tex_macros = texMacros(macros)
+    s_envs = sEnv(s_env_spec)
 
     var dict = {
         'paras': output,
         'keys': keys,
         'in_title': in_title,
         'title': title,
+        'macros': tex_macros,
+        's_envs': s_envs,
     };
     return dict;
 };
@@ -42,6 +46,12 @@ replaceCites = function(keys, text){
             return m;
         };
     });
+    let ex_ref = /\<\!\!\<([\w\-\_\:]+)\>\!\!\>/g;
+    text = text.replaceAll(ex_ref, function(m, p1){
+        x = $(`[citekey='${p1}']`).first()
+        return x.text();
+    });
+
     return text;
 };
 
@@ -58,6 +68,8 @@ texEnv = function(m) {
     }
     if (spec in tex_spec) {
         return tex_spec[spec](m.src, env);
+    }else if(spec in s_env_spec){
+        return texTheorem(m.src, env)
     } else {
         return tex_spec.error(m.src, env);
     }
@@ -86,8 +98,9 @@ texTheorem = function(src, env) {
     var num = (args.number) ? '' : '*';
     var name = (args.name) ? `[${args.name}]` : '';
     var label = (args.id) ? `\\label{${args.id}}` : '';
-    current_tex_env = `theorem${num}`;
-    var out = `\\begin{${current_tex_env}}${name}${label} \n ${src}`;
+    var close = env.single ? `\n\\end{${env.env}}` : ""
+    current_tex_env = `${env.env}${num}`;
+    var out = `\\begin{${current_tex_env}}${name}${label} \n ${src}${close}`;
     return out;
 };
 
@@ -117,6 +130,28 @@ var tex_spec = {
     'title': texTitle,
     'end': texEndEnv,
 };
+
+texMacros = function(macros_dict){
+    macout = ""
+    for (const [key, value] of Object.entries(macros_dict)) {
+        const num = (value.match(/(?<!\\)\#[0-9]+/g)||[]).length
+        const box = num ? `[${num}]` : "";
+        macout += `\\newcommand{${key}}${box}{${value}} \n`
+    }
+    return macout
+};
+
+sEnv = function(s_env_spec){
+    envout = ""
+    for (const [key, value] of Object.entries(s_env_spec)) {
+        if(key!='proof'){
+            nonum = `\\newtheorem{${key}}{${value.head}}`;
+            num = `\\newtheorem*{${key}*}{${value.head}}`;
+            envout += `${num}\n${nonum}\n`;
+        }
+    }
+    return envout 
+}
 
 /// export methods
 

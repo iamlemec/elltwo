@@ -37,33 +37,33 @@ urlcolor=lam1,
 citecolor=lam1 
 }
 
-%%new commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%stock new commands
 \renewcommand{\blacksquare}{\vrule height7pt width4pt depth1pt}
 \newcommand{\hl}[1]{\textcolor{err}{\textsc{#1}} }
 \newverbcommand{\cverb}{\color{code}}{}
 \DefineVerbatimEnvironment{blockcode}
   {Verbatim}
   {fontsize=\small,formatcom=\color{blue},breaklines=true}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\newtheorem{theorem}{Theorem}
-\newtheorem*{theorem*}{Theorem}
-\newtheorem*{example*}{example}
-\newtheorem{example}{example}
-\newtheorem*{lemma*}{Lemma}
-\newtheorem{lemma}{Lemma}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 {% endraw %}
+
+%user created newcommands
+{{macros}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+{{s_envs}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%local bib entries
 
 \begin{filecontents}{\jobname.bib}
 {% for b in bib %}
@@ -71,6 +71,9 @@ citecolor=lam1
 {% endfor%}
 \end{filecontents}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
