@@ -457,7 +457,7 @@ $(document).keydown(function(e) {
                         sendUpdatePara(active_para);
                     }
                 }
-            } else if (keymap['enter'] && !keymap['enter']) {
+            } else if (!keymap['shift'] && keymap['enter']) {
                 if (cc) {
                     make_cc();
                     return false;
