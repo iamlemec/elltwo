@@ -5,7 +5,6 @@ active_para = null; // current active para
 last_active = null; // to keep track of where cursor was
 editable = false; // are we focused on the active para
 writeable = !readonly; // can we actually modify contents
-changed = {}; // list of paras that have been changed
 
 // hard coded options
 scrollSpeed = 100;
@@ -54,12 +53,11 @@ ensureVisible = function(para) {
 localChange = function(para, send=true) {
     var text = para.children('.p_input').val();
     var raw = para.attr('raw');
-    var pid = para.attr('pid');
     if (text != raw) {
-        changed[pid] = text;
         $(para).addClass('changed');
     } else {
         if (send) {
+            var pid = para.attr('pid');
             sendUnlockPara([pid]);
         }
     }
@@ -67,16 +65,11 @@ localChange = function(para, send=true) {
 };
 
 // store change server side if any local changes
-storeChange = function(para) {
-    var pid = para.attr('pid');
-    if (pid in changed) {
-        var raw = changed[pid];
-        para.attr('raw', raw);
-        updateRefHTML(para);
-        delete changed[pid];
-        $(para).removeClass('changed')
-               .removeAttr('old_id');
-    }
+storeChange = function(para, raw) {
+    para.attr('raw', raw);
+    updateRefHTML(para);
+    $(para).removeClass('changed')
+           .removeAttr('old_id');
 };
 
 /// server comms and callbacks
@@ -90,24 +83,16 @@ on_success = function(func) {
 };
 
 sendUpdatePara = function(para) {
-    var pid = para.attr('pid');
-    var raw = para.children('.p_input').val();
-    var data = {room: aid, pid: pid, text: raw};
-    client.sendCommand('update_para', data, on_success(() => {
-        storeChange(para);
-    }));
-};
-
-sendUpdateBulk = function() {
-    if (Object.keys(changed).length > 0) {
-        var data = {room: aid, paras: changed};
-        client.sendCommand('update_bulk', data, on_success(() => {
-            Object.keys(changed).map(function(pid) {
-                var para = getPara(pid);
-                storeChange(para);
-            });
-        }));
+    var text = para.children('.p_input').val();
+    var raw = para.attr('raw');
+    if (text == raw) {
+        return;
     }
+    var pid = para.attr('pid');
+    var data = {room: aid, pid: pid, text: text};
+    client.sendCommand('update_para', data, on_success(() => {
+        storeChange(para, text);
+    }));
 };
 
 sendInsertBefore = function(para) {
@@ -218,7 +203,7 @@ makeUnEditable = function(send=true) {
         if (writeable) {
             localChange(active_para, send);
         }
-        if(mobile){
+        if (mobile) {
             $('#foot').show();
         };
     }
@@ -226,36 +211,27 @@ makeUnEditable = function(send=true) {
 
 /// para locking
 
+/*
 let lockout = null;
 
-/*
-paraTimeOut = function(){
-    clearTimeout(lockout)
+paraTimeOut = function() {
+    clearTimeout(lockout);
     lockout = setTimeout(function () {
         makeUnEditable();
-        data = {room: aid, paras: changed};
-        client.sendCommand('update_bulk', data, function(success) {
-            Object.keys(changed).map(function(pid) {
-                var para = getPara(pid);
-                storeChange(para);
-            });
-        });
     }, 1000*60*3); // 3 mins
 };
 */
 
 lockParas = function(pids) {
-    pids.forEach(function(pid){
+    pids.forEach(function(pid) {
         var para = getPara(pid);
         para.addClass('locked');
     });
 };
 
 sendUnlockPara = function(pids) {
-    var data = {};
-    data.pids = pids;
-    data.room = aid;
-    client.sendCommand('unlock', data, function(response){
+    var data = {pids: pids, room: aid};
+    client.sendCommand('unlock', data, function(response) {
         console.log(response);
     });
 };
@@ -359,44 +335,43 @@ editShift = function(para, up=true) {
     }
 };
 
-next_cc = function(up=true){
-    let cc = $('#cc_pop')[0];
-    if(up){
-        f = cc.firstElementChild;
-        cc.appendChild(f); //apend first to end
+next_cc = function(up=true) {
+    let ccpop = $('#cc_pop')[0];
+    if (up) {
+        f = ccpop.firstElementChild;
+        ccpop.appendChild(f); //apend first to end
     } else {
-        l = cc.lastElementChild
-        cc.prepend(l); //append last child before first
+        l = ccpop.lastElementChild;
+        ccpop.prepend(l); //append last child before first
     }
 }
 
-make_cc = function(){
-    let cc = $('.cc_row').first().text();
-    let input = active_para.children('.p_input');
-    raw = input.val();
-    let open_ref = /@\[?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!\s)/
+make_cc = function() {
+    var cctxt = $('.cc_row').first().text();
+    var input = active_para.children('.p_input');
+    var raw = input.val();
+    let open_ref = /@\[?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!\s)/;
     if (cap = open_ref.exec(raw)) {
-        if(cap[2] && !cap[1]){ //searching for ext page
-           raw = raw.replace(open_ref, function(){
-                return `@[${cc}:`
-            });         
-        } else if (cap[1] && cap[2]){
-            raw = raw.replace(open_ref, function(){
-                return `@[${cap[1]}:${cc}]`
-            });  
-    
+        if (cap[2] && !cap[1]){ // searching for ext page
+           raw = raw.replace(open_ref, function() {
+                return `@[${cctxt}:`;
+            });
+        } else if (cap[1] && cap[2]) {
+            raw = raw.replace(open_ref, function() {
+                return `@[${cap[1]}:${cctxt}]`;
+            });
+
         } else {
-            raw = raw.replace(open_ref, function(){
-                return `@[${cc}]`
-            });  
-        };
-    };
+            raw = raw.replace(open_ref, function() {
+                return `@[${cctxt}]`;
+            });
+        }
+    }
     input.val(raw);
     syntaxHL(active_para);
     cc = false;
     $('#cc_pop').remove();
-
-}
+};
 
 /// KEYBOARD NAV
 
@@ -424,12 +399,6 @@ $(document).keydown(function(e) {
         keymap[key] = true;
         if (keymap['control'] && keymap['enter']) {
             toggle_hist_map();
-            return false;
-        } else if (keymap['control'] && keymap['s']) {
-            if (writeable) {
-                makeUnEditable();
-                sendUpdateBulk();
-            }
             return false;
         }
         if (!active_para) { // if we are inactive
@@ -465,28 +434,31 @@ $(document).keydown(function(e) {
             }
         } else if (active_para && editable) { // we are active and editable
             if (keymap['arrowup'] || keymap['arrowleft']) {
-                if(cc){ //if there is an open command completion window
+                if (cc) { // if there is an open command completion window
                     next_cc(up=false);
                     return false;
-                }else{
-                return editShift(active_para);
-                };
+                } else {
+                    return editShift(active_para);
+                }
             } else if (keymap['arrowdown'] || keymap['arrowright']) {
-                if(cc){ //if there is an open command completion window
+                if (cc) {
                     next_cc(up=true);
                     return false;
-                }else{
+                } else {
                     return editShift(active_para, up=false);
-                };
+                }
             } else if (keymap['escape']) {
-                if(cc){ //if there is an open command completion window
+                if (cc) {
                     cc = false;
                     $('#cc_pop').remove();
-                }else{
+                } else {
                     makeUnEditable();
-                };
-            } else if (keymap['enter']) {
-                if(cc){ //if there is an open command completion window
+                    if (writeable) {
+                        sendUpdatePara(active_para);
+                    }
+                }
+            } else if (keymap['enter'] && !keymap['enter']) {
+                if (cc) {
                     make_cc();
                     return false;
                 }
@@ -495,8 +467,9 @@ $(document).keydown(function(e) {
                 if (writeable) {
                     sendUpdatePara(active_para);
                 }
+                sendInsertAfter(active_para);
                 return false;
-            } 
+            }
         }
     }
 })
@@ -505,24 +478,27 @@ $(document).keyup(function(e) {
     var key = e.key.toLowerCase();
     if (key in keymap) {
         keymap[key] = false;
-    };
+    }
 });
 
 /// mouse interface
 
 // click to make active // double click to make editable
 $(document).on('click', '.para', function() {
-    var para = $(this);
-    if (!para.hasClass('active')) {
-        makeActive($(this));
-    } else if (!editable) {
-        sendMakeEditable();
-    };
+    if (keymap['control']) {
+        var para = $(this);
+        if (!para.hasClass('active')) {
+            makeActive($(this));
+        } else if (!editable) {
+            sendMakeEditable();
+        }
+    }
 });
 
 // click background to escape
 $(document).on('click', '#bg', function() {
-    if (event.target.id=='bg' || event.target.id=='content') {
+    var targ = event.target.id;
+    if (keymap['control'] && ((targ == 'bg') || (targ == 'content'))) {
         makeUnEditable();
         makeActive(null);
     }

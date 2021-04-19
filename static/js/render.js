@@ -833,7 +833,7 @@ createPop = function(html='', link=false) {
             let y = event.pageY - h - 35
             if(event.pageY < mid){//if on top half of page
                 y = event.pageY + 35
-            } 
+            }
             pop.css({
                 'left': (event.pageX - 0.5*w - 10) + 'px', // offset 10px for padding
                 'top': (y) + 'px', // offset up by 35 px
@@ -1041,7 +1041,7 @@ cc_search = function(list, search, placement){
                 pop.append(cc_row);
             });
             $('#bg').append(pop)
-    
+
             pop.css({
                 'left': placement.left + 'px', // offset 10px for padding
                 'top': placement.top + 'px', // offset up by 35 px
@@ -1064,7 +1064,7 @@ cc_refs = function(raw, view, e){
             }else{
             raw = raw.replace(cap[0], function(){
                     return `<span id=cc_pos>${cap[0]}</span>`
-                });   
+                });
             };
 
             view.html(raw);
@@ -1082,7 +1082,7 @@ cc_refs = function(raw, view, e){
                 } else {
                     search = cap[3] || "";
                     cc_search(ex_keys, search, p)
-                }; 
+                };
 
             } else if (cap[1] && cap[2]){
                 client.sendCommand('get_refs', {'title': cap[1]}, function(data) {
