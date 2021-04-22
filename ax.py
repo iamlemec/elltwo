@@ -63,7 +63,7 @@ if args.mail is not None:
     mail = Mail(app)
 else:
     MailNull = namedtuple('MailNull', ['send'])
-    mail = MailNull(send=lambda: None)
+    mail = MailNull(send=lambda _: None)
 
 # load sqlalchemy
 db = SQLAlchemy(app)
@@ -318,7 +318,7 @@ def GetArtData(title, edit):
         aid = art.aid
         paras = adb.get_paras(aid)
         ref_list = []
-        if edit:    
+        if edit:
             bib_list = [cite.citekey for cite in adb.get_bib()]
             ref_list = adb.get_refs(aid)
             ref_list += bib_list

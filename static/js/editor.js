@@ -379,6 +379,7 @@ keymap = {
     'enter': false,
     'shift': false,
     'control': false,
+    'alt': false,
     'escape': false,
     'arrowleft': false,
     'arrowup': false,
@@ -399,6 +400,8 @@ $(document).keydown(function(e) {
         keymap[key] = true;
         if (keymap['control'] && keymap['enter']) {
             toggle_hist_map();
+            return false;
+        } else if (keymap['control'] && keymap['s']) {
             return false;
         }
         if (!active_para) { // if we are inactive
@@ -485,22 +488,24 @@ $(document).keyup(function(e) {
 
 // click to make active // double click to make editable
 $(document).on('click', '.para', function() {
-    if (keymap['control']) {
+    if (keymap['alt']) {
         var para = $(this);
         if (!para.hasClass('active')) {
             makeActive($(this));
         } else if (!editable) {
             sendMakeEditable();
         }
+        keymap['alt'] = false;
     }
 });
 
 // click background to escape
 $(document).on('click', '#bg', function() {
     var targ = event.target.id;
-    if (keymap['control'] && ((targ == 'bg') || (targ == 'content'))) {
+    if (keymap['alt'] && ((targ == 'bg') || (targ == 'content'))) {
         makeUnEditable();
         makeActive(null);
+        keymap['alt'] = false;
     }
 });
 
