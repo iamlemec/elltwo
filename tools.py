@@ -30,13 +30,3 @@ class Multimap:
 
     def loc(self, item):
         return self._locs.get(item, None)
-
-class WhooshSearch1(WhooshSearch):
-    def init_app(self, app):
-        self._setdefault(app)
-        self._signal_connect(app)
-        if self.analyzer is None:
-            self.analyzer = app.config["MSEARCH_ANALYZER"] or DEFAULT_ANALYZER
-        self.pk = app.config["MSEARCH_PRIMARY_KEY"]
-        self.index_name = app.config["MSEARCH_INDEX_NAME"]
-        self.app = app
