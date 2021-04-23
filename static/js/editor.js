@@ -80,10 +80,10 @@ on_success = function(func) {
     };
 };
 
-sendUpdatePara = function(para) {
+sendUpdatePara = function(para, force=false) {
     let text = para.children('.p_input').val();
     let raw = para.attr('raw');
-    if (text == raw) {
+    if (text == raw && !force) {
         return;
     }
     var pid = para.attr('pid');

@@ -28,6 +28,7 @@ var block = {
   equation: /^\$\$(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
   svg: /^\&svg(\*)? *(?:refargs)?[\s\n]*((?:[^\n]+\n?)*)(?:$)/,
   title: /^#! *(?:refargs)? *([^\n]*)([\n\r]*)([\s\S]*)(?:$)/,
+  upload: /^!!(?:$)/,
   image: /^!(\*)? *(?:refargs)? *\(href\)(?:\n+|$)/,
   biblio: /^@@ *(?:refid) *\n?((?:[^\n]+\n?)*)(?:\n+|$)/,
   figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n?)*)(?:\n+|$)/,
@@ -247,6 +248,7 @@ Lexer.prototype.token = function(src, top, bq) {
       continue;
     }
 
+    //image
     if (cap = this.rules.image.exec(src)) {
       src = src.substring(cap[0].length);
       var number = cap[1] == undefined;
@@ -260,6 +262,14 @@ Lexer.prototype.token = function(src, top, bq) {
       continue;
     }
 
+    //upload
+    if (cap = this.rules.upload.exec(src)) {
+      src = src.substring(cap[0].length);
+      this.tokens.push({
+        type: 'upload',
+      });
+      continue;
+    }
 
     // figure
     if (cap = this.rules.figure.exec(src)) {
@@ -1034,8 +1044,8 @@ DivRenderer.prototype.heading = function(text) {
 };
 
 DivRenderer.prototype.svg = function(svg) {
-  svg = `<svg class=svg_fig viewBox='0 0 100 100'>
-      ${svg}</svg>`
+  svg = `<div class=fig_cont><svg class=svg_fig viewBox='0 0 100 100'>
+      ${svg}</svg></div>`
   return svg
 };
 
@@ -1159,7 +1169,11 @@ DivRenderer.prototype.footnote = function(text) {
 };
 
 DivRenderer.prototype.image = function(href) {
-  return `<img src="${href}">`;
+  return `<div class=fig_cont><img src="${href}"></div>`;
+};
+
+DivRenderer.prototype.upload = function() {
+  return `<div id=dropzone class=dropzone>Drop Image to Upload</div>`;
 };
 
 DivRenderer.prototype.figure = function(ftype, tag, title, body) {
@@ -1590,6 +1604,9 @@ Parser.prototype.tok = function() {
     }
     case 'text': {
       return this.renderer.paragraph(this.parseText());
+    }
+    case 'upload': {
+      return this.renderer.upload();
     }
     case 'image': {
       this.env = {

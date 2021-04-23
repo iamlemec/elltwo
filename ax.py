@@ -9,6 +9,7 @@ from collections import namedtuple
 from random import getrandbits
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from apscheduler.schedulers.background import BackgroundScheduler
+from werkzeug.utils import secure_filename
 
 from werkzeug.security import check_password_hash
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
@@ -670,6 +671,21 @@ def locked_by_sid(sid):
         'pids': locked.get(sid),
         'room': roomed.loc(sid),
     }
+
+###
+### imageHandling
+###
+
+@app.route('/uploadImg', methods=['POST'])
+def UploadImg():
+    file = request.files['file']
+    filename = secure_filename(file.filename)
+    img_path = os.path.join(app.root_path, 'static/img')
+    file.save(os.path.join(img_path, filename))
+    src = url_for('static', filename='img/'+filename)
+    id = 'img_' + src.split('/')[-1].split('.')[0]
+    data = {'src': src, 'id': id}
+    return data
 
 ###
 ### timeout
