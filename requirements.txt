@@ -9,3 +9,4 @@ flask_mail
 blinker
 eventlet
 toml
+whoosh
