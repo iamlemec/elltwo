@@ -1,22 +1,22 @@
 ////// UI ///////
 
 // global state
-active_para = null; // current active para
-last_active = null; // to keep track of where cursor was
-editable = false; // are we focused on the active para
-writeable = !readonly; // can we actually modify contents
+var active_para = null; // current active para
+var last_active = null; // to keep track of where cursor was
+var editable = false; // are we focused on the active para
+var writeable = !readonly; // can we actually modify contents
 
 // hard coded options
-scrollSpeed = 100;
-scrollFudge = 100;
+var scrollSpeed = 100;
+var scrollFudge = 100;
 
 /// textarea manage
 
 resize = function(textarea) {
     textarea.style.height = 'auto';
-    h = (textarea.scrollHeight) + 'px'
+    let h = (textarea.scrollHeight) + 'px'
     textarea.style.height = h;
-    para = $(textarea).parent('.para');
+    let para = $(textarea).parent('.para');
     para.css('min-height', h);
 };
 
@@ -28,15 +28,13 @@ $(document).on('input focus', 'textarea', function() {
 /// scrolling
 
 ensureVisible = function(para) {
-    var cont = para.parent();
-    var scroll = cont.scrollTop();
-    var height = cont.height();
-
-    var cell_top = scroll + para.position().top;
-    var cell_bot = cell_top + para.height();
-
-    var page_top = scroll;
-    var page_bot = page_top + height;
+    let cont = para.parent();
+    let scroll = cont.scrollTop();
+    let height = cont.height();
+    let cell_top = scroll + para.position().top;
+    let cell_bot = cell_top + para.height();
+    let page_top = scroll;
+    let page_bot = page_top + height;
 
     if (cell_top < page_top + scrollFudge) {
         cont.stop();
@@ -51,8 +49,8 @@ ensureVisible = function(para) {
 
 // store a change locally, if no change also unlock server side
 localChange = function(para, send=true) {
-    var text = para.children('.p_input').val();
-    var raw = para.attr('raw');
+    let text = para.children('.p_input').val();
+    let raw = para.attr('raw');
     if (text != raw) {
         $(para).addClass('changed');
     } else {
@@ -83,8 +81,8 @@ on_success = function(func) {
 };
 
 sendUpdatePara = function(para) {
-    var text = para.children('.p_input').val();
-    var raw = para.attr('raw');
+    let text = para.children('.p_input').val();
+    let raw = para.attr('raw');
     if (text == raw) {
         return;
     }
@@ -96,8 +94,8 @@ sendUpdatePara = function(para) {
 };
 
 sendInsertBefore = function(para) {
-    var pid = para.attr('pid');
-    var data = {room: aid, pid: pid};
+    let pid = para.attr('pid');
+    let data = {room: aid, pid: pid};
     client.sendCommand('insert_before', data, on_success(() => {
         activePrevPara();
         sendMakeEditable();
@@ -105,8 +103,8 @@ sendInsertBefore = function(para) {
 };
 
 sendInsertAfter = function(para) {
-    var pid = para.attr('pid');
-    var data = {room: aid, pid: pid};
+    let pid = para.attr('pid');
+    let data = {room: aid, pid: pid};
     client.sendCommand('insert_after', data, on_success(() => {
         activeNextPara();
         sendMakeEditable();
@@ -114,9 +112,9 @@ sendInsertAfter = function(para) {
 };
 
 sendDeletePara = function(para) {
-    var pid = para.attr('pid');
-    var data = {room: aid, pid: pid};
-    var next = para.next('.para');
+    let pid = para.attr('pid');
+    let data = {room: aid, pid: pid};
+    let next = para.next('.para');
     if (next.length == 0) {
         next = para.prev('.para');
     }
@@ -131,7 +129,7 @@ sendDeletePara = function(para) {
 
 /// para editable
 
-placeCursor = function(begin=true) {
+placeCursor = function(begin=false) {
     if (active_para && writeable) {
         var text = active_para.children('.p_input');
         text.focus();
@@ -368,6 +366,7 @@ make_cc = function() {
         }
     }
     input.val(raw);
+    resize(input[0]);
     syntaxHL(active_para);
     cc = false;
     $('#cc_pop').remove();
@@ -470,7 +469,7 @@ $(document).keydown(function(e) {
                 if (writeable) {
                     sendUpdatePara(active_para);
                 }
-                sendInsertAfter(active_para);
+                sendInsertAfter(activ_para);
                 return false;
             }
         }

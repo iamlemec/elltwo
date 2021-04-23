@@ -21,6 +21,7 @@ class Article(Base):
     title = Column(Text, nullable=False)
     short_title = Column(Text, nullable=False)
     blurb = Column(Text)
+    g_ref = Column(Boolean, nullable=False, default=False)
     create_time = Column(DateTime, default=datetime.utcnow)
     delete_time = Column(DateTime)
 

@@ -6,15 +6,12 @@
     title = '{{title}}';
     aid = '{{aid}}';
     theme = '{{theme}}';
+    g_ref = {{g_ref|tojson}}
+    readonly = !{{edit|tojson}}
     ref_list = []
     {% for r in ref_list%}
         ref_list.push('{{r}}');
     {% endfor %}
-    {% if edit %}
-    readonly = false;
-    {% else %}
-    readonly = true;
-    {% endif %}
 </script>
    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
    <script src={{ url_for('static', filename='libs/socket.io.js') }} language="Javascript" type="text/javascript"></script>

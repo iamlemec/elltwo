@@ -337,6 +337,7 @@ def GetArtData(title, edit):
             themes=themes,
             edit=edit,
             ref_list=ref_list,
+            g_ref=art.g_ref,
         )
     else:
         flash(f'Article "{title}" does not exist.')
@@ -621,6 +622,11 @@ def get_arts(data):
 @login_decor
 def update_ref(data):
     adb.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'])
+
+@socketio.on('update_g_ref')
+def update_g_ref(data):
+    adb.update_g_ref(data['aid'], data['g_ref'])
+    return data['g_ref']
 
 @socketio.on('delete_ref')
 @login_decor

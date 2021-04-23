@@ -329,14 +329,14 @@ class AxiomDB:
     def last_para(self, aid):
         return self.session.query(Paralink).filter_by(aid=aid).filter_by(next=None).one_or_none()
 
-    def create_article(self, title, short_title=None, init=True, time=None):
+    def create_article(self, title, short_title=None, init=True, time=None, g_ref=False):
         if time is None:
             time = datetime.utcnow()
 
         if short_title is None:
             short_title = urlify(title)
 
-        art = Article(title=title, short_title=short_title, create_time=time)
+        art = Article(title=title, short_title=short_title, create_time=time, g_ref=g_ref)
         self.session.add(art)
         self.session.commit()
 
@@ -392,7 +392,7 @@ class AxiomDB:
         if time is None:
             time = datetime.utcnow()
 
-        art = self.create_article(title, init=False, time=time)
+        art = self.create_article(title, init=False, time=time, g_ref=True)
         aid = art.aid
 
         paras = re.sub(r'\n{3,}', '\n\n', mark).strip().split('\n\n')
@@ -528,6 +528,14 @@ class AxiomDB:
 
         ref.delete_time = now
         self.session.add(ref)
+        self.session.commit()
+
+    def update_g_ref(self, aid, g_ref):
+        now = datetime.utcnow()
+
+        art = self.get_art(aid)
+        art.g_ref=g_ref
+        self.session.add(art)
         self.session.commit()
 
     ##

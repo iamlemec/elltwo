@@ -1,5 +1,13 @@
 /// init commands ///
 
+///flags and global vars
+//macros
+var ext_macros = {};
+var macros = ext_macros;
+//command completion
+var cc = false; //is there a cc window open?
+var ext_refs = {};
+
 // inner HTML for para structure. Included here for updating paras
 inner_para = `
 <div class="p_text"></div>
@@ -43,6 +51,16 @@ $(document).ready(function() {
     envClasses();
     createRefs();
 
+    if(g_ref){ //set external reference for import_markdown arts
+        $('.para').each(function() {
+        var para = $(this);
+        updateRefHTML(para);
+        });
+        client.sendCommand('update_g_ref', {'aid': aid, 'g_ref': false}, function(response) {
+            console.log(`g_ref set to '${response}'`);
+        });
+    };
+
     if (!readonly) {
         setBlurb();
     }
@@ -50,20 +68,18 @@ $(document).ready(function() {
 
 /////////////////// EDITING /////////
 
-/// editing commands for paras (triggered by incoming socket commands)
-/// local changes only --> to reflect server changes without full reload
-
 // get raw text from data-raw attribute, parse, render
 rawToRender = function(para, defer, raw=null) {
     // render with markthree
-    var mark_in = (raw === null) ? para.attr('raw') : raw;
-    var mark_out = markthree(mark_in);
-    var html_text = mark_out['src'];
-    var env_info = mark_out['env'];
+    let mark_in = (raw === null) ? para.attr('raw') : raw;
+    let mark_out = markthree(mark_in);
+    let html_text = mark_out['src'];
+    let env_info = mark_out['env'];
 
     // store old id/env info
-    var old_id = para.attr('id');
-    var old_env = para.attr('env');
+    let old_id = para.attr('id');
+    let old_env = para.attr('env');
+    let old_ref_text = para.attr('ref_text');
 
     // display rendered html
     para.children('.p_text').html(html_text);
@@ -77,6 +93,7 @@ rawToRender = function(para, defer, raw=null) {
         .removeClass('env_one')
         .removeAttr('env')
         .removeAttr('id')
+        .removeAttr('ref_text')
         .removeData('args');
 
     // fill in env identifiers
@@ -106,9 +123,10 @@ rawToRender = function(para, defer, raw=null) {
     }
 
     // has id/env info changed?
-    var new_id = para.attr('id');
-    var new_env = para.attr('env');
-    var changeRef = (new_env != old_env) || (new_id != old_id);
+    let new_id = para.attr('id');
+    let new_env = para.attr('env');
+    let new_ref_text = para.attr('ref_text');
+    let changeRef = (new_env != old_env) || (new_id != old_id) || (new_ref_text != old_ref_text);
 
     // call environment formatters and reference updates
     if (!defer) {
@@ -330,6 +348,7 @@ makeCounter = function(env, inc=1) {
 simpleEnv = function(ptxt, env, head='', tail='', number=true, args={}) {
     let num = (args.number) && number;
     let name = args.name || '';
+    let ref_text = args.ref_text || args.rt || '';
     let first = ptxt.first();
     let pre = $('<span>', {class: `env_add ${env}_header`, html: head});
     if (num) {
@@ -339,6 +358,9 @@ simpleEnv = function(ptxt, env, head='', tail='', number=true, args={}) {
     if (name) {
         var span = $('<span>', {class: `${env}_name`, html: name});
         pre.append([' ', span]);
+    }
+    if (ref_text) {
+        ptxt.parent().attr('ref_text', ref_text);
     }
     pre.append('. ');
     first.prepend(pre);
@@ -448,8 +470,6 @@ parse_preamble = function(raw){
     macros = Object.assign({}, int_macros, ext_macros);//merge internal and ext macros,overwrites internal
 };
 
-var ext_macros = {};
-var macros = ext_macros;
 
 renderKatex = function(para) {
     para.find('span.latex').each(function() {
@@ -597,10 +617,12 @@ getTro = function(ref, callback) {
             tro.tro = $($.parseHTML(data.text));
             tro.cite_type = data.cite_type;
             tro.cite_env = data.cite_env;
+            text = tro.tro.attr('ref_text') || text;
             callback(ref, tro, text, data.title);
         });
     } else {
         tro = troFromKey(key, tro);
+        text = tro.tro.attr('ref_text') || text;
         callback(ref, tro, text);
     }
 };
@@ -616,6 +638,7 @@ troFromKey = function(key, tro={}) {
             } else {
                 tro.cite_type = 'env';
                 tro.cite_env = tro.tro.attr('env');
+                //tro.ref_text = tro.tro.attr('ref_text') || '';
                 tro.cite_sel = tro.tro.attr('env_sel');
             }
         } else if (tro.tro.hasClass('cite')) {
@@ -1026,8 +1049,6 @@ $(document).on('input', '.p_input', function(e){
 });
 
 /// command completion
-var cc = false; //is there a cc window open?
-var ext_refs = {}
 
 cc_search = function(list, search, placement){
     console.log(list, search)
