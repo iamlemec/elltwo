@@ -18,9 +18,10 @@ from itsdangerous import URLSafeTimedSerializer
 # import db tools
 from db_setup import Article, Paragraph, Paralink, Bib, User
 from db_query import AxiomDB, order_links
+from db_whoosh import WhooshSearch
 
 # other tools
-from tools import Multimap, WhooshSearch1
+from tools import Multimap
 from pathlib import Path
 
 ###
@@ -69,12 +70,12 @@ else:
     mail = MailNull(send=lambda _: None)
 
 # msearch capability
-whoosh = WhooshSearch1(app)
-SearchQuery = whoosh._query_class(BaseQuery)
+whoosh = WhooshSearch()
+WhooshQuery = whoosh.query_class(BaseQuery)
 
 # load sqlalchemy
-db = SQLAlchemy(app, query_class=SearchQuery)
-adb = AxiomDB(db=db)
+db = SQLAlchemy(app, query_class=WhooshQuery)
+adb = AxiomDB(db=db, whoosh=whoosh)
 
 # login manager
 login = LoginManager(app)

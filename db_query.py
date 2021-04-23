@@ -5,10 +5,11 @@ from functools import partial
 
 from sqlalchemy import create_engine, or_, and_, distinct
 from sqlalchemy.sql import func
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Query
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from db_setup import Base, Article, Paragraph, Paralink, Bib, ExtRef, User
+from db_whoosh import WhooshSearch
 
 ##
 ## utility methods
@@ -82,17 +83,25 @@ def fuzzy_query(words, err=0.3):
 ##
 
 class AxiomDB:
-    def __init__(self, db=None, path='axiom.db', uri=None):
+    def __init__(self, db=None, whoosh=None, path='axiom.db', uri=None):
         if db is None:
             if uri is None:
                 uri = f'sqlite:///{path}'
 
+            whoosh = WhooshSearch()
+            qclass = whoosh.query_class(Query)
+
             self.engine = create_engine(uri)
             Session = sessionmaker(bind=self.engine)
-            self.session = Session()
+            self.session = Session(query_cls=qclass)
+
         else:
             self.engine = db.engine
             self.session = db.session
+
+        if whoosh is not None:
+            whoosh.create_index(self.session, Article, update=True)
+            whoosh.signal_connect(self.session)
 
     def create(self):
         Base.metadata.create_all(bind=self.engine)
