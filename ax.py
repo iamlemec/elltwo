@@ -1,6 +1,6 @@
 from flask import Flask, Response, Markup, request, redirect, url_for, render_template, jsonify, flash, send_from_directory
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy, BaseQuery
 from flask_mail import Mail, Message
 
 import os, re, json, argparse, toml
@@ -19,7 +19,7 @@ from db_setup import Article, Paragraph, Paralink, Bib, User
 from db_query import AxiomDB, order_links
 
 # other tools
-from tools import Multimap
+from tools import Multimap, WhooshSearch1
 from pathlib import Path
 
 ###
@@ -50,6 +50,8 @@ app = Flask(__name__)
 app.config['DEBUG'] = args.debug
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['MSEARCH_ENABLE'] = True
+app.config['MSEARCH_BACKEND'] = 'whoosh'
 
 # load user security config
 if args.auth is not None:
@@ -65,8 +67,12 @@ else:
     MailNull = namedtuple('MailNull', ['send'])
     mail = MailNull(send=lambda _: None)
 
+# msearch capability
+whoosh = WhooshSearch1(app)
+SearchQuery = whoosh._query_class(BaseQuery)
+
 # load sqlalchemy
-db = SQLAlchemy(app)
+db = SQLAlchemy(app, query_class=SearchQuery)
 adb = AxiomDB(db=db)
 
 # login manager
