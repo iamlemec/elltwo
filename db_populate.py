@@ -36,6 +36,8 @@ adb.session.add_all([lin0, lin1, lin2])
 adb.session.commit()
 
 for fname in os.listdir('testing'):
-    title, _ = os.path.splitext(fname)
-    mark = open(f'testing/{fname}').read()
-    adb.import_markdown(title, mark, time=now)
+    if fname.endswith(".md"):
+        title, _ = os.path.splitext(fname)
+        mark = open(f'testing/{fname}').read()
+        adb.import_markdown(title, mark, time=now)
+    
