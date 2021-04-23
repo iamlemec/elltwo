@@ -7,10 +7,9 @@
 
     {% block head %}
 
-    
+
     <link rel="apple-touch-icon" sizes="180x180" href={{ url_for('static', filename='favicon/apple-touch-icon.png') }}>
-    <link rel="icon" type="image/png" sizes="32x32" href={{ url_for('static', filename='favicon/favicon-32x32.png') }}>
-    <link rel="icon" type="image/png" sizes="16x16" href={{ url_for('static', filename='favicon/favicon-16x16.png') }}>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon/elltwo.svg">
     <link rel="manifest" href={{ url_for('static', filename='favicon/site.webmanifest') }}>
 
 
@@ -43,13 +42,7 @@
 
         <div id="foot">
             <a id="axell" href="/">
-            <svg viewBox="0 0 200 200" height="18px">
-            <g>
-            <text x="25" y="148" font-size="150px" stroke="black">α</text>
-            <text x="105" y="148" font-size="150px" stroke="black">ℓ</text>
-            <ellipse class="axell-outline" cx="100" cy="100" rx="97.5" ry="97.5" fill="none" stroke-width="5" />
-            </g>
-            </svg>
+            <img src="{{ url_for('static', filename='favicon/elltwo.svg') }}" width="16" height="16"/>
             </a>
             <span id="hoot">[201p // iamlemec]</span>
             {% block foot_login %}
@@ -74,7 +67,7 @@
                 <input type="hidden" name="next" value="this"/>
                 <button class="login-button">Log In</button>
                 </form>
-                <a href="{{ url_for('Forgot') }}">Forgot Password</a>? Or, <a href="{{ url_for('Signup') }}">create</a> an account. 
+                <a href="{{ url_for('Forgot') }}">Forgot Password</a>? Or, <a href="{{ url_for('Signup') }}">create</a> an account.
                 </div>
             {% endif %}
             {% endif %}

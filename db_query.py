@@ -72,6 +72,11 @@ def order_links(links, single=True):
         groups = [[(pi, pr) for pi, pr, _ in gr[:-1]] for gr in groups]
     return sum(groups, [])
 
+def fuzzy_query(words, err=0.3):
+    toks = words.split()
+    dist = [ceil(err*len(s)) for s in toks]
+    return ' '.join([f'{s}~{e}' for s, e in zip(toks, dist)])
+
 ##
 ## db interface
 ##
@@ -418,8 +423,8 @@ class AxiomDB:
         return [p.text for p in self.get_paras(art.aid)]
 
     def search_title(self, words, err=0.3):
-        pattern = Article.title.like(f'%{words}%')
-        return self.session.query(Article).filter(pattern).all()
+        quer = fuzzy_query(words, err=err)
+        return self.session.query(Article).msearch(quer).all()
 
     ##
     ## citation methods

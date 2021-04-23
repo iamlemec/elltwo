@@ -121,10 +121,9 @@ a.reference {
     margin-right: 10px;
 }
 
-#axell > svg {
-    font-family: serif;
-    opacity: 0.6;
-    margin-bottom: -5px;
+#axell > img {
+    display: inline;
+    vertical-align: bottom;
 }
 
 #toggle_ll {
@@ -211,7 +210,7 @@ a.reference {
     bottom: 2px;
     left: 60px;
 }
-     
+
 #axell {
     position: absolute;
     bottom: 2px;
@@ -266,6 +265,6 @@ a.reference {
 #locallogin:after {
     left: 10%;
 }
-     
+
 
 }
