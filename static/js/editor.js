@@ -469,7 +469,7 @@ $(document).keydown(function(e) {
                 if (writeable) {
                     sendUpdatePara(active_para);
                 }
-                sendInsertAfter(activ_para);
+                sendInsertAfter(active_para);
                 return false;
             }
         }
