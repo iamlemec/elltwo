@@ -374,137 +374,112 @@ make_cc = function() {
 
 /// KEYBOARD NAV
 
-keymap = {
-    'enter': false,
-    'shift': false,
-    'control': false,
-    'alt': false,
-    'escape': false,
-    'arrowleft': false,
-    'arrowup': false,
-    'arrowright': false,
-    'arrowdown': false,
-    'home': false,
-    'end': false,
-    'a': false,
-    'b': false,
-    'd': false,
-    's': false,
-    'w': false,
-};
-
 $(document).keydown(function(e) {
     var key = e.key.toLowerCase();
-    if (key in keymap) {
-        keymap[key] = true;
-        if (keymap['control'] && keymap['enter']) {
-            toggle_hist_map();
-            return false;
-        } else if (keymap['control'] && keymap['s']) {
-            return false;
+    var ctrl = e.ctrlKey;
+    var alt = e.altKey;
+    var shift = e.shiftKey;
+
+    if (ctrl && key == 'enter') {
+        toggle_hist_map();
+        return false;
+    } else if (ctrl && key == 's') {
+        return false;
+    }
+    if (!active_para) { // if we are inactive
+        if (key == 'enter') {
+            var foc_para = last_active || $('.para').first();
+            makeActive(foc_para);
         }
-        if (!active_para) { // if we are inactive
-            if (keymap['enter']) {
-                var foc_para = last_active || $('.para').first();
-                makeActive(foc_para);
+    } else if (active_para && !editable) {
+        if (key == 'enter' || key == 'w') {
+            sendMakeEditable();
+            return false;
+        } else if (key == 'arrowup') {
+            activePrevPara();
+            return false;
+        } else if (key == 'arrowdown') {
+            activeNextPara();
+            return false;
+        } else if (ctrl && key == 'home') {
+            activeFirstPara();
+        } else if (ctrl && key == 'end') {
+            activeLastPara();
+        } else if (key == 'escape') {
+            makeActive(null);
+        }
+        if (writeable) { // if we are active but not in edit mode
+            if (key == 'a') {
+                sendInsertBefore(active_para);
+            } else if (key == 'b') {
+                sendInsertAfter(active_para);
+            } else if (shift && key == 'd') {
+                sendDeletePara(active_para);
             }
-        } else if (active_para && !editable) {
-            if (keymap['enter'] || keymap['w']) {
-                sendMakeEditable();
+        }
+    } else if (active_para && editable) { // we are active and editable
+        if (key == 'arrowup' || key == 'arrowleft') {
+            if (cc) { // if there is an open command completion window
+                next_cc(up=false);
                 return false;
-            } else if (keymap['arrowup']) {
-                activePrevPara();
-                return false;
-            } else if (keymap['arrowdown']) {
-                activeNextPara();
-                return false;
-            } else if (keymap['control'] && keymap['home']) {
-                activeFirstPara();
-            } else if (keymap['control'] && keymap['end']) {
-                activeLastPara();
-            } else if (keymap['escape']) {
-                makeActive(null);
+            } else {
+                return editShift(active_para);
             }
-            if (writeable) { // if we are active but not in edit mode
-                if (keymap['a']) {
-                    sendInsertBefore(active_para);
-                } else if (keymap['b']) {
-                    sendInsertAfter(active_para);
-                } else if (keymap['shift'] && keymap['d']) {
-                    sendDeletePara(active_para);
-                }
+        } else if (key == 'arrowdown' || key == 'arrowright') {
+            if (cc) {
+                next_cc(up=true);
+                return false;
+            } else {
+                return editShift(active_para, up=false);
             }
-        } else if (active_para && editable) { // we are active and editable
-            if (keymap['arrowup'] || keymap['arrowleft']) {
-                if (cc) { // if there is an open command completion window
-                    next_cc(up=false);
-                    return false;
-                } else {
-                    return editShift(active_para);
-                }
-            } else if (keymap['arrowdown'] || keymap['arrowright']) {
-                if (cc) {
-                    next_cc(up=true);
-                    return false;
-                } else {
-                    return editShift(active_para, up=false);
-                }
-            } else if (keymap['escape']) {
-                if (cc) {
-                    cc = false;
-                    $('#cc_pop').remove();
-                } else {
-                    makeUnEditable();
-                    if (writeable) {
-                        sendUpdatePara(active_para);
-                    }
-                }
-            } else if (!keymap['shift'] && keymap['enter']) {
-                if (cc) {
-                    make_cc();
-                    return false;
-                }
-            } else if (keymap['shift'] && keymap['enter']) {
+        } else if (key == 'escape') {
+            if (cc) {
+                cc = false;
+                $('#cc_pop').remove();
+            } else {
                 makeUnEditable();
                 if (writeable) {
                     sendUpdatePara(active_para);
                 }
-                sendInsertAfter(active_para);
+            }
+        } else if (!shift && key == 'enter') {
+            if (cc) {
+                make_cc();
                 return false;
             }
+        } else if (shift && key == 'enter') {
+            makeUnEditable();
+            if (writeable) {
+                sendUpdatePara(active_para);
+            }
+            sendInsertAfter(active_para);
+            return false;
         }
-    }
-})
-
-$(document).keyup(function(e) {
-    var key = e.key.toLowerCase();
-    if (key in keymap) {
-        keymap[key] = false;
     }
 });
 
 /// mouse interface
 
-// click to make active // double click to make editable
-$(document).on('click', '.para', function() {
-    if (keymap['alt']) {
+$(document).on('click', '.para', function(e) {
+    var alt = e.altKey;
+    if (alt) {
         var para = $(this);
         if (!para.hasClass('active')) {
             makeActive($(this));
         } else if (!editable) {
             sendMakeEditable();
         }
-        keymap['alt'] = false;
+        return false;
     }
 });
 
-// click background to escape
-$(document).on('click', '#bg', function() {
+$(document).on('click', '#bg', function(e) {
     var targ = event.target.id;
-    if (keymap['alt'] && ((targ == 'bg') || (targ == 'content'))) {
+    var alt = e.altKey;
+    if (alt && (targ == 'bg' || targ == 'content')) {
         makeUnEditable();
         makeActive(null);
-        keymap['alt'] = false;
+        return false;
     }
 });
 
