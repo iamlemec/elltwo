@@ -437,9 +437,35 @@ figEnv = function(ptxt, args) {
         div.append([span, caption]);
         ptxt.append(div);
     }
-    let w = args.width || args.w || '';
+    var w = args.width || args.w || '';
     if (w) {
         ptxt.find('.fig_cont').css('width', `${w}%`);
+    }
+};
+
+imgCache = {};
+
+imgEnv = function(ptxt, args) {
+    var key = args.key;
+    var fig = ptxt.find('.fig_cont');
+    var w = args.width || args.w || '';
+    if (w) {
+        fig.css('width', `${w}%`);
+    }
+
+    var img = $('<img>', {class: 'env_add'});
+    fig.append(img);
+
+    if (key in imgCache) {
+        var url = imgCache[key];
+        img.attr('src', url);
+    } else {
+        client.sendCommand('get_image', {key: args.key}, (ret) => {
+            const blob = new Blob([ret.data], {type: ret.mime});
+            var url = URL.createObjectURL(blob);
+            imgCache[key] = url;
+            img.attr('src', url);
+        });
     }
 };
 
@@ -460,6 +486,7 @@ env_spec = {
     'title': titleEnv,
     'svg': figEnv,
     'image': figEnv,
+    'imagelocal': imgEnv,
     'error': errorEnv,
 };
 

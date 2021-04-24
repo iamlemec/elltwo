@@ -1,6 +1,6 @@
 import argparse
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from flask_login import UserMixin
 from whoosh import qparser
@@ -16,6 +16,7 @@ class Article(Base):
     __tablename__ = 'article'
     __searchable__ = ['title']
     __msearch_primary_key__ = 'aid'
+    __msearch_parser__ = _fuzzy_parser
 
     aid = Column(Integer, primary_key=True)
     title = Column(Text, nullable=False)
@@ -24,8 +25,6 @@ class Article(Base):
     g_ref = Column(Boolean, nullable=False, default=False)
     create_time = Column(DateTime, default=datetime.utcnow)
     delete_time = Column(DateTime)
-
-    __msearch_parser__ = _fuzzy_parser
 
     def __repr__(self):
         return f'{self.aid} [{self.create_time} → {self.delete_time}]: {self.title} ({self.short_title})'
@@ -95,6 +94,19 @@ class ExtRef(Base):
 
     def __repr__(self):
         return f'{self.key} [{self.create_time} → {self.delete_time}]:\n{self.text}'
+
+class Image(Base):
+    __tablename__ = 'image'
+
+    iid = Column(Integer, primary_key=True)
+    key = Column(Text, nullable=False)
+    mime = Column(Text, nullable=False)
+    data = Column(LargeBinary, nullable=False)
+    create_time = Column(DateTime, default=datetime.utcnow)
+    delete_time = Column(DateTime)
+
+    def __repr__(self):
+        return f'{self.key} ({self.mime}) [{self.create_time} → {self.delete_time}]'
 
 # user management
 class User(UserMixin, Base):

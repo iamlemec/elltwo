@@ -8,7 +8,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker, Query
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from db_setup import Base, Article, Paragraph, Paralink, Bib, ExtRef, User
+from db_setup import Base, Article, Paragraph, Paralink, Bib, ExtRef, Image, User
 from db_whoosh import WhooshSearch
 
 ##
@@ -28,6 +28,7 @@ partime = partial(intime, klass=Paragraph)
 lintime = partial(intime, klass=Paralink)
 bibtime = partial(intime, klass=Bib)
 reftime = partial(intime, klass=ExtRef)
+imgtime = partial(intime, klass=Image)
 
 def find_start(links):
     for p in links:
@@ -490,6 +491,9 @@ class AxiomDB:
         return bib
 
     def get_bib_dict(self, keys=None, time=None):
+        if time is None:
+            time = datetime.utcnow()
+
         bib = self.get_bib(keys, time)
         bib_dict = []
         for c in bib:
@@ -503,6 +507,7 @@ class AxiomDB:
     ##
     ## exteral references
     ##
+
     def get_refs(self, aid, time=None):
         if time is None:
             time = datetime.utcnow()
@@ -515,36 +520,65 @@ class AxiomDB:
             time = datetime.utcnow()
         return self.session.query(ExtRef).filter_by(key=key).filter_by(aid=aid).filter(reftime(time)).one_or_none()
 
-    def create_ref(self, key, aid, cite_type, cite_env, text):
-        now = datetime.utcnow()
+    def create_ref(self, key, aid, cite_type, cite_env, text, time=None):
+        if time is None:
+            time = datetime.utcnow()
 
-        if (ref := self.get_ref(key, aid)) is None:
-            ref1 = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, create_time=now,)
-            self.session.add(ref1)
-            self.session.commit()
-            return ref
-        else:
-            ref.delete_time = now
-            ref1 = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, create_time=now,)
-            self.session.add(ref1)
-            self.session.commit()
+        if (ref0 := self.get_ref(key, aid, time=time)) is not None:
+            ref0.delete_time = time
+            self.session.add(ref0)
 
-    def delete_ref(self, key, aid):
-        now = datetime.utcnow()
+        ref = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, create_time=time)
+        self.session.add(ref)
+        self.session.commit()
+
+    def delete_ref(self, key, aid, time=None):
+        if time is None:
+            time = datetime.utcnow()
 
         if (ref := self.get_ref(key, aid)) is None:
             return
 
-        ref.delete_time = now
+        ref.delete_time = time
         self.session.add(ref)
         self.session.commit()
 
     def update_g_ref(self, aid, g_ref):
-        now = datetime.utcnow()
-
         art = self.get_art(aid)
-        art.g_ref=g_ref
+        art.g_ref = g_ref
         self.session.add(art)
+        self.session.commit()
+
+    ##
+    ## storing images
+    ##
+
+    def get_image(self, key, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        return self.session.query(Image).filter_by(key=key).filter(imgtime(time)).one_or_none()
+
+    def create_image(self, key, mime, data, time=None):
+        if time is None:
+            time = datetime.utcnow()
+
+        if (img0 := self.get_image(key, time=time)) is not None:
+            img0.delete_time = time
+            self.session.add(img0)
+
+        img = Image(key=key, mime=mime, data=data, create_time=time)
+        self.session.add(img)
+        self.session.commit()
+
+    def delete_image(self, key, time=None):
+        if time is None:
+            time = datetime.utcnow()
+
+        if (img := self.get_image(key)) is None:
+            return
+
+        img.delete_time = time
+        self.session.add(img)
         self.session.commit()
 
     ##

@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy, BaseQuery
 from flask_mail import Mail, Message
 
 import os, re, json, argparse, toml
+from io import BytesIO
 from datetime import datetime, timedelta
 from collections import namedtuple
 from random import getrandbits
@@ -619,7 +620,6 @@ def get_refs(data):
 def get_arts(data):
     return {art: [] for art in adb.get_arts()}
 
-
 @socketio.on('update_ref')
 @login_decor
 def update_ref(data):
@@ -674,24 +674,36 @@ def locked_by_sid(sid):
     }
 
 ###
-### imageHandling
+### image handling
 ###
 
 @app.route('/uploadImg', methods=['POST'])
 def UploadImg():
     file = request.files['file']
-    filename = secure_filename(file.filename)
 
-    img_dir = os.path.join(app.root_path, 'static/img')
-    img_path = os.path.join(img_dir, filename)
-    file.save(img_path)
-
-    img_src = url_for('static', filename=f'img/{filename}')
-    _, img_fn = os.path.split(filename)
-    img_name, _ = os.path.splitext(img_fn)
+    _, img_fn = os.path.split(file.filename)
+    img_name, img_ext0 = os.path.splitext(img_fn)
     img_id = f'img_{img_name}'
+    img_mime = f'image/{img_ext0[1:]}'
 
-    return {'src': img_src, 'id': img_id}
+    buf = BytesIO()
+    file.save(buf)
+    val = buf.getvalue()
+
+    adb.create_image(img_name, img_mime, val)
+    print(f'UploadImg: {img_name}: {img_mime} mime, {len(val)} bytes')
+
+    return {'key': img_name, 'mime': img_mime, 'id': img_id}
+
+@socketio.on('get_image')
+def get_image(data):
+    key = data['key']
+    print(f'get_image: {key}')
+    if (img := adb.get_image(key)) is not None:
+        print('found image')
+        return {'mime': img.mime, 'data': img.data}
+    else:
+        return {'mime': None, 'data': None}
 
 ###
 ### timeout

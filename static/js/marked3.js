@@ -30,6 +30,7 @@ var block = {
   title: /^#! *(?:refargs)? *([^\n]*)([\n\r]*)([\s\S]*)(?:$)/,
   upload: /^!!(?:$)/,
   image: /^!(\*)? *(?:refargs)? *\(href\)(?:\n+|$)/,
+  imagelocal: /^!(\*)? *(?:refargs)(?:$)/,
   biblio: /^@@ *(?:refid) *\n?((?:[^\n]+\n?)*)(?:\n+|$)/,
   figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n?)*)(?:\n+|$)/,
   envbeg: /^\>\>(\!)? ([\w-]+)(\*)? (?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
@@ -40,10 +41,15 @@ block._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
 block._refargs = /(?:\[([\w-\|\=\s]+)\])/;
+block._imgid = /\[([\w-]+)\]/;
 
 block.image = replace(block.image)
   ('refargs', block._refargs)
   ('href', block._href)
+  ();
+
+block.imagelocal = replace(block.imagelocal)
+  ('refargs', block._refargs)
   ();
 
 block.heading = replace(block.heading)
@@ -262,6 +268,19 @@ Lexer.prototype.token = function(src, top, bq) {
       continue;
     }
 
+    // imagelocal
+    if (cap = this.rules.imagelocal.exec(src)) {
+      src = src.substring(cap[0].length);
+      var number = cap[1] == undefined;
+      var argsraw = cap[2] || '';
+      var args = parseArgs(argsraw, number);
+      this.tokens.push({
+        type: 'imagelocal',
+        args: args,
+      });
+      continue;
+    }
+
     // upload
     if (cap = this.rules.upload.exec(src)) {
       src = src.substring(cap[0].length);
@@ -345,7 +364,7 @@ Lexer.prototype.token = function(src, top, bq) {
       continue;
     }
 
-        // svg
+    // svg
     if (cap = this.rules.svg.exec(src)) {
       src = src.substring(cap[0].length);
       var number = cap[1] == undefined;
@@ -1172,6 +1191,10 @@ DivRenderer.prototype.image = function(href) {
   return `<div class="fig_cont"><img src="${href}"></div>`;
 };
 
+DivRenderer.prototype.imagelocal = function(key) {
+  return `<div class="fig_cont"></div>`;
+};
+
 DivRenderer.prototype.upload = function() {
   return `<div class="dropzone">Drop Image to Upload</div>`;
 };
@@ -1615,6 +1638,14 @@ Parser.prototype.tok = function() {
         args: this.token.args
       }
       return this.renderer.image(this.token.href);
+    }
+    case 'imagelocal': {
+      this.env = {
+        type: 'env_one',
+        env: 'imagelocal',
+        args: this.token.args
+      }
+      return this.renderer.imagelocal();
     }
     case 'figure_start': {
       var ftype = this.token.ftype;

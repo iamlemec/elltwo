@@ -474,13 +474,13 @@ uploadImg = function(file, para) {
         cache: false,
         processData: false,
         success: function(data) {
-            update_img(para, data.src, data.id);
+            update_img(para, data.key, data.id);
         },
     });
 };
 
-update_img = function(para, src, id) {
-    raw = `! [id=${id}|caption=none] (${src})`;
+update_img = function(para, key, id) {
+    raw = `! [key=${key}|id=${id}|caption=none]`;
     para.attr('raw', raw);
     rawToRender(para, false);
     rawToTextarea(para);
