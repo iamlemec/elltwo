@@ -248,7 +248,7 @@ Lexer.prototype.token = function(src, top, bq) {
       continue;
     }
 
-    //image
+    // image
     if (cap = this.rules.image.exec(src)) {
       src = src.substring(cap[0].length);
       var number = cap[1] == undefined;
@@ -262,7 +262,7 @@ Lexer.prototype.token = function(src, top, bq) {
       continue;
     }
 
-    //upload
+    // upload
     if (cap = this.rules.upload.exec(src)) {
       src = src.substring(cap[0].length);
       this.tokens.push({
@@ -1169,11 +1169,11 @@ DivRenderer.prototype.footnote = function(text) {
 };
 
 DivRenderer.prototype.image = function(href) {
-  return `<div class=fig_cont><img src="${href}"></div>`;
+  return `<div class="fig_cont"><img src="${href}"></div>`;
 };
 
 DivRenderer.prototype.upload = function() {
-  return `<div id=dropzone class=dropzone>Drop Image to Upload</div>`;
+  return `<div class="dropzone">Drop Image to Upload</div>`;
 };
 
 DivRenderer.prototype.figure = function(ftype, tag, title, body) {

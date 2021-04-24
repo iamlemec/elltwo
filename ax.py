@@ -681,12 +681,17 @@ def locked_by_sid(sid):
 def UploadImg():
     file = request.files['file']
     filename = secure_filename(file.filename)
-    img_path = os.path.join(app.root_path, 'static/img')
-    file.save(os.path.join(img_path, filename))
-    src = url_for('static', filename='img/'+filename)
-    id = 'img_' + src.split('/')[-1].split('.')[0]
-    data = {'src': src, 'id': id}
-    return data
+
+    img_dir = os.path.join(app.root_path, 'static/img')
+    img_path = os.path.join(img_dir, filename)
+    file.save(img_path)
+
+    img_src = url_for('static', filename=f'img/{filename}')
+    _, img_fn = os.path.split(filename)
+    img_name, _ = os.path.splitext(img_fn)
+    img_id = f'img_{img_name}'
+
+    return {'src': img_src, 'id': img_id}
 
 ###
 ### timeout

@@ -330,10 +330,10 @@ envClasses = function(outer) {
 envFormat = function(ptxt, env, args) {
     if (env in env_spec) {
         env_spec[env](ptxt, args);
-    }else if(env in s_env_spec){
+    } else if (env in s_env_spec) {
         let spec = s_env_spec[env];
         return simpleEnv(ptxt, env, spec.head, spec.tail, spec.number, args);
-    }else {
+    } else {
         var args = {code: 'undef', env: env};
         env_spec.error(ptxt, args);
     }
@@ -427,31 +427,31 @@ equationEnv = function(ptxt, args) {
 };
 
 figEnv = function(ptxt, args) {
-    if(args.caption!='none'){
-    let num = (args.number) ? makeCounter('figure') : "";
-    let space = (num) ? " " : ""
-    let caption = args.caption || "";
-    var div = $('<div>', {class: 'env_add svg_cap'});
-    var span = $('<span>', {class: 'strong'});
-    span.append(['Figure', space, num, '. ']);
-    div.append([span, caption])
-    ptxt.append(div);
-    };
-    let w = args.width || args.w || "";
-    if(w){
-        ptxt.find('.fig_cont').css('width', w + '%')
+    if (args.caption != 'none') {
+        var num = (args.number) ? makeCounter('figure') : '';
+        var space = (num) ? ' ' : '';
+        var caption = args.caption || '';
+        var div = $('<div>', {class: 'env_add svg_cap'});
+        var span = $('<span>', {class: 'strong'});
+        span.append(['Figure', space, num, '. ']);
+        div.append([span, caption]);
+        ptxt.append(div);
+    }
+    let w = args.width || args.w || '';
+    if (w) {
+        ptxt.find('.fig_cont').css('width', `${w}%`);
     }
 };
 
-//simple envs for user creation and simpler setup
-//number is if number is defult (can be overidden with *)
+// simple envs for user creation and simpler setup
+// number is if number is defult (can be overidden with *)
 s_env_spec = {
-'theorem': {head: 'Theorem', tail: '--', number: true},
-'lemma': {head: 'Lemma', tail: '--', number: true},
-'axiom': {head: 'Axiom', tail: '--', number: true},
-'definition': {head: 'Definition', tail: '--', number: false},
-'example': {head: 'Example', tail: `<span class='qed'>&#8718;</span>`, number: true},
-'proof': {head: 'Proof', tail: `<span class='qed'>&#8718;</span>`, number: false},
+    'theorem': {head: 'Theorem', tail: '--', number: true},
+    'lemma': {head: 'Lemma', tail: '--', number: true},
+    'axiom': {head: 'Axiom', tail: '--', number: true},
+    'definition': {head: 'Definition', tail: '--', number: false},
+    'example': {head: 'Example', tail: `<span class='qed'>&#8718;</span>`, number: true},
+    'proof': {head: 'Proof', tail: `<span class='qed'>&#8718;</span>`, number: false},
 };
 
 env_spec = {
@@ -690,7 +690,7 @@ renderRef = function(ref, tro, text, ext) {
     } else if (tro.cite_type == 'env') {
         if (tro.cite_env in ref_spec) {
             ref_spec[tro.cite_env](ref, tro.tro, ext=ext);
-        } else if (tro.cite_env in s_env_spec){ //simple env
+        } else if (tro.cite_env in s_env_spec) { //simple env
             refEnv(ref, tro.tro, s_env_spec[tro.cite_env].head, ext);
         } else {
             ref_spec.error(ref);
@@ -877,7 +877,7 @@ popText = function(tro) {
         if (tro.cite_env in pop_spec) {
             var paras = $(tro.cite_sel);
             return pop_spec[tro.cite_env](paras);
-        } else if(tro.cite_env in s_env_spec){ //simple env
+        } else if (tro.cite_env in s_env_spec) { //simple env
             var paras = $(tro.cite_sel);
             return popEnv(paras)
         } else {
