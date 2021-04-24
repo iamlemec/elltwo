@@ -437,6 +437,10 @@ figEnv = function(ptxt, args) {
     div.append([span, caption])
     ptxt.append(div);
     };
+    let w = args.width || args.w || "";
+    if(w){
+        ptxt.find('.fig_cont').css('width', w + '%')
+    }
 };
 
 //simple envs for user creation and simpler setup
@@ -617,12 +621,12 @@ getTro = function(ref, callback) {
             tro.tro = $($.parseHTML(data.text));
             tro.cite_type = data.cite_type;
             tro.cite_env = data.cite_env;
-            text = tro.tro.attr('ref_text') || text;
+            text = text || tro.tro.attr('ref_text') || '';
             callback(ref, tro, text, data.title);
         });
     } else {
         tro = troFromKey(key, tro);
-        text = tro.tro.attr('ref_text') || text;
+        text = text || tro.tro.attr('ref_text') || '';
         callback(ref, tro, text);
     }
 };
@@ -980,7 +984,7 @@ updateRefHTML = function(para) {
             });
         } else {
             let i = ref_list.indexOf(old_id);
-            if (index !== -1) {
+            if (i !== -1) {
                 ref_list.splice(i, 1)
             }
             let ref = {};
@@ -1051,7 +1055,6 @@ $(document).on('input', '.p_input', function(e){
 /// command completion
 
 cc_search = function(list, search, placement){
-    console.log(list, search)
     list = list.filter(el => el.includes(search))
         if(list.length > 0){
             cc = true;
@@ -1115,7 +1118,6 @@ cc_refs = function(raw, view, e){
                 });
             } else {
                 let search = cap[3] || cap[1] || "";
-                console.log(search)
                 cc_search(ref_list, search, p)
         };
     };

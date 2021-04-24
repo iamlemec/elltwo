@@ -1,4 +1,6 @@
-/// SIDEBAR
+/// acccepted upload file types
+
+img_types = ['image/png']
 
 // default options
 default_theme = theme;
@@ -459,3 +461,63 @@ if (mobile) {
         }
     });
 }
+
+// drop to upload
+
+uploadImg = function(file, para){
+    let form_data = new FormData();
+    form_data.append('file', file)
+        $.ajax({
+            type: 'POST',
+            url: '/uploadImg',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data) {
+                update_img(para, data.src, data.id)
+            },
+        });
+}
+
+update_img = function(para, src, id){
+    raw = `! [id=${id}|caption=none] (${src})`
+    para.attr('raw', raw);
+    rawToRender(para, false);
+    rawToTextarea(para);
+    sendUpdatePara(para, force=true);
+}
+
+$(document).ready(function() {
+
+    $(document).on('dragover', '.dropzone', function(e) {
+        e.preventDefault();  
+        e.stopPropagation();
+        $(this).addClass('dragover');
+    });
+    
+    $(document).on('dragleave', '.dropzone', function(e) {
+        e.preventDefault();  
+        e.stopPropagation();
+        $(this).removeClass('dragover');
+    });
+
+    $(document).on('drop', '.dropzone', function(e) {
+        let files = e.originalEvent.dataTransfer.files;
+        if(files.length == 1){
+            f = files[0]
+            if(img_types.includes(f.type)){
+                para = $(this).closest('.para')
+                uploadImg(files[0], para)
+            }else{
+            $(this).text('Unsupported file type')
+            }
+        }else if(files.length > 1){
+            $(this).text('Please upload a single image file')
+        }
+        $(this).removeClass('dragover');
+        e.preventDefault();  
+        e.stopPropagation();
+    });
+
+});

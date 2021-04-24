@@ -212,7 +212,13 @@ button {
     cursor: pointer;
 }
 
-.p_text > img{
+.fig_cont{
+    position: relative;
+    margin: auto;
+    padding-top: 10px;
+}
+
+.fig_cont > img{
     position: relative;
     left: 10%;
     width: 80%;
@@ -234,6 +240,20 @@ button {
     padding: 30px;
     font-size: 85%;
 /*  hacky, margin does */
+}
+
+.dropzone{
+    border: 1px dashed var(--hl-col);
+    text-align: center;
+    padding: 20px;
+    font-family: fira;
+}
+
+.dropzone.dragover{
+    border: 2px dashed var(--hl-col);
+    text-align: center;
+    padding: 20px;
+    font-family: fira;
 }
 
 .code > pre {
