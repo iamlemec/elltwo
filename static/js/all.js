@@ -32,3 +32,20 @@ toggleBox = function(bool, button, box) {
 $(document).ready(function() {
     toggleBox(loginbox, '#toggle_ll', '#locallogin');
 });
+
+renderKatex = function() {
+    $('body').find('span.latex').each(function() {
+        var tex = $(this);
+        var src = tex.text();
+        tex.empty();
+        try {
+          katex.render(src, tex[0],
+            //{macros: config["macros"]}
+            );
+        } catch (e) {
+          console.log($(this).text());
+          console.log(src);
+          console.log(e);
+        }
+    });
+};

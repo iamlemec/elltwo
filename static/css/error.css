@@ -1,0 +1,15 @@
+#banner {
+  position: relative;
+  width: 100%;
+  min-height: 50px;
+  top: -10%;
+  text-align: center;
+}
+
+#title {
+   font-size: 250%;
+}
+
+#error {
+    text-align: center;
+}

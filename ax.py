@@ -1,4 +1,8 @@
-from flask import Flask, Response, Markup, request, redirect, url_for, render_template, jsonify, flash, send_from_directory
+from flask import (
+    Flask, Response, Markup,
+    request, redirect, url_for, render_template,
+    jsonify, flash, send_from_directory, send_file
+)
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy, BaseQuery
 from flask_mail import Mail, Message
@@ -346,6 +350,9 @@ def GetArtData(title, edit):
         flash(f'Article "{title}" does not exist.')
         return redirect(url_for('Home'))
 
+def ErrorPage(title='Error', message=''):
+    return render_template('error.html', title=title, message=message, theme=args.theme)
+
 @app.route('/a/<title>', methods=['GET'])
 def RenderArticle(title):
     if current_user.is_authenticated or not args.login:
@@ -356,6 +363,15 @@ def RenderArticle(title):
 @app.route('/r/<title>', methods=['GET'])
 def RenderArticleRO(title):
     return GetArtData(title, False)
+
+@app.route('/i/<key>', methods=['GET'])
+def GetImage(key):
+    print(f'GetImage: {key}')
+    if (img := adb.get_image(key)) is not None:
+        buf = BytesIO(img.data)
+        return send_file(buf, mimetype=img.mime)
+    else:
+        return ErrorPage(title='Not Found', message=f'Error: Image "{key}" not found.')
 
 ### exporting
 
