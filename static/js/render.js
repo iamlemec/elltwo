@@ -446,16 +446,13 @@ figEnv = function(ptxt, args) {
 imgCache = {};
 
 imgEnv = function(ptxt, args) {
-    var key = args.key;
-    var fig = ptxt.find('.fig_cont');
-    var w = args.width || args.w || '';
-    if (w) {
-        fig.css('width', `${w}%`);
-    }
+    figEnv(ptxt, args);
 
+    var fig = ptxt.find('.fig_cont');
     var img = $('<img>', {class: 'env_add'});
     fig.append(img);
 
+    var key = args.key;
     if (key in imgCache) {
         var url = imgCache[key];
         img.attr('src', url);
