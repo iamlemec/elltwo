@@ -489,23 +489,21 @@ update_img = function(para, key, id) {
 
 $(document).ready(function() {
     $(document).on('dragover', '.dropzone', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
         $(this).addClass('dragover');
+        return false;
     });
 
     $(document).on('dragleave', '.dropzone', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
         $(this).removeClass('dragover');
+        return false;
     });
 
     $(document).on('drop', '.dropzone', function(e) {
-        let files = e.originalEvent.dataTransfer.files;
+        var files = e.originalEvent.dataTransfer.files;
         if (files.length == 1) {
             f = files[0];
             if (img_types.includes(f.type)) {
-                para = $(this).closest('.para');
+                var para = $(this).closest('.para');
                 uploadImg(files[0], para);
             } else {
                 $(this).text('Unsupported file type');
@@ -514,7 +512,23 @@ $(document).ready(function() {
             $(this).text('Please upload a single image file');
         }
         $(this).removeClass('dragover');
-        e.preventDefault();
-        e.stopPropagation();
+        return false;
+    });
+
+    $(document).on('click', '.dropzone', function(e) {
+        var input = $('<input>', {type: 'file', style: 'display: none'});
+        var box = this;
+        input.on('change', function() {
+            var files = this.files;
+            if (files.length > 0) {
+                var para = $(box).closest('.para');
+                uploadImg(files[0], para);
+                $(this).removeClass('dragover');
+                input.remove();
+            }
+        });
+        $('body').append(input);
+        input.trigger('click');
+        return false;
     });
 });

@@ -700,10 +700,9 @@ def get_image(data):
     key = data['key']
     print(f'get_image: {key}')
     if (img := adb.get_image(key)) is not None:
-        print('found image')
-        return {'mime': img.mime, 'data': img.data}
+        return {'found': True, 'mime': img.mime, 'data': img.data}
     else:
-        return {'mime': None, 'data': None}
+        return {'found': False}
 
 ###
 ### timeout

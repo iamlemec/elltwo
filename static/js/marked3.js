@@ -1196,7 +1196,7 @@ DivRenderer.prototype.imagelocal = function(key) {
 };
 
 DivRenderer.prototype.upload = function() {
-  return `<div class="dropzone">Drop Image to Upload</div>`;
+  return `<div class="dropzone">Drop Image or Click to Upload</div>`;
 };
 
 DivRenderer.prototype.figure = function(ftype, tag, title, body) {

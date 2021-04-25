@@ -461,10 +461,12 @@ imgEnv = function(ptxt, args) {
         img.attr('src', url);
     } else {
         client.sendCommand('get_image', {key: args.key}, (ret) => {
-            const blob = new Blob([ret.data], {type: ret.mime});
-            var url = URL.createObjectURL(blob);
-            imgCache[key] = url;
-            img.attr('src', url);
+            if (ret.found) {
+                const blob = new Blob([ret.data], {type: ret.mime});
+                var url = URL.createObjectURL(blob);
+                imgCache[key] = url;
+                img.attr('src', url);
+            }
         });
     }
 };
