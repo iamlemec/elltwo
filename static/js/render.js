@@ -432,7 +432,7 @@ figEnv = function(ptxt, args) {
         var num = (args.number) ? makeCounter('figure') : '';
         var space = (num) ? ' ' : '';
         var caption = args.caption || '';
-        var div = $('<div>', {class: 'env_add svg_cap'});
+        var div = $('<div>', {class: 'env_add fig_cap'});
         var span = $('<span>', {class: 'strong'});
         span.append(['Figure', space, num, '. ']);
         div.append([span, caption]);

@@ -170,7 +170,7 @@ button {
 }
 
 .list.ordered{
-   counter-reset: olist; 
+   counter-reset: olist;
 }
 
 .list.ordered > .list-item:before{
@@ -212,44 +212,43 @@ button {
     cursor: pointer;
 }
 
-.fig_cont{
+.fig_cont {
     position: relative;
     margin: auto;
-    padding-top: 10px;
+    padding-top: 20px;
 }
 
-.fig_cont > img{
+.fig_cont > img {
     position: relative;
     left: 10%;
     width: 80%;
 }
 
-#pop > img{
+#pop > img {
     width: 200px;
 }
 
-.svg_fig {
+.fig_cont > svg {
     position: relative;
     width: 40%;
     left: 30%;
-    margin-bottom: 40px;
 }
 
-.svg_cap {
+.fig_cap {
     position: relative;
-    padding: 30px;
+    padding: 20px;
     font-size: 85%;
-/*  hacky, margin does */
+    /* hacky, margin does */
 }
 
-.dropzone{
+.dropzone {
     border: 1px dashed var(--hl-col);
     text-align: center;
     padding: 20px;
     font-family: fira;
 }
 
-.dropzone.dragover{
+.dropzone.dragover {
     border: 2px dashed var(--hl-col);
     text-align: center;
     padding: 20px;
@@ -722,7 +721,7 @@ circle.commit.active {
     bottom: 40px;
     border-radius: 0;
 }
-     
+
      #export_options{
          right: 30px;
      }
