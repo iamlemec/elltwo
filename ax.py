@@ -352,9 +352,6 @@ def GetArtData(title, edit):
         flash(f'Article "{title}" does not exist.')
         return redirect(url_for('Home'))
 
-def ErrorPage(title='Error', message=''):
-    return render_template('error.html', title=title, message=message, theme=args.theme)
-
 @app.route('/a/<title>', methods=['GET'])
 def RenderArticle(title):
     if current_user.is_authenticated or not args.login:
@@ -373,7 +370,8 @@ def GetImage(key):
         buf = BytesIO(img.data)
         return send_file(buf, mimetype=img.mime)
     else:
-        return ErrorPage(title='Not Found', message=f'Error: Image "{key}" not found.')
+        flash(f'Image "{key}" does not exist.')
+        return redirect(url_for('Home'))
 
 ### exporting
 
