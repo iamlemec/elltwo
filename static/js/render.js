@@ -1056,8 +1056,7 @@ setBlurb = function() {
     client.sendCommand('set_blurb', {'aid': aid, 'blurb': blurb}, function(success) {
             console.log('blurb set');
         });
-}
-
+};
 
 /// SyntaxHighlighting
 
@@ -1081,272 +1080,285 @@ $(document).on('input', '.p_input', function(e){
 
 /// command completion
 
-cc_search = function(list, search, placement){
-    list = list.filter(el => el.includes(search))
-        if(list.length > 0){
-            cc = true;
-            let pop = $('<div>', {id: 'cc_pop'});
-            list.forEach(r => {
-                let cc_row = $('<div>', {class: 'cc_row'});
-                cc_row.text(r);
-                pop.append(cc_row);
-            });
-            $('#bg').append(pop)
+cc_search = function(list, search, placement) {
+    list = list.filter(el => el.includes(search));
+    if (list.length > 0) {
+        cc = true;
+        let pop = $('<div>', {id: 'cc_pop'});
+        list.forEach(r => {
+            let cc_row = $('<div>', {class: 'cc_row'});
+            cc_row.text(r);
+            pop.append(cc_row);
+        });
+        $('#bg').append(pop);
 
-            pop.css({
-                'left': placement.left + 'px', // offset 10px for padding
-                'top': placement.top + 'px', // offset up by 35 px
-            });
-        };
+        pop.css({
+            'left': placement.left + 'px', // offset 10px for padding
+            'top': placement.top + 'px', // offset up by 35 px
+        });
+    }
 };
 
-cc_refs = function(raw, view, e){
+cc_refs = function(raw, view, e) {
     cc = false;
     $('#cc_pop').remove();
-    let open_ref = /@\[?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!\s)/
+    let open_ref = /@\[?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!\s)/;
     if (cap = open_ref.exec(raw)) {
-        cur = e.target.selectionStart
-        //if cursor is near the match
-        if(cur >= cap.index && cur <= cap.index + cap[0].length){
-            if(cap[1]){
-            raw = raw.replace(cap[0], function(){
-                    return `@[${cap[1]}<span id=cc_pos></span>`
+        cur = e.target.selectionStart;
+        // if cursor is near the match
+        if (cur >= cap.index && cur <= cap.index + cap[0].length) {
+            if (cap[1]) {
+                raw = raw.replace(cap[0], function() {
+                    return `@[${cap[1]}<span id=cc_pos></span>`;
                 });
-            }else{
-            raw = raw.replace(cap[0], function(){
-                    return `<span id=cc_pos>${cap[0]}</span>`
+            } else {
+                raw = raw.replace(cap[0], function() {
+                    return `<span id=cc_pos>${cap[0]}</span>`;
                 });
-            };
+            }
 
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
 
-            if(cap[2] && !cap[1]){ //searching for ext page
+            if (cap[2] && !cap[1]) { // searching for ext page
                 let ex_keys = Object.keys(ext_refs);
-                if(ex_keys.length == 0){ //if we have not made request
-                    client.sendCommand('get_arts', "", function(arts) {
+                if (ex_keys.length == 0) { // if we have not made request
+                    client.sendCommand('get_arts', '', function(arts) {
                         ext_refs = arts;
-                        search = "";
+                        search = '';
                         cc_search(Object.keys(arts), search, p);
                     });
                 } else {
-                    search = cap[3] || "";
-                    cc_search(ex_keys, search, p)
-                };
-
-            } else if (cap[1] && cap[2]){
+                    search = cap[3] || '';
+                    cc_search(ex_keys, search, p);
+                }
+            } else if (cap[1] && cap[2]) {
                 client.sendCommand('get_refs', {'title': cap[1]}, function(data) {
-                    if(data.refs.length > 0){
+                    if (data.refs.length > 0) {
                         ext_refs[data.title] = data.refs;
                     }
-                    search = "";
+                    search = '';
                     cc_search(data.refs, search, p);
                 });
             } else {
-                let search = cap[3] || cap[1] || "";
-                cc_search(ref_list, search, p)
-        };
-    };
-    };
- };
+                let search = cap[3] || cap[1] || '';
+                cc_search(ref_list, search, p);
+            }
+        }
+    }
+};
 
-sytaxParseInline = function(raw){
-    html = raw;
-    html = html.replace(/\</g, '&LT'); //html escape
-    html = html.replace(/\>/g, '&GT'); //html escape
-    //html = html.replace(/\n/g, '<br>\n'); //whitespace
-    comment = /%([^\n]+?)(\n|$)/g
-    ftnt = /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/
-    math = /\$((?:\\\$|[\s\S])+?)\$/g;
-    ref = /@\[([\w-\|\=\:]+)\]/g;
-    ilink = /\[\[([^\]]+)\]\]/g;
+inlines = {
+    comment: /%([^\n]+?)(\n|$)/g,
+    ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/,
+    math: /\$((?:\\\$|[\s\S])+?)\$/g,
+    ref: /@\[([\w-\|\=\:]+)\]/g,
+    ilink: /\[\[([^\]]+)\]\]/g,
+}
 
+sytaxParseInline = function(raw) {
+    var html = raw;
+    html = html.replace(/\</g, '&LT'); // html escape
+    html = html.replace(/\>/g, '&GT'); // html escape
+    // html = html.replace(/\n/g, '<br>\n'); // whitespace
 
-    html = html.replace(ftnt, function(a,b){
+    html = html.replace(inlines.ftnt, function(a,b) {
         b = b.replace('|', '<span class=syn_hl>|</span>');
         return s('^[', 'delimit') +  b + s(']', 'delimit');
     });
-    html = html.replace(math, function(a,b){
+    html = html.replace(inlines.math, function(a,b) {
         return s('$', 'delimit') + s(b, 'math') + s('$', 'delimit');
-
     });
-    html = html.replace(comment, function(a,b,c){
+    html = html.replace(inlines.comment, function(a,b,c) {
         return s('%', 'comment_head') + s(b, 'comment') + c;
-
     });
-    html = html.replace(ref, function(a,b){
+    html = html.replace(inlines.ref, function(a,b) {
         b = b.replace('|', '<span class=syn_hl>|</span>');
         return s('@', 'delimit') + s(fArgs(b), 'math');
     });
-    html = html.replace(ilink, function(a,b){
+    html = html.replace(inlines.ilink, function(a,b) {
         return s('[[', 'delimit') + s(b, 'ref') + s(']]', 'delimit');
     });
+
     html = html.replace('_!L_', `<span class='brace'>`);
     html = html.replace('_!R_', `</span>`);
+
     return html;
 }
 
-s = function(text, cls){
-    return `<span class=syn_${cls}>${text}</span>`
+s = function(text, cls) {
+    return `<span class=syn_${cls}>${text}</span>`;
 }
 
-fArgs = function(argsraw){
+fArgs = function(argsraw) {
     return s('[', 'delimit') + argsraw.replace('|', s('|', 'delimit')) + s(']', 'delimit');
 };
 
-sytaxParseBlock = function(raw){
-
-var block = {
-  title: /^#\!([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]*)([\n\r]*)([\s\S]*)/,
-  heading: /^(#{1,6})(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]+?)? *#* *(?:\n+|$)/,
-  text: /^[^\n]+/,
-  equation: /^\$\$(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
-  figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
-  svg: /^\&svg(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n?)*)(?:$)/,
-  image: /^!(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])(\s*)(\()([\w-:#/.&%=]*)(\))?([\s\S]*)/,
-  envbeg: /^\>\>(\!)?([\n\r\s]*)([\w-]+)?(\*)?( *)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
-  envend: /^\<\<((?:[^\n]+\n?)*)/
+var blocks = {
+    title: /^#\!([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]*)([\n\r]*)([\s\S]*)/,
+    heading: /^(#{1,6})(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]+?)? *#* *(?:\n+|$)/,
+    text: /^[^\n]+/,
+    equation: /^\$\$(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
+    figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
+    svg: /^\&svg(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n?)*)(?:$)/,
+    image: /^!(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])(\s*)(\()([\w-:#/.&%=]*)(\))?([\s\S]*)/,
+    envbeg: /^\>\>(\!)?([\n\r\s]*)([\w-]+)?(\*)?( *)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
+    envend: /^\<\<((?:[^\n]+\n?)*)/,
 };
 
+sytaxParseBlock = function(raw) {
+    if (cap = blocks.title.exec(raw)) {
+        let id = (cap[2]) ? s(fArgs(cap[2]), 'ref') : "";
+        let tit = (cap[4]) ? sytaxParseInline(cap[4]) : "";
+        let pre = (cap[6]) ? s(sytaxParseInline(cap[6]) , 'ref'): "";
+        return s('#!', 'hl') + cap[1] + id + cap[3] + tit + cap[5] + pre;
+    }
 
-if (cap = block.title.exec(raw)) {
-    let id = (cap[2]) ? s(fArgs(cap[2]), 'ref') : "";
-    let tit = (cap[4]) ? sytaxParseInline(cap[4]) : "";
-    let pre = (cap[6]) ? s(sytaxParseInline(cap[6]) , 'ref'): "";
-    return s('#!', 'hl') + cap[1] + id + cap[3] + tit + cap[5] + pre;
+    if (cap = blocks.heading.exec(raw)) {
+        let star = (cap[2]) ? s(cap[2], 'hl') : "";
+        let id = (cap[4]) ? s(fArgs(cap[4]), 'ref') : "";
+        let text = (cap[6]) ? sytaxParseInline(cap[6]) : "";
+        return s(cap[1], 'delimit') + star + cap[3] + id + cap[5] + text;
+    }
+
+    if (cap = blocks.equation.exec(raw)) {
+        let id = (cap[3]) ? s(fArgs(cap[3]), 'ref') : "";
+        let star = (cap[1]) ? s(cap[1], 'hl') : "";
+        let text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
+        return s('$$', 'delimit') + star + cap[2] + id + cap[4] + text;
+    }
+
+    if (cap = blocks.envbeg.exec(raw)) {
+        let bang = (cap[1]) ? s('!', 'hl') : "";
+        let env = (cap[3]) ? s(cap[3], 'ref') : "";
+        let star = (cap[4]) ? s(cap[4], 'hl') : "";
+        let id = (cap[6]) ? s(fArgs(cap[6]), 'ref'): "";
+        let text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
+        return s('>>', 'delimit') + bang + cap[2] + env + star + cap[5] + id + cap[7] + text;
+    }
+
+    if (cap = blocks.svg.exec(raw)) {
+        let star = (cap[1]) ? s('*', 'hl') : "";
+        let id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
+        let text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
+        return s('&', 'hl') + s('svg', 'delimit') + star + cap[2] + id + cap[4] + text;
+    }
+
+    if (cap = blocks.image.exec(raw)) {
+        let star = (cap[1]) ? s('*', 'hl') : "";
+        let id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
+        let l = (cap[5]) ? s('(', 'delimit') : "";
+        let href = (cap[6]) ? s(cap[6], 'hl') : "";
+        let r = (cap[7]) ? s(')', 'delimit') : "";
+        let text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
+        return s('!', 'hl') + star + cap[2] + id + cap[4] + l + href + r + text;
+    }
+
+    if (cap = blocks.envend.exec(raw)) {
+        return s('<<', 'delimit') + sytaxParseInline(cap[1]);
+    }
+
+    return sytaxParseInline(raw);
 };
 
-if (cap = block.heading.exec(raw)) {
-    let star = (cap[2]) ? s(cap[2], 'hl') : "";
-    let id = (cap[4]) ? s(fArgs(cap[4]), 'ref') : "";
-    let text = (cap[6]) ? sytaxParseInline(cap[6]) : "";
-    return s(cap[1], 'delimit') + star + cap[3] + id + cap[5] + text;
-};
-
-if (cap = block.equation.exec(raw)) {
-    let id = (cap[3]) ? s(fArgs(cap[3]), 'ref') : "";
-    let star = (cap[1]) ? s(cap[1], 'hl') : "";
-    let text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
-    return s('$$', 'delimit') + star + cap[2] + id + cap[4] + text;
-};
-
-if (cap = block.envbeg.exec(raw)) {
-    let bang = (cap[1]) ? s('!', 'hl') : "";
-    let env = (cap[3]) ? s(cap[3], 'ref') : "";
-    let star = (cap[4]) ? s(cap[4], 'hl') : "";
-    let id = (cap[6]) ? s(fArgs(cap[6]), 'ref'): "";
-    let text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
-    return s('>>', 'delimit') + bang + cap[2] + env + star + cap[5] + id + cap[7] + text;
-};
-
-if (cap = block.svg.exec(raw)) {
-    let star = (cap[1]) ? s('*', 'hl') : "";
-    let id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
-    let text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
-    return s('&', 'hl') + s('svg', 'delimit') + star + cap[2] + id + cap[4] + text;
-};
-
-if (cap = block.image.exec(raw)) {
-    let star = (cap[1]) ? s('*', 'hl') : "";
-    let id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
-    let l = (cap[5]) ? s('(', 'delimit') : "";
-    let href = (cap[6]) ? s(cap[6], 'hl') : "";
-    let r = (cap[7]) ? s(')', 'delimit') : "";
-    let text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
-    return s('!', 'hl') + star + cap[2] + id + cap[4] + l + href + r + text;
-};
-
-if (cap = block.envend.exec(raw)) {
-    return s('<<', 'delimit') + sytaxParseInline(cap[1]);
-};
-
-return sytaxParseInline(raw)
-}
-
-$(document).on('keyup', '.p_input', function(e){
-    let arrs = [37,38,39,40,48,57,219,221];
-    if(arrs.includes(e.keyCode)){
-        para=$(this).parent('.para');
+$(document).on('keyup', '.p_input', function(e) {
+    let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
+    if (arrs.includes(e.keyCode)) {
+        var para = $(this).parent('.para');
         braceMatch(this, para);
     }
 });
 
-braceMatch = function(textarea, para){
-    var delimit = {'(':')', '[':']', '{':'}'};
-    var rev_delimit = {')':'(', ']':'[', '}':'{'};
-    let cpos = textarea.selectionStart;
-    let text = textarea.value;
-    let after = text[cpos];
-    let before = text[cpos-1] || false;
-    if(after in delimit){
+braceMatch = function(textarea, para) {
+    var delimit = {'(': ')', '[': ']', '{': '}'};
+    var rev_delimit = {')': '(', ']': '[', '}': '{'};
+
+    var cpos = textarea.selectionStart;
+    var text = textarea.value;
+
+    var after = text[cpos];
+    var before = text[cpos-1] || false;
+
+    if (after in delimit) {
         var pos = getBracePos(text, after, delimit[after], cpos);
-        if(pos){
+        if (pos) {
             let v = $(textarea).siblings('.p_input_view');
             braceHL(v, text, pos, para);
-        };
-    } else if (before in delimit){
-        var pos = getBracePos(text, before, delimit[before],cpos-1);
-        if(pos){
+        }
+    } else if (before in delimit) {
+        var pos = getBracePos(text, before, delimit[before], cpos-1);
+        if (pos) {
             let v = $(textarea).siblings('.p_input_view');
             braceHL(v, text, pos, para);
-        };
-    } else if (before in rev_delimit){
+        }
+    } else if (before in rev_delimit) {
         var pos = getBracePos(text, before, rev_delimit[before], cpos, true);
-        let v = $(textarea).siblings('.p_input_view');
+        var v = $(textarea).siblings('.p_input_view');
         braceHL(v, text, pos, para);
-    } else if (after in rev_delimit){
+    } else if (after in rev_delimit) {
         var pos = getBracePos(text, after, rev_delimit[after], cpos+1, true);
-        let v = $(textarea).siblings('.p_input_view');
+        var v = $(textarea).siblings('.p_input_view');
         braceHL(v, text, pos, para);
     } else {
         $('.brace').contents().unwrap();
     }
 };
 
-getBracePos = function(text, brace, match, cpos, rev=false){
-    var len = text.length
-    if (rev){
+getBracePos = function(text, brace, match, cpos, rev=false) {
+    var len = text.length;
+    if (rev) {
         text = text.split('').reverse().join('');
         cpos = len - cpos;
     }
+
     var z = 1;
     var pos = cpos;
-    while(true){
+
+    while (true) {
         pos += 1;
-        if(pos <= len){
+        if (pos <= len) {
             char = text[pos];
-            if(char == brace){
+            if (char == brace) {
                 z += 1;
-            } else if (char == match){
+            } else if (char == match) {
                 z -= 1;
-            };
-            if(z==0){
-                break
             }
-        } else {
-            if(!rev){
-                return false;
-            } else{
+            if (z==0) {
                 break;
             }
-        };
-    };
-    if(rev){
-        return {'l': Math.max(0,len - pos - 1), 'r': len -cpos -1}
+        } else {
+            if (!rev) {
+                return false;
+            } else {
+                break;
+            }
+        }
+    }
+
+    if (rev) {
+        return {'l': Math.max(0, len - pos - 1), 'r': len - cpos - 1}
     } else {
         return {'l': cpos, 'r': pos}
-    };
+    }
 };
 
-braceHL = function(view, text, pos, para){
-    let L = `\_\!L\_`
-    let R = `\_\!R\_`
-    let new_text = [text.slice(0, pos['l']), L, text.slice(pos['l'], pos['r']+1), R, text.slice(pos['r']+1)].join('');
-    let syn = sytaxParseBlock(new_text);
+braceHL = function(view, text, pos, para) {
+    var L = `\_\!L\_`;
+    var R = `\_\!R\_`;
+    var new_text = [
+        text.slice(0, pos['l']),
+        L,
+        text.slice(pos['l'], pos['r']+1),
+        R,
+        text.slice(pos['r']+1)
+    ].join('');
+
+    var syn = sytaxParseBlock(new_text);
     view.html(syn);
-    tmo = setTimeout(function () {
+
+    setTimeout(function() {
         $('.brace').contents().unwrap();
-        syntaxHL(para)
+        syntaxHL(para);
     }, 800);
 };
