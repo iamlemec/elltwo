@@ -146,8 +146,11 @@ button:hover {
   font-family: Fira;
   font-size: 90%;
   color: var(--hl-col);
-  text-indent: 15px;
   background-color: var(--bg-hl-col);
+  padding-left: 4px;
+  padding-right: 4px;
+  border-radius: 3px;
+
 }
 
 .ref_error {

@@ -807,6 +807,7 @@ ref_spec = {
     'equation': refEquation,
     'svg': refFigure,
     'image': refFigure,
+    'imagelocal': refFigure,
     'heading': refSection,
     'text': refText,
 };
@@ -971,6 +972,7 @@ pop_spec = {
     'equation': popEquation,
     'svg': popEquation,
     'image': popEquation,
+    'imagelocal': popEquation,
     'footnote': popSelf,
     'self': popSelf,
     'error': popError,
@@ -1191,7 +1193,7 @@ s = function(text, cls){
 }
 
 fArgs = function(argsraw){
-    return s('[', 'delimit') + argsraw.replace('|', s('|', 'delimit')) + s(']', 'delimit');
+    return s('[', 'delimit') + argsraw.replaceAll('=', s('=', 'delimit')).replaceAll('|', s('|', 'delimit')) + s(']', 'delimit');
 };
 
 sytaxParseBlock = function(raw){

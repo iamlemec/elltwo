@@ -257,6 +257,7 @@ button {
 }
 
 .code > pre {
+    padding-left: 12px;
     white-space: pre-wrap;
 }
 

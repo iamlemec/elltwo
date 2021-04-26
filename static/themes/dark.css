@@ -235,7 +235,9 @@ button:hover {
 
 .code{
    background-color: var(--bg-col);
-
+   padding-left: 3px;
+   padding-right: 3px;
+   border-radius: 4px; 
 }
 
 a.art_result{
