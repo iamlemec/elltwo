@@ -5,7 +5,7 @@ $(document).ready(function() {
     client.connect(url);
     client.sendCommand('room', {'room': '__home'}, function(response) {
         console.log(response);
-        });
+    });
     renderKatex();
 });
 
@@ -36,7 +36,7 @@ $(document).on('keydown', function(e) {
                 searchTitle(query, last_url);
             } else {
                 $('#results').empty();
-            };
+            }
         }, 200);
     } else if (key == 'arrowdown') {
         var next = active.next('.art_result');
@@ -73,7 +73,7 @@ searchTitle = function(query, last_url) {
                     artdiv.append(b);
                 }
                 $('#results').append(artdiv);
-            };
+            }
 
             var sel;
             if (last_url == undefined) {
@@ -85,7 +85,7 @@ searchTitle = function(query, last_url) {
                 }
             }
             sel.addClass('selected');
-        };
+        }
     });
 };
 
@@ -95,5 +95,5 @@ createArt = function() {
         client.sendCommand('create_art', query, function(response) {
             window.location = response;
         });
-    };
+    }
 };
