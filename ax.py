@@ -43,6 +43,7 @@ parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 parser.add_argument('--login', action='store_true', help='Require login for editing')
 parser.add_argument('--auth', type=str, default='auth.toml', help='user authorization config')
 parser.add_argument('--mail', type=str, default=None, help='mail authorization config')
+parser.add_argument('--max-size', type=int, default=1024, help='max image size in kilobytes')
 args = parser.parse_args()
 
 # login decorator (or not)
@@ -342,6 +343,7 @@ def GetArtData(title, edit):
             paras=paras,
             theme=args.theme,
             themes=themes,
+            max_size=args.max_size,
             edit=edit,
             ref_list=ref_list,
             g_ref=art.g_ref,
@@ -698,16 +700,16 @@ def UploadImg():
     file = request.files['file']
 
     _, img_fn = os.path.split(file.filename)
-    img_name, img_ext0 = os.path.splitext(img_fn)
+    img_name, _ = os.path.splitext(img_fn)
     img_id = f'img_{img_name}'
-    img_mime = f'image/{img_ext0[1:]}'
+    img_mime = file.mimetype
 
     buf = BytesIO()
     file.save(buf)
     val = buf.getvalue()
 
-    adb.create_image(img_name, img_mime, val)
     print(f'UploadImg: {img_name}: {img_mime} mime, {len(val)} bytes')
+    adb.create_image(img_name, img_mime, val)
 
     return {'key': img_name, 'mime': img_mime, 'id': img_id}
 

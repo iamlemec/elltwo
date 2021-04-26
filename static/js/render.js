@@ -180,6 +180,7 @@ deletePara = function(pid) {
 };
 
 insertPara = function(pid, new_pid, before=true, raw='') {
+    console.log('insertPara:', pid, new_pid, before, raw);
     var para = getPara(pid);
     var new_para = $('<div>', {class: 'para', pid: new_pid, raw: raw});
     if (before) {

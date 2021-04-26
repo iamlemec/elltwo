@@ -1,6 +1,6 @@
 /// acccepted upload file types
 
-img_types = ['image/png']
+img_types = ['image/png', 'image/jpeg', 'image/svg+xml']
 
 // default options
 default_theme = theme;
@@ -464,6 +464,14 @@ if (mobile) {
 // drop to upload
 
 uploadImg = function(file, para) {
+    console.log('uploadImg:', file.name, file.type, file.size);
+    if (!img_types.includes(file.type)) {
+        return `Unsupported file type: ${file.type}`;
+    }
+    if (file.size > 1024*max_size) {
+        var ksize = Math.floor(file.size/1024);
+        return `File size too large (${ksize}kb > 1024kb)`;
+    }
     let form_data = new FormData();
     form_data.append('file', file);
     $.ajax({
@@ -477,6 +485,7 @@ uploadImg = function(file, para) {
             update_img(para, data.key, data.id);
         },
     });
+    return null;
 };
 
 update_img = function(para, key, id) {
@@ -501,31 +510,35 @@ $(document).ready(function() {
     $(document).on('drop', '.dropzone', function(e) {
         var files = e.originalEvent.dataTransfer.files;
         if (files.length == 1) {
-            f = files[0];
-            if (img_types.includes(f.type)) {
-                var para = $(this).closest('.para');
-                uploadImg(files[0], para);
+            var file = files[0];
+            var para = $(this).closest('.para');
+            if ((ret = uploadImg(file, para)) == null) {
+                $(this).removeClass('dragover');
             } else {
-                $(this).text('Unsupported file type');
+                $(this).text(ret);
             }
         } else if (files.length > 1) {
             $(this).text('Please upload a single image file');
         }
-        $(this).removeClass('dragover');
         return false;
     });
 
     $(document).on('click', '.dropzone', function(e) {
+        var drop = $(this);
         var input = $('<input>', {type: 'file', style: 'display: none'});
         var box = this;
         input.on('change', function() {
             var files = this.files;
             if (files.length > 0) {
+                var file = files[0];
                 var para = $(box).closest('.para');
-                uploadImg(files[0], para);
-                $(this).removeClass('dragover');
-                input.remove();
+                if ((ret = uploadImg(file, para)) == null) {
+                    drop.removeClass('dragover');
+                } else {
+                    drop.text(ret);
+                }
             }
+            input.remove();
         });
         $('body').append(input);
         input.trigger('click');
