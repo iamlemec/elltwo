@@ -80,6 +80,7 @@ function schedCanary() {
 };
 
 return {
+    socket: socket,
     connect: connect,
     disconnect: disconnect,
     sendCommand: sendCommand,
@@ -87,4 +88,3 @@ return {
 };
 
 })();
-

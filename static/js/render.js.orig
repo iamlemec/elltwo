@@ -1176,9 +1176,13 @@ sytaxParseInline = function(raw) {
     html = html.replace(inlines.comment, function(a,b,c) {
         return s('%', 'comment_head') + s(b, 'comment') + c;
     });
-
+<<<<<<< HEAD
     html = html.replace(ref, function(a,b){
         //b = b.replace('|', '<span class=syn_hl>|</span>');
+=======
+    html = html.replace(inlines.ref, function(a,b) {
+        b = b.replace('|', '<span class=syn_hl>|</span>');
+>>>>>>> 3fee6828b5ad621d078c2b4ba57bfc6b168454b4
         return s('@', 'delimit') + s(fArgs(b), 'math');
     });
     html = html.replace(inlines.ilink, function(a,b) {

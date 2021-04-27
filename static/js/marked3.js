@@ -1070,9 +1070,10 @@ DivRenderer.prototype.heading = function(text) {
 };
 
 DivRenderer.prototype.svg = function(svg) {
-  svg = `<div class=fig_cont><svg class=svg_fig viewBox='0 0 100 100'>
-      ${svg}</svg></div>`
-  return svg
+  if (!svg.startsWith('<svg ')) {
+    svg = `<svg viewBox="0 0 100 100">\n${svg}\n</svg>`;
+  }
+  return `<div class="fig_cont">\n${svg}\n</div>`;
 };
 
 DivRenderer.prototype.envbeg = function(text) {

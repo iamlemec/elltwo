@@ -6,10 +6,6 @@ var last_active = null; // to keep track of where cursor was
 var editable = false; // are we focused on the active para
 var writeable = !readonly; // can we actually modify contents
 
-// hard coded options
-var scrollSpeed = 100;
-var scrollFudge = 100;
-
 /// textarea manage
 
 resize = function(textarea) {
@@ -25,26 +21,6 @@ $(document).on('input focus', 'textarea', function() {
     resize(this);
 });
 
-/// scrolling
-
-ensureVisible = function(para) {
-    let cont = para.parent();
-    let scroll = cont.scrollTop();
-    let height = cont.height();
-    let cell_top = scroll + para.position().top;
-    let cell_bot = cell_top + para.height();
-    let page_top = scroll;
-    let page_bot = page_top + height;
-
-    if (cell_top < page_top + scrollFudge) {
-        cont.stop();
-        cont.animate({scrollTop: cell_top - scrollFudge}, scrollSpeed);
-    } else if (cell_bot > page_bot - scrollFudge) {
-        cont.stop();
-        cont.animate({scrollTop: cell_bot - height + scrollFudge}, scrollSpeed);
-    }
-};
-
 /// rendering and storage
 
 // store a change locally, if no change also unlock server side
@@ -53,6 +29,7 @@ localChange = function(para, send=true) {
     let raw = para.attr('raw');
     if (text != raw) {
         $(para).addClass('changed');
+        sendUpdatePara(para);
     } else {
         if (send) {
             var pid = para.attr('pid');
@@ -129,14 +106,15 @@ sendDeletePara = function(para) {
 
 /// para editable
 
-placeCursor = function(begin=false) {
+placeCursor = function(loc) {
+    console.log('placeCursor:', loc);
     if (active_para && writeable) {
         var text = active_para.children('.p_input');
         text.focus();
-        if (begin) {
+        if (loc == 'begin') {
             text[0].setSelectionRange(0, 0);
-        } else {
-            var tlen = text[0].value.length
+        } else if (loc == 'end') {
+            var tlen = text[0].value.length;
             text[0].setSelectionRange(tlen, tlen);
         }
     }
@@ -149,7 +127,7 @@ unPlaceCursor = function() {
     }
 };
 
-trueMakeEditable = function(rw=true) {
+trueMakeEditable = function(rw=true, cursor='end') {
     editable = true;
     active_para.addClass('editable');
 
@@ -157,8 +135,8 @@ trueMakeEditable = function(rw=true) {
     resize(text[0]);
     if (rw) {
         text.prop('readonly', false);
-        placeCursor();
-        if(mobile){
+        placeCursor(cursor);
+        if (mobile) {
             $('#foot').hide();
         };
     }
@@ -167,7 +145,7 @@ trueMakeEditable = function(rw=true) {
     client.schedCanary();
 };
 
-sendMakeEditable = function() {
+sendMakeEditable = function(cursor='end') {
     $('.para').removeClass('editable');
     if (active_para) {
         if (writeable) {
@@ -175,7 +153,7 @@ sendMakeEditable = function() {
             var data = {pid: pid, room: aid};
             client.sendCommand('lock', data, function(response) {
                 if (response) {
-                    trueMakeEditable();
+                    trueMakeEditable(true, cursor);
                 };
             });
         } else {
@@ -301,10 +279,10 @@ activeLastPara = function() {
     }
 };
 
-editShift = function(para, up=true) {
+editShift = function(dir='up') {
     var top, bot;
     if (writeable) {
-        var input = para.children('.p_input')[0];
+        var input = active_para.children('.p_input')[0];
         var cpos = input.selectionStart;
         var tlen = input.value.length;
         top = (cpos == 0);
@@ -314,31 +292,29 @@ editShift = function(para, up=true) {
         bot = true;
     }
 
-    if (up == true) {
+    if (dir == 'up') {
         if (top) {
             if (activePrevPara()) {
-                sendMakeEditable();
-                placeCursor(begin=false);
+                sendMakeEditable(cursor='end');
                 return false;
             }
         }
-    } else {
+    } else if (dir == 'down') {
         if (bot) {
             if (activeNextPara()) {
-                sendMakeEditable();
-                placeCursor();
+                sendMakeEditable(cursor='begin');
                 return false;
             }
         }
     }
 };
 
-next_cc = function(up=true) {
+next_cc = function(dir) {
     let ccpop = $('#cc_pop')[0];
-    if (up) {
+    if (dir == 'up') {
         f = ccpop.firstElementChild;
         ccpop.appendChild(f); //apend first to end
-    } else {
+    } else if (dir == 'down') {
         l = ccpop.lastElementChild;
         ccpop.prepend(l); //append last child before first
     }
@@ -420,17 +396,17 @@ $(document).keydown(function(e) {
     } else if (active_para && editable) { // we are active and editable
         if (key == 'arrowup' || key == 'arrowleft') {
             if (cc) { // if there is an open command completion window
-                next_cc(up=false);
+                next_cc('down');
                 return false;
             } else {
-                return editShift(active_para);
+                return editShift('up');
             }
         } else if (key == 'arrowdown' || key == 'arrowright') {
             if (cc) {
-                next_cc(up=true);
+                next_cc('up');
                 return false;
             } else {
-                return editShift(active_para, up=false);
+                return editShift('down');
             }
         } else if (key == 'escape') {
             if (cc) {
@@ -438,9 +414,6 @@ $(document).keydown(function(e) {
                 $('#cc_pop').remove();
             } else {
                 makeUnEditable();
-                if (writeable) {
-                    sendUpdatePara(active_para);
-                }
             }
         } else if (!shift && key == 'enter') {
             if (cc) {
@@ -449,9 +422,6 @@ $(document).keydown(function(e) {
             }
         } else if (shift && key == 'enter') {
             makeUnEditable();
-            if (writeable) {
-                sendUpdatePara(active_para);
-            }
             sendInsertAfter(active_para);
             return false;
         }
@@ -477,7 +447,6 @@ $(document).on('click', '#bg', function(e) {
     var targ = event.target.id;
     var alt = e.altKey;
     if (alt && (targ == 'bg' || targ == 'content')) {
-        makeUnEditable();
         makeActive(null);
         return false;
     }

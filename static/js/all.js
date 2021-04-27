@@ -33,6 +33,8 @@ $(document).ready(function() {
     toggleBox(loginbox, '#toggle_ll', '#locallogin');
 });
 
+// auto-render
+
 renderKatex = function() {
     $('body').find('span.latex').each(function() {
         var tex = $(this);
@@ -48,4 +50,27 @@ renderKatex = function() {
           console.log(e);
         }
     });
+};
+
+// scrolling
+
+var scrollSpeed = 100;
+var scrollFudge = 100;
+
+ensureVisible = function(elem) {
+    let cont = elem.parent();
+    let scroll = cont.scrollTop();
+    let height = cont.height();
+    let cell_top = scroll + elem.position().top;
+    let cell_bot = cell_top + elem.height();
+    let page_top = scroll;
+    let page_bot = page_top + height;
+
+    if (cell_top < page_top + scrollFudge) {
+        cont.stop();
+        cont.animate({scrollTop: cell_top - scrollFudge}, scrollSpeed);
+    } else if (cell_bot > page_bot - scrollFudge) {
+        cont.stop();
+        cont.animate({scrollTop: cell_bot - height + scrollFudge}, scrollSpeed);
+    }
 };

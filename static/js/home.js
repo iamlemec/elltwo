@@ -43,6 +43,7 @@ $(document).on('keydown', function(e) {
         if (next.length > 0) {
             $('.art_result').removeClass('selected');
             next.addClass('selected');
+            ensureVisible(next);
         }
         return false;
     } else if (key == 'arrowup') {
@@ -50,6 +51,7 @@ $(document).on('keydown', function(e) {
         if (prev.length > 0) {
             $('.art_result').removeClass('selected');
             prev.addClass('selected');
+            ensureVisible(prev);
         }
         return false;
     }
@@ -63,7 +65,8 @@ searchTitle = function(query, last_url) {
     client.sendCommand('search_title', query, function(response) {
         $('#results').empty();
 
-        if (response) {
+        var nres = Object.keys(response).length;
+        if (nres > 0) {
             for (var title in response) {
                 var art = response[title];
                 var url = `a/${art.url}`;
