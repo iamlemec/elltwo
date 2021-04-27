@@ -6,10 +6,6 @@ var last_active = null; // to keep track of where cursor was
 var editable = false; // are we focused on the active para
 var writeable = !readonly; // can we actually modify contents
 
-// hard coded options
-var scrollSpeed = 100;
-var scrollFudge = 100;
-
 /// textarea manage
 
 resize = function(textarea) {
@@ -24,26 +20,6 @@ resize = function(textarea) {
 $(document).on('input focus', 'textarea', function() {
     resize(this);
 });
-
-/// scrolling
-
-ensureVisible = function(para) {
-    let cont = para.parent();
-    let scroll = cont.scrollTop();
-    let height = cont.height();
-    let cell_top = scroll + para.position().top;
-    let cell_bot = cell_top + para.height();
-    let page_top = scroll;
-    let page_bot = page_top + height;
-
-    if (cell_top < page_top + scrollFudge) {
-        cont.stop();
-        cont.animate({scrollTop: cell_top - scrollFudge}, scrollSpeed);
-    } else if (cell_bot > page_bot - scrollFudge) {
-        cont.stop();
-        cont.animate({scrollTop: cell_bot - height + scrollFudge}, scrollSpeed);
-    }
-};
 
 /// rendering and storage
 

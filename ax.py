@@ -546,13 +546,12 @@ def create_art(title):
 @socketio.on('search_title')
 def search_title(data):
     results = adb.search_title(data)
-    if (results):
-        r = {}
-        for art in results:
-            r[art.title] = {'url': art.short_title, 'blurb': art.blurb}
-        return r
-    else:
-        return False
+    return {
+        art.title: {
+            'url': art.short_title,
+            'blurb': art.blurb
+        } for art in results
+    }
 
 @socketio.on('set_blurb')
 @login_decor
