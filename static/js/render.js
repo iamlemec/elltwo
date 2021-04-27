@@ -453,12 +453,13 @@ imgEnv = function(ptxt, args) {
     var img = $('<img>', {class: 'env_add'});
     fig.append(img);
 
-    var key = args.key;
+    var key = ptxt.parent().attr('id');
+    console.log(key)
     if (key in imgCache) {
         var url = imgCache[key];
         img.attr('src', url);
     } else {
-        client.sendCommand('get_image', {key: args.key}, (ret) => {
+        client.sendCommand('get_image', {'key': key}, (ret) => {
             if (ret.found) {
                 const blob = new Blob([ret.data], {type: ret.mime});
                 var url = URL.createObjectURL(blob);
@@ -1178,7 +1179,7 @@ sytaxParseInline = function(raw){
 
     });
     html = html.replace(ref, function(a,b){
-        b = b.replace('|', '<span class=syn_hl>|</span>');
+        //b = b.replace('|', '<span class=syn_hl>|</span>');
         return s('@', 'delimit') + s(fArgs(b), 'math');
     });
     html = html.replace(ilink, function(a,b){

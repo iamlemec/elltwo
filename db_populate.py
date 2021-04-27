@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(description='Axiom2 server.')
 parser.add_argument('--path', type=str, default='axiom.db', help='Path to sqlite database file')
 args = parser.parse_args()
 
-adb = AxiomDB(path=args.path)
+adb = AxiomDB(path=args.path, create=True)
 adb.create()
 
 adb.session.query(ExtRef).delete()

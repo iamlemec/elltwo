@@ -97,6 +97,14 @@ button:hover {
 /*    border-bottom: 1px dashed black;*/
 }
 
+::-moz-placeholder { /* Firefox 19+ */
+  color: var(--col) !important
+}
+
+::-webkit-input-placeholder {
+   color: var(--col) !important
+}
+
 .toc_entry{
  color: var(--font-col);
 }
@@ -133,7 +141,7 @@ button:hover {
   font-family: Fira;
   font-size: 90%;
   color: var(--hl-col);
-  text-indent: 15px;
+  padding-left: 5px;
   background-color: var(--pop-fg-col)!important;
 }
 
@@ -311,7 +319,7 @@ a.art_result{
 
 #hist {
     background-color: var(--pop-bg-col);
-    border-top: 2px solid var(--hl-col);
+    border-top: 2px solid var(--pop-fg-col) !important;;
 }
 
 .foot_butt{

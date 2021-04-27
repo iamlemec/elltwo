@@ -84,10 +84,11 @@ def fuzzy_query(words, err=0.3):
 ##
 
 class AxiomDB:
-    def __init__(self, db=None, whoosh=None, path='axiom.db', uri=None):
+    def __init__(self, db=None, whoosh=None, path='axiom.db', uri=None, create=False):
         if db is None:
             if uri is None:
                 uri = f'sqlite:///{path}'
+
 
             whoosh = WhooshSearch()
             qclass = whoosh.query_class(Query)
@@ -99,6 +100,9 @@ class AxiomDB:
         else:
             self.engine = db.engine
             self.session = db.session
+
+        if create:
+            Base.metadata.create_all(bind=self.engine)
 
         if whoosh is not None:
             whoosh.create_index(self.session, Article, update=True)
@@ -557,6 +561,11 @@ class AxiomDB:
         if time is None:
             time = datetime.utcnow()
         return self.session.query(Image).filter_by(key=key).filter(imgtime(time)).one_or_none()
+
+    def get_images(self, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        return self.session.query(Image).filter(imgtime(time)).all()
 
     def create_image(self, key, mime, data, time=None):
         if time is None:
