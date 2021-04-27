@@ -381,6 +381,7 @@ button {
     width: 15%;
     height: 100%;
     padding-bottom: 10px;
+    padding-left: 10px;
 }
 
 #sidebar_inner {
@@ -400,7 +401,6 @@ button {
 
 .option {
     margin-top: 20px;
-    padding-left: 10px;
     white-space: nowrap;
     right: 5px;
 }
@@ -415,7 +415,7 @@ button {
     padding-left: 5px;
     padding-top: 25px;
     padding-bottom: 5px;
-    border-top: 1px solid var(--delimit-col);
+/*     border-top: 1px solid var(--delimit-col); */
 }
 
 .toc_entry {

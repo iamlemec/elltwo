@@ -1195,13 +1195,8 @@ s = function(text, cls) {
     return `<span class=syn_${cls}>${text}</span>`;
 }
 
-<<<<<<< HEAD
 fArgs = function(argsraw){
     return s('[', 'delimit') + argsraw.replaceAll('=', s('=', 'delimit')).replaceAll('|', s('|', 'delimit')) + s(']', 'delimit');
-=======
-fArgs = function(argsraw) {
-    return s('[', 'delimit') + argsraw.replace('|', s('|', 'delimit')) + s(']', 'delimit');
->>>>>>> 3fee6828b5ad621d078c2b4ba57bfc6b168454b4
 };
 
 var blocks = {
