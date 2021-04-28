@@ -434,7 +434,7 @@ def RenderBib():
 def Img():
     edit = current_user.is_authenticated or not args.login
     theme=request.cookies.get('theme') or args.theme
-    imgs = [i.key for i in adb.get_images()]
+    imgs = [[i.key, i.keywords] for i in adb.get_images()]
     imgs.reverse()
     return render_template('img.html',
         imgs=imgs,
@@ -738,13 +738,21 @@ def UploadImg():
 
 @socketio.on('get_image')
 def get_image(data):
-    print(data)
     key = data['key']
-    print(f'get_image: {key}')
     if (img := adb.get_image(key)) is not None:
-        return {'found': True, 'mime': img.mime, 'data': img.data}
+        return {'found': True, 'mime': img.mime, 'data': img.data, 'kw': img.keywords}
     else:
         return {'found': False}
+
+@socketio.on('update_img_key')
+def update_img_key(data):
+    print(data)
+    key = data['key']
+    new_key = data['new_key']
+    new_kw = data['new_kw']
+    adb.update_img_key(key=key, new_key=new_key, new_kw=new_kw)
+    return {'found': True}
+    
 
 ###
 ### timeout

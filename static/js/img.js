@@ -1,6 +1,7 @@
 // image and search
 
 img_types = ['image/png', 'image/jpeg', 'image/svg+xml']
+max_imgs = 50;
 
 
 $(document).ready(function() {
@@ -44,35 +45,109 @@ uploadImg = function(file, name=null) {
 update_img = function(src){
     id = src.split('.')[0]
     $('#dropzone').after($('<div>', {class: 'img_cont img_src', id: id, src: src}));
+    imgs.append([id, ""])
     image_from_key(src, $('#'+id))
 }
 
 image_from_key = function(key, el){
-    client.sendCommand('get_image', {'key': key}, (ret) => {
-            if (ret.found) {
-                const blob = new Blob([ret.data], {type: ret.mime});
-                var url = URL.createObjectURL(blob);
-                imgCache[key] = url;
-                img = $('<img>', {id: key});
-                img.attr('src', url);
-                el.append(img);
+    if (key in imgCache) {
+        let url = imgCache[key]['url'];
+        const img = $('<img>', {id: key});
+        img.attr('src', url);
+        img.attr('kw', imgCache[key]['kw']);
+        el.append(img);
+        const keyspan = $('<div>', {class: 'keyspan'});
+        keyspan.text(key);
+        el.append(keyspan);
+    }else{
+        client.sendCommand('get_image', {'key': key}, (ret) => {
+        if (ret.found) {
+            const blob = new Blob([ret.data], {type: ret.mime});
+            const url = URL.createObjectURL(blob);
+            imgCache[key] = {'url': url, 'kw': ret.kw};
+            const img = $('<img>', {id: key});
+            img.attr('src', url);
+            img.attr('kw', ret.kw);
+            el.append(img);
+            const keyspan = $('<div>', {class: 'keyspan'});
+            keyspan.text(key);
+            el.append(keyspan);
             }
         });
-}
+    }
+};
 
 $(document).ready(function() {
-    $('.img_cont').each(function(){
+    render_imgs();
+ });
+
+render_imgs = function(img_list=imgs){
+    $('.img_src').remove();
+    imgs_n = img_list.slice(0, max_imgs);
+    imgs_n.forEach(img => {
+        img_cont = $('<div>', {class: 'img_cont img_src'});
+        img_cont.attr('src', img[0])
+        $('#img_results').append(img_cont)
+    });
+    $('.img_src').each(function(){
         key = $(this).attr('src')
         image_from_key(key, $(this))
     });
- });
+}
+
+copy_key = function(keyspan) {
+    var textArea = document.createElement("textarea");
+    textArea.value = $(keyspan).text();
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("Copy");
+    textArea.remove();
+}
 
 $(document).ready(function() {
     $(document).on('click', '.img_cont', function(e) {
-        src = $(this).children('img').attr('src')
-        $('#display_img').attr('src', src)
-        console.log(src)
+        let img = $(this).children('img');
+        let key = img.attr('id');
+        ks = $(e.target).closest('.keyspan')
+        if (ks.length > 0){
+            $('.keyspan').removeClass('.copied')
+            copy_key(ks);
+            $(ks).addClass('copied')
+        } else {
+        let src = img.attr('src');
+        let kw = img.attr('kw') || "";
+        $('#display').attr('key', key)
+               .attr('keywords', kw)
+        $('#display_img').attr('src', src);
+        $('input#key').val(key);
+        $('input#keywords').val(kw);
         $('#display').show();
+    };
+    });
+});
+
+$(document).ready(function() {
+    $(document).on('click', '#img_update', function() {
+        let key = $('#display').attr('key');
+        let kw = $('#display').attr('keywords');
+        let new_key = $('input#key').val();
+        let new_kw = $('input#keywords').val();
+        if (key!=new_key || kw!=new_kw){
+            client.sendCommand('update_img_key', 
+                {'key': key,
+                'new_key': new_key,
+                'new_kw': new_kw,
+                },(ret) => {
+                if(ret.found){
+                    const img = $(`#${key}`);
+                    img.attr('id', new_key);
+                    img.attr('kw', new_kw);
+                    img.parent('.img_cont').attr('src', new_key);
+                    img.siblings('.keyspan').text(new_key);
+                $('#display').hide();
+                };
+            });
+        };
     });
 });
 
@@ -134,79 +209,28 @@ $(document).ready(function() {
     });
 });
 
-// let timeout = null;
+function m_search(img, list){
+    let value = 0;
+    target = img[0] + img[1];
+    list.forEach(word => {
+      value = value + target.includes(word);
+    });
+    return value
+}
 
-// $(document).on('keydown', function(e) {
-//     var key = e.key.toLowerCase();
-//     var real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
-//     var andriod_is_fucking_stupid = e.keyCode == 229;
-//     var active = getActiveArt();
-//     if (e.ctrlKey && (key == 'enter')) {
-//         createArt();
-//     } else if (key == 'enter') {
-//         if (active.length > 0) {
-//             var url = active.attr('href');
-//             window.location = url;
-//         }
-//     } else if (real || (key == 'backspace') || (key == 'delete') || andriod_is_fucking_stupid) {
-//         clearTimeout(timeout);
-//         var last_url = active.attr('href');
-//         timeout = setTimeout(function() {
-//             var query = $('#new_art_id').val();
-//             if (query.length > 2) {
-//                 searchTitle(query, last_url);
-//             } else {
-//                 $('#results').empty();
-//             }
-//         }, 200);
-//     } else if (key == 'arrowdown') {
-//         var next = active.next('.art_result');
-//         if (next.length > 0) {
-//             $('.art_result').removeClass('selected');
-//             next.addClass('selected');
-//         }
-//         return false;
-//     } else if (key == 'arrowup') {
-//         var prev = active.prev('.art_result');
-//         if (prev.length > 0) {
-//             $('.art_result').removeClass('selected');
-//             prev.addClass('selected');
-//         }
-//         return false;
-//     }
-// });
+timeout = null;
 
-// getActiveArt = function() {
-//     return $('.art_result.selected').first();
-// };
-
-// searchTitle = function(query, last_url) {
-//     client.sendCommand('search_title', query, function(response) {
-//         $('#results').empty();
-
-//         if (response) {
-//             for (var title in response) {
-//                 var art = response[title];
-//                 var url = `a/${art.url}`;
-//                 var artdiv = $('<a>', {class: 'art_result', href: url});
-//                 if (art.blurb) {
-//                     var b = $('<div>', {class: 'blurb', html: art.blurb});
-//                     artdiv.append(b);
-//                 }
-//                 $('#results').append(artdiv);
-//             }
-
-//             var sel;
-//             if (last_url == undefined) {
-//                 sel = $('.art_result').first();
-//             } else {
-//                 sel = $(`.art_result[href="${last_url}"]`);
-//                 if (sel.length == 0) {
-//                     sel = $('.art_result').first();
-//                 }
-//             }
-//             sel.addClass('selected');
-//         }
-//     });
-// };
+$(document).on('keyup', '#img_search', function(e) {
+    clearTimeout(timeout);
+    timeout = setTimeout(function() {
+    ss = $('#img_search').val()
+    if(ss){
+        s_terms = ss.split(' ')
+        imgs_s = imgs.filter(img => m_search(img, s_terms) > 0)
+        render_imgs(imgs_s);
+    } else{
+        render_imgs();
+    };
+    }, 300);
+});
 

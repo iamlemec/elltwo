@@ -137,23 +137,44 @@
   display: flex;
   flex: 10 32%;
   height: 150px;
+  max-width: 400px;
   margin: 3px; /* (100-32*3)/2 */
   border: 2px solid gray;
+  cursor: pointer;
 }
 
 img {
-  max-height: 100%;
+s  max-height: 100%;
   min-width: 100%;
   object-fit: cover;
   vertical-align: bottom;
 }
 
+.keyspan{
+  display: none;
+  position: absolute;
+  background-color: rgba(0,0,0,.2);
+  padding: 6px;
+}
+
+.keyspan:after{
+  content: ' 📋'
+}
+
+.keyspan.copied:after{
+  content: ' ✓'
+}
+
+.img_cont:hover > .keyspan{
+  display: block;
+}
+
 .dropzone{
     border: 1px dashed var(--hl-col);
-    text-align: center;
-    padding: 5%;
-    padding-top: 8%;
+    align-items: center;
+    justify-content: center ;
     font-family: fira;
+    text-align: center;
 }
 
 .dropzone.dragover{
@@ -179,9 +200,11 @@ img {
 #display_update > input{
   position: relative;
   background-color: var(--bg-hl-col);
+  color: var(--font-col-int);
   min-height: 30px;
   margin-bottom: 10px;
   left: 15%;
+  font-size: 100%;
 }
 
 #display_img{
@@ -194,10 +217,11 @@ img {
 .keywordtitle{
   position: absolute;
   width: 15%;
-  padding-top: 8px;
-  padding-right: 10px;
+  padding-top: 5spx;
+  padding-right: 6px;
   left: 0%;
   text-align: right;
+  font-size: 70%;
 }
 
 #key{

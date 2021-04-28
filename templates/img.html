@@ -4,7 +4,8 @@
   {{ super() }}
   <script type="text/javascript">
     max_size = '{{max_size}}';
-    readonly = !{{edit|tojson}}
+    imgs = {{imgs|tojson}};
+    readonly = !{{edit|tojson}};
 </script>
   <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
   <script src={{ url_for('static', filename='libs/socket.io.js') }} language="Javascript" type="text/javascript"></script>
@@ -28,9 +29,9 @@
 
     <div id=img_results>
       <div id=dropzone class='img_cont dropzone'>Drop Image or Click to Upload</div>
-      {% for key in imgs%}
+<!--       {% for key in imgs%}
       <div class='img_cont img_src' src={{key}}></div>
-      {% endfor %}
+      {% endfor %} -->
     </div>
 
     <div id=display>

@@ -562,6 +562,19 @@ class AxiomDB:
             time = datetime.utcnow()
         return self.session.query(Image).filter_by(key=key).filter(imgtime(time)).one_or_none()
 
+    def update_img_key(self, key, new_key=None, new_kw=None, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        img = self.session.query(Image).filter_by(key=key).filter(imgtime(time)).one_or_none()
+        if img:
+            if new_key:
+                img.key = new_key
+            if new_kw:
+                img.keywords = new_kw
+            self.session.add(img)
+            self.session.commit()
+
+
     def get_images(self, time=None):
         if time is None:
             time = datetime.utcnow()

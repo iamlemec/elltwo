@@ -1177,7 +1177,7 @@ sytaxParseInline = function(raw) {
         return s('%', 'comment_head') + s(b, 'comment') + c;
     });
 
-    html = html.replace(ref, function(a,b){
+    html = html.replace(inlines.ref, function(a,b){
         //b = b.replace('|', '<span class=syn_hl>|</span>');
         return s('@', 'delimit') + s(fArgs(b), 'math');
     });
@@ -1196,7 +1196,7 @@ s = function(text, cls) {
 }
 
 fArgs = function(argsraw){
-    return s('[', 'delimit') + argsraw.replaceAll('=', s('=', 'delimit')).replaceAll('|', s('|', 'delimit')) + s(']', 'delimit');
+    return s('[', 'delimit') + argsraw.replaceAll('=', s('=', 'math')).replaceAll('|', s('|', 'math')) + s(']', 'delimit');
 };
 
 var blocks = {

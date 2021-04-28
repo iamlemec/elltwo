@@ -4,7 +4,7 @@ Axiom L2 is a browser based platform for decentralized and collaborative technic
 
 # Structure & Editing 
 
-Each article (denoted by a URL) is a collection of cells. Cells contain text which can be styled and referenced individually. For example, a cell could be a paragraph of text (like this one), an equation, an SVG figure, a custom environment, etc. In the same way that articles can be references from other articles in any wiki-like platform, cells that contain a reference can be referenced elsewhere, including across articles. 
+Each article (denoted by a URL) is a collection of cells. Cells contain text which can be styled and referenced individually. For example, a cell could be a paragraph of text (like this one), an equation, an SVG figure, a custom environment, etc. In the same way that articles can be references from other articles in any wiki-like platform, cells that contain a reference can be referenced elsewhere, including across articles. \`
 
 Cells can be selected by clicking on them or by pressing `enter` and then navigating with the arrow keys. When a cell is selected, an addition click or `enter` with enter "edit mode." When in edit mode, the raw input of the cell is shown in an editable text box. When edit mode is escaped, by clicking elsewhere or pressing `esc`, changes will be rendered and the formatted text will be displayed. However, changes to the permanent (or global) until committed, either by pressing `shift + enter` while in edit mode or `ctrl + s` anytime (which will commit *all* uncommitted cells). Uncommitted cells are demarcated by a right border.
 
@@ -33,8 +33,7 @@ A list of cell prefixes:
 - `!` : images
 - `#` : section headings
 - `>>` LaTeX style environments
-- `<<` ending multi cell enviorments
-
+- `<<` ending multi cell environments
 
 ##[env]Enviorments
 
@@ -56,7 +55,7 @@ $$ \mu(\bigcap_{n=1}^{\infty }\bigcup_{k\geq n}^{\infty }E_{k}) = 0
 
 Prebuilt envrioments include **theorem**, **lemma**, **proof**, and **example**; others can be constructed by augmenting the render.js file.
 
-#[id=sec_fig] Figures
+# [sec_fig] Figures
 
 Cells can also contain figure and images. Images environments begin with an exclamation point `!` and can direct to external images via a URL or internal images using an image ID.
 
@@ -77,6 +76,23 @@ Cells can also contain figure and images, including HTML5 SVG images. The `&SVG`
 <circle cx="40" cy="50" r="30", fill='goldenrod' opacity='.5'/>
 <circle cx="60" cy="50" r="30", fill='steelblue' opacity='.5'/>
 
+&svg [id=fig|caption=none|w=100]
+<rect x="0" y="0" width="25" height="25", fill='#a0025e', stroke='none'/>
+<rect x="0" y="25" width="25" height="25", fill='#a2075b', stroke='none'/>
+<rect x="0" y="50" width="25" height="25", fill='#b22c52', stroke='none'/>
+<rect x="0" y="75" width="25" height="25", fill='#bd454c', stroke='none'/>
+<rect x="25" y="0" width="25" height="25", fill='#a1055e', stroke='none'/>
+<rect x="25" y="25" width="25" height="25", fill='#ab1d58', stroke='none'/>
+<rect x="25" y="50" width="25" height="25", fill='#c04e4b', stroke='none'/>
+<rect x="25" y="75" width="25" height="25", fill='#d67940', stroke='none'/>
+<rect x="50" y="0" width="25" height="25", fill='#B39442', stroke='none'/>
+<rect x="50" y="25" width="25" height="25", fill='#AB6F57', stroke='none'/>
+<rect x="50" y="50" width="25" height="25", fill='#A45069', stroke='none'/>
+<rect x="50" y="75" width="25" height="25", fill='#E0B423', stroke='none'/>
+<rect x="75" y="0" width="25" height="25", fill='#DA9031', stroke='none'/>
+<rect x="75" y="25" width="25" height="25", fill='#D36541', stroke='none'/>
+<rect x="75" y="50" width="25" height="25", fill='#CD404E', stroke='none'/>
+<rect x="75" y="75" width="25" height="25", fill='#cc4150', stroke='none'/>
 
 #[ref]Referencing 
 

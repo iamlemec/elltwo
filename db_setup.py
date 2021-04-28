@@ -100,6 +100,7 @@ class Image(Base):
 
     iid = Column(Integer, primary_key=True)
     key = Column(Text, nullable=False)
+    keywords = Column(Text)
     mime = Column(Text, nullable=False)
     data = Column(LargeBinary, nullable=False)
     create_time = Column(DateTime, default=datetime.utcnow)
