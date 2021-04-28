@@ -28,7 +28,7 @@ var block = {
   equation: /^\$\$(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
   svg: /^\&svg(\*)? *(?:refargs)?[\s\n]*((?:[^\n]+\n?)*)(?:$)/,
   title: /^#! *(?:refargs)? *([^\n]*)([\n\r]*)([\s\S]*)(?:$)/,
-  upload: /^!!(?:$)/,
+  upload: /^!! *(?:refargs)? *(?:$)/,
   image: /^!(\*)? *(?:refargs)? *\(href\)(?:\n+|$)/,
   imagelocal: /^!(\*)? *(?:refargs)(?:$)/,
   biblio: /^@@ *(?:refid) *\n?((?:[^\n]+\n?)*)(?:\n+|$)/,
@@ -46,6 +46,10 @@ block._imgid = /\[([\w-]+)\]/;
 block.image = replace(block.image)
   ('refargs', block._refargs)
   ('href', block._href)
+  ();
+
+block.upload = replace(block.upload)
+  ('refargs', block._refargs)
   ();
 
 block.imagelocal = replace(block.imagelocal)
@@ -284,8 +288,11 @@ Lexer.prototype.token = function(src, top, bq) {
     // upload
     if (cap = this.rules.upload.exec(src)) {
       src = src.substring(cap[0].length);
+      var argsraw = cap[1] || '';
+      var args = parseArgs(argsraw);
       this.tokens.push({
         type: 'upload',
+        args: args,
       });
       continue;
     }
@@ -1196,8 +1203,9 @@ DivRenderer.prototype.imagelocal = function(key) {
   return `<div class="fig_cont"></div>`;
 };
 
-DivRenderer.prototype.upload = function() {
-  return `<div class="dropzone">Drop Image or Click to Upload</div>`;
+DivRenderer.prototype.upload = function(args) {
+  const img_id  = (args['id']) ?  `img_id=${args['id']}`: '';
+  return `<div ${img_id} class="dropzone">Drop Image or Click to Upload</div>`;
 };
 
 DivRenderer.prototype.figure = function(ftype, tag, title, body) {
@@ -1630,7 +1638,7 @@ Parser.prototype.tok = function() {
       return this.renderer.paragraph(this.parseText());
     }
     case 'upload': {
-      return this.renderer.upload();
+      return this.renderer.upload(this.token.args);
     }
     case 'image': {
       this.env = {
@@ -1678,6 +1686,7 @@ function escape(html, encode) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+    .replace(/`/g, '&#96;')
     .replace(/%/g, '&#37;');
 }
 

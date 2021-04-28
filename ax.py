@@ -115,7 +115,8 @@ def inject_dict_for_all_templates():
 @app.route('/')
 @app.route('/home')
 def Home():
-    return render_template('home.html', theme=args.theme)
+    theme=request.cookies.get('theme') or args.theme
+    return render_template('home.html', theme=theme)
 
 @app.route('/create', methods=['POST'])
 @login_decor
@@ -147,7 +148,8 @@ def Demo():
 
 @app.route('/signup')
 def Signup():
-    return render_template('signup.html', theme=args.theme)
+    theme=request.cookies.get('theme') or args.theme
+    return render_template('signup.html', theme=theme)
 
 @app.route('/login',  methods=['GET', 'POST'])
 def Login():
@@ -155,7 +157,8 @@ def Login():
         next = request.referrer.replace('/r/', '/a/', 1)
     else:
         next = url_for('Home')
-    return render_template('login.html', next=next, theme=args.theme)
+    theme=request.cookies.get('theme') or args.theme
+    return render_template('login.html', next=next, theme=theme)
 
 @app.route('/create_user', methods=['POST'])
 def CreateUser():
@@ -207,7 +210,8 @@ def Resend(email):
 
 @app.route('/forgot',  methods=['GET', 'POST'])
 def Forgot():
-    return render_template('forgot.html', theme=args.theme)
+    theme=request.cookies.get('theme') or args.theme
+    return render_template('forgot.html', theme=theme)
 
 @app.route('/reset_email', methods=['POST'])
 def ResetEmail():
@@ -226,7 +230,8 @@ def ResetEmail():
 
 @app.route('/reset/<email>/<token>', methods=['GET'])
 def Reset(email, token):
-    return render_template('reset.html', email=email, token=token, theme=args.theme)
+    theme=request.cookies.get('theme') or args.theme
+    return render_template('reset.html', email=email, token=token, theme=theme)
 
 @app.route('/reset_with_token/<token>', methods=['POST'])
 def ResetWithToken(token):
@@ -325,7 +330,7 @@ def confirm_token(token, expiration=3600):
 ### Article
 ###
 
-def GetArtData(title, edit):
+def GetArtData(title, edit, theme):
     themes = [t[:-4] for t in os.listdir('static/themes/')]
     art = adb.get_art_short(title)
     if art:
@@ -341,7 +346,7 @@ def GetArtData(title, edit):
             title=art.title,
             aid=art.aid,
             paras=paras,
-            theme=args.theme,
+            theme=theme,
             themes=themes,
             max_size=args.max_size,
             edit=edit,
@@ -352,16 +357,22 @@ def GetArtData(title, edit):
         flash(f'Article "{title}" does not exist.')
         return redirect(url_for('Home'))
 
+def ErrorPage(title='Error', message=''):
+    theme=request.cookies.get('theme') or args.theme
+    return render_template('error.html', title=title, message=message, theme=theme)
+
 @app.route('/a/<title>', methods=['GET'])
 def RenderArticle(title):
+    theme=request.cookies.get('theme') or args.theme
     if current_user.is_authenticated or not args.login:
-        return GetArtData(title, True)
+        return GetArtData(title, True, theme=theme)
     else:
         return redirect(url_for('RenderArticleRO', title=title))
 
 @app.route('/r/<title>', methods=['GET'])
 def RenderArticleRO(title):
-    return GetArtData(title, False)
+    theme=request.cookies.get('theme') or args.theme
+    return GetArtData(title, False, theme=theme)
 
 @app.route('/i/<key>', methods=['GET'])
 def GetImage(key):
@@ -416,7 +427,21 @@ def export_tex():
 
 @app.route('/b', methods=['GET'])
 def RenderBib():
-    return render_template('bib.html', theme=args.theme)
+    theme=request.cookies.get('theme') or args.theme
+    return render_template('bib.html', theme=theme)
+
+@app.route('/img', methods=['GET','POST'])
+def Img():
+    edit = current_user.is_authenticated or not args.login
+    theme=request.cookies.get('theme') or args.theme
+    imgs = [[i.key, i.keywords] for i in adb.get_images()]
+    imgs.reverse()
+    return render_template('img.html',
+        imgs=imgs,
+        theme=theme,
+        max_size=args.max_size,
+        edit=edit,
+        )
 
 ###
 ### socketio handler
@@ -695,29 +720,39 @@ def locked_by_sid(sid):
 @app.route('/uploadImg', methods=['POST'])
 def UploadImg():
     file = request.files['file']
+    img_id = request.form.get('f_name')
 
-    _, img_fn = os.path.split(file.filename)
-    img_name, _ = os.path.splitext(img_fn)
-    img_id = f'img_{img_name}'
+    #_, img_fn = os.path.split(file.filename)
+    #img_name, _ = os.path.splitext(img_fn)
     img_mime = file.mimetype
 
     buf = BytesIO()
     file.save(buf)
     val = buf.getvalue()
 
-    print(f'UploadImg: {img_name}: {img_mime} mime, {len(val)} bytes')
-    adb.create_image(img_name, img_mime, val)
+    print(f'UploadImg: {img_id}: {img_mime} mime, {len(val)} bytes')
+    adb.create_image(img_id, img_mime, val)
 
-    return {'key': img_name, 'mime': img_mime, 'id': img_id}
+    return {'mime': img_mime, 'id': img_id}
+
 
 @socketio.on('get_image')
 def get_image(data):
     key = data['key']
-    print(f'get_image: {key}')
     if (img := adb.get_image(key)) is not None:
-        return {'found': True, 'mime': img.mime, 'data': img.data}
+        return {'found': True, 'mime': img.mime, 'data': img.data, 'kw': img.keywords}
     else:
         return {'found': False}
+
+@socketio.on('update_img_key')
+def update_img_key(data):
+    print(data)
+    key = data['key']
+    new_key = data['new_key']
+    new_kw = data['new_kw']
+    adb.update_img_key(key=key, new_key=new_key, new_kw=new_kw)
+    return {'found': True}
+    
 
 ###
 ### timeout

@@ -36,6 +36,7 @@ $(document).ready(function() {
         if (tchoice != current_theme) {
             current_theme = tchoice;
             var tset = (tchoice == 'default') ? default_theme : tchoice;
+            document.cookie = `theme=${tchoice}; path=/; samesite=lax; secure`;
             $('#theme').remove();
             var link = themeLink(tset);
             $('head').append(link);
@@ -463,7 +464,7 @@ if (mobile) {
 
 // drop to upload
 
-uploadImg = function(file, para) {
+uploadImg = function(file, para, name=null) {
     console.log('uploadImg:', file.name, file.type, file.size);
     if (!img_types.includes(file.type)) {
         return `Unsupported file type: ${file.type}`;
@@ -472,8 +473,10 @@ uploadImg = function(file, para) {
         var ksize = Math.floor(file.size/1024);
         return `File size too large (${ksize}kb > 1024kb)`;
     }
+    let f_name = name || file.name;
     let form_data = new FormData();
     form_data.append('file', file);
+    form_data.append('f_name', f_name);
     $.ajax({
         type: 'POST',
         url: '/uploadImg',
@@ -482,14 +485,14 @@ uploadImg = function(file, para) {
         cache: false,
         processData: false,
         success: function(data) {
-            update_img(para, data.key, data.id);
+            update_img(para, data.id);
         },
     });
     return null;
 };
 
-update_img = function(para, key, id) {
-    raw = `! [key=${key}|id=${id}|caption=none]`;
+update_img = function(para, id) {
+    raw = `! [id=${id}|caption=none]`;
     para.attr('raw', raw);
     rawToRender(para, false);
     rawToTextarea(para);
@@ -510,9 +513,10 @@ $(document).ready(function() {
     $(document).on('drop', '.dropzone', function(e) {
         var files = e.originalEvent.dataTransfer.files;
         if (files.length == 1) {
-            var file = files[0];
-            var para = $(this).closest('.para');
-            if ((ret = uploadImg(file, para)) == null) {
+            let file = files[0];
+            let para = $(this).closest('.para');
+            let img_id = $(this).attr('img_id')
+            if ((ret = uploadImg(file, para, img_id)) == null) {
                 $(this).removeClass('dragover');
             } else {
                 $(this).text(ret);

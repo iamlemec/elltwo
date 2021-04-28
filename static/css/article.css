@@ -256,6 +256,7 @@ button {
 }
 
 .code > pre {
+    padding-left: 12px;
     white-space: pre-wrap;
 }
 
@@ -389,17 +390,17 @@ button {
 
 #options_title {
     font-size: 25px;
-    border-bottom: 1px dashed black;
+    border-bottom: 2px dashed black;
 }
 
 .options {
+    padding-left: 5px;
     margin-top: 80px;
     padding-bottom: 30px;
 }
 
 .option {
     margin-top: 20px;
-    padding-left: 10px;
     white-space: nowrap;
     right: 5px;
 }
@@ -414,13 +415,30 @@ button {
     padding-left: 5px;
     padding-top: 25px;
     padding-bottom: 5px;
-    border-top: 1px solid var(--delimit-col);
+    border-top: 2px solid var(--font-col-int);
+}
+
+#sb_links{
+    margin-bottom: 30px;
+}
+
+#sb_links_title {
+    padding-left: 5px;
+    padding-top: 25px;
+    padding-bottom: 5px;
+    border-top: 2px solid var(--font-col-int);
+}
+
+#sb_links > a{
+    display: block;
+    padding-left: 20px;
+    margin-top: 5px;
 }
 
 .toc_entry {
     display: block;
-    margin-top: 5px;
-    padding-left: 10px;
+    margin-top: 10px;
+    padding-left: 20px;
 }
 
 .locked:after {
