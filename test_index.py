@@ -110,7 +110,7 @@ class Indexer:
         sims = [(k, sum(v)/len(shards)) for k, v in sims.items()]
 
         # return sorted decreasing
-        return sorted(sims, key=itemgetter(0))
+        return sorted(sims, key=itemgetter(1), reverse=True)
 
 if __name__ == '__main__':
     # test corpus

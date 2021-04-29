@@ -26,7 +26,7 @@ var block = {
   paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/,
   text: /^[^\n]+/,
   equation: /^\$\$(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
-  svg: /^\&svg(\*)? *(?:refargs)?[\s\n]*((?:[^\n]+\n?)*)(?:$)/,
+  svg: /^\&svg(\*)? *(?:refargs)?[\s\n]*((?:[^\n]+\n*)*)(?:$)/,
   title: /^#! *(?:refargs)? *([^\n]*)([\n\r]*)([\s\S]*)(?:$)/,
   upload: /^!! *(?:refargs)? *(?:$)/,
   image: /^!(\*)? *(?:refargs)? *\(href\)(?:\n+|$)/,

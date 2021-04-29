@@ -752,7 +752,7 @@ def update_img_key(data):
     new_kw = data['new_kw']
     adb.update_img_key(key=key, new_key=new_key, new_kw=new_kw)
     return {'found': True}
-    
+
 
 ###
 ### timeout
