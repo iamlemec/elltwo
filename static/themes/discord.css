@@ -148,12 +148,15 @@ button:hover {
 
 }
 
-.code {
+.code, .syn_code {
     font-family: monospace;
-    font-size: 80%;
     text-align: left;
     background-color: var(--code-bg-col);
     border-radius: 3px;
+}
+
+.code{
+    font-size: 80%;
     padding: 3px;
 }
 

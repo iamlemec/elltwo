@@ -153,6 +153,11 @@ button:hover {
 
 }
 
+.syn_code{
+ background-color: var(--brace-col); 
+ border-radius: 3px;  
+}
+
 .ref_error {
     background-color: var(--font-col);
     color:  var(--hl2-col);

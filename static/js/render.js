@@ -1104,26 +1104,23 @@ cc_search = function(list, search, placement) {
 cc_refs = function(raw, view, e) {
     cc = false;
     $('#cc_pop').remove();
-    let open_ref = /@\[?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!\s)/;
+    let open_ref = /@(\[)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!.*\s)/;
+    let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?!.*\s)/;
+    cur = e.target.selectionStart;
     if (cap = open_ref.exec(raw)) {
-        cur = e.target.selectionStart;
         // if cursor is near the match
         if (cur >= cap.index && cur <= cap.index + cap[0].length) {
-            if (cap[1]) {
                 raw = raw.replace(cap[0], function() {
-                    return `@[${cap[1]}<span id=cc_pos></span>`;
+                    const b = cap[1] || "";
+                    const t = cap[2] || "";
+                    return `@${b+t}<span id=cc_pos></span>`;
                 });
-            } else {
-                raw = raw.replace(cap[0], function() {
-                    return `<span id=cc_pos>${cap[0]}</span>`;
-                });
-            }
 
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
 
-            if (cap[2] && !cap[1]) { // searching for ext page
+            if (cap[3] && !cap[2]) { // searching for ext page
                 let ex_keys = Object.keys(ext_refs);
                 if (ex_keys.length == 0) { // if we have not made request
                     client.sendCommand('get_arts', '', function(arts) {
@@ -1132,11 +1129,11 @@ cc_refs = function(raw, view, e) {
                         cc_search(Object.keys(arts), search, p);
                     });
                 } else {
-                    search = cap[3] || '';
+                    search = cap[4] || '';
                     cc_search(ex_keys, search, p);
                 }
-            } else if (cap[1] && cap[2]) {
-                client.sendCommand('get_refs', {'title': cap[1]}, function(data) {
+            } else if (cap[2] && cap[3]) {
+                client.sendCommand('get_refs', {'title': cap[2]}, function(data) {
                     if (data.refs.length > 0) {
                         ext_refs[data.title] = data.refs;
                     }
@@ -1144,48 +1141,89 @@ cc_refs = function(raw, view, e) {
                     cc_search(data.refs, search, p);
                 });
             } else {
-                let search = cap[3] || cap[1] || '';
+                let search = cap[4] || cap[2] || '';
                 cc_search(ref_list, search, p);
             }
+        }
+        } else if (cap = open_i_link.exec(raw)) {
+            if (cur >= cap.index && cur <= cap.index + cap[0].length) {
+                    raw = raw.replace(cap[0], function() {
+                        t  = cap[1] || "";
+                        return `[[${t}<span id=cc_pos></span>`;
+                    });
+                view.html(raw);
+                let off = $('#cc_pos').offset();
+                let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+                let ex_keys = Object.keys(ext_refs);
+                if (ex_keys.length == 0) { // if we have not made request
+                    client.sendCommand('get_arts', '', function(arts) {
+                        ext_refs = arts;
+                        search = '';
+                        cc_search(Object.keys(arts), search, p);
+                    });
+                } else {
+                    search = cap[1] || '';
+                    cc_search(ex_keys, search, p);
+                }
         }
     }
 };
 
+esc = function(raw){
+    out = raw.replace(/\[/g, '&#91;')
+             .replace(/\]/g, '&#93;')//brakets
+             .replace(/\$/g, '&#36;')//math
+             .replace(/\@/g, '&#36;')//@
+             .replace(/\*/g, '&#42;')//*
+             .replace(/\!/g, '&#33;')//!
+
+    return out
+}
+
 inlines = {
     comment: /%([^\n]+?)(\n|$)/g,
+    code: /(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/g,
     ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/,
     math: /\$((?:\\\$|[\s\S])+?)\$/g,
     ref: /@\[([\w-\|\=\:]+)\]/g,
     ilink: /\[\[([^\]]+)\]\]/g,
+    em: /\*((?:\*\*|[\s\S])+?)\*(?!\*)/g,
+    strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
 }
 
 sytaxParseInline = function(raw) {
     var html = raw;
-    html = html.replace(/\</g, '&LT'); // html escape
-    html = html.replace(/\>/g, '&GT'); // html escape
-    // html = html.replace(/\n/g, '<br>\n'); // whitespace
-
+    html = html.replace(/\</g, '&LT')// html escape
+               .replace(/\>/g, '&GT')// html escape
+               .replace(/\\\%/g, '\\&#37;')//comment escape
+               .replace('_!L_', `<span class='brace'>`)
+               .replace('_!R_', `</span>`);
+    
+    html = html.replace(inlines.comment, function(a,b,c) {
+        return s('%', 'comment_head') + s(esc(b), 'comment') + c;
+    });
+    html = html.replace(inlines.code, function(a,b,c) {
+        return s(b, 'comment_head') + s(esc(c), 'code') + s(b, 'comment_head');
+    });
     html = html.replace(inlines.ftnt, function(a,b) {
-        b = b.replace('|', '<span class=syn_hl>|</span>');
+        b = b.replace('|', s('|', 'hl'));
         return s('^[', 'delimit') +  b + s(']', 'delimit');
     });
     html = html.replace(inlines.math, function(a,b) {
         return s('$', 'delimit') + s(b, 'math') + s('$', 'delimit');
     });
-    html = html.replace(inlines.comment, function(a,b,c) {
-        return s('%', 'comment_head') + s(b, 'comment') + c;
-    });
-
     html = html.replace(inlines.ref, function(a,b){
-        //b = b.replace('|', '<span class=syn_hl>|</span>');
         return s('@', 'delimit') + s(fArgs(b), 'math');
     });
     html = html.replace(inlines.ilink, function(a,b) {
         return s('[[', 'delimit') + s(b, 'ref') + s(']]', 'delimit');
     });
-
-    html = html.replace('_!L_', `<span class='brace'>`);
-    html = html.replace('_!R_', `</span>`);
+    html = html.replace(inlines.strong, function(a,b) {
+        return s('&#42;&#42;', 'comment_head') + b + s('&#42;&#42;', 'comment_head');
+    });
+    html = html.replace(inlines.em, function(a,b) {
+        return s('*', 'delimit') + b + s('*', 'delimit');
+    });
 
     return html;
 }
@@ -1195,16 +1233,18 @@ s = function(text, cls) {
 }
 
 fArgs = function(argsraw){
-    return s('[', 'delimit') + argsraw.replaceAll('=', s('=', 'math')).replaceAll('|', s('|', 'math')) + s(']', 'delimit');
+    return s('[', 'delimit') + argsraw.replaceAll('=', s('=', 'math'))
+                                      .replaceAll('|', s('|', 'math')) + s(']', 'delimit');
 };
 
 var blocks = {
     title: /^#\!([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]*)([\n\r]*)([\s\S]*)/,
     heading: /^(#{1,6})(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]+?)? *#* *(?:\n+|$)/,
     text: /^[^\n]+/,
+    code: /^``([\S\s]*)/,
     equation: /^\$\$(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
     figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
-    svg: /^\&svg(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:$)/,
+    svg: /^\!svg(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:$)/,
     image: /^!(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])(\s*)(\()([\w-:#/.&%=]*)(\))?([\s\S]*)/,
     envbeg: /^\>\>(\!)?([\n\r\s]*)([\w-]+)?(\*)?( *)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
     envend: /^\<\<((?:[^\n]+\n?)*)/,
@@ -1223,6 +1263,12 @@ sytaxParseBlock = function(raw) {
         let id = (cap[4]) ? s(fArgs(cap[4]), 'ref') : "";
         let text = (cap[6]) ? sytaxParseInline(cap[6]) : "";
         return s(cap[1], 'delimit') + star + cap[3] + id + cap[5] + text;
+    }
+
+    if (cap = blocks.code.exec(raw)) {
+        let text = (cap[1]) || "";
+        console.log(cap, text)
+        return s('``', 'hl') + s(esc(text), 'code');
     }
 
     if (cap = blocks.equation.exec(raw)) {
@@ -1245,7 +1291,7 @@ sytaxParseBlock = function(raw) {
         let star = (cap[1]) ? s('*', 'hl') : "";
         let id = (cap[3]) ? s(fArgs(cap[3]), 'ref'): "";
         let text = (cap[5]) ? sytaxParseInline(cap[5]) : "";
-        return s('&', 'hl') + s('svg', 'delimit') + star + cap[2] + id + cap[4] + text;
+        return s('!', 'hl') + s('svg', 'delimit') + star + cap[2] + id + cap[4] + text;
     }
 
     if (cap = blocks.image.exec(raw)) {

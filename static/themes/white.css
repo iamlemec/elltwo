@@ -217,6 +217,10 @@ button:hover {
     color: var(--comment);
 }
 
+.syn_code{
+   background-color: var(--bg-hl2-col)!important;
+   border-radius: 3px; 
+}
 
 .brace{
     border-radius: 5px;

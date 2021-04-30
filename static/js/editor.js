@@ -325,6 +325,7 @@ make_cc = function() {
     var input = active_para.children('.p_input');
     var raw = input.val();
     let open_ref = /@\[?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!\s)/;
+    let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?!.*\s)/;
     if (cap = open_ref.exec(raw)) {
         if (cap[2] && !cap[1]){ // searching for ext page
            raw = raw.replace(open_ref, function() {
@@ -340,7 +341,11 @@ make_cc = function() {
                 return `@[${cctxt}]`;
             });
         }
-    }
+    } else if (cap = open_i_link.exec(raw)) {
+        raw = raw.replace(open_i_link, function() {
+                return `[[${cctxt}]]`;
+            });
+    };
     input.val(raw);
     resize(input[0]);
     syntaxHL(active_para);
