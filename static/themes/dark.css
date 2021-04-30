@@ -219,6 +219,12 @@ button:hover {
     color: var(--bg-hl2-col);
 }
 
+.syn_code{
+   background-color: var(--brace-col)!important;
+   border-radius: 3px; 
+}
+
+
 .brace{
     background-color: var(--brace-col);
 }

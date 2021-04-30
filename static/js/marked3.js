@@ -12,7 +12,8 @@
 
 var block = {
   newline: /^\n+/,
-  code: /^`` *(?:[^\n]+(?:\n|$))+/,
+  //code: /^`` *(?:[^\n]+(?:\n|$))+/,
+  code: /^``([\S\s]*)/,
   fences: noop,
   hr: /^( *[-*_]){3,} *(?:\n+|$)/,
   heading: /^ *(#{1,6})(\*?) *(?:refargs)? *([^\n]+?) *#* *(?:\n+|$)/,
@@ -26,7 +27,7 @@ var block = {
   paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/,
   text: /^[^\n]+/,
   equation: /^\$\$(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
-  svg: /^\&svg(\*)? *(?:refargs)?[\s\n]*((?:[^\n]+\n*)*)(?:$)/,
+  svg: /^\!svg(\*)? *(?:refargs)?[\s\n]*((?:[^\n]+\n*)*)(?:$)/,
   title: /^#! *(?:refargs)? *([^\n]*)([\n\r]*)([\s\S]*)(?:$)/,
   upload: /^!! *(?:refargs)? *(?:$)/,
   image: /^!(\*)? *(?:refargs)? *\(href\)(?:\n+|$)/,
