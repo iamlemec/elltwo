@@ -216,6 +216,7 @@ button {
     position: relative;
     margin: auto;
     padding-top: 20px;
+    padding-bottom: 20px;
 }
 
 .fig_cont > img {
@@ -236,7 +237,7 @@ button {
 
 .fig_cap {
     position: relative;
-    padding: 20px;
+    padding: 0px 20px 20px 20px;
     font-size: 85%;
     /* hacky, margin does */
 }

@@ -148,7 +148,7 @@ button:hover {
     border-bottom: 1px solid black;
 }
 
-.cc_row:first-child{
+.cc_row:first-child {
     color: white;
 }
 
@@ -187,7 +187,6 @@ button:hover {
     border: none;
     color: var(--font-col);
 }
-
 
 .art_result {
     background-color: var(--bg-hl-col);
@@ -259,4 +258,10 @@ a.art_result {
     stroke: black;
     fill: black;
     opacity: 0.8;
+}
+
+/* image library */
+
+#display {
+    background-color: var(--bg-hl2-col) !important;
 }

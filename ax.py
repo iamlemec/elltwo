@@ -441,7 +441,7 @@ def Img():
         theme=theme,
         max_size=args.max_size,
         edit=edit,
-        )
+    )
 
 ###
 ### socketio handler
@@ -720,21 +720,17 @@ def locked_by_sid(sid):
 @app.route('/uploadImg', methods=['POST'])
 def UploadImg():
     file = request.files['file']
-    img_id = request.form.get('f_name')
-
-    #_, img_fn = os.path.split(file.filename)
-    #img_name, _ = os.path.splitext(img_fn)
+    img_key = request.form.get('key')
     img_mime = file.mimetype
 
     buf = BytesIO()
     file.save(buf)
     val = buf.getvalue()
 
-    print(f'UploadImg: {img_id}: {img_mime} mime, {len(val)} bytes')
-    adb.create_image(img_id, img_mime, val)
+    print(f'UploadImg [{img_key}]: {img_mime} mime, {len(val)} bytes')
+    adb.create_image(img_key, img_mime, val)
 
-    return {'mime': img_mime, 'id': img_id}
-
+    return {'mime': img_mime, 'key': img_key}
 
 @socketio.on('get_image')
 def get_image(data):
@@ -744,15 +740,14 @@ def get_image(data):
     else:
         return {'found': False}
 
-@socketio.on('update_img_key')
+@socketio.on('update_image_key')
 def update_img_key(data):
     print(data)
     key = data['key']
     new_key = data['new_key']
     new_kw = data['new_kw']
-    adb.update_img_key(key=key, new_key=new_key, new_kw=new_kw)
+    adb.update_image_key(key=key, new_key=new_key, new_kw=new_kw)
     return {'found': True}
-
 
 ###
 ### timeout

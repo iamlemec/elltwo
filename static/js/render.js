@@ -454,7 +454,6 @@ imgEnv = function(ptxt, args) {
     fig.append(img);
 
     var key = ptxt.parent().attr('id');
-    console.log(key)
     if (key in imgCache) {
         var url = imgCache[key];
         img.attr('src', url);

@@ -1,7 +1,5 @@
 /// acccepted upload file types
 
-img_types = ['image/png', 'image/jpeg', 'image/svg+xml']
-
 // default options
 default_theme = theme;
 sidebar_show = false;
@@ -464,88 +462,13 @@ if (mobile) {
 
 // drop to upload
 
-uploadImg = function(file, para, name=null) {
-    console.log('uploadImg:', file.name, file.type, file.size);
-    if (!img_types.includes(file.type)) {
-        return `Unsupported file type: ${file.type}`;
-    }
-    if (file.size > 1024*max_size) {
-        var ksize = Math.floor(file.size/1024);
-        return `File size too large (${ksize}kb > 1024kb)`;
-    }
-    let f_name = name || file.name;
-    let form_data = new FormData();
-    form_data.append('file', file);
-    form_data.append('f_name', f_name);
-    $.ajax({
-        type: 'POST',
-        url: '/uploadImg',
-        data: form_data,
-        contentType: false,
-        cache: false,
-        processData: false,
-        success: function(data) {
-            update_img(para, data.id);
-        },
-    });
-    return null;
-};
-
-update_img = function(para, id) {
-    raw = `! [id=${id}|caption=none]`;
+connectDrops(function(box, data) {
+    console.log(data);
+    var para = box.closest('.para');
+    var key = data.key;
+    var raw = `! [id=${key}|caption=none]`;
     para.attr('raw', raw);
     rawToRender(para, false);
     rawToTextarea(para);
     sendUpdatePara(para, force=true);
-};
-
-$(document).ready(function() {
-    $(document).on('dragover', '.dropzone', function(e) {
-        $(this).addClass('dragover');
-        return false;
-    });
-
-    $(document).on('dragleave', '.dropzone', function(e) {
-        $(this).removeClass('dragover');
-        return false;
-    });
-
-    $(document).on('drop', '.dropzone', function(e) {
-        var files = e.originalEvent.dataTransfer.files;
-        if (files.length == 1) {
-            let file = files[0];
-            let para = $(this).closest('.para');
-            let img_id = $(this).attr('img_id')
-            if ((ret = uploadImg(file, para, img_id)) == null) {
-                $(this).removeClass('dragover');
-            } else {
-                $(this).text(ret);
-            }
-        } else if (files.length > 1) {
-            $(this).text('Please upload a single image file');
-        }
-        return false;
-    });
-
-    $(document).on('click', '.dropzone', function(e) {
-        var drop = $(this);
-        var input = $('<input>', {type: 'file', style: 'display: none'});
-        var box = this;
-        input.on('change', function() {
-            var files = this.files;
-            if (files.length > 0) {
-                var file = files[0];
-                var para = $(box).closest('.para');
-                if ((ret = uploadImg(file, para)) == null) {
-                    drop.removeClass('dragover');
-                } else {
-                    drop.text(ret);
-                }
-            }
-            input.remove();
-        });
-        $('body').append(input);
-        input.trigger('click');
-        return false;
-    });
 });
