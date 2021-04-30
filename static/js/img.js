@@ -2,14 +2,7 @@
 
 max_imgs = 50;
 
-$(document).ready(function() {
-    var url = `http://${document.domain}:${location.port}`;
-    client.connect(url);
-    client.sendCommand('room', {'room': '__img'}, function(response) {
-        console.log(response);
-    });
-    renderKatex();
-});
+// rendering
 
 renderBox = function(elem, key) {
     var img = $('<img>', {id: key});
@@ -20,14 +13,6 @@ renderBox = function(elem, key) {
 
     renderImage(img, key);
  };
-
-connectDrops(function(box, data) {
-    var key = data.key;
-    var div = $('<div>', {class: 'img_cont img_src', id: key});
-    $('#dropzone').after(div);
-    imgs.push([key, '']);
-    renderBox(div, key);
-});
 
 render_imgs = function(img_list=imgs) {
     $('.img_src').remove();
@@ -49,57 +34,63 @@ copy_key = function(keyspan) {
     textArea.remove();
 };
 
-$(document).ready(function() {
-    render_imgs();
+// interface
 
-    $(document).on('click', '.img_src', function(e) {
-        var img = $(this).children('img');
-        var key = img.attr('id');
-        var ks = $(e.target).closest('.keyspan');
-        if (ks.length > 0) {
-            $('.keyspan').removeClass('copied');
-            copy_key(ks);
-            $(ks).addClass('copied');
-        } else {
-            var src = img.attr('src');
-            var kw = img.attr('kw') || '';
-            $('#display').attr('key', key)
-                         .attr('keywords', kw);
-            $('#display_img').attr('src', src);
-            $('input#key').val(key);
-            $('input#keywords').val(kw);
-            $('#display').show();
-        }
-    });
-
-    $(document).on('click', '#bg', function(e) {
-        if ($(e.target).closest('.img_cont').length == 0 && $(e.target).closest('#display').length == 0){
-            $('#display').hide();
-        }
-    });
+connectDrops(function(box, data) {
+    var key = data.key;
+    var div = $('<div>', {class: 'img_cont img_src', id: key});
+    $('#dropzone').after(div);
+    imgs.push([key, '']);
+    renderBox(div, key);
 });
 
-$(document).ready(function() {
-    $(document).on('click', '#img_update', function() {
-        var key = $('#display').attr('key');
-        var kw = $('#display').attr('keywords');
-        var new_key = $('input#key').val();
-        var new_kw = $('input#keywords').val();
-        if (key != new_key || kw != new_kw) {
-            var data = {'key': key, 'new_key': new_key, 'new_kw': new_kw};
-            client.sendCommand('update_image_key', data, (ret) => {
-                if (ret.found) {
-                    var img = $(`#${key}`);
-                    img.attr('id', new_key);
-                    img.attr('kw', new_kw);
-                    img.parent('.img_cont').attr('key', new_key);
-                    img.siblings('.keyspan').text(new_key);
-                    $('#display').hide();
-                }
-            });
-        }
-    });
+$(document).on('click', '.img_src', function(e) {
+    var img = $(this).children('img');
+    var key = img.attr('id');
+    var ks = $(e.target).closest('.keyspan');
+    if (ks.length > 0) {
+        $('.keyspan').removeClass('copied');
+        copy_key(ks);
+        $(ks).addClass('copied');
+    } else {
+        var src = img.attr('src');
+        var kw = img.attr('kw') || '';
+        $('#display').attr('key', key)
+                     .attr('keywords', kw);
+        $('#display_img').attr('src', src);
+        $('input#key').val(key);
+        $('input#keywords').val(kw);
+        $('#display').show();
+    }
 });
+
+$(document).on('click', '#bg', function(e) {
+    if ($(e.target).closest('.img_cont').length == 0 && $(e.target).closest('#display').length == 0){
+        $('#display').hide();
+    }
+});
+
+$(document).on('click', '#img_update', function() {
+    var key = $('#display').attr('key');
+    var kw = $('#display').attr('keywords');
+    var new_key = $('input#key').val();
+    var new_kw = $('input#keywords').val();
+    if (key != new_key || kw != new_kw) {
+        var data = {'key': key, 'new_key': new_key, 'new_kw': new_kw};
+        client.sendCommand('update_image_key', data, (ret) => {
+            if (ret.found) {
+                var img = $(`#${key}`);
+                img.attr('id', new_key);
+                img.attr('kw', new_kw);
+                img.parent('.img_cont').attr('key', new_key);
+                img.siblings('.keyspan').text(new_key);
+                $('#display').hide();
+            }
+        });
+    }
+});
+
+// search mechanism
 
 m_search = function(img, list) {
     var value = 0;
@@ -124,4 +115,16 @@ $(document).on('keyup', '#img_search', function(e) {
             render_imgs();
         }
     }, 300);
+});
+
+// startup
+
+$(document).ready(function() {
+    var url = `http://${document.domain}:${location.port}`;
+    client.connect(url);
+    client.sendCommand('room', {'room': '__img'}, function(response) {
+        console.log(response);
+    });
+    renderKatex();
+    render_imgs();
 });
