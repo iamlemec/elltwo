@@ -2,7 +2,6 @@
 
 from operator import itemgetter
 from collections import defaultdict
-from itertools import chain
 
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import Session
@@ -56,9 +55,6 @@ def shard_score(shards1, shards2):
             p2, c2 = shards2[t]
             score += min(c1, c2)*dist_score(p1, p2)
     return score/ntoks
-
-def split(s, min_size=3):
-    return [t for t in s.split() if len(t) >= min_size]
 
 ## index corpus
 

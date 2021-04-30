@@ -3,20 +3,11 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base
 from flask_login import UserMixin
-from whoosh import qparser
 
 Base = declarative_base()
 
-def _fuzzy_parser(fieldnames, schema, group, **kwargs):
-    parser = qparser.MultifieldParser(fieldnames, schema, group=group, **kwargs)
-    parser.add_plugin(qparser.FuzzyTermPlugin())
-    return parser
-
 class Article(Base):
     __tablename__ = 'article'
-    __searchable__ = ['title']
-    __msearch_primary_key__ = 'aid'
-    __msearch_parser__ = _fuzzy_parser
 
     aid = Column(Integer, primary_key=True)
     title = Column(Text, nullable=False)
@@ -120,3 +111,16 @@ class User(UserMixin, Base):
     registered_on = Column(DateTime, nullable=False, default=datetime.utcnow)
     confirmed = Column(Boolean, nullable=False, default=False)
     confirmed_on = Column(DateTime, nullable=True)
+
+class TextShard(Base):
+    __tablename__ = 'textshard'
+
+    id = Column(Integer, primary_key=True)
+    text = Column(String(10), nullable=False)
+    word_idx = Column(Integer, nullable=False)
+    word_pos = Column(Integer, nullable=False)
+    source_type = Column(String(10), nullable=False)
+    source_id = Column(Integer, nullable=False)
+
+    def __repr__(self):
+        return f'{self.source_id}/{self.pos}: {self.text}'

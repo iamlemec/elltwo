@@ -2,14 +2,15 @@ import re
 from math import ceil
 from datetime import datetime
 from functools import partial
+from operator import itemgetter
+from collections import defaultdict
 
-from sqlalchemy import create_engine, or_, and_, distinct
+from sqlalchemy import create_engine, or_, and_, distinct, event
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker, Query
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from db_setup import Base, Article, Paragraph, Paralink, Bib, ExtRef, Image, User
-from db_whoosh import WhooshSearch
+from db_setup import Base, Article, Paragraph, Paralink, Bib, ExtRef, Image, User, TextShard
 
 ##
 ## utility methods
@@ -74,39 +75,61 @@ def order_links(links, single=True):
         groups = [[(pi, pr) for pi, pr, _ in gr[:-1]] for gr in groups]
     return sum(groups, [])
 
-def fuzzy_query(words, err=0.3):
-    toks = words.split()
-    dist = [ceil(err*len(s)) for s in toks]
-    return ' '.join([f'{s}~{e}' for s, e in zip(toks, dist)])
+##
+## indexing functions
+##
+
+def shardify(s):
+    shgen = zip(*[s[k:len(s)-(2-k)] for k in range(3)])
+    return [(''.join(x), i) for i, x in enumerate(shgen)]
+
+def shardify_document(doc):
+    words = [f' {w} ' for w in doc.lower().split()]
+    return {i: shardify(w) for i, w in enumerate(words)}
+
+def shard_compress(shards):
+    count = defaultdict(int)
+    posit = defaultdict(int)
+    for t, i in shards:
+        count[t] += 1
+        posit[t] += i
+    return {t: (posit[t]/count[t], count[t]) for t in count}
+
+def dist_score(p1, p2):
+    return max(0.75, 1/(1+0.25*abs(p1-p2)))
+
+def shard_score(shards1, shards2):
+    score = 0
+    ntoks = 0
+    for t, (p1, c1) in shards1.items():
+        ntoks += c1
+        if t in shards2:
+            p2, c2 = shards2[t]
+            score += min(c1, c2)*dist_score(p1, p2)
+    return score/ntoks
 
 ##
 ## db interface
 ##
 
 class AxiomDB:
-    def __init__(self, db=None, whoosh=None, path='axiom.db', uri=None, create=False):
+    def __init__(self, db=None, path='axiom.db', uri=None, create=False, reindex=True):
         if db is None:
             if uri is None:
                 uri = f'sqlite:///{path}'
 
-
-            whoosh = WhooshSearch()
-            qclass = whoosh.query_class(Query)
-
             self.engine = create_engine(uri)
             Session = sessionmaker(bind=self.engine)
-            self.session = Session(query_cls=qclass)
-
+            self.session = Session()
         else:
             self.engine = db.engine
             self.session = db.session
 
         if create:
-            Base.metadata.create_all(bind=self.engine)
+            self.create()
 
-        if whoosh is not None:
-            whoosh.create_index(self.session, Article, update=True)
-            whoosh.signal_connect(self.session)
+        if reindex:
+            self.reindex_articles()
 
     def create(self):
         Base.metadata.create_all(bind=self.engine)
@@ -181,7 +204,7 @@ class AxiomDB:
         index = {p.pid: p for p in paras}
         return [index[p] for p in pids]
 
-    def get_arts(self, time=None):
+    def get_art_titles(self, time=None):
         if time is None:
             time = datetime.utcnow()
 
@@ -191,6 +214,11 @@ class AxiomDB:
             .all()
         )
         return [art.short_title for art in arts]
+
+    def get_arts(self, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        return self.session.query(Article).filter(arttime(time)).all()
 
     def get_art(self, aid, time=None):
         if time is None:
@@ -436,9 +464,9 @@ class AxiomDB:
         art = self.session.query(Article).filter_by(short_title=short_match).one_or_none()
         return [p.text for p in self.get_paras(art.aid)]
 
-    def search_title(self, words, err=0.3):
-        quer = fuzzy_query(words, err=err)
-        return self.session.query(Article).msearch(quer).all()
+    def search_title(self, words, thresh=0.3):
+        match = [i for i, s in self.search_index(words, dtype='title') if s > thresh]
+        return self.session.query(Article).filter(Article.aid.in_(match)).all()
 
     ##
     ## citation methods
@@ -729,3 +757,57 @@ class AxiomDB:
         user.password = hash
         self.session.add(user)
         self.session.commit()
+
+    ##
+    ## index interface
+    ##
+
+    def index_document(self, dtype, ident, text, commit=True):
+        for wid, shards in shardify_document(text).items():
+            for tok, pos in shards:
+                ent = TextShard(
+                    text=tok, word_idx=wid, word_pos=pos,
+                    source_type=dtype, source_id=ident
+                )
+                self.session.add(ent)
+        if commit:
+            self.session.commit()
+
+    def clear_index(self, dtype=None):
+        query = self.session.query(TextShard)
+        if dtype is not None:
+            query = query.filter_by(source_type=dtype)
+        query.delete()
+        self.session.commit()
+
+    def reindex_articles(self):
+        self.clear_index()
+        for art in self.get_arts():
+            self.index_document('title', art.aid, art.title, commit=False)
+        self.session.commit()
+
+    def search_index(self, text, dtype=None):
+        # shardify query
+        shards = {i: shard_compress(s) for i, s in shardify_document(text).items()}
+        toks = set.union(*[set(s.keys()) for s in shards.values()])
+
+        # construct token query
+        query = self.session.query(TextShard)
+        if dtype is not None:
+            query = query.filter_by(source_type=dtype)
+        query = query.filter(TextShard.text.in_(toks))
+
+        # get potential matches (move this to all-sql when finalized)
+        match = defaultdict(list)
+        for s in query.all():
+            match[(s.source_id, s.word_idx)].append((s.text, s.word_pos))
+        match = {i: shard_compress(sh) for i, sh in match.items()}
+
+        # compute distance metrics
+        sims = defaultdict(list)
+        for (i, j), m in match.items():
+            sims[i].append(max(shard_score(s, m) for s in shards.values()))
+        sims = [(k, sum(v)/len(shards)) for k, v in sims.items()]
+
+        # return sorted decreasing
+        return sorted(sims, key=itemgetter(1), reverse=True)

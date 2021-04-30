@@ -23,7 +23,6 @@ from itsdangerous import URLSafeTimedSerializer
 # import db tools
 from db_setup import Article, Paragraph, Paralink, Bib, User
 from db_query import AxiomDB, order_links
-from db_whoosh import WhooshSearch
 
 # other tools
 from tools import Multimap
@@ -58,8 +57,6 @@ app = Flask(__name__)
 app.config['DEBUG'] = args.debug
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.config['MSEARCH_ENABLE'] = True
-app.config['MSEARCH_BACKEND'] = 'whoosh'
 
 # load user security config
 if args.auth is not None:
@@ -75,13 +72,9 @@ else:
     MailNull = namedtuple('MailNull', ['send'])
     mail = MailNull(send=lambda _: None)
 
-# msearch capability
-whoosh = WhooshSearch()
-WhooshQuery = whoosh.query_class(BaseQuery)
-
 # load sqlalchemy
-db = SQLAlchemy(app, query_class=WhooshQuery)
-adb = AxiomDB(db=db, whoosh=whoosh)
+db = SQLAlchemy(app)
+adb = AxiomDB(db=db)
 
 # login manager
 login = LoginManager(app)
@@ -658,7 +651,7 @@ def get_refs(data):
 
 @socketio.on('get_arts')
 def get_arts(data):
-    return {art: [] for art in adb.get_arts()}
+    return {art: [] for art in adb.get_art_titles()}
 
 @socketio.on('update_ref')
 @login_decor
