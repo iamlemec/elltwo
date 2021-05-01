@@ -26,6 +26,9 @@ class TextShard(Base):
 
 ## text functions
 
+def analyzer(s):
+    return s.lower().split()
+
 def shardify(text, size=3):
     shgen = zip(*[text[k:len(text)-(size-1-k)] for k in range(size)])
     return [(''.join(x), i) for i, x in enumerate(shgen)]
@@ -59,7 +62,7 @@ def shard_score(shards1, shards2):
 ## index corpus
 
 class Indexer:
-    def __init__(self, analyzer=str.split, shard_size=3):
+    def __init__(self, analyzer=analyzer, shard_size=3):
         self.shard_size = shard_size
         self.analyzer = analyzer
 
@@ -68,7 +71,7 @@ class Indexer:
         Base.metadata.create_all(bind=engine)
 
     def shardify(self, doc):
-        words = [t for t in self.analyzer(doc) if len(t) >= self.shard_size]
+        words = [f' {w} ' for w in self.analyzer(doc)]
         return shardify_document(words, size=self.shard_size)
 
     def index_document(self, ident, text, dtype='title', commit=True):

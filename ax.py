@@ -568,6 +568,7 @@ def search_title(data):
     return {
         art.title: {
             'url': art.short_title,
+            'title': art.title,
             'blurb': art.blurb
         } for art in results
     }

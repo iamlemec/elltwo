@@ -856,45 +856,44 @@ createBibEntry = function(cite) {
     );
 };
 
+//// POPUP FUNCTIONALITY // turned off for mobile for now
 
-//// POPUP FUNCTIONALITY //turned off for mobile for now
-if(!mobile){
-$(document).on({
-    mouseenter: function() {
-        var ref = $(this);
-        ref.data('show_pop', true);
-        var html = getTro(ref, renderPop);
-    },
-    mouseleave: function() {
-        var ref = $(this);
-        ref.data('show_pop', false);
-        $('#pop').remove();
-        $(window).unbind('mousemove')
-    },
-}, '.pop_anchor');
+if (!mobile) {
+    $(document).on({
+        mouseenter: function() {
+            var ref = $(this);
+            ref.data('show_pop', true);
+            var html = getTro(ref, renderPop);
+        },
+        mouseleave: function() {
+            var ref = $(this);
+            ref.data('show_pop', false);
+            $('#pop').remove();
+            $(window).unbind('mousemove')
+        },
+    }, '.pop_anchor');
 }
 
 createPop = function(html='', link=false) {
-    var pop = $('<div>', {id: 'pop', href: link});
-    pop.html(html);
-    $('#bg').append(pop)
+    var pop = $('<div>', {id: 'pop', href: link, html: html});
+    $('#bg').append(pop);
 
-        h = pop.height();
-        w = pop.width();
+    h = pop.height();
+    w = pop.width();
 
-        if(!mobile){ //no mouse binding with moblie popups
+    if (!mobile) { // no mouse binding with mobile popups
         $(this).mousemove(function(event) {
-            let mid = window.innerHeight / 2
-            let y = event.pageY - h - 35
-            if(event.pageY < mid){//if on top half of page
-                y = event.pageY + 35
+            var mid = window.innerHeight / 2;
+            var y = event.pageY - h - 35;
+            if (event.pageY < mid) { // if on top half of page
+                y = event.pageY + 35;
             }
             pop.css({
                 'left': (event.pageX - 0.5*w - 10) + 'px', // offset 10px for padding
                 'top': (y) + 'px', // offset up by 35 px
             });
         });
-        };
+    }
 };
 
 // generates pop text from tro (only for internal refs)
@@ -922,10 +921,11 @@ renderPop = function(ref, tro, text, ext) {
     if (!ref.data('show_pop')) { // we've since left with mouse
         return;
     }
+    var pop;
     if (ext != undefined) {
         pop = tro.tro;
     } else {
-        var pop = popText(tro);
+        pop = popText(tro);
     };
     link = mobile ? ref.attr('href'): false;
     createPop(pop, link);
@@ -1036,7 +1036,7 @@ getBlurb = function(len=200) {
     $('.para').each(function() {
         var para = $(this);
         var ptxt = para.children('.p_text');
-        var core = ptxt.ignore('.katex-mathml, .eqnum')
+        var core = ptxt.ignore('.katex-mathml, .eqnum, img')
                        .removeClass('p_text');
 
         var html = core[0].outerHTML;
@@ -1198,7 +1198,7 @@ sytaxParseInline = function(raw) {
                .replace(/\\\%/g, '\\&#37;')//comment escape
                .replace('_!L_', `<span class='brace'>`)
                .replace('_!R_', `</span>`);
-    
+
     html = html.replace(inlines.comment, function(a,b,c) {
         return s('%', 'comment_head') + s(esc(b), 'comment') + c;
     });

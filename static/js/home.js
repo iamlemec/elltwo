@@ -1,13 +1,43 @@
 // home page and search
 
-$(document).ready(function() {
-    var url = `http://${document.domain}:${location.port}`;
-    client.connect(url);
-    client.sendCommand('room', {'room': '__home'}, function(response) {
-        console.log(response);
+searchTitle = function(query, last_url) {
+    client.sendCommand('search_title', query, function(response) {
+        $('#results').empty();
+
+        var nres = Object.keys(response).length;
+        if (nres > 0) {
+            for (var title in response) {
+                var art = response[title];
+                var url = `a/${art.url}`;
+                var artdiv = $('<a>', {class: 'art_result', href: url});
+                var btext = art.blurb || art.title;
+                var blurb = $('<div>', {class: 'blurb', html: btext});
+                artdiv.append(blurb);
+                $('#results').append(artdiv);
+            }
+
+            var sel;
+            if (last_url == undefined) {
+                sel = $('.art_result').first();
+            } else {
+                sel = $(`.art_result[href="${last_url}"]`);
+                if (sel.length == 0) {
+                    sel = $('.art_result').first();
+                }
+            }
+            sel.addClass('selected');
+        }
     });
-    renderKatex();
-});
+};
+
+createArt = function() {
+    query = $('#new_art_id').val();
+    if (query.length > 0) {
+        client.sendCommand('create_art', query, function(response) {
+            window.location = response;
+        });
+    }
+};
 
 $(document).on('click', '#submit', function() {
     createArt();
@@ -19,7 +49,7 @@ $(document).on('keydown', function(e) {
     var key = e.key.toLowerCase();
     var real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
     var andriod_is_fucking_stupid = e.keyCode == 229;
-    var active = getActiveArt();
+    var active = $('.art_result.selected').first();
     if (e.ctrlKey && (key == 'enter')) {
         createArt();
     } else if (key == 'enter') {
@@ -57,46 +87,11 @@ $(document).on('keydown', function(e) {
     }
 });
 
-getActiveArt = function() {
-    return $('.art_result.selected').first();
-};
-
-searchTitle = function(query, last_url) {
-    client.sendCommand('search_title', query, function(response) {
-        $('#results').empty();
-
-        var nres = Object.keys(response).length;
-        if (nres > 0) {
-            for (var title in response) {
-                var art = response[title];
-                var url = `a/${art.url}`;
-                var artdiv = $('<a>', {class: 'art_result', href: url});
-                if (art.blurb) {
-                    var b = $('<div>', {class: 'blurb', html: art.blurb});
-                    artdiv.append(b);
-                }
-                $('#results').append(artdiv);
-            }
-
-            var sel;
-            if (last_url == undefined) {
-                sel = $('.art_result').first();
-            } else {
-                sel = $(`.art_result[href="${last_url}"]`);
-                if (sel.length == 0) {
-                    sel = $('.art_result').first();
-                }
-            }
-            sel.addClass('selected');
-        }
+$(document).ready(function() {
+    var url = `http://${document.domain}:${location.port}`;
+    client.connect(url);
+    client.sendCommand('room', {'room': '__home'}, function(response) {
+        console.log(response);
     });
-};
-
-createArt = function() {
-    query = $('#new_art_id').val();
-    if (query.length > 0) {
-        client.sendCommand('create_art', query, function(response) {
-            window.location = response;
-        });
-    }
-};
+    renderKatex();
+});
