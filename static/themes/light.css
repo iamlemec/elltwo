@@ -12,6 +12,7 @@
     --font-col-int: #6c71c4;
     --delimit-col: #859900;
     --brace-col: rgba(0,0,0,.2);
+    --comment-col: rgb(120, 120, 120); /* comment text color */
 }
 
 @font-face {
@@ -141,6 +142,13 @@ button:hover {
   vertical-align: super;
 }
 
+.comment {
+    color: var(--comment-col);
+}
+
+.comment::before {
+    content: '// ';
+}
 
 .code{
   font-family: Fira;
@@ -154,8 +162,8 @@ button:hover {
 }
 
 .syn_code{
- background-color: var(--brace-col); 
- border-radius: 3px;  
+ background-color: var(--brace-col);
+ border-radius: 3px;
 }
 
 .ref_error {

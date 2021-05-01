@@ -9,6 +9,7 @@
     --pop-bg-col: #107DC0; /* popup background color */
     --delimit-col: #056CF2; /* popup background color */
     --brace-col: rgba(0,0,0,.2);
+    --comment-col: rgb(120, 120, 120); /* comment text color */
 }
 
 @font-face {
@@ -89,6 +90,14 @@ button:hover {
 
 .footnote > .num {
     color: var(--font-col);
+}
+
+.comment {
+    color: var(--comment-col);
+}
+
+.comment::before {
+    content: '// ';
 }
 
 .code {

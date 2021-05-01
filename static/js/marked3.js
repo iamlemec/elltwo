@@ -12,7 +12,7 @@
 
 var block = {
   newline: /^\n+/,
-  //code: /^`` *(?:[^\n]+(?:\n|$))+/,
+  comment: /^\/\/([\S\s]*)/,
   code: /^``([\S\s]*)/,
   fences: noop,
   hr: /^( *[-*_]){3,} *(?:\n+|$)/,
@@ -336,13 +336,23 @@ Lexer.prototype.token = function(src, top, bq) {
       continue;
     }
 
+    // comment
+    if (cap = this.rules.comment.exec(src)) {
+      console.log(src, cap);
+      src = src.substring(cap[0].length);
+      this.tokens.push({
+        type: 'comment',
+        text: cap[1]
+      });
+      continue;
+    }
+
     // code
     if (cap = this.rules.code.exec(src)) {
       src = src.substring(cap[0].length);
-      cap = cap[0].substring(2).trim();
       this.tokens.push({
         type: 'code',
-        text: cap
+        text: cap[1]
       });
       continue;
     }
@@ -1039,6 +1049,11 @@ function DivRenderer(options) {
   this.options = options || {};
 }
 
+DivRenderer.prototype.comment = function(text) {
+  console.log('DivRenderer.comment', text);
+  return `<div class="comment">\n${text}\n</div>\n\n`;
+};
+
 DivRenderer.prototype.code = function(code, lang, escaped) {
   if (this.options.highlight) {
     var out = this.options.highlight(code, lang);
@@ -1121,10 +1136,6 @@ DivRenderer.prototype.strong = function(text) {
 
 DivRenderer.prototype.em = function(text) {
   return `<span class="em">${text}</span>`;
-};
-
-DivRenderer.prototype.comment = function(text) {
-  return "";
 };
 
 DivRenderer.prototype.codespan = function(text) {
@@ -1231,6 +1242,10 @@ DivRenderer.prototype.biblio = function(id, info) {
 function TexRenderer(options) {
   this.options = options || {};
 }
+
+TexRenderer.prototype.comment = function(text) {
+  return `% ${text}`;
+};
 
 TexRenderer.prototype.code = function(code, lang, escaped) {
   if (this.options.highlight) {
@@ -1544,6 +1559,9 @@ Parser.prototype.tok = function() {
         args: this.token.args
       }
       return this.renderer.equation(this.token.tex);
+    }
+    case 'comment': {
+      return this.renderer.comment(this.token.text);
     }
     case 'code': {
       return this.renderer.code(this.token.text,

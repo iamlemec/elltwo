@@ -17,7 +17,7 @@
     /* pop ups */
     --pop-fg-col:  	#002b36; /* popup text color */
     --pop-bg-col: #93a1a1; /* popup background color */
-
+    --comment-col: rgb(120, 120, 120); /* comment text color */
 }
 
 /* font assignment */
@@ -137,6 +137,14 @@ button:hover {
   vertical-align: super;
 }
 
+.comment {
+    color: var(--comment-col);
+}
+
+.comment::before {
+    content: '// ';
+}
+
 .code{
   font-family: Fira;
   font-size: 90%;
@@ -221,7 +229,7 @@ button:hover {
 
 .syn_code{
    background-color: var(--brace-col)!important;
-   border-radius: 3px; 
+   border-radius: 3px;
 }
 
 
@@ -251,7 +259,7 @@ button:hover {
    background-color: var(--bg-col);
    padding-left: 3px;
    padding-right: 3px;
-   border-radius: 4px; 
+   border-radius: 4px;
 }
 
 a.art_result{

@@ -10,8 +10,7 @@
     --pop-fg-col: white;
     --font-col-int: goldenrod;
     --brace-col: rgba(33, 150, 243, 0.3);
-
-
+    --comment-col: rgb(140, 140, 140); /* comment text color */
 }
 
 @font-face {
@@ -134,6 +133,13 @@ button:hover {
   vertical-align: super;
 }
 
+.comment {
+    color: var(--comment-col);
+}
+
+.comment::before {
+    content: '// ';
+}
 
 .code{
   font-family: Fira;
@@ -219,7 +225,7 @@ button:hover {
 
 .syn_code{
    background-color: var(--bg-hl2-col)!important;
-   border-radius: 3px; 
+   border-radius: 3px;
 }
 
 .brace{

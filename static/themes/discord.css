@@ -16,6 +16,7 @@
     --brace-col: rgba(33, 150, 243, 0.3);
     --math-col: #3280F3;
     --code-bg-col: #444;
+    --comment-col: rgb(120, 120, 120); /* comment text color */
 }
 
 @font-face {
@@ -146,6 +147,14 @@ button:hover {
 .footnote > .num {
    color: var(--font-col);
 
+}
+
+.comment {
+    color: var(--comment-col);
+}
+
+.comment::before {
+    content: '// ';
 }
 
 .code, .syn_code {

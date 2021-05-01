@@ -10,6 +10,7 @@
     --pop-bg-col: rgba(0, 0, 0, 0.95); /* popup background color */
     --delimit-col: steelblue; /* popup background color */
     --brace-col: rgba(0,0,0,.2);
+    --comment-col: rgb(120, 120, 120); /* comment text color */
 }
 
 @font-face {
@@ -107,6 +108,14 @@ button:hover {
     color: var(--font-col);
 }
 
+.comment {
+    color: var(--comment-col);
+}
+
+.comment::before {
+    content: '// ';
+}
+
 .code {
     font-family: Fira;
     font-size: 90%;
@@ -195,7 +204,7 @@ button:hover {
 
 .syn_code{
    background-color: var(--bg-hl2-col)!important;
-   border-radius: 3px; 
+   border-radius: 3px;
 }
 
 .brace {
