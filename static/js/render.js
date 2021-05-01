@@ -7,6 +7,8 @@ var macros = ext_macros;
 //command completion
 var cc = false; //is there a cc window open?
 var ext_refs = {};
+//current folded pids
+var folded = [];
 
 // inner HTML for para structure. Included here for updating paras
 inner_para = `
@@ -184,13 +186,20 @@ insertPara = function(pid, new_pid, before=true, raw='') {
     var para = getPara(pid);
     var new_para = $('<div>', {class: 'para', pid: new_pid, raw: raw});
     if (before) {
+        let prev = para.prev()
+        if (prev.hasClass('folder')){
+            prev.before(new_para);
+        } else {
         para.before(new_para);
+        }
     } else {
         para.after(new_para);
     }
     new_para.html(inner_para);
     rawToRender(new_para);
     rawToTextarea(new_para);
+    makeActive(new_para);
+    sendMakeEditable();
 };
 
 applyDiff = function(edits) {
@@ -241,6 +250,7 @@ envClasses = function(outer) {
 
     // remove formatting addins
     outer.find('.env_add').remove();
+    outer.find('.folder').remove();
 
     // env state
     var env_name = null;
@@ -290,7 +300,7 @@ envClasses = function(outer) {
 
         if (!env_name && para.hasClass('env_beg')) { // cannot open an env if one is already open
             env_name = para.attr('env');
-            env_id = para.attr('id');
+            env_id = para.attr('pid'); //changed to use PID so all envs have this.
             env_args = para.data('args');
             if (env_id != undefined) {
                 para.attr('env_sel', `[env_id="${env_id}"]`);
@@ -352,24 +362,39 @@ simpleEnv = function(ptxt, env, head='', tail='', number=true, args={}) {
     let ref_text = args.ref_text || args.rt || '';
     let first = ptxt.first();
     let pre = $('<span>', {class: `env_add ${env}_header`, html: head});
+    let pre_fold = pre.clone()
     if (num) {
-        var span = makeCounter(env);
+        const span = makeCounter(env, 0);
+        const span_fold = makeCounter(env, 1);
         pre.append([' ', span]);
+        pre_fold.append([' ', span_fold]);
     }
     if (name) {
-        var span = $('<span>', {class: `${env}_name`, html: name});
+        const span = $('<span>', {class: `${env}_name`, html: name});
         pre.append([' ', span]);
+        pre_fold.append([' ', span.clone()]);
     }
     if (ref_text) {
         ptxt.parent().attr('ref_text', ref_text);
     }
     pre.append('. ');
+    fold_t = $('<span>', {class: `comment`, html: '(env folded, shift+f to unfold)'});
+    pre_fold.append(['. ', fold_t]);
     first.prepend(pre);
 
     let last = ptxt.last();
     let pos = $('<span>', {class: `env_add ${env}_footer`, html: tail});
     pos.prepend(' ');
     last.append(pos);
+
+    let fold = $('<div>', {class: `para folder`, html: pre_fold});
+    para = first.parent()
+    let env_id = para.attr('env_id')
+    fold.attr('fold_id', env_id)
+    if(!folded.includes(env_id)){
+        fold.addClass('folded')
+    }
+    para.before(fold);
 };
 
 // we probably want to pass targ as an argument
@@ -1109,13 +1134,10 @@ cc_refs = function(raw, view, e) {
     cur = e.target.selectionStart;
     if (cap = open_ref.exec(raw)) {
         // if cursor is near the match
-        if (cur >= cap.index && cur <= cap.index + cap[0].length) {
-                raw = raw.replace(cap[0], function() {
-                    const b = cap[1] || "";
-                    const t = cap[2] || "";
-                    return `@${b+t}<span id=cc_pos></span>`;
-                });
-
+        let b = cap.index;
+        let e = b + cap[0].length;
+        if (cur >= b && cur <= e) {
+            raw = raw.slice(0,b+e) + `<span id=cc_pos></span>` + raw.slice(e)
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
@@ -1146,11 +1168,10 @@ cc_refs = function(raw, view, e) {
             }
         }
         } else if (cap = open_i_link.exec(raw)) {
-            if (cur >= cap.index && cur <= cap.index + cap[0].length) {
-                    raw = raw.replace(cap[0], function() {
-                        t  = cap[1] || "";
-                        return `[[${t}<span id=cc_pos></span>`;
-                    });
+                    let b = cap.index;
+                    let e = b + cap[0].length;
+            if (cur >= b && cur <= e) {
+                raw = raw.slice(0,b+e) + `<span id=cc_pos></span>` + raw.slice(e)
                 view.html(raw);
                 let off = $('#cc_pos').offset();
                 let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};

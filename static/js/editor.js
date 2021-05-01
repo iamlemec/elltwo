@@ -71,20 +71,33 @@ sendUpdatePara = function(para, force=false) {
 };
 
 sendInsertBefore = function(para) {
-    let pid = para.attr('pid');
+    let fold_id = para.attr('fold_id');
+    if(fold_id){
+        var env = $(`[env_id=${fold_id}]`);
+        var pid = env.first().attr('pid');
+    }else{
+        var pid = para.attr('pid');
+    };
     let data = {room: aid, pid: pid};
     client.sendCommand('insert_before', data, on_success(() => {
-        activePrevPara();
-        sendMakeEditable();
+        // activePrevPara();
+        // sendMakeEditable();
     }));
 };
 
 sendInsertAfter = function(para) {
-    let pid = para.attr('pid');
+    let fold_id = para.attr('fold_id');
+    if(fold_id){
+        var env = $(`[env_id=${fold_id}]`);
+        var pid = env.last().attr('pid')
+    } else {
+        var pid = para.attr('pid');
+    };
     let data = {room: aid, pid: pid};
     client.sendCommand('insert_after', data, on_success(() => {
-        activeNextPara();
-        sendMakeEditable();
+        // console.log(active_para)
+        // activeNextPara()
+        // sendMakeEditable();
     }));
 };
 
@@ -128,7 +141,7 @@ unPlaceCursor = function() {
 };
 
 trueMakeEditable = function(rw=true, cursor='end') {
-    editable = true;
+    editable = true;  
     active_para.addClass('editable');
 
     var text = active_para.children('.p_input');
@@ -148,6 +161,9 @@ trueMakeEditable = function(rw=true, cursor='end') {
 sendMakeEditable = function(cursor='end') {
     $('.para').removeClass('editable');
     if (active_para) {
+        if(active_para.hasClass('folder')){
+            fold(active_para);
+        }
         if (writeable) {
             var pid = active_para.attr('pid');
             var data = {pid: pid, room: aid};
@@ -243,9 +259,12 @@ makeActive = function(para, scroll=true) {
 // next para
 activeNextPara = function() {
     if (active_para) {
-        var next = active_para.next('.para');
+        console.log("orig", active_para)
+        var next = active_para.nextAll('.para').not('.folded');
+        console.log(next)
         if (next.length > 0) {
-            makeActive(next);
+            makeActive(next.first());
+            console.log('final', active_para)
             return true;
         } else {
             return false;
@@ -255,9 +274,9 @@ activeNextPara = function() {
 
 activePrevPara = function() {
     if (active_para) {
-        var prev = active_para.prev('.para');
+        var prev = active_para.prevAll('.para').not('.folded');
         if (prev.length > 0) {
-            makeActive(prev);
+            makeActive(prev.first());
             return true;
         } else {
             return false;
@@ -353,6 +372,36 @@ make_cc = function() {
     $('#cc_pop').remove();
 };
 
+//
+
+fold = function(para){
+    env_id = para.attr('env_id');
+    fold_id = para.attr('fold_id');
+    if(env_id){
+        folded.push(env_id);
+        const env = $(`[env_id=${env_id}]`)
+        env.each(function(){
+            $(this).addClass('folded')
+        });
+        const fold = $(`[fold_id=${env_id}]`).first()
+        fold.removeClass('folded')
+        makeActive(fold)
+
+    }else if(fold_id){
+        const index = folded.indexOf(fold_id);
+        if (index > -1) {
+            folded.splice(index, 1);
+        };
+        const env = $(`[env_id=${fold_id}]`)
+        env.each(function(){
+            $(this).removeClass('folded')
+        });
+        const fold = $(`[fold_id=${fold_id}]`).first()
+        fold.addClass('folded')
+        makeActive(env.first())
+    };
+};
+
 /// KEYBOARD NAV
 
 $(document).keydown(function(e) {
@@ -388,6 +437,8 @@ $(document).keydown(function(e) {
             activeLastPara();
         } else if (key == 'escape') {
             makeActive(null);
+        } else if (shift && key == 'f') {
+            fold(active_para);
         }
         if (writeable) { // if we are active but not in edit mode
             if (key == 'a') {
