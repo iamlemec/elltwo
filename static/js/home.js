@@ -32,7 +32,7 @@ $(document).on('keydown', function(e) {
         var last_url = active.attr('href');
         timeout = setTimeout(function() {
             var query = $('#new_art_id').val();
-            if (query.length > 2) {
+            if (query.length > 0) {
                 searchTitle(query, last_url);
             } else {
                 $('#results').empty();
