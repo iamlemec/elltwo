@@ -1036,7 +1036,7 @@ getBlurb = function(len=200) {
     $('.para').each(function() {
         var para = $(this);
         var ptxt = para.children('.p_text');
-        var core = ptxt.ignore('.katex-mathml, .eqnum, img')
+        var core = ptxt.ignore('.katex-mathml, .eqnum, img, svg')
                        .removeClass('p_text');
 
         var html = core[0].outerHTML;
