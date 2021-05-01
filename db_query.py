@@ -385,6 +385,8 @@ class AxiomDB:
         if init:
             self.init_article(art.aid, text=f'#! {title}', time=time)
 
+        self.index_document('title', art.aid, title)
+
         return art
 
     def delete_article(self, aid, time=None):
@@ -392,6 +394,7 @@ class AxiomDB:
             time = datetime.utcnow()
         if (art := self.get_art(aid)) is not None:
             art.delete_time = time
+            self.unindex_document('title', art.aid, commit=False)
             self.session.commit()
 
     def init_article(self, aid, text, time=None):
@@ -464,9 +467,10 @@ class AxiomDB:
         art = self.session.query(Article).filter_by(short_title=short_match).one_or_none()
         return [p.text for p in self.get_paras(art.aid)]
 
-    def search_title(self, words, thresh=0.3):
+    def search_title(self, words, thresh=0.25):
         match = [i for i, s in self.search_index(words, dtype='title') if s > thresh]
-        return self.session.query(Article).filter(Article.aid.in_(match)).all()
+        arts = self.session.query(Article).filter(Article.aid.in_(match)).all()
+        return sorted(arts, key=lambda a: match.index(a.aid))
 
     ##
     ## citation methods
@@ -770,6 +774,14 @@ class AxiomDB:
                     source_type=dtype, source_id=ident
                 )
                 self.session.add(ent)
+        if commit:
+            self.session.commit()
+
+    def unindex_document(self, dtype, ident, commit=True):
+        query = self.session.query(TextShard).filter_by(
+            source_type=dtype, source_id=ident
+        )
+        query.delete()
         if commit:
             self.session.commit()
 

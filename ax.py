@@ -43,6 +43,7 @@ parser.add_argument('--login', action='store_true', help='Require login for edit
 parser.add_argument('--auth', type=str, default='auth.toml', help='user authorization config')
 parser.add_argument('--mail', type=str, default=None, help='mail authorization config')
 parser.add_argument('--max-size', type=int, default=1024, help='max image size in kilobytes')
+parser.add_argument('--reindex', action='store_true', help='reindex search database on load')
 args = parser.parse_args()
 
 # login decorator (or not)
@@ -74,7 +75,7 @@ else:
 
 # load sqlalchemy
 db = SQLAlchemy(app)
-adb = AxiomDB(db=db)
+adb = AxiomDB(db=db, reindex=args.reindex)
 
 # login manager
 login = LoginManager(app)
