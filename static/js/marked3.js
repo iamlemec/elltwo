@@ -11,7 +11,7 @@
  */
 
 var block = {
-  newline: /^\n+/,
+  empty: /^(\s*)$/,
   comment: /^\/\/([\S\s]*)/,
   code: /^``([\S\s]*)/,
   fences: noop,
@@ -234,17 +234,17 @@ Lexer.prototype.token = function(src, top, bq) {
     , i
     , l;
 
-  while (src) {
-    // newline
-    if (cap = this.rules.newline.exec(src)) {
-      src = src.substring(cap[0].length);
-      if (cap[0].length > 1) {
-        this.tokens.push({
-          type: 'space'
-        });
-      }
-    }
+  // empty cell
+  if (cap = this.rules.empty.exec(src)) {
+    src = src.substring(cap[0].length);
+    this.tokens.push({
+      type: 'empty',
+      text: cap[1]
+    });
+    return this.tokens;
+  }
 
+  while (src) {
     // equation
     if (cap = this.rules.equation.exec(src)) {
       src = src.substring(cap[0].length);
@@ -338,7 +338,6 @@ Lexer.prototype.token = function(src, top, bq) {
 
     // comment
     if (cap = this.rules.comment.exec(src)) {
-      console.log(src, cap);
       src = src.substring(cap[0].length);
       this.tokens.push({
         type: 'comment',
@@ -1049,8 +1048,11 @@ function DivRenderer(options) {
   this.options = options || {};
 }
 
+DivRenderer.prototype.empty = function(text) {
+  return `<div class="empty">\n${text}\n</div>\n\n`;
+};
+
 DivRenderer.prototype.comment = function(text) {
-  console.log('DivRenderer.comment', text);
   return `<div class="comment">\n${text}\n</div>\n\n`;
 };
 
@@ -1243,8 +1245,12 @@ function TexRenderer(options) {
   this.options = options || {};
 }
 
+TexRenderer.prototype.empty = function(text) {
+  return  `%${text}`;
+};
+
 TexRenderer.prototype.comment = function(text) {
-  return `% ${text}`;
+  return `%${text}`;
 };
 
 TexRenderer.prototype.code = function(code, lang, escaped) {
@@ -1495,8 +1501,8 @@ Parser.prototype.parseText = function() {
 
 Parser.prototype.tok = function() {
   switch (this.token.type) {
-    case 'space': {
-      return '';
+    case 'empty': {
+      return this.renderer.empty(this.token.text);
     }
     case 'hr': {
       return this.renderer.hr();

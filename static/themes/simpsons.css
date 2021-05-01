@@ -92,6 +92,14 @@ button:hover {
     color: var(--font-col);
 }
 
+.empty {
+    color: var(--comment-col);
+}
+
+.empty::before {
+    content: '// empty cell';
+}
+
 .comment {
     color: var(--comment-col);
 }

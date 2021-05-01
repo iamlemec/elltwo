@@ -137,6 +137,14 @@ button:hover {
   vertical-align: super;
 }
 
+.empty {
+    color: var(--comment-col);
+}
+
+.empty::before {
+    content: '// empty cell';
+}
+
 .comment {
     color: var(--comment-col);
 }
