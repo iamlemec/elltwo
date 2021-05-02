@@ -179,7 +179,7 @@ button {
 
 .list.ordered > .list-item:before{
     counter-increment: olist;
-    content: counter(olist)". s";
+    content: counter(olist)". ";
 }
 
 .strong {

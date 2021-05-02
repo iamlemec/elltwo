@@ -1448,11 +1448,13 @@ Parser.prototype.tok = function() {
     case 'list': {
       var body = ''
         , ordered = this.token.ordered
-        , row;
+        , row
+        , item;
 
       for (i = 0; i < this.token.items.length; i++) {
         row = this.token.items[i];
-        body += '- ' + this.inline.output(row);
+        item = this.inline.output(row);
+        body += this.renderer.listitem(item);
       }
 
       return this.renderer.list(body, ordered);
