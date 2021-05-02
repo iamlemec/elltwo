@@ -12,7 +12,7 @@
 
 var block = {
   empty: /^(\s*)$/,
-  comment: /^\/\/([\S\s]*)$/,
+  comment: /^\/\/ ?([\S\s]*)$/,
   code: /^`` ?\n?([\S\s]*)$/,
   fences: noop,
   hr: /^([-*_]){3,} *(?:\n+|$)/,
@@ -1114,11 +1114,11 @@ function TexRenderer(options) {
 }
 
 TexRenderer.prototype.empty = function(text) {
-  return  `%${text}`;
+  return  `% ${text}`;
 };
 
 TexRenderer.prototype.comment = function(text) {
-  return `%${text}`;
+  return `% ${text}`;
 };
 
 TexRenderer.prototype.code = function(code, lang, escaped) {
