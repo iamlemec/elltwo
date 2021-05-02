@@ -158,7 +158,7 @@ button:hover {
     content: '// ';
 }
 
-.code{
+.code {
   font-family: Fira;
   font-size: 90%;
   color: var(--hl-col);

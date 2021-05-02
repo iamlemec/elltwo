@@ -141,7 +141,7 @@ unPlaceCursor = function() {
 };
 
 trueMakeEditable = function(rw=true, cursor='end') {
-    editable = true;  
+    editable = true;
     active_para.addClass('editable');
 
     var text = active_para.children('.p_input');
@@ -224,7 +224,7 @@ lockParas = function(pids) {
 sendUnlockPara = function(pids) {
     var data = {pids: pids, room: aid};
     client.sendCommand('unlock', data, function(response) {
-        console.log(response);
+        // console.log(response);
     });
 };
 
@@ -259,12 +259,9 @@ makeActive = function(para, scroll=true) {
 // next para
 activeNextPara = function() {
     if (active_para) {
-        console.log("orig", active_para)
         var next = active_para.nextAll('.para').not('.folded');
-        console.log(next)
         if (next.length > 0) {
             makeActive(next.first());
-            console.log('final', active_para)
             return true;
         } else {
             return false;

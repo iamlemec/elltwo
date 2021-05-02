@@ -12,19 +12,18 @@
 
 var block = {
   empty: /^(\s*)$/,
-  comment: /^\/\/([\S\s]*)/,
-  code: /^``([\S\s]*)/,
+  comment: /^\/\/([\S\s]*)$/,
+  code: /^`` ?\n?([\S\s]*)$/,
   fences: noop,
-  hr: /^( *[-*_]){3,} *(?:\n+|$)/,
-  heading: /^ *(#{1,6})(\*?) *(?:refargs)? *([^\n]+?) *#* *(?:\n+|$)/,
+  hr: /^([-*_]){3,} *(?:\n+|$)/,
+  heading: /^(#{1,6})(\*?) *(?:refargs)? *([^\n]+?) *#* *(?:\n+|$)/,
   nptable: noop,
   lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
-  blockquote: /^(q*>[^\n]+(\n(?!def)[^\n]+)*\n*)+/, //added q
-  list: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
-  html: /^ *(?:comment *(?:\n|\s*$)|closed *(?:\n{2,}|\s*$)|closing *(?:\n{2,}|\s*$))/,
-  def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/,
+  blockquote: /^q*> ?\n?([\S\s]*)$/,
+  list: /^(bull) [\s\S]+?(?:hr|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
+  html: /^(?:comment *(?:\n|\s*$)|closed *(?:\n{2,}|\s*$)|closing *(?:\n{2,}|\s*$))/,
   table: noop,
-  paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/,
+  paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag))+)\n*/,
   text: /^[^\n]+/,
   equation: /^\$\$(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
   svg: /^\!svg(\*)? *(?:refargs)?[\s\n]*((?:[^\n]+\n*)*)(?:$)/,
@@ -90,11 +89,6 @@ block.item = replace(block.item, 'gm')
 block.list = replace(block.list)
   (/bull/g, block.bullet)
   ('hr', '\\n+(?=\\1?(?:[-*_] *){3,}(?:\\n+|$))')
-  ('def', '\\n+(?=' + block.def.source + ')')
-  ();
-
-block.blockquote = replace(block.blockquote)
-  ('def', block.def)
   ();
 
 block._tag = '(?!(?:'
@@ -115,7 +109,6 @@ block.paragraph = replace(block.paragraph)
   ('lheading', block.lheading)
   ('blockquote', block.blockquote)
   ('tag', '<' + block._tag)
-  ('def', block.def)
   ();
 
 /**
@@ -129,7 +122,7 @@ block.normal = merge({}, block);
  */
 
 block.gfm = merge({}, block.normal, {
-  fences: /^ *(`{3,}|~{3,})[ \.]*(\S+)? *\n([\s\S]*?)\s*\1 *(?:\n+|$)/,
+  fences: /^(`{3,}|~{3,})[ \.]*(\S+)? *\n([\s\S]*?)\s*\1 *(?:\n+|$)/,
   paragraph: /^/,
 });
 
@@ -144,8 +137,8 @@ block.gfm.paragraph = replace(block.paragraph)
  */
 
 block.tables = merge({}, block.gfm, {
-  nptable: /^ *(\S.*\|.*)\n *([-:]+ *\|[-| :]*)\n((?:.*\|.*(?:\n|$))*)\n*/,
-  table: /^ *\|(.+)\n *\|( *[-:]+[-| :]*)\n((?: *\|.*(?:\n|$))*)\n*/
+  nptable: /^(\S.*\|.*)\n *([-:]+ *\|[-| :]*)\n((?:.*\|.*(?:\n|$))*)\n*/,
+  table: /^\|(.+)\n *\|( *[-:]+[-| :]*)\n((?: *\|.*(?:\n|$))*)\n*/
 });
 
 /**
@@ -183,8 +176,6 @@ function parseArgs(argsraw, number=true) {
 }
 
 function Lexer(options) {
-  this.tokens = [];
-  this.tokens.links = {};
   this.options = options || marked.defaults;
   this.rules = block.tables;
 }
@@ -215,14 +206,14 @@ Lexer.prototype.lex = function(src) {
     .replace(/\u00a0/g, ' ')
     .replace(/\u2424/g, '\n');
 
-  return this.token(src, true);
+  return this.token(src);
 };
 
 /**
  * Lexing
  */
 
-Lexer.prototype.token = function(src, top, bq) {
+Lexer.prototype.token = function(src) {
   var src = src.replace(/^ +$/gm, '')
     , next
     , loose
@@ -236,441 +227,350 @@ Lexer.prototype.token = function(src, top, bq) {
 
   // empty cell
   if (cap = this.rules.empty.exec(src)) {
-    src = src.substring(cap[0].length);
-    this.tokens.push({
+    return {
       type: 'empty',
       text: cap[1]
-    });
-    return this.tokens;
+    };
   }
 
-  while (src) {
-    // equation
-    if (cap = this.rules.equation.exec(src)) {
-      src = src.substring(cap[0].length);
-      var number = cap[1] == undefined;
-      var argsraw = cap[2] || '';
-      var args = parseArgs(argsraw, number);
-      this.tokens.push({
-        type: 'equation',
-        args: args,
-        tex: cap[3]
-      });
-      continue;
-    }
+  // equation
+  if (cap = this.rules.equation.exec(src)) {
+    var number = cap[1] == undefined;
+    var argsraw = cap[2] || '';
+    var args = parseArgs(argsraw, number);
+    return {
+      type: 'equation',
+      args: args,
+      tex: cap[3]
+    };
+  }
 
-    // image
-    if (cap = this.rules.image.exec(src)) {
-      src = src.substring(cap[0].length);
-      var number = cap[1] == undefined;
-      var argsraw = cap[2] || '';
-      var args = parseArgs(argsraw, number);
-      this.tokens.push({
-        type: 'image',
-        args: args,
-        href: cap[3]
-      });
-      continue;
-    }
+  // image
+  if (cap = this.rules.image.exec(src)) {
+    var number = cap[1] == undefined;
+    var argsraw = cap[2] || '';
+    var args = parseArgs(argsraw, number);
+    return {
+      type: 'image',
+      args: args,
+      href: cap[3]
+    };
+  }
 
-    // imagelocal
-    if (cap = this.rules.imagelocal.exec(src)) {
-      src = src.substring(cap[0].length);
-      var number = cap[1] == undefined;
-      var argsraw = cap[2] || '';
-      var args = parseArgs(argsraw, number);
-      this.tokens.push({
-        type: 'imagelocal',
-        args: args,
-      });
-      continue;
-    }
+  // imagelocal
+  if (cap = this.rules.imagelocal.exec(src)) {
+    var number = cap[1] == undefined;
+    var argsraw = cap[2] || '';
+    var args = parseArgs(argsraw, number);
+    return {
+      type: 'imagelocal',
+      args: args,
+    };
+  }
 
-    // upload
-    if (cap = this.rules.upload.exec(src)) {
-      src = src.substring(cap[0].length);
-      var argsraw = cap[1] || '';
-      var args = parseArgs(argsraw);
-      this.tokens.push({
-        type: 'upload',
-        args: args,
-      });
-      continue;
-    }
+  // upload
+  if (cap = this.rules.upload.exec(src)) {
+    var argsraw = cap[1] || '';
+    var args = parseArgs(argsraw);
+    return {
+      type: 'upload',
+      args: args,
+    };
+  }
 
-    // figure
-    if (cap = this.rules.figure.exec(src)) {
-      src = src.substring(cap[0].length);
-      var ftype = (cap[1] == '!') ? 'image' : 'table';
-      this.tokens.push({
-        type: 'figure_start',
-        ftype: ftype,
-        tag: cap[2],
-        title: cap[3]
-      });
-      this.token(cap[4], top, bq);
-      this.tokens.push({
-        type: 'figure_end'
-      });
-      continue;
-    }
+  // FIX: break into figure-image and figure-table
+  // figure
+  if (cap = this.rules.figure.exec(src)) {
+    var ftype = (cap[1] == '!') ? 'image' : 'table';
+    return {
+      type: 'figure',
+      ftype: ftype,
+      tag: cap[2],
+      title: cap[3],
+      text: cap[4]
+    };
+  }
 
-    // bibliographic info
-    if (cap = this.rules.biblio.exec(src)) {
-      src = src.substring(cap[0].length);
-      var bib = {
-        type: 'biblio',
-        id: cap[1],
+  // bibliographic info
+  if (cap = this.rules.biblio.exec(src)) {
+    var bib = {
+      type: 'biblio',
+      id: cap[1],
+    }
+    var lines = cap[2].split('\n');
+    for (i in lines) {
+      var line = lines[i];
+      if (line.includes(':')) {
+        var kv = lines[i].split(':');
+        var key = kv[0];
+        var val = kv.slice(1).join(':').trim();
+        bib[key] = val;
       }
-      var lines = cap[2].split('\n');
-      for (i in lines) {
-        var line = lines[i];
-        if (line.includes(':')) {
-          var kv = lines[i].split(':');
-          var key = kv[0];
-          var val = kv.slice(1).join(':').trim();
-          bib[key] = val;
-        }
-      }
-      this.tokens.push(bib);
-      continue;
     }
+    return bib;
+  }
 
-    // comment
-    if (cap = this.rules.comment.exec(src)) {
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: 'comment',
-        text: cap[1]
-      });
-      continue;
-    }
+  // comment
+  if (cap = this.rules.comment.exec(src)) {
+    return {
+      type: 'comment',
+      text: cap[1]
+    };
+  }
 
-    // code
-    if (cap = this.rules.code.exec(src)) {
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: 'code',
-        text: cap[1]
-      });
-      continue;
-    }
+  // code
+  if (cap = this.rules.code.exec(src)) {
+    return {
+      type: 'code',
+      text: cap[1]
+    };
+  }
 
-    // fences (gfm)
-    if (cap = this.rules.fences.exec(src)) {
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: 'code',
-        lang: cap[2],
-        text: cap[3] || ''
-      });
-      continue;
-    }
+  // fences (gfm)
+  if (cap = this.rules.fences.exec(src)) {
+    return {
+      type: 'code',
+      lang: cap[2],
+      text: cap[3] || ''
+    };
+  }
 
-    // title
-    if (cap = this.rules.title.exec(src)) {
-      src = src.substring(cap[0].length);
-      var argsraw = cap[1] || '';
-      var args = parseArgs(argsraw, number);
-      this.tokens.push({
-        type: 'title',
-        args: args,
-        text: cap[2],
-        preamble: cap[4]
-      });
-      continue;
-    }
+  // title
+  if (cap = this.rules.title.exec(src)) {
+    var argsraw = cap[1] || '';
+    var args = parseArgs(argsraw, number);
+    return {
+      type: 'title',
+      args: args,
+      text: cap[2],
+      preamble: cap[4]
+    };
+  }
 
-    // svg
-    if (cap = this.rules.svg.exec(src)) {
-      src = src.substring(cap[0].length);
-      var number = cap[1] == undefined;
-      var argsraw = cap[2] || '';
-      var args = parseArgs(argsraw, number);
-      this.tokens.push({
-        type: 'svg',
-        args: args,
-        svg: cap[3]
-      });
-      continue;
-    }
+  // svg
+  if (cap = this.rules.svg.exec(src)) {
+    var number = cap[1] == undefined;
+    var argsraw = cap[2] || '';
+    var args = parseArgs(argsraw, number);
+    return {
+      type: 'svg',
+      args: args,
+      svg: cap[3]
+    };
+  }
 
+  // heading
+  if (cap = this.rules.heading.exec(src)) {
+    return {
+      type: 'heading',
+      depth: cap[1].length,
+      number: cap[2].length == 0,
+      id: cap[3],
+      text: cap[4]
+    };
+  }
 
-    // heading
-    if (cap = this.rules.heading.exec(src)) {
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: 'heading',
-        depth: cap[1].length,
-        number: cap[2].length == 0,
-        id: cap[3],
-        text: cap[4]
-      });
-      continue;
-    }
+  // envbeg
+  if (cap = this.rules.envbeg.exec(src)) {
+    var end = cap[1] != undefined;
+    var number = cap[3] == undefined;
+    var argsraw = cap[4] || '';
+    var args = parseArgs(argsraw, number);
+    return {
+      type: 'envbeg',
+      end: end,
+      env: cap[2],
+      text: cap[5],
+      args: args
+    };
+  }
 
-    // envbeg
-    if (cap = this.rules.envbeg.exec(src)) {
-      src = src.substring(cap[0].length);
-      var end = cap[1] != undefined;
-      var number = cap[3] == undefined;
-      var argsraw = cap[4] || '';
-      var args = parseArgs(argsraw, number);
-      this.tokens.push({
-        type: 'envbeg',
-        end: end,
-        env: cap[2],
-        text: cap[5],
-        args: args
-      });
-      continue;
+  // envend
+  if (cap = this.rules.envend.exec(src)) {
+    return {
+      type: 'envend',
+      text: cap[1]
+    };
+  }
+
+  // table no leading pipe (gfm)
+  if (cap = this.rules.nptable.exec(src)) {
+    src = src.substring(cap[0].length);
+
+    item = {
+      type: 'table',
+      header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
+      align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
+      cells: cap[3].replace(/\n$/, '').split('\n')
     };
 
-    // envend
-    if (cap = this.rules.envend.exec(src)) {
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: 'envend',
-        text: cap[1]
-      });
-      continue;
-    }
-
-    // table no leading pipe (gfm)
-    if (top && (cap = this.rules.nptable.exec(src))) {
-      src = src.substring(cap[0].length);
-
-      item = {
-        type: 'table',
-        header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
-        align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-        cells: cap[3].replace(/\n$/, '').split('\n')
-      };
-
-      for (i = 0; i < item.align.length; i++) {
-        if (/^ *-+: *$/.test(item.align[i])) {
-          item.align[i] = 'right';
-        } else if (/^ *:-+: *$/.test(item.align[i])) {
-          item.align[i] = 'center';
-        } else if (/^ *:-+ *$/.test(item.align[i])) {
-          item.align[i] = 'left';
-        } else {
-          item.align[i] = null;
-        }
+    for (i = 0; i < item.align.length; i++) {
+      if (/^ *-+: *$/.test(item.align[i])) {
+        item.align[i] = 'right';
+      } else if (/^ *:-+: *$/.test(item.align[i])) {
+        item.align[i] = 'center';
+      } else if (/^ *:-+ *$/.test(item.align[i])) {
+        item.align[i] = 'left';
+      } else {
+        item.align[i] = null;
       }
-
-      for (i = 0; i < item.cells.length; i++) {
-        item.cells[i] = item.cells[i].split(/ *\| */);
-      }
-
-      this.tokens.push(item);
-
-      continue;
     }
 
-    // lheading
-    if (cap = this.rules.lheading.exec(src)) {
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: 'heading',
-        depth: cap[2] === '=' ? 1 : 2,
-        text: cap[1]
-      });
-      continue;
+    for (i = 0; i < item.cells.length; i++) {
+      item.cells[i] = item.cells[i].split(/ *\| */);
     }
 
-    // hr
-    if (cap = this.rules.hr.exec(src)) {
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: 'hr'
-      });
-      continue;
-    }
-
-    // blockquote
-    if (cap = this.rules.blockquote.exec(src)) {
-      src = src.substring(cap[0].length);
-
-      this.tokens.push({
-        type: 'blockquote_start'
-      });
-
-      cap = cap[0].replace(/^ *> ?/gm, '');
-
-      // Pass `top` to keep the current
-      // "toplevel" state. This is exactly
-      // how markdown.pl works.
-      this.token(cap, top, true);
-
-      this.tokens.push({
-        type: 'blockquote_end'
-      });
-
-      continue;
-    }
-
-    // list
-    if (cap = this.rules.list.exec(src)) {
-      src = src.substring(cap[0].length);
-      bull = cap[2];
-
-      this.tokens.push({
-        type: 'list_start',
-        ordered: bull.length > 1
-      });
-
-      // Get each top-level item.
-      cap = cap[0].match(this.rules.item);
-
-      next = false;
-      l = cap.length;
-      i = 0;
-
-      for (; i < l; i++) {
-        item = cap[i];
-
-        // Remove the list item's bullet
-        // so it is seen as the next token.
-        space = item.length;
-        item = item.replace(/^ *([*+-]|\d+\.) +/, '');
-
-        // Outdent whatever the
-        // list item contains. Hacky.
-        if (~item.indexOf('\n ')) {
-          space -= item.length;
-          item = !this.options.pedantic
-            ? item.replace(new RegExp('^ {1,' + space + '}', 'gm'), '')
-            : item.replace(/^ {1,4}/gm, '');
-        }
-
-        // Determine whether the next list item belongs here.
-        // Backpedal if it does not belong in this list.
-        if (this.options.smartLists && i !== l - 1) {
-          b = block.bullet.exec(cap[i + 1])[0];
-          if (bull !== b && !(bull.length > 1 && b.length > 1)) {
-            src = cap.slice(i + 1).join('\n') + src;
-            i = l - 1;
-          }
-        }
-
-        // Determine whether item is loose or not.
-        // Use: /(^|\n)(?! )[^\n]+\n\n(?!\s*$)/
-        // for discount behavior.
-        loose = next || /\n\n(?!\s*$)/.test(item);
-        if (i !== l - 1) {
-          next = item.charAt(item.length - 1) === '\n';
-          if (!loose) loose = next;
-        }
-
-        this.tokens.push({
-          type: loose
-            ? 'loose_item_start'
-            : 'list_item_start'
-        });
-
-        // Recurse.
-        this.token(item, false, bq);
-
-        this.tokens.push({
-          type: 'list_item_end'
-        });
-      }
-
-      this.tokens.push({
-        type: 'list_end'
-      });
-
-      continue;
-    }
-
-    // html
-    if (cap = this.rules.html.exec(src)) {
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: this.options.sanitize
-          ? 'paragraph'
-          : 'html',
-        pre: !this.options.sanitizer
-          && (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
-        text: cap[0]
-      });
-      continue;
-    }
-
-    // def
-    if ((!bq && top) && (cap = this.rules.def.exec(src))) {
-      src = src.substring(cap[0].length);
-      this.tokens.links[cap[1].toLowerCase()] = {
-        href: cap[2],
-        title: cap[3]
-      };
-      continue;
-    }
-
-    // table (gfm)
-    if (top && (cap = this.rules.table.exec(src))) {
-      src = src.substring(cap[0].length);
-
-      item = {
-        type: 'table',
-        header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
-        align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-        cells: cap[3].replace(/(?: *\| *)?\n$/, '').split('\n')
-      };
-
-      for (i = 0; i < item.align.length; i++) {
-        if (/^ *-+: *$/.test(item.align[i])) {
-          item.align[i] = 'right';
-        } else if (/^ *:-+: *$/.test(item.align[i])) {
-          item.align[i] = 'center';
-        } else if (/^ *:-+ *$/.test(item.align[i])) {
-          item.align[i] = 'left';
-        } else {
-          item.align[i] = null;
-        }
-      }
-
-      for (i = 0; i < item.cells.length; i++) {
-        item.cells[i] = item.cells[i]
-          .replace(/^ *\| *| *\| *$/g, '')
-          .split(/ *\| */);
-      }
-
-      this.tokens.push(item);
-
-      continue;
-    }
-
-    // top-level paragraph
-    if (top && (cap = this.rules.paragraph.exec(src))) {
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: 'paragraph',
-        text: cap[1].charAt(cap[1].length - 1) === '\n'
-          ? cap[1].slice(0, -1)
-          : cap[1]
-      });
-      continue;
-    }
-
-    // text
-    if (cap = this.rules.text.exec(src)) {
-      // Top-level should never reach here.
-      src = src.substring(cap[0].length);
-      this.tokens.push({
-        type: 'text',
-        text: cap[0]
-      });
-      continue;
-    }
-
-    if (src) {
-      throw new
-        Error('Infinite loop on byte: ' + src.charCodeAt(0));
-    }
+    return item;
   }
-  return this.tokens;
+
+  // lheading
+  if (cap = this.rules.lheading.exec(src)) {
+    return {
+      type: 'heading',
+      depth: cap[2] === '=' ? 1 : 2,
+      text: cap[1]
+    };
+  }
+
+  // hr
+  if (cap = this.rules.hr.exec(src)) {
+    return {
+      type: 'hr'
+    };
+  }
+
+  // blockquote
+  if (cap = this.rules.blockquote.exec(src)) {
+    console.log(cap);
+    return {
+      type: 'blockquote',
+      text: cap[1]
+    };
+  }
+
+  // list
+  if (cap = this.rules.list.exec(src)) {
+    bull = cap[1];
+
+    var token = {
+      type: 'list',
+      ordered: bull.length > 1,
+      items: []
+    };
+
+    // Get each top-level item.
+    cap = cap[0].match(this.rules.item);
+
+    next = false;
+    l = cap.length;
+    i = 0;
+
+    for (; i < l; i++) {
+      item = cap[i];
+
+      // Remove the list item's bullet
+      // so it is seen as the next token.
+      space = item.length;
+      item = item.replace(/^ *([*+-]|\d+\.) +/, '');
+
+      // Outdent whatever the
+      // list item contains. Hacky.
+      if (~item.indexOf('\n ')) {
+        space -= item.length;
+        item = !this.options.pedantic
+          ? item.replace(new RegExp('^ {1,' + space + '}', 'gm'), '')
+          : item.replace(/^ {1,4}/gm, '');
+      }
+
+      // Determine whether the next list item belongs here.
+      // Backpedal if it does not belong in this list.
+      if (this.options.smartLists && i !== l - 1) {
+        b = block.bullet.exec(cap[i + 1])[0];
+        if (bull !== b && !(bull.length > 1 && b.length > 1)) {
+          src = cap.slice(i + 1).join('\n') + src;
+          i = l - 1;
+        }
+      }
+
+      // Determine whether item is loose or not.
+      // Use: /(^|\n)(?! )[^\n]+\n\n(?!\s*$)/
+      // for discount behavior.
+      loose = next || /\n\n(?!\s*$)/.test(item);
+      if (i !== l - 1) {
+        next = item.charAt(item.length - 1) === '\n';
+        if (!loose) loose = next;
+      }
+
+      // add item
+      token.items.push(item);
+    }
+
+    return token;
+  }
+
+  // html
+  if (cap = this.rules.html.exec(src)) {
+    return {
+      type: this.options.sanitize
+        ? 'paragraph'
+        : 'html',
+      pre: !this.options.sanitizer
+        && (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
+      text: cap[0]
+    };
+  }
+
+  // table (gfm)
+  if (cap = this.rules.table.exec(src)) {
+    item = {
+      type: 'table',
+      header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
+      align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
+      cells: cap[3].replace(/(?: *\| *)?\n$/, '').split('\n')
+    };
+
+    for (i = 0; i < item.align.length; i++) {
+      if (/^ *-+: *$/.test(item.align[i])) {
+        item.align[i] = 'right';
+      } else if (/^ *:-+: *$/.test(item.align[i])) {
+        item.align[i] = 'center';
+      } else if (/^ *:-+ *$/.test(item.align[i])) {
+        item.align[i] = 'left';
+      } else {
+        item.align[i] = null;
+      }
+    }
+
+    for (i = 0; i < item.cells.length; i++) {
+      item.cells[i] = item.cells[i]
+        .replace(/^ *\| *| *\| *$/g, '')
+        .split(/ *\| */);
+    }
+
+    return item;
+  }
+
+  // top-level paragraph
+  if (cap = this.rules.paragraph.exec(src)) {
+    return {
+      type: 'paragraph',
+      text: cap[1].charAt(cap[1].length - 1) === '\n'
+        ? cap[1].slice(0, -1)
+        : cap[1]
+    };
+  }
+
+  // text
+  if (cap = this.rules.text.exec(src)) {
+    // Top-level should never reach here.
+    return {
+      type: 'text',
+      text: cap[0]
+    };
+  }
+
+  // fail
+  console.log('marked3: block match fail');
 };
 
 /**
@@ -684,8 +584,6 @@ var inline = {
   url: noop,
   tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^'">])*?>/,
   link: /^!?\[(inside)\]\(href\)/,
-  reflink: /^!?\[(inside)\]\s*\[([^\]]*)\]/,
-  nolink: /^!?\[((?:\[[^\]]*\]|[^\[\]])*)\]/,
   ilink: /^\[\[([^\]]+)\]\]/,
   strong: /^__([\s\S]+?)__(?!_)|^\*\*([\s\S]+?)\*\*(?!\*)/,
   em: /^\b_((?:[^_]|__)+?)_\b|^\*((?:\*\*|[\s\S])+?)\*(?!\*)/,
@@ -702,15 +600,9 @@ inline._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
 inline._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 inline._refid = /\[([\w-]+)\]/;
 
-
-
 inline.link = replace(inline.link)
   ('inside', inline._inside)
   ('href', inline._href)
-  ();
-
-inline.reflink = replace(inline.reflink)
-  ('inside', inline._inside)
   ();
 
 inline.footnote = replace(inline.footnote)
@@ -760,17 +652,11 @@ inline.breaks = merge({}, inline.gfm, {
  * Inline Lexer & Compiler
  */
 
-function InlineLexer(links, options) {
+function InlineLexer(options) {
   this.options = options || marked.defaults;
-  this.links = links;
   this.rules = inline.normal;
   this.renderer = this.options.renderer || new Renderer;
   this.renderer.options = this.options;
-
-  if (!this.links) {
-    throw new
-      Error('Tokens array requires a `links` property.');
-  }
 
   if (this.options.gfm) {
     if (this.options.breaks) {
@@ -793,8 +679,8 @@ InlineLexer.rules = inline;
  * Static Lexing/Compiling Method
  */
 
-InlineLexer.output = function(src, links, options) {
-  var inline = new InlineLexer(links, options);
+InlineLexer.output = function(src, options) {
+  var inline = new InlineLexer(options);
   return inline.output(src);
 };
 
@@ -804,7 +690,6 @@ InlineLexer.output = function(src, links, options) {
 
 InlineLexer.prototype.output = function(src) {
   var out = ''
-    , link
     , text
     , href
     , cap
@@ -910,23 +795,6 @@ InlineLexer.prototype.output = function(src) {
         href: cap[2],
         title: cap[3]
       });
-      this.inLink = false;
-      continue;
-    }
-
-    // reflink, nolink
-    if ((cap = this.rules.reflink.exec(src))
-        || (cap = this.rules.nolink.exec(src))) {
-      src = src.substring(cap[0].length);
-      link = (cap[2] || cap[1]).replace(/\s+/g, ' ');
-      link = this.links[link.toLowerCase()];
-      if (!link || !link.href) {
-        out += cap[0].charAt(0);
-        src = cap[0].substring(1) + src;
-        continue;
-      }
-      this.inLink = true;
-      out += this.outputLink(cap, link);
       this.inLink = false;
       continue;
     }
@@ -1115,7 +983,7 @@ DivRenderer.prototype.listitem = function(text) {
   return `<div class="list-item">${text}</div>\n`;
 };
 
-DivRenderer.prototype.paragraph = function(text, terse) {
+DivRenderer.prototype.paragraph = function(text) {
   return `<div class="p">${text}</div>\n\n`;
 };
 
@@ -1309,7 +1177,7 @@ TexRenderer.prototype.listitem = function(text) {
   return `\\item ${text}\n`;
 };
 
-TexRenderer.prototype.paragraph = function(text, terse) {
+TexRenderer.prototype.paragraph = function(text) {
   return `${text}`;
 };
 
@@ -1427,7 +1295,6 @@ TexRenderer.prototype.footnote = function(text) {
  */
 
 function Parser(options) {
-  this.tokens = [];
   this.token = null;
   this.options = options || marked.defaults;
   this.options.renderer = this.options.renderer || new Renderer;
@@ -1449,50 +1316,15 @@ Parser.parse = function(src, options, renderer) {
  */
 
 Parser.prototype.parse = function(src) {
-  this.inline = new InlineLexer(src.links, this.options, this.renderer);
-  this.tokens = src.reverse();
-  this.env = null;
-
-  var out = '';
-  while (this.next()) {
-    out += this.tok();
-  }
+  this.inline = new InlineLexer(this.options, this.renderer);
+  this.token = src;
+  var out = this.tok();
 
   if (this.options.env) {
     return {'src': out, 'env': this.env};
   } else {
     return out;
   }
-};
-
-/**
- * Next Token
- */
-
-Parser.prototype.next = function() {
-  return this.token = this.tokens.pop();
-};
-
-/**
- * Preview Next Token
- */
-
-Parser.prototype.peek = function() {
-  return this.tokens[this.tokens.length - 1] || 0;
-};
-
-/**
- * Parse Text Tokens
- */
-
-Parser.prototype.parseText = function() {
-  var body = this.token.text;
-
-  while (this.peek().type === 'text') {
-    body += '\n' + this.next().text;
-  }
-
-  return this.inline.output(body);
 };
 
 /**
@@ -1610,44 +1442,20 @@ Parser.prototype.tok = function() {
 
       return this.renderer.table(header, body);
     }
-    case 'blockquote_start': {
-      var body = '';
-
-      while (this.next().type !== 'blockquote_end') {
-        body += this.tok();
-      }
-
-      return this.renderer.blockquote(body);
+    case 'blockquote': {
+      return this.renderer.blockquote(this.token.text);
     }
-    case 'list_start': {
+    case 'list': {
       var body = ''
-        , ordered = this.token.ordered;
+        , ordered = this.token.ordered
+        , row;
 
-      while (this.next().type !== 'list_end') {
-        body += this.tok();
+      for (i = 0; i < this.token.items.length; i++) {
+        row = this.token.items[i];
+        body += '- ' + this.inline.output(row);
       }
 
       return this.renderer.list(body, ordered);
-    }
-    case 'list_item_start': {
-      var body = '';
-
-      while (this.next().type !== 'list_item_end') {
-        body += this.token.type === 'text'
-          ? this.parseText()
-          : this.tok();
-      }
-
-      return this.renderer.listitem(body);
-    }
-    case 'loose_item_start': {
-      var body = '';
-
-      while (this.next().type !== 'list_item_end') {
-        body += this.tok();
-      }
-
-      return this.renderer.listitem(body);
     }
     case 'html': {
       var html = !this.token.pre && !this.options.pedantic
@@ -1656,8 +1464,7 @@ Parser.prototype.tok = function() {
       return this.renderer.html(html);
     }
     case 'paragraph': {
-      var nextType = this.peek().type;
-      return this.renderer.paragraph(this.inline.output(this.token.text), (nextType == 'equation'));
+      return this.renderer.paragraph(this.inline.output(this.token.text));
     }
     case 'text': {
       return this.renderer.paragraph(this.parseText());
@@ -1681,14 +1488,11 @@ Parser.prototype.tok = function() {
       }
       return this.renderer.imagelocal();
     }
-    case 'figure_start': {
+    case 'figure': {
       var ftype = this.token.ftype;
       var tag = this.token.tag;
       var title = this.token.title;
-      var body = '';
-      while (this.next().type !== 'figure_end') {
-        body += this.tok();
-      }
+      var body = this.inline.output(this.token.text);
       return this.renderer.figure(ftype, tag, title, body);
     }
     case 'biblio': {
