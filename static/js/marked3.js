@@ -12,36 +12,30 @@
 
 var block = {
   empty: /^(\s*)$/,
-  comment: /^\/\/ ?([\S\s]*)$/,
-  code: /^`` ?\n?([\S\s]*)$/,
-  fences: noop,
-  hr: /^([-*_]){3,} *(?:\n+|$)/,
-  heading: /^(#{1,6})(\*?) *(?:refargs)? *([^\n]+?) *#* *(?:\n+|$)/,
-  nptable: noop,
-  lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
-  blockquote: /^q*> ?\n?([\S\s]*)$/,
-  list: /^(bull) [\s\S]+?(?:hr|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
-  html: /^(?:comment *(?:\n|\s*$)|closed *(?:\n{2,}|\s*$)|closing *(?:\n{2,}|\s*$))/,
-  table: noop,
-  paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag))+)\n*/,
-  text: /^[^\n]+/,
-  equation: /^\$\$(\*)? *(?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
-  svg: /^\!svg(\*)? *(?:refargs)?[\s\n]*((?:[^\n]+\n*)*)(?:$)/,
-  title: /^#! *(?:refargs)? *([^\n]*)([\n\r]*)([\s\S]*)(?:$)/,
-  upload: /^!! *(?:refargs)? *(?:$)/,
-  image: /^!(\*)? *(?:refargs)? *\(href\)(?:\n+|$)/,
-  imagelocal: /^!(\*)? *(?:refargs)(?:$)/,
-  biblio: /^@@ *(?:refid) *\n?((?:[^\n]+\n?)*)(?:\n+|$)/,
-  figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n?)*)(?:\n+|$)/,
-  envbeg: /^\>\>(\!)? ([\w-]+)(\*)? (?:refargs)? *((?:[^\n]+\n?)*)(?:\n+|$)/,
-  envend: /^\<\<((?:[^\n]+\n?)*)/
+  comment: /^\/\/ ?/,
+  hr: /^([-*_]){3,}\s*$/,
+  heading: /^(#{1,6})(\*?) *(?:refargs)? *([^\n]+?)\s*$/,
+  lheading: /^([^\n]+)\n *(=|-){2,}\s*$/,
+  blockquote: /^q*> ?\n?/,
+  code: /^`` ?\n?/,
+  equation: /^\$\$(\*)? *(?:refargs)?\s*/,
+  title: /^#! *(?:refargs)?\s*([^\n]*)\s*/,
+  upload: /^!! *(?:refargs)?\s*$/,
+  svg: /^\!svg(\*)? *(?:refargs)?\s*/,
+  image: /^!(\*)? *(?:refargs)? *\(href\)\s*$/,
+  imagelocal: /^!(\*)? *(?:refargs)\s*$/,
+  biblio: /^@@ *(?:refid)\s*/,
+  figure: /^@(!|\|) *(?:refid) *([^\n]+)\s*/,
+  envbeg: /^\>\>(\!)? ([\w-]+)(\*)? *(?:refargs)?\s*/,
+  envend: /^\<\<\s*/,
+  fences: /^(`{3,}|~{3,})[ \.]*(\S+)? *\n([\s\S]*?)\s*\1 *(?:\n+|$)/, // heavy
+  list: /^(bull) [\s\S]+?(?:hr|\n{2,}(?! )(?!\1bull )\n*|\s*$)/, // heavy
+  table: /^\|(.+)\n *\|( *[-:]+[-| :]*)\n((?: *\|.*(?:\n|$))*)\n*/, // heavy
 };
 
-block._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
 block._refargs = /(?:\[([\w-\|\=\s]+)\])/;
-block._imgid = /\[([\w-]+)\]/;
 
 block.image = replace(block.image)
   ('refargs', block._refargs)
@@ -91,56 +85,6 @@ block.list = replace(block.list)
   ('hr', '\\n+(?=\\1?(?:[-*_] *){3,}(?:\\n+|$))')
   ();
 
-block._tag = '(?!(?:'
-  + 'a|em|strong|small|s|cite|q|dfn|abbr|data|time|code'
-  + '|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo'
-  + '|span|br|wbr|ins|del|img)\\b)\\w+(?!:/|[^\\w\\s@]*@)\\b';
-
-block.html = replace(block.html)
-  ('comment', /<!--[\s\S]*?-->/)
-  ('closed', /<(tag)[\s\S]+?<\/\1>/)
-  ('closing', /<tag(?:"[^"]*"|'[^']*'|[^'">])*?>/)
-  (/tag/g, block._tag)
-  ();
-
-block.paragraph = replace(block.paragraph)
-  ('hr', block.hr)
-  ('heading', block.heading)
-  ('lheading', block.lheading)
-  ('blockquote', block.blockquote)
-  ('tag', '<' + block._tag)
-  ();
-
-/**
- * Normal Block Grammar
- */
-
-block.normal = merge({}, block);
-
-/**
- * GFM Block Grammar
- */
-
-block.gfm = merge({}, block.normal, {
-  fences: /^(`{3,}|~{3,})[ \.]*(\S+)? *\n([\s\S]*?)\s*\1 *(?:\n+|$)/,
-  paragraph: /^/,
-});
-
-block.gfm.paragraph = replace(block.paragraph)
-  ('(?!', '(?!'
-    + block.gfm.fences.source.replace('\\1', '\\2') + '|'
-    + block.list.source.replace('\\1', '\\3') + '|')
-  ();
-
-/**
- * GFM + Tables Block Grammar
- */
-
-block.tables = merge({}, block.gfm, {
-  nptable: /^(\S.*\|.*)\n *([-:]+ *\|[-| :]*)\n((?:.*\|.*(?:\n|$))*)\n*/,
-  table: /^\|(.+)\n *\|( *[-:]+[-| :]*)\n((?: *\|.*(?:\n|$))*)\n*/
-});
-
 /**
  * Block Lexer
  */
@@ -177,7 +121,7 @@ function parseArgs(argsraw, number=true) {
 
 function Lexer(options) {
   this.options = options || marked.defaults;
-  this.rules = block.tables;
+  this.rules = block;
 }
 
 /**
@@ -215,15 +159,12 @@ Lexer.prototype.lex = function(src) {
 
 Lexer.prototype.token = function(src) {
   var src = src.replace(/^ +$/gm, '')
-    , next
-    , loose
     , cap
-    , bull
-    , b
-    , item
-    , space
-    , i
-    , l;
+    , number
+    , argsraw
+    , args
+    , text
+    , i;
 
   // empty cell
   if (cap = this.rules.empty.exec(src)) {
@@ -235,21 +176,22 @@ Lexer.prototype.token = function(src) {
 
   // equation
   if (cap = this.rules.equation.exec(src)) {
-    var number = cap[1] == undefined;
-    var argsraw = cap[2] || '';
-    var args = parseArgs(argsraw, number);
+    number = cap[1] == undefined;
+    argsraw = cap[2] || '';
+    args = parseArgs(argsraw, number);
+    text = src.slice(cap[0].length);
     return {
       type: 'equation',
       args: args,
-      tex: cap[3]
+      tex: text
     };
   }
 
   // image
   if (cap = this.rules.image.exec(src)) {
-    var number = cap[1] == undefined;
-    var argsraw = cap[2] || '';
-    var args = parseArgs(argsraw, number);
+    number = cap[1] == undefined;
+    argsraw = cap[2] || '';
+    args = parseArgs(argsraw, number);
     return {
       type: 'image',
       args: args,
@@ -259,9 +201,9 @@ Lexer.prototype.token = function(src) {
 
   // imagelocal
   if (cap = this.rules.imagelocal.exec(src)) {
-    var number = cap[1] == undefined;
-    var argsraw = cap[2] || '';
-    var args = parseArgs(argsraw, number);
+    number = cap[1] == undefined;
+    argsraw = cap[2] || '';
+    args = parseArgs(argsraw, number);
     return {
       type: 'imagelocal',
       args: args,
@@ -270,8 +212,8 @@ Lexer.prototype.token = function(src) {
 
   // upload
   if (cap = this.rules.upload.exec(src)) {
-    var argsraw = cap[1] || '';
-    var args = parseArgs(argsraw);
+    argsraw = cap[1] || '';
+    args = parseArgs(argsraw);
     return {
       type: 'upload',
       args: args,
@@ -282,12 +224,13 @@ Lexer.prototype.token = function(src) {
   // figure
   if (cap = this.rules.figure.exec(src)) {
     var ftype = (cap[1] == '!') ? 'image' : 'table';
+    text = src.slice(cap[0].length);
     return {
       type: 'figure',
       ftype: ftype,
       tag: cap[2],
       title: cap[3],
-      text: cap[4]
+      text: text
     };
   }
 
@@ -297,7 +240,8 @@ Lexer.prototype.token = function(src) {
       type: 'biblio',
       id: cap[1],
     }
-    var lines = cap[2].split('\n');
+    text = src.slice(cap[0].length);
+    var lines = text.split('\n');
     for (i in lines) {
       var line = lines[i];
       if (line.includes(':')) {
@@ -312,17 +256,19 @@ Lexer.prototype.token = function(src) {
 
   // comment
   if (cap = this.rules.comment.exec(src)) {
+    text = src.slice(cap[0].length);
     return {
       type: 'comment',
-      text: cap[1]
+      text: text
     };
   }
 
   // code
   if (cap = this.rules.code.exec(src)) {
+    text = src.slice(cap[0].length);
     return {
       type: 'code',
-      text: cap[1]
+      text: text
     };
   }
 
@@ -337,25 +283,27 @@ Lexer.prototype.token = function(src) {
 
   // title
   if (cap = this.rules.title.exec(src)) {
-    var argsraw = cap[1] || '';
-    var args = parseArgs(argsraw, number);
+    argsraw = cap[1] || '';
+    args = parseArgs(argsraw, number);
+    text = src.slice(cap[0].length);
     return {
       type: 'title',
       args: args,
       text: cap[2],
-      preamble: cap[4]
+      preamble: text
     };
   }
 
   // svg
   if (cap = this.rules.svg.exec(src)) {
-    var number = cap[1] == undefined;
-    var argsraw = cap[2] || '';
-    var args = parseArgs(argsraw, number);
+    number = cap[1] == undefined;
+    argsraw = cap[2] || '';
+    args = parseArgs(argsraw, number);
+    text = src.slice(cap[0].length);
     return {
       type: 'svg',
       args: args,
-      svg: cap[3]
+      svg: text
     };
   }
 
@@ -373,54 +321,26 @@ Lexer.prototype.token = function(src) {
   // envbeg
   if (cap = this.rules.envbeg.exec(src)) {
     var end = cap[1] != undefined;
-    var number = cap[3] == undefined;
-    var argsraw = cap[4] || '';
-    var args = parseArgs(argsraw, number);
+    number = cap[3] == undefined;
+    argsraw = cap[4] || '';
+    args = parseArgs(argsraw, number);
+    text = src.slice(cap[0].length);
     return {
       type: 'envbeg',
       end: end,
       env: cap[2],
-      text: cap[5],
-      args: args
+      args: args,
+      text: text
     };
   }
 
   // envend
   if (cap = this.rules.envend.exec(src)) {
+    text = src.slice(cap[0].length);
     return {
       type: 'envend',
-      text: cap[1]
+      text: text
     };
-  }
-
-  // table no leading pipe (gfm)
-  if (cap = this.rules.nptable.exec(src)) {
-    src = src.substring(cap[0].length);
-
-    item = {
-      type: 'table',
-      header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
-      align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-      cells: cap[3].replace(/\n$/, '').split('\n')
-    };
-
-    for (i = 0; i < item.align.length; i++) {
-      if (/^ *-+: *$/.test(item.align[i])) {
-        item.align[i] = 'right';
-      } else if (/^ *:-+: *$/.test(item.align[i])) {
-        item.align[i] = 'center';
-      } else if (/^ *:-+ *$/.test(item.align[i])) {
-        item.align[i] = 'left';
-      } else {
-        item.align[i] = null;
-      }
-    }
-
-    for (i = 0; i < item.cells.length; i++) {
-      item.cells[i] = item.cells[i].split(/ *\| */);
-    }
-
-    return item;
   }
 
   // lheading
@@ -441,16 +361,16 @@ Lexer.prototype.token = function(src) {
 
   // blockquote
   if (cap = this.rules.blockquote.exec(src)) {
-    console.log(cap);
+    text = src.slice(cap[0].length);
     return {
       type: 'blockquote',
-      text: cap[1]
+      text: text
     };
   }
 
   // list
   if (cap = this.rules.list.exec(src)) {
-    bull = cap[1];
+    var bull = cap[1];
 
     var token = {
       type: 'list',
@@ -461,11 +381,11 @@ Lexer.prototype.token = function(src) {
     // Get each top-level item.
     cap = cap[0].match(this.rules.item);
 
-    next = false;
-    l = cap.length;
-    i = 0;
+    var item, space, loose, b;
+    var next = false;
+    var len = cap.length;
 
-    for (; i < l; i++) {
+    for (i = 0; i < len; i++) {
       item = cap[i];
 
       // Remove the list item's bullet
@@ -484,11 +404,11 @@ Lexer.prototype.token = function(src) {
 
       // Determine whether the next list item belongs here.
       // Backpedal if it does not belong in this list.
-      if (this.options.smartLists && i !== l - 1) {
+      if (this.options.smartLists && i !== len - 1) {
         b = block.bullet.exec(cap[i + 1])[0];
         if (bull !== b && !(bull.length > 1 && b.length > 1)) {
           src = cap.slice(i + 1).join('\n') + src;
-          i = l - 1;
+          i = len - 1;
         }
       }
 
@@ -496,7 +416,7 @@ Lexer.prototype.token = function(src) {
       // Use: /(^|\n)(?! )[^\n]+\n\n(?!\s*$)/
       // for discount behavior.
       loose = next || /\n\n(?!\s*$)/.test(item);
-      if (i !== l - 1) {
+      if (i !== len - 1) {
         next = item.charAt(item.length - 1) === '\n';
         if (!loose) loose = next;
       }
@@ -506,18 +426,6 @@ Lexer.prototype.token = function(src) {
     }
 
     return token;
-  }
-
-  // html
-  if (cap = this.rules.html.exec(src)) {
-    return {
-      type: this.options.sanitize
-        ? 'paragraph'
-        : 'html',
-      pre: !this.options.sanitizer
-        && (cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style'),
-      text: cap[0]
-    };
   }
 
   // table (gfm)
@@ -550,27 +458,11 @@ Lexer.prototype.token = function(src) {
     return item;
   }
 
-  // top-level paragraph
-  if (cap = this.rules.paragraph.exec(src)) {
-    return {
-      type: 'paragraph',
-      text: cap[1].charAt(cap[1].length - 1) === '\n'
-        ? cap[1].slice(0, -1)
-        : cap[1]
-    };
-  }
-
-  // text
-  if (cap = this.rules.text.exec(src)) {
-    // Top-level should never reach here.
-    return {
-      type: 'text',
-      text: cap[0]
-    };
-  }
-
-  // fail
-  console.log('marked3: block match fail');
+  // top-level paragraph (fallback)
+  return {
+    type: 'paragraph',
+    text: src
+  };
 };
 
 /**
