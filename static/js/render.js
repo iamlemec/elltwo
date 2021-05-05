@@ -45,6 +45,9 @@ $(document).ready(function() {
             lockParas(response);
     });
 
+    //set folded paras from cookie
+    folded = cooks('folded') || folded;
+
     $('.para').each(function() {
         var para = $(this);
         makePara(para);
@@ -181,7 +184,7 @@ deletePara = function(pid) {
     createRefs(); // we may be able to scope this more
 };
 
-insertPara = function(pid, new_pid, before=true, raw='') {
+insertParaRaw = function(pid, new_pid, before=true, raw='') {
     console.log('insertPara:', pid, new_pid, before, raw);
     var para = getPara(pid);
     var new_para = $('<div>', {class: 'para', pid: new_pid, raw: raw});
@@ -196,10 +199,31 @@ insertPara = function(pid, new_pid, before=true, raw='') {
         para.after(new_para);
     }
     new_para.html(inner_para);
+    return new_para
+};
+
+insertPara = function(pid, new_pid, before=true, raw='') {
+    let new_para = insertParaRaw(pid, new_pid, before, raw);
     rawToRender(new_para);
     rawToTextarea(new_para);
     makeActive(new_para);
     sendMakeEditable();
+};
+
+pasteCB = function(pid, paste) {
+    var n = null;
+    paste.forEach(d => { //d is [new_pid, paste_id, text] (text if forign)
+        const txt = getPara(d[1]).attr('raw') || d[2];
+        let new_para = insertParaRaw(pid, d[0], false, txt);
+        rawToRender(new_para, true); //defer
+        rawToTextarea(new_para);
+        n = n || new_para;
+        pid = d[0];
+    })
+    envClasses();
+    createRefs();
+    $('.para').removeClass('copy_sel');
+    makeActive(n);
 };
 
 applyDiff = function(edits) {
@@ -317,6 +341,9 @@ envClasses = function(outer) {
             env_all.addClass('env');
             env_all.attr('env_id', env_id);
             txt_all.addClass(`env__${env_name}`);
+            if(folded.includes(env_id)){
+                env_all.addClass('folded');
+            };
             envFormat(txt_all, env_name, env_args);
 
             env_name = null;
@@ -1058,7 +1085,7 @@ $.fn.ignore = function(sel) {
 getBlurb = function(len=200) {
     var blurb = '';
     var size = 0;
-    $('.para').each(function() {
+    $('.para').not('.folder').each(function() {
         var para = $(this);
         var ptxt = para.children('.p_text');
         var core = ptxt.ignore('.katex-mathml, .eqnum, img, svg')

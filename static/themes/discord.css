@@ -130,6 +130,10 @@ button:hover {
     border-right: 2px solid var(--dc-blue-col);
 }
 
+.para.copy_sel{
+    background-color: var(--bg-hl-col);   
+}
+
 .controlDots {
     color: var(--pop-bg-col);
 }

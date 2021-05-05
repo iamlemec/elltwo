@@ -5,6 +5,7 @@ var active_para = null; // current active para
 var last_active = null; // to keep track of where cursor was
 var editable = false; // are we focused on the active para
 var writeable = !readonly; // can we actually modify contents
+var cb = []; // clipboard for cell copy
 
 /// textarea manage
 
@@ -160,6 +161,7 @@ trueMakeEditable = function(rw=true, cursor='end') {
 
 sendMakeEditable = function(cursor='end') {
     $('.para').removeClass('editable');
+    $('.para').removeClass('copy_sel')
     if (active_para) {
         if(active_para.hasClass('folder')){
             fold(active_para);
@@ -242,6 +244,9 @@ unlockParas = function(pids) {
 /// active para tracking
 
 makeActive = function(para, scroll=true) {
+    if(!para){
+        $('.para').removeClass('copy_sel');
+    }
     makeUnEditable();
     $('.para').removeClass('active');
     if (active_para) {
@@ -383,7 +388,8 @@ fold = function(para){
         const fold = $(`[fold_id=${env_id}]`).first()
         fold.removeClass('folded')
         makeActive(fold)
-
+        const foldcookie = JSON.stringify(folded)
+        document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
     }else if(fold_id){
         const index = folded.indexOf(fold_id);
         if (index > -1) {
@@ -396,8 +402,33 @@ fold = function(para){
         const fold = $(`[fold_id=${fold_id}]`).first()
         fold.addClass('folded')
         makeActive(env.first())
+        const foldcookie = JSON.stringify(folded)
+        document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
     };
 };
+
+//copy cell
+
+copyCells = function(){
+    cb=[];
+    let copy_sel = $('.copy_sel, .active')
+    copy_sel.each(function(){
+        cb.push($(this).attr('pid'))
+    })
+    const cbcookie = JSON.stringify(cb)
+    document.cookie = `cb=${cbcookie}; path=/; max-age=60; samesite=lax; secure`;
+}
+
+pasteCells = function(){
+    let pid = active_para.attr('pid')
+    let ccb = cooks('cb') || cb
+    if(ccb&&pid){
+        let data = {room:aid, pid:pid, cb:ccb};
+        client.sendCommand('paste_cells', data, function(response) {
+            console.log(response)
+        });
+    }
+}
 
 /// KEYBOARD NAV
 
@@ -422,16 +453,30 @@ $(document).keydown(function(e) {
         if (key == 'enter' || key == 'w') {
             sendMakeEditable();
             return false;
-        } else if (key == 'arrowup') {
+        }else if (key == 'arrowup') {
+            if(shift){
+                active_para.addClass('copy_sel')
+            } else {
+                $('.para').removeClass('copy_sel')
+            }
             activePrevPara();
             return false;
         } else if (key == 'arrowdown') {
+            if(shift){
+                active_para.addClass('copy_sel')
+            } else {
+                $('.para').removeClass('copy_sel')
+            }
             activeNextPara();
             return false;
         } else if (ctrl && key == 'home') {
             activeFirstPara();
         } else if (ctrl && key == 'end') {
             activeLastPara();
+        } else if (ctrl && key == 'c') {
+            copyCells();
+        } else if (ctrl && key == 'v') {
+            pasteCells();
         } else if (key == 'escape') {
             makeActive(null);
         } else if (shift && key == 'f') {
@@ -485,6 +530,7 @@ $(document).keydown(function(e) {
 
 $(document).on('click', '.para', function(e) {
     var alt = e.altKey;
+    var cmd = e.metaKey;
     if (alt) {
         var para = $(this);
         if (!para.hasClass('active')) {
@@ -493,15 +539,22 @@ $(document).on('click', '.para', function(e) {
             sendMakeEditable();
         }
         return false;
+    } else if (active_para && cmd){
+        $(this).addClass('copy_sel');
+        return false;
     }
 });
 
 $(document).on('click', '#bg', function(e) {
     var targ = event.target.id;
     var alt = e.altKey;
-    if (alt && (targ == 'bg' || targ == 'content')) {
+    if (targ == 'bg' || targ == 'content'){
+    if(alt){
         makeActive(null);
-        return false;
+    } else {
+        $('.para').removeClass('copy_sel')
+    }
+    return false;
     }
 });
 

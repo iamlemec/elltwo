@@ -337,6 +337,53 @@ class AxiomDB:
 
         return par1
 
+    def paste_after(self, pid, cb, time=None):
+        if time is None:
+            time = datetime.utcnow()
+
+        if (par := self.get_para(pid, time=time)) is None:
+            return
+        if (lin := self.get_link(pid, time=time)) is None:
+            return
+
+        linn = self.get_link(lin.next, time=time)
+        prev = pid
+        old_link = None
+        new_pid = None
+        pid_map = []
+
+        for paste_id in cb:
+            paste = self.get_para(paste_id, time=time)
+            new_pid = self.create_pid()
+            new_para = Paragraph(aid=par.aid, pid=new_pid, text=paste.text, create_time=time)
+            new_link = Paralink(aid=par.aid, pid=new_pid, prev=prev, create_time=time)
+            d = [new_pid, paste_id]
+            if(par.aid != paste.aid):
+                d.append(paste.text)
+            pid_map.append(d)
+            self.session.add(new_para)
+            self.session.add(new_link)
+            if(old_link):
+                old_link.next = new_pid
+                self.session.add(old_link)
+            else:
+                lin0 = splice_link(lin, time, next=new_pid)
+                self.session.add(lin0)
+
+            prev = new_pid
+            old_link = new_link
+
+        if linn is not None:
+            old_link.next = linn.pid
+            #linn.delete_time = time
+            new_linn = splice_link(linn, time, prev=new_pid)
+            self.session.add(new_linn)
+            self.session.add(old_link)
+
+        self.session.commit()
+
+        return pid_map
+
     def delete_para(self, pid, time=None):
         if time is None:
             time = datetime.utcnow()

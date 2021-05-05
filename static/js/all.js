@@ -74,3 +74,17 @@ ensureVisible = function(elem) {
         cont.animate({scrollTop: cell_bot - height + scrollFudge}, scrollSpeed);
     }
 };
+
+// get json cookies
+
+cooks = function(name){
+    const cookies = `; ${document.cookie}`;
+    const parts = cookies.split(`; ${name}=`);
+    if (parts.length === 2){
+        const f = parts.pop().split(';').shift();
+        return JSON.parse(f);
+    };
+
+}
+
+

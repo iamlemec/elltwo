@@ -32,6 +32,11 @@ function connect(url) {
         insertPara(...data);
     });
 
+    socket.on('pasteCB', function(data) {
+        console.log('paste')
+        pasteCB(...data);
+    });
+
     socket.on('deletePara', function(data) {
         deletePara(...data);
     });

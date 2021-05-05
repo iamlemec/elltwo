@@ -508,6 +508,18 @@ def insert_before(data):
     emit('insertPara', [data['pid'], par1.pid, True, text], room=data['room'])
     return True
 
+@socketio.on('paste_cells')
+@login_decor
+def paste_cells(data):
+    pid = data.get('pid')
+    cb = data.get('cb')
+    print(cb)
+    if not cb:
+        return False
+    pid_map = adb.paste_after(pid=pid,cb=cb)
+    emit('pasteCB', [data['pid'], pid_map], room=data['room'])
+    return True
+
 @socketio.on('delete_para')
 @login_decor
 def delete_para(data):
