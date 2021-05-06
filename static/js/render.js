@@ -538,6 +538,7 @@ env_spec = {
     'title': titleEnv,
     'svg': figEnv,
     'image': figEnv,
+    'table': figEnv,
     'imagelocal': imgEnv,
     'error': errorEnv,
 };

@@ -25,17 +25,19 @@ var block = {
   image: /^!(\*)? *(?:refargs)? *\(href\)\s*$/,
   imagelocal: /^!(\*)? *(?:refargs)\s*$/,
   biblio: /^@@ *(?:refid)\s*/,
-  figure: /^@(!|\|) *(?:refid) *([^\n]+)\s*/,
+  figtab: /^@\| *(?:refargs) *\n(?:table)/,
   envbeg: /^\>\>(\!)? ([\w-]+)(\*)? *(?:refargs)?\s*/,
   envend: /^\<\<\s*/,
-  fences: /^(`{3,}|~{3,})[ \.]*(\S+)? *\n([\s\S]*?)\s*\1 *(?:\n+|$)/, // heavy
-  list: /^(bull) [\s\S]+?(?:hr|\n{2,}(?! )(?!\1bull )\n*|\s*$)/, // heavy
-  table: /^\|(.+)\n *\|( *[-:]+[-| :]*)\n((?: *\|.*(?:\n|$))*)\n*/, // heavy
+  fences: /^(?:`{3,}|~{3,})\ ?(\S+)?\s*/,
+  list: /^((?: *(?:bull) ?[^\n]*(?:\n|$))+)\s*$/,
+  table: /^\|([^\n]+)\| *\n *\|( *[-:]+[-| :]*)\| *\n((?: *\|[^\n]*\| *(?:\n|$))*)\s*$/,
 };
 
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
 block._refargs = /(?:\[([\w-\|\=\s]+)\])/;
+block._bull = /(?:[*+-]|\d+\.)/;
+block._item = /^( *)(bull) ?/;
 
 block.image = replace(block.image)
   ('refargs', block._refargs)
@@ -74,19 +76,21 @@ block.envbeg = replace(block.envbeg)
   ('refargs', block._refargs)
   ();
 
-block.bullet = /(?:[*+-]|\d+\.)/;
-block.item = /^( *)(bull) [^\n]*(?:\n(?!\1bull )[^\n]*)*/;
-block.item = replace(block.item, 'gm')
-  (/bull/g, block.bullet)
+block.list = replace(block.list)
+  (/bull/g, block._bull)
   ();
 
-block.list = replace(block.list)
-  (/bull/g, block.bullet)
-  ('hr', '\\n+(?=\\1?(?:[-*_] *){3,}(?:\\n+|$))')
+block.figtab = replace(block.figtab)
+  ('refargs', block._refargs)
+  ('table', block.table)
+  ();
+
+block._item = replace(block._item)
+  ('bull', block._bull)
   ();
 
 /**
- * Block Lexer
+ * Args Parser
  */
 
 function parseArgs(argsraw, number=true) {
@@ -94,12 +98,13 @@ function parseArgs(argsraw, number=true) {
     return {'number': number};
   }
 
+  var fst;
   var args = {};
+
   argsraw.split('|')
          .map(x => x.split('='))
          .filter(x => x.length > 1)
          .forEach(x => args[x[0]] = x[1]);
-
 
   if ((Object.keys(args).length==0) && argsraw) {
     args['id'] = argsraw;
@@ -107,7 +112,7 @@ function parseArgs(argsraw, number=true) {
 
   if (!('id' in args)) {
     fst = argsraw.split('|')[0];
-    if (!(fst.includes("="))){
+    if (!(fst.includes("="))) {
       args['id'] = argsraw.split('|')[0];
     }
   }
@@ -118,6 +123,10 @@ function parseArgs(argsraw, number=true) {
 
   return args;
 }
+
+/**
+ * Block Lexer
+ */
 
 function Lexer(options) {
   this.options = options || marked.defaults;
@@ -151,6 +160,82 @@ Lexer.prototype.lex = function(src) {
     .replace(/\u2424/g, '\n');
 
   return this.token(src);
+};
+
+/**
+ * Specialized Functions
+ */
+
+Lexer.prototype.parseBiblio = function(id, text) {
+  var bib = {
+    type: 'biblio',
+    id: id,
+  }
+
+  var lines = text.split('\n');
+  var line, kv, key, val;
+
+  for (i in lines) {
+    line = lines[i];
+    if (line.includes(':')) {
+      kv = lines[i].split(':');
+      key = kv[0];
+      val = kv.slice(1).join(':').trim();
+      bib[key] = val;
+    }
+  }
+
+  return bib;
+};
+
+Lexer.prototype.parseTable = function(header, align, cells) {
+  var item = {
+    type: 'table',
+    header: header.replace(/^ *| *\| *$/g, '').split(/ *\| */),
+    align: align.replace(/^ *|\| *$/g, '').split(/ *\| */),
+    cells: cells.replace(/(?: *\| *)?\n$/, '').split('\n')
+  };
+
+  var i;
+
+  for (i = 0; i < item.align.length; i++) {
+    if (/^ *-+: *$/.test(item.align[i])) {
+      item.align[i] = 'right';
+    } else if (/^ *:-+: *$/.test(item.align[i])) {
+      item.align[i] = 'center';
+    } else if (/^ *:-+ *$/.test(item.align[i])) {
+      item.align[i] = 'left';
+    } else {
+      item.align[i] = null;
+    }
+  }
+
+  for (i = 0; i < item.cells.length; i++) {
+    item.cells[i] = item.cells[i]
+      .replace(/^ *\| *| *\| *$/g, '')
+      .split(/ *\| */);
+  }
+
+  return item;
+};
+
+Lexer.prototype.parseList = function(items) {
+  var list = {
+    type: 'list',
+    ordered: true,
+    items: items.split('\n')
+  };
+
+  var i, text, ret;
+
+  for (i = 0; i < list.items.length; i++) {
+    text = list.items[i];
+    ret = block._item.exec(text);
+    list.items[i] = text.slice(ret[0].length);
+    list.ordered &&= (ret[2].length > 1);
+  }
+
+  return list;
 };
 
 /**
@@ -220,38 +305,22 @@ Lexer.prototype.token = function(src) {
     };
   }
 
-  // FIX: break into figure-image and figure-table
-  // figure
-  if (cap = this.rules.figure.exec(src)) {
-    var ftype = (cap[1] == '!') ? 'image' : 'table';
-    text = src.slice(cap[0].length);
+  // figure table
+  if (cap = this.rules.figtab.exec(src)) {
+    argsraw = cap[1] || '';
+    args = parseArgs(argsraw);
+    var table = this.parseTable(cap[2], cap[3], cap[4]);
     return {
-      type: 'figure',
-      ftype: ftype,
-      tag: cap[2],
-      title: cap[3],
-      text: text
+      type: 'figtab',
+      args: args,
+      table: table
     };
   }
 
   // bibliographic info
   if (cap = this.rules.biblio.exec(src)) {
-    var bib = {
-      type: 'biblio',
-      id: cap[1],
-    }
     text = src.slice(cap[0].length);
-    var lines = text.split('\n');
-    for (i in lines) {
-      var line = lines[i];
-      if (line.includes(':')) {
-        var kv = lines[i].split(':');
-        var key = kv[0];
-        var val = kv.slice(1).join(':').trim();
-        bib[key] = val;
-      }
-    }
-    return bib;
+    return this.parseBiblio(cap[1], text);
   }
 
   // comment
@@ -272,12 +341,13 @@ Lexer.prototype.token = function(src) {
     };
   }
 
-  // fences (gfm)
+  // code fence
   if (cap = this.rules.fences.exec(src)) {
+    text = src.slice(cap[0].length);
     return {
       type: 'code',
-      lang: cap[2],
-      text: cap[3] || ''
+      lang: cap[1],
+      text: text
     };
   }
 
@@ -320,7 +390,7 @@ Lexer.prototype.token = function(src) {
 
   // envbeg
   if (cap = this.rules.envbeg.exec(src)) {
-    var end = cap[1] != undefined;
+    let end = cap[1] != undefined;
     number = cap[3] == undefined;
     argsraw = cap[4] || '';
     args = parseArgs(argsraw, number);
@@ -370,92 +440,12 @@ Lexer.prototype.token = function(src) {
 
   // list
   if (cap = this.rules.list.exec(src)) {
-    var bull = cap[1];
-
-    var token = {
-      type: 'list',
-      ordered: bull.length > 1,
-      items: []
-    };
-
-    // Get each top-level item.
-    cap = cap[0].match(this.rules.item);
-
-    var item, space, loose, b;
-    var next = false;
-    var len = cap.length;
-
-    for (i = 0; i < len; i++) {
-      item = cap[i];
-
-      // Remove the list item's bullet
-      // so it is seen as the next token.
-      space = item.length;
-      item = item.replace(/^ *([*+-]|\d+\.) +/, '');
-
-      // Outdent whatever the
-      // list item contains. Hacky.
-      if (~item.indexOf('\n ')) {
-        space -= item.length;
-        item = !this.options.pedantic
-          ? item.replace(new RegExp('^ {1,' + space + '}', 'gm'), '')
-          : item.replace(/^ {1,4}/gm, '');
-      }
-
-      // Determine whether the next list item belongs here.
-      // Backpedal if it does not belong in this list.
-      if (this.options.smartLists && i !== len - 1) {
-        b = block.bullet.exec(cap[i + 1])[0];
-        if (bull !== b && !(bull.length > 1 && b.length > 1)) {
-          src = cap.slice(i + 1).join('\n') + src;
-          i = len - 1;
-        }
-      }
-
-      // Determine whether item is loose or not.
-      // Use: /(^|\n)(?! )[^\n]+\n\n(?!\s*$)/
-      // for discount behavior.
-      loose = next || /\n\n(?!\s*$)/.test(item);
-      if (i !== len - 1) {
-        next = item.charAt(item.length - 1) === '\n';
-        if (!loose) loose = next;
-      }
-
-      // add item
-      token.items.push(item);
-    }
-
-    return token;
+    return this.parseList(cap[1]);
   }
 
   // table (gfm)
   if (cap = this.rules.table.exec(src)) {
-    item = {
-      type: 'table',
-      header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
-      align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
-      cells: cap[3].replace(/(?: *\| *)?\n$/, '').split('\n')
-    };
-
-    for (i = 0; i < item.align.length; i++) {
-      if (/^ *-+: *$/.test(item.align[i])) {
-        item.align[i] = 'right';
-      } else if (/^ *:-+: *$/.test(item.align[i])) {
-        item.align[i] = 'center';
-      } else if (/^ *:-+ *$/.test(item.align[i])) {
-        item.align[i] = 'left';
-      } else {
-        item.align[i] = null;
-      }
-    }
-
-    for (i = 0; i < item.cells.length; i++) {
-      item.cells[i] = item.cells[i]
-        .replace(/^ *\| *| *\| *$/g, '')
-        .split(/ *\| */);
-    }
-
-    return item;
+    return this.parseTable(cap[1], cap[2], cap[3]);
   }
 
   // top-level paragraph (fallback)
@@ -1220,6 +1210,62 @@ Parser.prototype.parse = function(src) {
 };
 
 /**
+ * Specialized Methods
+ */
+
+Parser.prototype.parseTable = function(token) {
+  var header = ''
+    , body = ''
+    , i
+    , row
+    , cell
+    , flags
+    , j;
+
+  // header
+  cell = '';
+  for (i = 0; i < token.header.length; i++) {
+    flags = { header: true, align: token.align[i] };
+    cell += this.renderer.tablecell(
+      this.inline.output(token.header[i]),
+      { header: true, align: token.align[i] }
+    );
+  }
+  header += this.renderer.tablerow(cell);
+
+  for (i = 0; i < token.cells.length; i++) {
+    row = token.cells[i];
+
+    cell = '';
+    for (j = 0; j < row.length; j++) {
+      cell += this.renderer.tablecell(
+        this.inline.output(row[j]),
+        { header: false, align: token.align[j] }
+      );
+    }
+
+    body += this.renderer.tablerow(cell);
+  }
+
+  return this.renderer.table(header, body);
+};
+
+Parser.prototype.parseList = function(token) {
+  var body = ''
+    , ordered = token.ordered
+    , row
+    , item;
+
+  for (i = 0; i < token.items.length; i++) {
+    row = token.items[i];
+    item = this.inline.output(row);
+    body += this.renderer.listitem(item);
+  }
+
+  return this.renderer.list(body, ordered);
+};
+
+/**
  * Parse Current Token
  */
 
@@ -1299,57 +1345,13 @@ Parser.prototype.tok = function() {
         this.token.escaped);
     }
     case 'table': {
-      var header = ''
-        , body = ''
-        , i
-        , row
-        , cell
-        , flags
-        , j;
-
-      // header
-      cell = '';
-      for (i = 0; i < this.token.header.length; i++) {
-        flags = { header: true, align: this.token.align[i] };
-        cell += this.renderer.tablecell(
-          this.inline.output(this.token.header[i]),
-          { header: true, align: this.token.align[i] }
-        );
-      }
-      header += this.renderer.tablerow(cell);
-
-      for (i = 0; i < this.token.cells.length; i++) {
-        row = this.token.cells[i];
-
-        cell = '';
-        for (j = 0; j < row.length; j++) {
-          cell += this.renderer.tablecell(
-            this.inline.output(row[j]),
-            { header: false, align: this.token.align[j] }
-          );
-        }
-
-        body += this.renderer.tablerow(cell);
-      }
-
-      return this.renderer.table(header, body);
+      return this.parseTable(this.token);
     }
     case 'blockquote': {
       return this.renderer.blockquote(this.token.text);
     }
     case 'list': {
-      var body = ''
-        , ordered = this.token.ordered
-        , row
-        , item;
-
-      for (i = 0; i < this.token.items.length; i++) {
-        row = this.token.items[i];
-        item = this.inline.output(row);
-        body += this.renderer.listitem(item);
-      }
-
-      return this.renderer.list(body, ordered);
+      return this.parseList(this.token);
     }
     case 'html': {
       var html = !this.token.pre && !this.options.pedantic
@@ -1382,13 +1384,14 @@ Parser.prototype.tok = function() {
       }
       return this.renderer.imagelocal();
     }
-    case 'figure': {
-      var ftype = this.token.ftype;
-      var tag = this.token.tag;
-      var title = this.token.title;
-      var body = this.inline.output(this.token.text);
-      return this.renderer.figure(ftype, tag, title, body);
-    }
+    case 'figtab': {
+      this.env = {
+        type: 'env_one',
+        env: 'table',
+        args: this.token.args
+      }
+      return this.parseTable(this.token.table);
+     }
     case 'biblio': {
       var id = this.token.id;
       delete this.token['type'];
