@@ -332,21 +332,21 @@ Lexer.prototype.token = function(src) {
     };
   }
 
-  // code
-  if (cap = this.rules.code.exec(src)) {
-    text = src.slice(cap[0].length);
-    return {
-      type: 'code',
-      text: text
-    };
-  }
-
   // code fence
   if (cap = this.rules.fences.exec(src)) {
     text = src.slice(cap[0].length);
     return {
       type: 'code',
       lang: cap[1],
+      text: text
+    };
+  }
+
+  // code
+  if (cap = this.rules.code.exec(src)) {
+    text = src.slice(cap[0].length);
+    return {
+      type: 'code',
       text: text
     };
   }
