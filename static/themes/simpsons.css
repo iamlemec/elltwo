@@ -1,4 +1,5 @@
 :root {
+    --font-col: black;
     --bg-hl-col: rgba(217, 121, 4, .4); /* popup text color */
     --bg-hl2-col: rgb(205, 205, 205); /* popup text color */
     --bg-col: #F2B90F;
