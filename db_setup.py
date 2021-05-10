@@ -80,6 +80,7 @@ class ExtRef(Base):
     text = Column(Text, nullable=False)
     cite_type = Column(Text, nullable=False)
     cite_env = Column(Text, nullable=False)
+    ref_text = Column(Text)
     create_time = Column(DateTime, default=datetime.utcnow)
     delete_time = Column(DateTime)
 

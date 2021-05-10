@@ -211,7 +211,7 @@ insertPara = function(pid, new_pid, before=true, raw='') {
 };
 
 pasteCB = function(pid, paste) {
-    var n = null;
+        var n = null;
     paste.forEach(d => { //d is [new_pid, paste_id, text] (text if forign)
         const txt = getPara(d[1]).attr('raw') || d[2];
         let new_para = insertParaRaw(pid, d[0], false, txt);
@@ -638,27 +638,6 @@ createRefs = function(para) {
         };
     });
 
-    // will only require server interaction for novel citations
-    //since we are not displaying refrences we dont need this bit either, i think
-    // var unRenderedCites = [];
-    // for (let key of citeKeys) {
-    //     if (!renderedCites.has(key)) {
-    //         unRenderedCites.push(key);
-    //     }
-    // }
-
-    /*
-    // skipping this shouldn't kill us, and saves some redundant passes
-    // remove old bib entries that have been removed
-    for (let key of renderedCites) {
-        if (!citeKeys.has(key)) {
-            $('#'+key).remove();
-        }
-    }
-    */
-
-    // communicate results to server
-    // if (unRenderedCites.length > 0) {
     if (citeKeys.size > 0) {
         client.sendCommand('get_cite', {'keys': [...citeKeys]}, function(response) {
             renderBibLocal(response);
@@ -701,7 +680,7 @@ getTro = function(ref, callback) {
             tro.tro = $($.parseHTML(data.text));
             tro.cite_type = data.cite_type;
             tro.cite_env = data.cite_env;
-            text = text || tro.tro.attr('ref_text') || '';
+            text = text || data.ref_text || '';
             callback(ref, tro, text, data.title);
         });
     } else {
@@ -722,11 +701,12 @@ troFromKey = function(key, tro={}) {
             } else {
                 tro.cite_type = 'env';
                 tro.cite_env = tro.tro.attr('env');
-                //tro.ref_text = tro.tro.attr('ref_text') || '';
+                tro.ref_text = tro.tro.attr('ref_text') || '';
                 tro.cite_sel = tro.tro.attr('env_sel');
             }
         } else if (tro.tro.hasClass('cite')) {
             tro.cite_type = 'cite';
+            tro.ref_text = tro.tro.attr('ref_text') || '';
         } else {
             tro.cite_type = 'err';
             tro.cite_err = 'unknown_type';
@@ -826,7 +806,7 @@ refEnv = function(ref, tro, env, ext) {
     }
 
     if(ext){
-        citeText += ` (${ext})`
+        citeText += ` [${ext}]`
     }
 
     ref.text(citeText);
@@ -1036,13 +1016,14 @@ pop_spec = {
 /// External References
 
 createExtRef = function(id) {
-    var tro = troFromKey(id);
-    var ref = {};
+    let tro = troFromKey(id);
+    let ref = {};
     ref.aid = aid;
     ref.key = id;
     ref.cite_type = tro.cite_type;
     ref.cite_env = tro.cite_env;
     ref.text = popText(tro);
+    ref.ref_text = tro.ref_text;
     return ref;
 };
 
@@ -1225,12 +1206,13 @@ esc = function(raw){
              .replace(/\@/g, '&#36;')//@
              .replace(/\*/g, '&#42;')//*
              .replace(/\!/g, '&#33;')//!
+             .replace(/%/g, '&#37;')//%
 
     return out
 }
 
 inlines = {
-    comment: /%([^\n]+?)(\n|$)/g,
+    comment: /%(?!%)([^\n]+?)(\n|$)/g,
     code: /(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/g,
     ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/,
     math: /\$((?:\\\$|[\s\S])+?)\$/g,
@@ -1291,6 +1273,7 @@ var blocks = {
     heading: /^(#{1,6})(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]+?)? *#* *(?:\n+|$)/,
     text: /^[^\n]+/,
     code: /^``([\S\s]*)/,
+    comment: /^(\/\/|\%+)([\S\s]*)/,
     equation: /^\$\$(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
     figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
     svg: /^\!svg(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:$)/,
@@ -1316,8 +1299,12 @@ sytaxParseBlock = function(raw) {
 
     if (cap = blocks.code.exec(raw)) {
         let text = (cap[1]) || "";
-        console.log(cap, text)
         return s('``', 'hl') + s(esc(text), 'code');
+    }
+
+    if (cap = blocks.comment.exec(raw)) {
+        let text = (cap[2]) || "";
+        return s(cap[1], 'comment_head') + s(esc(text), 'comment');
     }
 
     if (cap = blocks.equation.exec(raw)) {

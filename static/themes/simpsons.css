@@ -80,6 +80,15 @@ button:hover {
     border-right: 2px solid var(--font-col-int);
 }
 
+.para.copy_sel{
+    background-color: var(--bg-hl-col);   
+}
+
+.para.copy_sel{
+    background-color: var(--bg-hl-col);   
+}
+
+
 /* text elements */
 
 .footnote {

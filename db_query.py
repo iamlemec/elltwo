@@ -603,7 +603,7 @@ class AxiomDB:
             time = datetime.utcnow()
         return self.session.query(ExtRef).filter_by(key=key).filter_by(aid=aid).filter(reftime(time)).one_or_none()
 
-    def create_ref(self, key, aid, cite_type, cite_env, text, time=None):
+    def create_ref(self, key, aid, cite_type, cite_env, text, ref_text, time=None):
         if time is None:
             time = datetime.utcnow()
 
@@ -611,7 +611,7 @@ class AxiomDB:
             ref0.delete_time = time
             self.session.add(ref0)
 
-        ref = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, create_time=time)
+        ref = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, ref_text=ref_text, create_time=time)
         self.session.add(ref)
         self.session.commit()
 

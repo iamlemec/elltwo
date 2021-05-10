@@ -1,7 +1,7 @@
 #! Preference Relations
 \R:\mathbb{R}
 \s:\succcurlyeq
-\f: \frac{\partial #1}{\partial #2}
+\l: \ell
 
 A *preference relation* is a binary relation symbolizing the preference of a decision maker (DM) over a set of alternatives, the typical notation for which is $\succcurlyeq$. If $x$ and $y$ are alternatives considered by the decision maker, then $x \succcurlyeq y$ is interpreted as the statement that the DM considers $x$ to at least as good as $y$. Formally, $\succcurlyeq$ is a subset of $X \times X$, but it is common practice to use infix notation, as above.
 
@@ -33,9 +33,20 @@ The simplest representation theorem ensures the existence of a representation ov
 
 >>! theorem [thm_rep] A preference relation $\s$, defined on a finite set $X$, is @[completeness:completeness|text=complete] and @[transitivity:transitivity|text=transitive] if and only if it is represented by a utility function $U:X\to\R$.
 
->> proof The if direction is obvious. Only if: For each $x \in X$ define $LCS(x) = \{ y \in X \mid x \s y\}$.
+>> proof The if direction is obvious. Only if: For each $x \in X$ define $\l(x) = \{ y \in X \mid x \s y\}$. We claim: $U: x \mapsto \#(\l(x))$ represents^[For a set $A$, $\#(A)$ is the number of elements in $A$.] $\s$. 
 
-We claim: $U: x \mapsto \#LCS(x)$ represents^[For a set $A$, $\#A$ is the number of elements in $A$.] $\s$. Indeed, let $\#LCS(x) \geq \#LCS(y)$, then 
-Transitivity ensures that if $x\s y$ then 
+First, notice that @[transitivity:transitivity] ensures that if $x\s y$ then $\l(x) \supseteq \l(y)$. It follows immediately that if $x\s y$ then $\#(\l(x)) \geq \#(\l(y))$.
 
-<<
+<<  Towards the other direction, let $\#(\l(x)) \geq \#(\l(y))$. Now it cannot be that $y \succ x$, as this would imply $\l(y) \supsetneq \l(x)$, contradicting our assumption. Thus by @[completeness:completeness] we have that $x \s y$.
+
+When $X$ is countable, @[thm_rep] still holds, although the proof must be altered slightly. Instead of associating the cardinality of the lower contour set, we must first order the elements of $X$ by the natural numbers $o: X \to \mathbb{N}$, and then take some convergent series as our utilities. For instance
+
+$$ U: x \mapsto \sum_{y \in \l(x)} \frac{1}{2^{o(y)}}
+
+## Ordinality 
+
+The magnitude of the utilities in a representation are irrelevant (and indeed at times misleading), since $\s$ embodies only ordinal preference. Without additional assumptions on the interpretation of $\s$ (for example expected utility), there is no sense in which $x \s y$ measures how much *more preferred* $x$ is than $y$, only that it is preferred.
+
+This fact is made formal through the following theorem
+
+>>! theorem [mon_trans] If $U: X \to \R$ represents $\s$ and $h: \R \to \R$ is strictly increasing then $V = h \circ U$ also represents $\s$.

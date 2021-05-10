@@ -554,7 +554,7 @@ $(document).on('click', '#bg', function(e) {
     } else {
         $('.para').removeClass('copy_sel')
     }
-    return false;
+    //return false;
     }
 });
 

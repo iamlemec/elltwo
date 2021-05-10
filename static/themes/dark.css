@@ -127,6 +127,11 @@ button:hover {
     border-right: 2px solid var(--hl-col);
 }
 
+.para.copy_sel{
+    background-color: var(--pop-fg-col);   
+}
+
+
 /* text elements */
 
 

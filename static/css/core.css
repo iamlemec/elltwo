@@ -61,6 +61,7 @@ textarea:focus, input:focus {
     font-size: 70%;
     background-color:  var(--bg-hl2-col);
     font-family: 'Open Sans', sans-serif;
+    z-index: 2;
 }
 
 #bg {

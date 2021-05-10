@@ -12,7 +12,7 @@
 
 var block = {
   empty: /^(\s*)$/,
-  comment: /^\/\/ ?/,
+  comment: /^(?:\/\/|\%) ?/,
   hr: /^([-*_]){3,}\s*$/,
   heading: /^(#{1,6})(\*?) *(?:refargs)? *([^\n]+?)\s*$/,
   lheading: /^([^\n]+)\n *(=|-){2,}\s*$/,
@@ -461,7 +461,7 @@ Lexer.prototype.token = function(src) {
 
 var inline = {
   escape: /^\\([\\`*{}\[\]()#+\-.!_>\$%])/,
-  comment: /^%(?:[^\n]+?)(?:\n|$)/,
+  in_comment: /^%(?:[^\n]+?)(?:\n|$)/,
   autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
   url: noop,
   tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^'">])*?>/,
@@ -598,9 +598,9 @@ InlineLexer.prototype.output = function(src) {
     }
 
     // comment
-    if (cap = this.rules.comment.exec(src)) {
+    if (cap = this.rules.in_comment.exec(src)) {
       src = src.substring(cap[0].length);
-      out += this.renderer.comment(cap[0]); //passes entire comment to rendere (for tex)
+      out += this.renderer.in_comment(cap[0]); //passes entire comment to rendere (for tex)
       continue;
     }
 
@@ -804,6 +804,10 @@ DivRenderer.prototype.empty = function(text) {
 
 DivRenderer.prototype.comment = function(text) {
   return `<div class="comment">\n${text}\n</div>\n\n`;
+};
+
+DivRenderer.prototype.in_comment = function(text) {
+  return ``;
 };
 
 DivRenderer.prototype.code = function(code, lang, escaped) {

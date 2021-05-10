@@ -646,6 +646,7 @@ def get_ref(data):
                 'text': ref.text,
                 'cite_type': ref.cite_type,
                 'cite_env': ref.cite_env,
+                'ref_text': ref.ref_text,
                 'title': title
                 }
         else:
@@ -670,7 +671,8 @@ def get_arts(data):
 @socketio.on('update_ref')
 @login_decor
 def update_ref(data):
-    adb.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'])
+    #adb.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'], data['ref_text'])
+    adb.create_ref(**data)
 
 @socketio.on('update_g_ref')
 def update_g_ref(data):
