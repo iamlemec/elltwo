@@ -751,3 +751,31 @@ circle.commit.active {
      }
 
 }
+
+/* tables */
+
+.table {
+    display: table;
+}
+
+.table-header {
+    display: table-header-group;
+}
+
+.table-header .table-cell {
+    font-weight: bold;
+    border-bottom: 1px solid var(--font-col);
+}
+
+.table-body {
+    display: table-row-group;
+}
+
+.table-row {
+    display: table-row;
+}
+
+.table-cell {
+    display: table-cell;
+    padding: 3px 10px;
+}
