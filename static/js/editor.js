@@ -376,36 +376,96 @@ make_cc = function() {
 
 //
 
+getFoldParas = function(pid){
+    para = getPara(pid);
+    l = para.attr('head_level');
+    if(para.attr('env')=='heading'){
+
+        let fps = [para]
+        let nx = Object.entries(para.nextAll('.para'))
+        for (const [k, p] of nx) {
+            if($(p).attr('head_level') <= l){
+                break
+            }
+            if(!$(p).hasClass('folder')){
+                fps.push(p);
+            }
+        }
+        //what the fuck jquery, why (returns differnt object type in the two cases)
+        return [$(fps), $(fps).first()[0]]
+    } else{
+        let fps = $(`[env_id=${pid}]`)
+        return [$(fps), $(fps).first()]
+    }
+}
+
+renderFold = function(){
+    $('.para').not('.folder').each(function(){
+        fl = parseInt($(this).attr('fold_level'));
+        if(fl > 0){
+            $(this).addClass('folded');
+        } else {
+            $(this).removeClass('folded');
+        }
+    });
+    $('.folder').each(function(){
+        let fl = parseInt($(this).attr('fold_level'));
+        let pid = $(this).attr('fold_id');
+        let p = getPara(pid);
+        let flp = parseInt(p.attr('fold_level'));
+        if(fl > 0 && flp==1){
+            $(this).removeClass('folded');
+        } else {
+            $(this).addClass('folded');
+        }
+    });
+}
+
 fold = function(para){
     env_id = para.attr('env_id');
     fold_id = para.attr('fold_id');
     if(env_id){
         folded.push(env_id);
-        const env = $(`[env_id=${env_id}]`)
-        env.each(function(){
-            $(this).addClass('folded')
+        const foldParas = getFoldParas(env_id)
+        foldParas[0].each(function(){
+            const l = parseInt($(this).attr('fold_level'));
+            $(this).attr('fold_level', l+1)
         });
         const fold = $(`[fold_id=${env_id}]`).first()
-        fold.removeClass('folded')
+        const l = parseInt(fold.attr('fold_level'));
+        fold.attr('fold_level', l+1)
         makeActive(fold)
         const foldcookie = JSON.stringify(folded)
-        document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
+        document.cookie = `folded=[${foldcookie}]; path=/; samesite=lax; secure`;
     }else if(fold_id){
         const index = folded.indexOf(fold_id);
         if (index > -1) {
             folded.splice(index, 1);
         };
-        const env = $(`[env_id=${fold_id}]`)
-        env.each(function(){
-            $(this).removeClass('folded')
+        const foldParas = getFoldParas(fold_id);
+        foldParas[0].each(function(){
+            const l = parseInt($(this).attr('fold_level'));
+            $(this).attr('fold_level', l-1)
         });
-        const fold = $(`[fold_id=${fold_id}]`).first()
-        fold.addClass('folded')
-        makeActive(env.first())
-        const foldcookie = JSON.stringify(folded)
+        const fold = $(`[fold_id=${fold_id}]`).first();
+        const l = parseInt(fold.attr('fold_level'));
+        fold.attr('fold_level', l-1);
+        makeActive(foldParas[1]);
+        const foldcookie = JSON.stringify(folded);
         document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
     };
+    renderFold()
 };
+
+unfold = function(){
+    $('.para').each(function(){
+            $(this).attr('fold_level', 0)
+    });
+    folded = [];
+    const foldcookie = JSON.stringify(folded);
+    document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
+    renderFold()
+}
 
 //copy cell
 
@@ -441,6 +501,8 @@ $(document).keydown(function(e) {
     if (ctrl && key == 'enter') {
         toggle_hist_map();
         return false;
+    } else if (shift && ctrl && key == 'f') {
+            unfold();
     } else if (ctrl && key == 's') {
         return false;
     }
@@ -479,6 +541,8 @@ $(document).keydown(function(e) {
             pasteCells();
         } else if (key == 'escape') {
             makeActive(null);
+        } else if (shift && ctrl && key == 'f') {
+            unfold();
         } else if (shift && key == 'f') {
             fold(active_para);
         }

@@ -69,6 +69,10 @@
     display: none;
 }
 
+.folder .comment{
+    font-size: 15px;
+}
+
 #bg.readonly .control {
     display: none;
 }

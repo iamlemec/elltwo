@@ -55,6 +55,8 @@ $(document).ready(function() {
 
     envClasses();
     createRefs();
+    renderFold();
+
 
     if(g_ref){ //set external reference for import_markdown arts
         $('.para').each(function() {
@@ -251,11 +253,10 @@ applyDiff = function(edits) {
     });
 }
 
-/////////////////// ENVS /////////
+///////////////// ENVS /////////
 
-// move this to backend when we have user genereted envs
 
-// creates classes for environs
+//creates classes for environs
 envClasses = function(outer) {
     if (outer === undefined) {
         outer = $('#content');
@@ -365,6 +366,7 @@ envClasses = function(outer) {
     createTOC(outer);
 };
 
+
 envFormat = function(ptxt, env, args) {
     if (env in env_spec) {
         env_spec[env](ptxt, args);
@@ -418,9 +420,10 @@ simpleEnv = function(ptxt, env, head='', tail='', number=true, args={}) {
     para = first.parent()
     let env_id = para.attr('env_id')
     fold.attr('fold_id', env_id)
-    if(!folded.includes(env_id)){
-        fold.addClass('folded')
-    }
+        .attr('fold_level', 0)
+    // if(!folded.includes(env_id)){
+    //     fold.addClass('folded')
+    // }
     para.before(fold);
 };
 
@@ -456,8 +459,10 @@ titleEnv = function(ptxt, args) {
 
 headingEnv = function(ptxt, args) {
     ptxt.addClass(`env__heading_h${args.level}`);
-    ptxt.attr('head_level', args.level)
-    var num = $('<span>', {class: 'env_add'});
+    ptxt.attr('head_level', args.level);
+    pre_fold = ptxt.clone();
+    let num = $('<span>', {class: 'env_add'});
+    let pre_num = num.clone()
     if (args.number) {
         l = 1;
         while (args.level - l) {
@@ -465,9 +470,28 @@ headingEnv = function(ptxt, args) {
             num.append('.');
             l += 1;
         }
-        num.append(makeCounter(`heading${l}`, 1));
+        pre_num = num.clone()
+        num.append(makeCounter(`heading${l}`, 0));
+        pre_num.append(makeCounter(`heading${l}`, 1));
     }
     ptxt.prepend([num, ' ']);
+    pre_fold.prepend([pre_num, ' ']);
+    fold_t = $('<span>', {class: `comment`, html: '(env folded, shift+f to unfold)'});
+    pre_fold.append(['. ', fold_t]);
+
+
+    let fold = $('<div>', {class: `para folder`, html: pre_fold});
+    para = ptxt.parent()
+    let env_id = para.attr('pid')
+    para.attr('env_id', env_id)
+        .attr('head_level', args.level);
+    fold.attr('fold_id', env_id)
+        .attr('head_level', args.level)
+        .attr('fold_level', 0);
+    // if(!folded.includes(env_id)){
+    //     fold.addClass('folded')
+    // }
+    para.before(fold);
 };
 
 equationEnv = function(ptxt, args) {

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from flask_msearch.whoosh_backend import WhooshSearch, DEFAULT_ANALYZER
+#from flask_msearch.whoosh_backend import WhooshSearch, DEFAULT_ANALYZER
 
 class Multimap:
     def __init__(self):

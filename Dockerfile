@@ -23,7 +23,7 @@ COPY static/js static/js
 COPY static/katex/dist static/katex/dist
 COPY static/libs static/libs
 COPY static/themes static/themes
-COPY static/favicon.ico static/faveicon.ico
+COPY static/favicon static/favicon
 COPY templates templates
 
 # Load in cookie secret (SECRET_KEY and SECURITY_PASSWORD_SALT)
