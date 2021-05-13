@@ -82,6 +82,7 @@ cooks = function(name){
     const parts = cookies.split(`; ${name}=`);
     if (parts.length === 2){
         const f = parts.pop().split(';').shift();
+        console.log(f)
         return JSON.parse(f);
     };
 

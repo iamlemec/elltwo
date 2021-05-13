@@ -109,9 +109,21 @@ button:hover {
  color: var(--font-col);
 }
 
+#content.sb_content{
+    position: absolute;
+    left: 20%;
+} 
+
+.sb_content .para {
+    left: 10% !important;
+}
+
 /* paras */
 
 .para {
+    max-width: 1000px !important;;
+    left: 20% !important;
+    width: 60% !important;
 }
 
 .para.active {
@@ -140,6 +152,14 @@ button:hover {
   color: var(--hl-col);
   font-size: 70%;
   vertical-align: super;
+}
+
+.env__heading_h1{
+    margin-top: 50px;
+}
+
+.env__heading_h2{
+    margin-top: 40px;
 }
 
 .empty {

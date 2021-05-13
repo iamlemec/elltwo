@@ -20,6 +20,7 @@ themeLink = function(name) {
 toggleSidebar = function() {
     $('#sidebar').animate({width: 'toggle'}, 100);
     $('#logo').toggleClass('opened');
+    $('#content').toggleClass('sb_content');
     sidebar_show = !sidebar_show;
 };
 

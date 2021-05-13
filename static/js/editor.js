@@ -421,11 +421,10 @@ renderFold = function(){
     });
 }
 
-fold = function(para){
+fold = function(para, init=false){
     env_id = para.attr('env_id');
     fold_id = para.attr('fold_id');
     if(env_id){
-        folded.push(env_id);
         const foldParas = getFoldParas(env_id)
         foldParas[0].each(function(){
             const l = parseInt($(this).attr('fold_level'));
@@ -435,8 +434,11 @@ fold = function(para){
         const l = parseInt(fold.attr('fold_level'));
         fold.attr('fold_level', l+1)
         makeActive(fold)
-        const foldcookie = JSON.stringify(folded)
-        document.cookie = `folded=[${foldcookie}]; path=/; samesite=lax; secure`;
+        if(!init){
+            folded.push(env_id);
+            const foldcookie = JSON.stringify(folded)
+            document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
+        }
     }else if(fold_id){
         const index = folded.indexOf(fold_id);
         if (index > -1) {

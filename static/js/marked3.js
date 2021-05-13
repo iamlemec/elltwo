@@ -35,7 +35,7 @@ var block = {
 
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
-block._refargs = /(?:\[([\w-\|\=\s]+)\])/;
+block._refargs = /(?:\[([\w-\|\=\s\.\?\!\$]+)\])/;
 block._bull = /(?:[*+-]|\d+\.)/;
 block._item = /^( *)(bull) ?/;
 

@@ -45,9 +45,6 @@ $(document).ready(function() {
             lockParas(response);
     });
 
-    //set folded paras from cookie
-    folded = cooks('folded') || folded;
-
     $('.para').each(function() {
         var para = $(this);
         makePara(para);
@@ -55,6 +52,13 @@ $(document).ready(function() {
 
     envClasses();
     createRefs();
+
+    //set folded paras from cookie
+    folded = cooks('folded') || folded;
+    folded.forEach(pid => {
+        let para = getPara(pid);
+        fold(para, init=true);
+    })
     renderFold();
 
 
@@ -364,6 +368,7 @@ envClasses = function(outer) {
     // add in numbers with auto-increment
     createNumbers(outer);
     createTOC(outer);
+    renderFold();
 };
 
 
@@ -407,7 +412,7 @@ simpleEnv = function(ptxt, env, head='', tail='', number=true, args={}) {
         ptxt.parent().attr('ref_text', ref_text);
     }
     pre.append('. ');
-    fold_t = $('<span>', {class: `comment`, html: '(env folded, shift+f to unfold)'});
+    fold_t = $('<span>', {class: `comment fold_text`});
     pre_fold.append(['. ', fold_t]);
     first.prepend(pre);
 
@@ -476,8 +481,8 @@ headingEnv = function(ptxt, args) {
     }
     ptxt.prepend([num, ' ']);
     pre_fold.prepend([pre_num, ' ']);
-    fold_t = $('<span>', {class: `comment`, html: '(env folded, shift+f to unfold)'});
-    pre_fold.append(['. ', fold_t]);
+    fold_t = $('<span>', {class: `comment fold_text`});
+    pre_fold.append([' ', fold_t]);
 
 
     let fold = $('<div>', {class: `para folder`, html: pre_fold});
@@ -625,7 +630,7 @@ createNumbers = function(outer) {
 createTOC = function(outer) {
     toc = $('#toc');
     toc.find('.toc_entry').remove();
-    outer.find('.env__heading').each(function() {
+    outer.find('.env__heading').not('.folder .env__heading').each(function() {
         let level = $(this).attr('head_level');
         let text = $(this).text();
         let id = $(this).parent('.para').attr('id');
@@ -1293,16 +1298,16 @@ fArgs = function(argsraw){
 };
 
 var blocks = {
-    title: /^#\!([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]*)([\n\r]*)([\s\S]*)/,
+    title: /^#\!([\n\r\s]*)(?:\[([\w-\|\=]+)\])?([\n\r\s]*)([^\n]*)([\n\r]*)([\s\S]*)/,
     heading: /^(#{1,6})(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]+?)? *#* *(?:\n+|$)/,
     text: /^[^\n]+/,
     code: /^``([\S\s]*)/,
     comment: /^(\/\/|\%+)([\S\s]*)/,
     equation: /^\$\$(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
     figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
-    svg: /^\!svg(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:$)/,
-    image: /^!(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])(\s*)(\()([\w-:#/.&%=]*)(\))?([\s\S]*)/,
-    envbeg: /^\>\>(\!)?([\n\r\s]*)([\w-]+)?(\*)?( *)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
+    svg: /^\!svg(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s\.\?\!\$\']+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:$)/,
+    image: /^!(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s\.\?\!\$\']+)\])(\s*)(\()([\w-:#/.&%=]*)(\))?([\s\S]*)/,
+    envbeg: /^\>\>(\!)?([\n\r\s]*)([\w-]+)?(\*)?( *)(?:\[([\w-\|\=\s\.\?\!\$\']+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
     envend: /^\<\<((?:[^\n]+\n?)*)/,
 };
 

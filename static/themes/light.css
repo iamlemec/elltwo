@@ -116,11 +116,22 @@ button:hover {
  color: var(--font-col);
 }
 
+#content.sb_content{
+    position: absolute;
+    left: 20%;
+} 
+
+.sb_content .para {
+    left: 10% !important;
+}
+
 /* paras */
 
 .para {
+    max-width: 1000px !important;;
+    left: 20% !important;
+    width: 60% !important;
 }
-
 .para.active {
    border-left: 2px solid var(--hl-col);
    background-color: var(--bg-hl-col);
