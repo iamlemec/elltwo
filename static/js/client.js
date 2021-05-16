@@ -7,17 +7,33 @@ var socket;
 var canary_id = null;
 var canary_freq = 1000*30;
 
-function connect(url) {
+// takes optional connect event callback
+function connect(url, on_connect) {
     console.log(url);
 
-    socket = io.connect(url);
+    socket = io(url);
 
-    socket.on('connect', function() {
-        console.log("socket connected!");
+    socket.on('connect', () => {
+        console.log(`socket connect: ${socket.id}`);
+        if (on_connect !== undefined) {
+            on_connect();
+        }
     });
 
-    socket.on('close', function() {
-        console.log("socket closed");
+    socket.on('connect_error', (error) => {
+        console.log(`socket connect_error: ${error.message}`);
+    });
+
+    socket.on('disconnect', (reason) => {
+        console.log(`socket disconnect: ${reason}`);
+    });
+
+    socket.io.on('reconnect_attempt', () => {
+        console.log('socket reconnect_attempt');
+    });
+
+    socket.io.on('reconnect', () => {
+        console.log(`socket reconnect: ${socket.id}`);
     });
 
     socket.on('updatePara', function(data) {
@@ -33,7 +49,6 @@ function connect(url) {
     });
 
     socket.on('pasteCB', function(data) {
-        console.log('paste')
         pasteCB(...data);
     });
 

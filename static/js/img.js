@@ -121,9 +121,10 @@ $(document).on('keyup', '#img_search', function(e) {
 
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
-    client.connect(url);
-    client.sendCommand('room', {'room': '__img'}, function(response) {
-        console.log(response);
+    client.connect(url, () => {
+        client.sendCommand('join_room', {'room': '__img'}, (response) => {
+            console.log(response);
+        });
     });
     renderKatex();
     render_imgs();

@@ -73,10 +73,10 @@ sendUpdatePara = function(para, force=false) {
 
 sendInsertBefore = function(para) {
     let fold_id = para.attr('fold_id');
-    if(fold_id){
+    if (fold_id) {
         var env = $(`[env_id=${fold_id}]`);
         var pid = env.first().attr('pid');
-    }else{
+    } else {
         var pid = para.attr('pid');
     };
     let data = {room: aid, pid: pid};
@@ -88,7 +88,7 @@ sendInsertBefore = function(para) {
 
 sendInsertAfter = function(para) {
     let fold_id = para.attr('fold_id');
-    if(fold_id){
+    if (fold_id) {
         var env = $(`[env_id=${fold_id}]`);
         var pid = env.last().attr('pid')
     } else {
@@ -105,9 +105,9 @@ sendInsertAfter = function(para) {
 sendDeletePara = function(para) {
     let pid = para.attr('pid');
     let data = {room: aid, pid: pid};
-    let next = para.next('.para');
+    let next = getNextPara(para);
     if (next.length == 0) {
-        next = para.prev('.para');
+        next = getPrevPara(para);
     }
     client.sendCommand('delete_para', data, on_success(() => {
         if (next) {
@@ -161,9 +161,9 @@ trueMakeEditable = function(rw=true, cursor='end') {
 
 sendMakeEditable = function(cursor='end') {
     $('.para').removeClass('editable');
-    $('.para').removeClass('copy_sel')
+    $('.para').removeClass('copy_sel');
     if (active_para) {
-        if(active_para.hasClass('folder')){
+        if (active_para.hasClass('folder')) {
             fold(active_para);
         }
         if (writeable) {
@@ -244,7 +244,7 @@ unlockParas = function(pids) {
 /// active para tracking
 
 makeActive = function(para, scroll=true) {
-    if(!para){
+    if (!para) {
         $('.para').removeClass('copy_sel');
     }
     makeUnEditable();
@@ -261,12 +261,20 @@ makeActive = function(para, scroll=true) {
     }
 };
 
+getNextPara = function(para) {
+    return (para || active_para).nextAll('.para:not(.folded)').first();
+};
+
+getPrevPara = function(para) {
+    return (para || active_para).prevAll('.para:not(.folded)').first();
+};
+
 // next para
 activeNextPara = function() {
     if (active_para) {
-        var next = active_para.nextAll('.para').not('.folded');
+        var next = getNextPara();
         if (next.length > 0) {
-            makeActive(next.first());
+            makeActive(next);
             return true;
         } else {
             return false;
@@ -276,9 +284,9 @@ activeNextPara = function() {
 
 activePrevPara = function() {
     if (active_para) {
-        var prev = active_para.prevAll('.para').not('.folded');
+        var prev = getPrevPara();
         if (prev.length > 0) {
-            makeActive(prev.first());
+            makeActive(prev);
             return true;
         } else {
             return false;

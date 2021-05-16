@@ -370,7 +370,6 @@ def RenderArticleRO(title):
 
 @app.route('/i/<key>', methods=['GET'])
 def GetImage(key):
-    print(f'GetImage: {key}')
     if (img := adb.get_image(key)) is not None:
         buf = BytesIO(img.data)
         return send_file(buf, mimetype=img.mime)
@@ -444,13 +443,13 @@ def Img():
 @socketio.on('connect')
 def socket_connect():
     sid = request.sid
-    print(f'connect: {sid}')
+    app.logger.debug(f'connect: {sid}')
     emit('status', 'connected')
 
 @socketio.on('disconnect')
 def socket_disconnect():
     sid = request.sid
-    print(f'disconnect: {sid}')
+    app.logger.debug(f'disconnect: {sid}')
     if sched.get_job(sid) is not None:
         sched.remove_job(sid)
     if (data := locked_by_sid(sid)):
@@ -458,9 +457,10 @@ def socket_disconnect():
     roomed.pop(sid)
     emit('status', 'disconnected')
 
-@socketio.on('room')
+@socketio.on('join_room')
 def room(data):
     sid = request.sid
+    app.logger.debug(f'join_room: {sid}')
     room = data['room']
     join_room(room)
     roomed.add(room, sid)
@@ -513,7 +513,6 @@ def insert_before(data):
 def paste_cells(data):
     pid = data.get('pid')
     cb = data.get('cb')
-    print(cb)
     if not cb:
         return False
     pid_map = adb.paste_after(pid=pid,cb=cb)
@@ -545,18 +544,15 @@ def get_history(data):
 @socketio.on('revert_history')
 @login_decor
 def revert_history(data):
-    print(f'revert_history: aid={data["aid"]} date={data["date"]}')
     diff = adb.diff_article(data['aid'], data['date'])
     adb.revert_article(data['aid'], diff=diff)
     order = order_links(diff['link_add'])
-    print(diff)
     edits = {
         'para_add': diff['para_add'],
         'para_del': diff['para_del'],
         'para_upd': diff['para_upd'],
         'position': order,
     }
-    print(edits)
     emit('applyDiff', edits, room=data['aid'])
     return True
 
@@ -736,7 +732,6 @@ def UploadImg():
     file.save(buf)
     val = buf.getvalue()
 
-    print(f'UploadImg [{img_key}]: {img_mime} mime, {len(val)} bytes')
     adb.create_image(img_key, img_mime, val)
 
     return {'mime': img_mime, 'key': img_key}
@@ -751,7 +746,6 @@ def get_image(data):
 
 @socketio.on('update_image_key')
 def update_img_key(data):
-    print(data)
     key = data['key']
     new_key = data['new_key']
     new_kw = data['new_kw']
@@ -763,7 +757,7 @@ def update_img_key(data):
 ###
 
 def timeout_exec(sid):
-    print(f'timeout: {sid}')
+    app.logger.debug(f'timeout: {sid}')
     if (data := locked_by_sid(sid)) is not None:
         unlock(data)
 
@@ -777,7 +771,7 @@ def timeout_sched(sid):
 @socketio.on('canary')
 def canary(data):
     sid = request.sid
-    print(f'canary: {sid}')
+    app.logger.debug(f'canary: {sid}')
     timeout_sched(sid)
 
 ##

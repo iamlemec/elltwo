@@ -1,10 +1,11 @@
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
-    client.connect(url);
-    client.sendCommand('room', {'room': '__bib'}, function(response) {
-        console.log(response);
+    client.connect(url, () => {
+        client.sendCommand('join_room', {'room': '__bib'}, (response) => {
+            console.log(response);
         });
-    client.sendCommand('get_bib', {'keys': ''});
+        client.sendCommand('get_bib', {'keys': ''});
+    });
 });
 
 generateJson = function(src) {
