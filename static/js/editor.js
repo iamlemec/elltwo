@@ -11,7 +11,7 @@ var cb = []; // clipboard for cell copy
 
 resize = function(textarea) {
     textarea.style.height = 'auto';
-    let h = (textarea.scrollHeight) + 'px'
+    let h = (textarea.scrollHeight) + 'px';
     textarea.style.height = h;
     let para = $(textarea).parent('.para');
     para.css('min-height', h);
@@ -338,6 +338,8 @@ editShift = function(dir='up') {
     }
 };
 
+// reference completion
+
 next_cc = function(dir) {
     let ccpop = $('#cc_pop')[0];
     if (dir == 'up') {
@@ -347,7 +349,7 @@ next_cc = function(dir) {
         l = ccpop.lastElementChild;
         ccpop.prepend(l); //append last child before first
     }
-}
+};
 
 make_cc = function() {
     var cctxt = $('.cc_row').first().text();
@@ -356,7 +358,7 @@ make_cc = function() {
     let open_ref = /@\[?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!\s)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?!.*\s)/;
     if (cap = open_ref.exec(raw)) {
-        if (cap[2] && !cap[1]){ // searching for ext page
+        if (cap[2] && !cap[1]) { // searching for ext page
            raw = raw.replace(open_ref, function() {
                 return `@[${cctxt}:`;
             });
@@ -364,7 +366,6 @@ make_cc = function() {
             raw = raw.replace(open_ref, function() {
                 return `@[${cap[1]}:${cctxt}]`;
             });
-
         } else {
             raw = raw.replace(open_ref, function() {
                 return `@[${cctxt}]`;
@@ -372,9 +373,9 @@ make_cc = function() {
         }
     } else if (cap = open_i_link.exec(raw)) {
         raw = raw.replace(open_i_link, function() {
-                return `[[${cctxt}]]`;
-            });
-    };
+            return `[[${cctxt}]]`;
+        });
+    }
     input.val(raw);
     resize(input[0]);
     syntaxHL(active_para);
@@ -382,123 +383,127 @@ make_cc = function() {
     $('#cc_pop').remove();
 };
 
-//
+// folding/unfolding
+
+getFoldLevel = function(para) {
+    return parseInt(para.attr('fold_level'));
+};
 
 getFoldParas = function(pid){
     para = getPara(pid);
     l = para.attr('head_level');
-    if(para.attr('env')=='heading'){
-
-        let fps = [para]
-        let nx = Object.entries(para.nextAll('.para'))
+    if (para.attr('env') == 'heading') {
+        let fps = [para];
+        let nx = Object.entries(para.nextAll('.para'));
         for (const [k, p] of nx) {
-            if($(p).attr('head_level') <= l){
-                break
+            if ($(p).attr('head_level') <= l) {
+                break;
             }
-            if(!$(p).hasClass('folder')){
+            if (!$(p).hasClass('folder')) {
                 fps.push(p);
             }
         }
         //what the fuck jquery, why (returns differnt object type in the two cases)
-        return [$(fps), $(fps).first()[0]]
-    } else{
-        let fps = $(`[env_id=${pid}]`)
-        return [$(fps), $(fps).first()]
+        return [$(fps), $(fps).first()[0]];
+    } else {
+        let fps = $(`[env_id=${pid}]`);
+        return [$(fps), $(fps).first()];
     }
-}
+};
 
-renderFold = function(){
-    $('.para').not('.folder').each(function(){
-        fl = parseInt($(this).attr('fold_level'));
-        if(fl > 0){
-            $(this).addClass('folded');
+renderFold = function() {
+    $('.para:not(.folder)').each(function() {
+        let para = $(this);
+        let fl = getFoldLevel(para);
+        if (fl > 0) {
+            para.addClass('folded');
         } else {
-            $(this).removeClass('folded');
+            para.removeClass('folded');
         }
     });
-    $('.folder').each(function(){
-        let fl = parseInt($(this).attr('fold_level'));
-        let pid = $(this).attr('fold_id');
+    $('.folder').each(function() {
+        let para = $(this);
+        let fl = getFoldLevel(para);
+        let pid = para.attr('fold_id');
         let p = getPara(pid);
-        let flp = parseInt(p.attr('fold_level'));
-        if(fl > 0 && flp==1){
-            $(this).removeClass('folded');
+        let flp = getFoldLevel(p);
+        if (fl > 0 && flp == 1) {
+            para.removeClass('folded');
         } else {
-            $(this).addClass('folded');
+            para.addClass('folded');
         }
     });
-}
+};
 
-fold = function(para, init=false){
-    env_id = para.attr('env_id');
-    fold_id = para.attr('fold_id');
-    if(env_id){
-        const foldParas = getFoldParas(env_id)
-        foldParas[0].each(function(){
-            const l = parseInt($(this).attr('fold_level'));
-            $(this).attr('fold_level', l+1)
+fold = function(para, init=false) {
+    let env_id = para.attr('env_id');
+    let fold_id = para.attr('fold_id');
+    if (env_id) {
+        const foldParas = getFoldParas(env_id);
+        foldParas[0].each(function() {
+            let para = $(this);
+            const l = getFoldLevel(para);
+            para.attr('fold_level', l+1);
         });
-        const fold = $(`[fold_id=${env_id}]`).first()
-        const l = parseInt(fold.attr('fold_level'));
-        fold.attr('fold_level', l+1)
-        makeActive(fold)
-        if(!init){
+        const fold = $(`[fold_id=${env_id}]`).first();
+        const l = getFoldLevel(fold);
+        fold.attr('fold_level', l+1);
+        makeActive(fold);
+        if (!init) {
             folded.push(env_id);
-            const foldcookie = JSON.stringify(folded)
+            const foldcookie = JSON.stringify(folded);
             document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
         }
-    }else if(fold_id){
+    } else if (fold_id) {
         const index = folded.indexOf(fold_id);
         if (index > -1) {
             folded.splice(index, 1);
-        };
+        }
         const foldParas = getFoldParas(fold_id);
-        foldParas[0].each(function(){
-            const l = parseInt($(this).attr('fold_level'));
-            $(this).attr('fold_level', l-1)
+        foldParas[0].each(function() {
+            let para = $(this);
+            const l = getFoldLevel(para);
+            para.attr('fold_level', l-1);
         });
         const fold = $(`[fold_id=${fold_id}]`).first();
-        const l = parseInt(fold.attr('fold_level'));
+        const l = getFoldLevel(fold);
         fold.attr('fold_level', l-1);
         makeActive(foldParas[1]);
         const foldcookie = JSON.stringify(folded);
         document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
-    };
-    renderFold()
+    }
+    renderFold();
 };
 
-unfold = function(){
-    $('.para').each(function(){
-            $(this).attr('fold_level', 0)
-    });
+unfold = function() {
+    $('.para').attr('fold_level', 0);
     folded = [];
     const foldcookie = JSON.stringify(folded);
     document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
-    renderFold()
-}
+    renderFold();
+};
 
-//copy cell
+// copy cell
 
-copyCells = function(){
-    cb=[];
-    let copy_sel = $('.copy_sel, .active')
-    copy_sel.each(function(){
-        cb.push($(this).attr('pid'))
+copyCells = function() {
+    cb = [];
+    $('.copy_sel, .active').each(function() {
+        cb.push($(this).attr('pid'));
     })
-    const cbcookie = JSON.stringify(cb)
+    const cbcookie = JSON.stringify(cb);
     document.cookie = `cb=${cbcookie}; path=/; max-age=60; samesite=lax; secure`;
-}
+};
 
-pasteCells = function(){
-    let pid = active_para.attr('pid')
-    let ccb = cooks('cb') || cb
-    if(ccb&&pid){
-        let data = {room:aid, pid:pid, cb:ccb};
+pasteCells = function() {
+    let pid = active_para.attr('pid');
+    let ccb = cooks('cb') || cb;
+    if (ccb && pid) {
+        let data = {room: aid, pid: pid, cb: ccb};
         client.sendCommand('paste_cells', data, function(response) {
-            console.log(response)
+            console.log(response);
         });
     }
-}
+};
 
 /// KEYBOARD NAV
 
@@ -512,7 +517,7 @@ $(document).keydown(function(e) {
         toggle_hist_map();
         return false;
     } else if (shift && ctrl && key == 'f') {
-            unfold();
+        unfold();
     } else if (ctrl && key == 's') {
         return false;
     }
@@ -551,8 +556,6 @@ $(document).keydown(function(e) {
             pasteCells();
         } else if (key == 'escape') {
             makeActive(null);
-        } else if (shift && ctrl && key == 'f') {
-            unfold();
         } else if (shift && key == 'f') {
             fold(active_para);
         }
@@ -622,13 +625,12 @@ $(document).on('click', '.para', function(e) {
 $(document).on('click', '#bg', function(e) {
     var targ = event.target.id;
     var alt = e.altKey;
-    if (targ == 'bg' || targ == 'content'){
-    if(alt){
-        makeActive(null);
-    } else {
-        $('.para').removeClass('copy_sel')
-    }
-    //return false;
+    if (targ == 'bg' || targ == 'content') {
+        if (alt) {
+            makeActive(null);
+        } else {
+            $('.para').removeClass('copy_sel')
+        }
     }
 });
 

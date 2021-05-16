@@ -77,15 +77,11 @@ ensureVisible = function(elem) {
 
 // get json cookies
 
-cooks = function(name){
+cooks = function(name) {
     const cookies = `; ${document.cookie}`;
     const parts = cookies.split(`; ${name}=`);
-    if (parts.length === 2){
+    if (parts.length == 2) {
         const f = parts.pop().split(';').shift();
-        console.log(f)
         return JSON.parse(f);
-    };
-
-}
-
-
+    }
+};
