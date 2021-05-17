@@ -89,9 +89,10 @@ $(document).on('keydown', function(e) {
 
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
-    client.connect(url);
-    client.sendCommand('room', {'room': '__home'}, function(response) {
-        console.log(response);
+    client.connect(url, () => {
+        client.sendCommand('join_room', {'room': '__home'}, (response) => {
+            console.log(response);
+        });
     });
     renderKatex();
 });

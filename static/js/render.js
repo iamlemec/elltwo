@@ -1,14 +1,11 @@
 /// init commands ///
 
-///flags and global vars
-//macros
+// flags and global vars
 var ext_macros = {};
 var macros = ext_macros;
-//command completion
-var cc = false; //is there a cc window open?
+var cc = false; // is there a cc window open?
 var ext_refs = {};
-//current folded pids
-var folded = [];
+var folded = []; // current folded pids
 
 // inner HTML for para structure. Included here for updating paras
 inner_para = `
@@ -38,12 +35,13 @@ makePara = function(para, defer=true) {
 
 $(document).ready(function() {
     var url = `http://${document.domain}:${location.port}`;
-    client.connect(url);
+    client.connect(url, () => {
+        client.sendCommand('join_room', {'room': aid, 'get_locked': true}, (response) => {
+            lockParas(response);
+        });
+    });
 
     // join room specific to article and get locked paras
-    client.sendCommand('room', {'room': aid, 'get_locked': true}, function(response) {
-            lockParas(response);
-    });
 
     $('.para').each(function() {
         var para = $(this);
@@ -53,19 +51,19 @@ $(document).ready(function() {
     envClasses();
     createRefs();
 
-    //set folded paras from cookie
-    folded = cooks('folded') || folded;
+    // set folded paras from cookie
+    var folded = cooks('folded') || folded;
     folded.forEach(pid => {
         let para = getPara(pid);
         fold(para, init=true);
     })
     renderFold();
 
-
-    if(g_ref){ //set external reference for import_markdown arts
+    // set external reference for import_markdown arts
+    if (g_ref) {
         $('.para').each(function() {
-        var para = $(this);
-        updateRefHTML(para);
+            var para = $(this);
+            updateRefHTML(para);
         });
         client.sendCommand('update_g_ref', {'aid': aid, 'g_ref': false}, function(response) {
             console.log(`g_ref set to '${response}'`);

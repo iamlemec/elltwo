@@ -843,6 +843,8 @@ class AxiomDB:
         self.clear_index()
         for art in self.get_arts():
             self.index_document('title', art.aid, art.title, commit=False)
+            for par in self.get_paras(art.aid):
+                self.index_document('para', par.pid, par.text, commit=False)
         self.session.commit()
 
     def search_index(self, text, dtype=None):
@@ -859,14 +861,18 @@ class AxiomDB:
         # get potential matches (move this to all-sql when finalized)
         match = defaultdict(list)
         for s in query.all():
-            match[(s.source_id, s.word_idx)].append((s.text, s.word_pos))
+            match[(s.source_type, s.source_id, s.word_idx)].append((s.text, s.word_pos))
         match = {i: shard_compress(sh) for i, sh in match.items()}
 
         # compute distance metrics
         sims = defaultdict(list)
-        for (i, j), m in match.items():
-            sims[i].append(max(shard_score(s, m) for s in shards.values()))
+        for (t, i, j), m in match.items():
+            sims[(t, i)].append(max(shard_score(s, m) for s in shards.values()))
         sims = [(k, sum(v)/len(shards)) for k, v in sims.items()]
+
+        # drop dtype if specified
+        if dtype is not None:
+            sims = [(i, x) for (_, i), x in sims]
 
         # return sorted decreasing
         return sorted(sims, key=itemgetter(1), reverse=True)
