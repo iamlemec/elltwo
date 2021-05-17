@@ -26,7 +26,7 @@ var block = {
   imagelocal: /^!(\*)? *(?:refargs)\s*$/,
   biblio: /^@@ *(?:refid)\s*/,
   figtab: /^@\| *(?:refargs) *\n(?:table)/,
-  envbeg: /^\>\>(\!)? ([\w-]+)(\*)? *(?:refargs)?\s*/,
+  envbeg: /^\>\>(\!)? ([\w-]+)(\*)?[\s\n]*(?:refargs)?\s*/,
   envend: /^\<\<\s*/,
   fences: /^(?:`{3,}|~{3,})\ ?(\S+)?\s*/,
   list: /^((?: *(?:bull) ?[^\n]*(?:\n|$))+)\s*$/,
@@ -35,7 +35,9 @@ var block = {
 
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
-block._refargs = /(?:\[([\w-\|\=\s\.\?\!\$]+)\])/;
+// block._refargs = /(?:\[([\w-\|\=\s\.\?\!\$]+)\])/;
+block._refargs = /(?:\[((?:[^\]]|(?<=\\)\])*)\])/;
+
 block._bull = /(?:[*+-]|\d+\.)/;
 block._item = /^( *)(bull) ?/;
 
@@ -93,34 +95,46 @@ block._item = replace(block._item)
  * Args Parser
  */
 
-function parseArgs(argsraw, number=true) {
+function parseArgs(argsraw, number=true, set=true) {
   if (!argsraw) {
     return {'number': number};
   }
 
   var fst;
   var args = {};
+  var rx = /[\s\=\:\#\.]/g //invalid chars for arg labels and id's
 
-  argsraw.split('|')
-         .map(x => x.split('='))
-         .filter(x => x.length > 1)
-         .forEach(x => args[x[0]] = x[1]);
-
-  if ((Object.keys(args).length==0) && argsraw) {
-    args['id'] = argsraw;
+  if(!set){
+   rx = /[\s\=\#\.]/g //allow : for references
   }
+
+  //using lookbehinds, might not work on old browsers.
+  argsraw.split(/(?<!\\)\||\n/)
+         .map(x => x.split(/(?<!\\)\=/))
+         .filter(x => x.length > 1)
+         .forEach(x => {
+          if(!rx.test(x[0]))
+            args[x[0]] = x[1]
+          });
+  // if ((Object.keys(args).length==0) && argsraw) {
+  //   args['id'] = argsraw;
+  // }
 
   if (!('id' in args)) {
-    fst = argsraw.split('|')[0];
-    if (!(fst.includes("="))) {
-      args['id'] = argsraw.split('|')[0];
+    fst = argsraw.split(/(?<!\\)\||\n/)[0];
+    if (!rx.test(fst)) {
+            args['id'] = fst;
     }
-  }
+  } else {
+    if (rx.test(args['id'])) { //cannot have chars in id
+        delete args['id'];
+    };
+
+  };
 
   if (!('number' in args)) {
     args['number'] = number;
   }
-
   return args;
 }
 
@@ -379,11 +393,12 @@ Lexer.prototype.token = function(src) {
 
   // heading
   if (cap = this.rules.heading.exec(src)) {
+    let number = (cap[2].length == 0);
+    let args = parseArgs(cap[3], number=number);
+    args.level = (cap[1].length);
     return {
       type: 'heading',
-      depth: cap[1].length,
-      number: cap[2].length == 0,
-      id: cap[3],
+      args: args,
       text: cap[4]
     };
   }
@@ -609,7 +624,7 @@ InlineLexer.prototype.output = function(src) {
       src = src.substring(cap[0].length);
       var args = {};
       argsraw = cap[1];
-      args = parseArgs(argsraw);
+      args = parseArgs(argsraw, number=false, set=false);
       out += this.renderer.ref(args);
     }
 
@@ -948,8 +963,8 @@ DivRenderer.prototype.equation = function(tex) {
 };
 
 DivRenderer.prototype.ref = function(args) {
-  const id = args['id'];
-  const ext = id.includes(':');
+  const id = args['id'] || "";
+  const ext = id.includes(':') || false;
   const format = args['format'] || args['fmt'] || args['f'] || '';
   const text = args['text'] || args['txt'] || args['t'];
   const htext =  (text != undefined) ? `text="${text}"`: '';
@@ -1302,11 +1317,7 @@ Parser.prototype.tok = function() {
       this.env = {
         type: 'env_one',
         env: 'heading',
-        args: {
-          id: this.token.id,
-          level: this.token.depth,
-          number: this.token.number
-        }
+        args: this.token.args
       }
       return this.renderer.heading(
         this.inline.output(this.token.text)
@@ -1600,6 +1611,7 @@ marked.defaults = {
  */
 
 marked.merge = merge;
+marked.replace = replace;
 
 marked.Parser = Parser;
 marked.parser = Parser.parse;

@@ -255,6 +255,11 @@ button:hover {
     color: var(--bor-col);
 }
 
+.syn_err {
+    background-color: var(--font-col);
+    color:  var(--hl2-col);
+    border-radius: 3px;
+}
 
 .brace {
     background-color: var(--brace-col);

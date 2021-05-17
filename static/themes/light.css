@@ -190,6 +190,12 @@ button:hover {
  border-radius: 3px;
 }
 
+.syn_err {
+    background-color: var(--font-col);
+    color:  var(--hl2-col);
+    border-radius: 3px;
+}
+
 .ref_error {
     background-color: var(--font-col);
     color:  var(--hl2-col);

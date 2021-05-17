@@ -245,7 +245,7 @@ button:hover {
 }
 
 .syn_ref{
-    color: var(--font-col-int);
+    color: var(--delimit-col);
 }
 
 .syn_delimit{
@@ -263,6 +263,12 @@ button:hover {
 .syn_code{
    background-color: var(--brace-col)!important;
    border-radius: 3px;
+}
+
+.syn_err {
+    background-color: var(--font-col);
+    color:  var(--hl-col);
+    border-radius: 3px;
 }
 
 

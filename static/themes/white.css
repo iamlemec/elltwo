@@ -169,6 +169,12 @@ button:hover {
     padding: 2px;
 }
 
+.syn_err {
+    background-color: var(--font-col);
+    color:  var(--hl2-col);
+    border-radius: 3px;
+}
+
 #pop {
     color: var(--pop-fg-col);
     background-color: var(--pop-bg-col);

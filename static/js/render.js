@@ -513,11 +513,13 @@ figEnv = function(ptxt, args) {
         var num = (args.number) ? makeCounter('figure') : '';
         var space = (num) ? ' ' : '';
         var caption = args.caption || '';
+        caption = markthree.inlineLexer(caption)
         var div = $('<div>', {class: 'env_add fig_cap'});
         var span = $('<span>', {class: 'strong'});
         span.append(['Figure', space, num, '. ']);
         div.append([span, caption]);
         ptxt.append(div);
+        renderKatex(ptxt.children('.fig_cap'));
     }
     var w = args.width || args.w || '';
     if (w) {
@@ -1245,7 +1247,7 @@ inlines = {
     code: /(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/g,
     ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/,
     math: /\$((?:\\\$|[\s\S])+?)\$/g,
-    ref: /@\[([\w-\|\=\:]+)\]/g,
+    ref: /@(\[[\w-\|\=\:]+\])/g,
     ilink: /\[\[([^\]]+)\]\]/g,
     em: /\*((?:\*\*|[\s\S])+?)\*(?!\*)/g,
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
@@ -1273,7 +1275,7 @@ sytaxParseInline = function(raw) {
         return s('$', 'delimit') + s(b, 'math') + s('$', 'delimit');
     });
     html = html.replace(inlines.ref, function(a,b){
-        return s('@', 'delimit') + s(fArgs(b), 'math');
+        return s('@', 'delimit') + s(fArgs(b, set=false), 'ref');
     });
     html = html.replace(inlines.ilink, function(a,b) {
         return s('[[', 'delimit') + s(b, 'ref') + s(']]', 'delimit');
@@ -1292,24 +1294,67 @@ s = function(text, cls) {
     return `<span class=syn_${cls}>${text}</span>`;
 }
 
-fArgs = function(argsraw){
-    return s('[', 'delimit') + argsraw.replaceAll('=', s('=', 'math'))
-                                      .replaceAll('|', s('|', 'math')) + s(']', 'delimit');
+//uses lookbehinds, might not work on old ass browsers
+//set = true is for non ref when seting ids
+fArgs = function(argsraw, set=true){
+
+    var argmatch = /([\[\|\n\r])((?:[^\]\|\n\r]|(?<=\\)\||(?<=\\)\])*)/g
+    var illegal = /[\s\n\r\:\#]/
+    if(!set){
+        illegal = /[\s\n\r\#]/
+    }
+
+    let args = argsraw.replace(argmatch, function(a,b,c) {     
+        console.log(a,b,c)   
+        c = c.split(/(?<!\\)\=/);
+        let arg_key = (c[0]) ? s(c[0], 'math') : "";
+        let arg_val = (c.length > 1) ? '=' + s(sytaxParseInline(c[1]), 'delimit') : "";
+        if(illegal.test(c[0])){
+            arg_key = s(c[0], 'err')
+        }
+        if(c[0] == 'id' && illegal.test(c[1])){
+            arg_val = '=' + s(c[1], 'err')
+        }
+        let arg = arg_key + arg_val
+
+        return b + arg;
+    });
+
+    return esc(args)
 };
 
+
 var blocks = {
-    title: /^#\!([\n\r\s]*)(?:\[([\w-\|\=]+)\])?([\n\r\s]*)([^\n]*)([\n\r]*)([\s\S]*)/,
-    heading: /^(#{1,6})(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)([^\n]+?)? *#* *(?:\n+|$)/,
+    title: /^#\!([\n\r\s]*)(?:refargs)?([\n\r\s]*)([^\n]*)([\n\r]*)([\s\S]*)/,
+    heading: /^(#{1,6})(\*?)([\n\r\s]*)(?:refargs)?([\n\r\s]*)([^\n]+?)? *#* *(?:\n+|$)/,
     text: /^[^\n]+/,
     code: /^``([\S\s]*)/,
     comment: /^(\/\/|\%+)([\S\s]*)/,
     equation: /^\$\$(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
     figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
-    svg: /^\!svg(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s\.\?\!\$\']+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:$)/,
-    image: /^!(\*)?([\n\r\s]*)(?:\[([\w-\|\=\s\.\?\!\$\']+)\])(\s*)(\()([\w-:#/.&%=]*)(\))?([\s\S]*)/,
-    envbeg: /^\>\>(\!)?([\n\r\s]*)([\w-]+)?(\*)?( *)(?:\[([\w-\|\=\s\.\?\!\$\']+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
+    svg: /^\!svg(\*)?([\n\r\s]*)(?:refargs)?([\n\r\s]*)((?:[^\n]+\n*)*)(?:$)/,
+    image: /^!(\*)?([\n\r\s]*)(?:refargs)(\s*)(\()([\w-:#/.&%=]*)(\))?([\s\S]*)/,
+    envbeg: /^\>\>(\!)?([\n\r\s]*)([\w-]+)?(\*)?([\n\r\s]*)(?:refargs)?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
     envend: /^\<\<((?:[^\n]+\n?)*)/,
 };
+
+blocks._refargs = /(?:(\[(?:[^\]]|(?<=\\)\])*\]?))/;
+
+blocks.title = markthree.replace(blocks.title)
+  ('refargs', blocks._refargs)
+  ();
+blocks.heading = markthree.replace(blocks.heading)
+  ('refargs', blocks._refargs)
+  ();
+blocks.svg = markthree.replace(blocks.svg)
+  ('refargs', blocks._refargs)
+  ();
+blocks.image = markthree.replace(blocks.image)
+  ('refargs', blocks._refargs)
+  ();
+blocks.envbeg = markthree.replace(blocks.envbeg)
+  ('refargs', blocks._refargs)
+  ();
 
 sytaxParseBlock = function(raw) {
     if (cap = blocks.title.exec(raw)) {

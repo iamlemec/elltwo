@@ -225,6 +225,12 @@ button:hover {
     background-color: var(--brace-col);
 }
 
+.syn_err {
+    background-color: var(--font-col);
+    color:  var(--hl2-col);
+    border-radius: 3px;
+}
+
 /* home page */
 
 #new_art_id {

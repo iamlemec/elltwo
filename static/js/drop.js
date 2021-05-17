@@ -1,6 +1,6 @@
 // drop to upload — used in article and img
 
-img_types = ['image/png', 'image/jpeg', 'image/svg+xml'];
+img_types = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/gif'];
 
 uploadImg = function(file, key, callback) {
     console.log('uploadImg:', file.name, file.type, file.size);
