@@ -104,8 +104,8 @@ button:hover {
 }
 
 #toc_title {
-    font-size: 30px;
-    border-bottom: 1px solid rgb(61, 61, 61);
+    font-size: 20px;
+/*     border-bottom: 1px solid rgb(61, 61, 61); */
 }
 
 .toc_entry {
@@ -179,6 +179,12 @@ button:hover {
 .code {
     font-size: 80%;
     padding: 3px;
+}
+
+.footnote > .num{
+  color: var(--hl-col);
+  font-size: 70%;
+  vertical-align: super;
 }
 
 .ref_error {
@@ -289,6 +295,12 @@ a.art_result {
 .blurb {
   color: var(--font-col);
 }
+
+.art_result  .title{
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+}
+
 
 .heading {
   color: var(--hl2-col)

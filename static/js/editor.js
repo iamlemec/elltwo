@@ -355,25 +355,38 @@ make_cc = function() {
     var cctxt = $('.cc_row').first().text();
     var input = active_para.children('.p_input');
     var raw = input.val();
-    let open_ref = /@\[?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!\s)/;
-    let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?!.*\s)/;
+    let open_ref = /@(\[)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
+    let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
     if (cap = open_ref.exec(raw)) {
-        if (cap[2] && !cap[1]) { // searching for ext page
+        var l = cap.index;
+        var space = cap[5] || ""
+        if (cap[3] && !cap[2]) { // searching for ext page
            raw = raw.replace(open_ref, function() {
-                return `@[${cctxt}:`;
+                const out = `@[${cctxt}:${space}`;
+                l = l + out.length - space.length
+                return out
             });
-        } else if (cap[1] && cap[2]) {
+        } else if (cap[2] && cap[3]) {
             raw = raw.replace(open_ref, function() {
-                return `@[${cap[1]}:${cctxt}]`;
+                const out = `@[${cap[2]}:${cctxt}]${space}`;
+                l = l + out.length - space.length
+                return out;
             });
         } else {
             raw = raw.replace(open_ref, function() {
-                return `@[${cctxt}]`;
+                const out = `@[${cctxt}]${space}`;
+                l = l + out.length - space.length
+                return out;
+
             });
         }
     } else if (cap = open_i_link.exec(raw)) {
+        var l = cap.index;
+        var space = cap[2] || ""
         raw = raw.replace(open_i_link, function() {
-            return `[[${cctxt}]]`;
+            const out = `[[${cctxt}]]${space}`;
+            l = l + out.length - space.length
+            return out;
         });
     }
     input.val(raw);
@@ -381,6 +394,7 @@ make_cc = function() {
     syntaxHL(active_para);
     cc = false;
     $('#cc_pop').remove();
+    input[0].setSelectionRange(l, l);
 };
 
 // folding/unfolding
@@ -520,6 +534,9 @@ $(document).keydown(function(e) {
         unfold();
     } else if (ctrl && key == 's') {
         return false;
+    }
+    if (key == '§') {
+            toggleSidebar();
     }
     if (!active_para) { // if we are inactive
         if (key == 'enter') {

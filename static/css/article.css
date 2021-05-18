@@ -136,10 +136,20 @@ button {
 
 /* DIV renderer stylying */
 
+
+.env__equation{
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
 .eqnum {
-    position: absolute;
-    right: 10px;
-    bottom: 5px;
+    margin-left: auto;
+}
+
+.env__equation .latex{
+    flex: 1;
+    text-align: center; 
 }
 
 #pop .eqnum {
@@ -405,6 +415,7 @@ button {
     left: 0;
     top: 0;
     width: 20%;
+    min-width: 210px;
     height: 100%;
     padding-bottom: 10px;
     z-index: 1;
@@ -412,7 +423,9 @@ button {
 
 #sidebar_inner {
     overflow: hidden;
-    width: 250px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 #options_title {
@@ -421,8 +434,8 @@ button {
 }
 
 .options {
-    padding-left: 5px;
-    margin-top: 80px;
+    padding-left: 10px;
+    margin-top: 50px;
     padding-bottom: 30px;
 }
 
@@ -432,40 +445,56 @@ button {
     right: 5px;
 }
 
-#toc {
-    position: relative;
-    width: 100%;
+#toc_wrap {
     margin-top: 10px;
+    flex:1;
+    overflow-y: auto;
+    min-height: 0;
+    white-space: normal;
+}
+
+#toc{
+    height: auto;
+    padding-bottom: 25px;
+    width: 100%;
+
 }
 
 #toc_title {
-    padding-left: 5px;
-    padding-top: 25px;
-    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-top: 15px;
     border-top: 2px solid var(--font-col-int);
 }
 
-#sb_links{
-    margin-bottom: 30px;
+#sb_links{  
+    margin-bottom: 20px;
 }
 
 #sb_links_title {
-    padding-left: 5px;
-    padding-top: 25px;
-    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-top: 20px;
+    padding-bottom: 10px;
     border-top: 2px solid var(--font-col-int);
 }
 
 #sb_links > a{
     display: block;
     padding-left: 20px;
-    margin-top: 5px;
+    margin-top: 7px;
 }
 
 .toc_entry {
     display: block;
     margin-top: 10px;
     padding-left: 20px;
+}
+
+.toc_entry.head_level2{
+    padding-left: 30px;
+}
+
+.toc_entry.head_level3{
+    padding-left: 40px;
 }
 
 .locked:after {
@@ -491,7 +520,8 @@ button {
     display: inline-block;
     user-select: none;
     position: absolute !important;
-    right: 15px;
+    right: 10px;
+    font-size: 90%;
 }
 
 .custom-select-wrapper select {
@@ -506,8 +536,8 @@ button {
 .custom-select-trigger {
     position: relative;
     display: block;
-    width: 160px;
-    padding: 0 52% 0 5%;
+    width: 120px;
+    padding: 0 50% 0 5%;
     line-height: 160%;
     border-radius: 0px;
     cursor: pointer;
@@ -519,7 +549,7 @@ button {
     content: '';
     width: 10px;
     height: 10px;
-    top: 50%; right: 25px;
+    top: 50%; right: 10px;
     margin-top: -3px;
     transform: rotate(45deg) translateY(-50%);
     transition: all .2s ease-in-out;

@@ -590,7 +590,9 @@ renderKatex = function(para) {
         var src = tex.text();
         tex.empty();
         try {
-            katex.render(src, tex[0], {macros: macros});
+            katex.render(src, tex[0], {macros: macros,
+            throwOnError: false,
+            });
         } catch (e) {
             console.log(para.text());
             console.log(src);
@@ -603,7 +605,8 @@ renderKatex = function(para) {
         $(this).empty();
         try {
             katex.render(src, tex[0], {displayMode: true,
-                macros: macros
+                macros: macros,
+                throwOnError: false,
             });
         } catch (e) {
             console.log(para.text());
@@ -1167,15 +1170,15 @@ cc_search = function(list, search, placement) {
 cc_refs = function(raw, view, e) {
     cc = false;
     $('#cc_pop').remove();
-    let open_ref = /@(\[)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?!.*\s)/;
-    let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?!.*\s)/;
+    let open_ref = /@(\[)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
+    let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     cur = e.target.selectionStart;
     if (cap = open_ref.exec(raw)) {
         // if cursor is near the match
         let b = cap.index;
         let e = b + cap[0].length;
         if (cur >= b && cur <= e) {
-            raw = raw.slice(0,b+e) + `<span id=cc_pos></span>` + raw.slice(e)
+            raw = raw.slice(0,e) + `<span id=cc_pos></span>` + raw.slice(e)
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
@@ -1209,7 +1212,7 @@ cc_refs = function(raw, view, e) {
                     let b = cap.index;
                     let e = b + cap[0].length;
             if (cur >= b && cur <= e) {
-                raw = raw.slice(0,b+e) + `<span id=cc_pos></span>` + raw.slice(e)
+                raw = raw.slice(0,e) + `<span id=cc_pos></span>` + raw.slice(e)
                 view.html(raw);
                 let off = $('#cc_pos').offset();
                 let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
@@ -1242,7 +1245,7 @@ esc = function(raw){
 
 inlines = {
     comment: /%(?!%)([^\n]+?)(\n|$)/g,
-    code: /(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/g,
+    code: /(`+)([\s\S]*?[^`])\1(?!`)/g,
     ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/,
     math: /\$((?:\\\$|[\s\S])+?)\$/g,
     ref: /@(\[[\w-\|\=\:]+\])/g,
@@ -1251,11 +1254,13 @@ inlines = {
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
 }
 
+
 sytaxParseInline = function(raw) {
     var html = raw;
     html = html.replace(/\</g, '&LT')// html escape
                .replace(/\>/g, '&GT')// html escape
                .replace(/\\\%/g, '\\&#37;')//comment escape
+               .replace(/\\\$/g, '\\&#36;')//tex escape
                .replace('_!L_', `<span class='brace'>`)
                .replace('_!R_', `</span>`);
 
@@ -1297,27 +1302,36 @@ s = function(text, cls) {
 fArgs = function(argsraw, set=true){
 
     var argmatch = /([\[\|\n\r])((?:[^\]\|\n\r]|(?<=\\)\||(?<=\\)\])*)/g
-    var illegal = /[\s\n\r\:\#]/
+    var illegal = /[^a-zA-Z\d\_\-]/
     if(!set){
-        illegal = /[\s\n\r\#]/
+        illegal = /[^a-zA-Z\d\_\-\:]/
     }
 
     let args = argsraw.replace(argmatch, function(a,b,c) {     
-        console.log(a,b,c)   
         c = c.split(/(?<!\\)\=/);
+        if(c.length > 1){
+            let val = c.pop()
+            let arg_val = s(sytaxParseInline(val), 'delimit')
+            let arg_key = ""
+            c.forEach(key => {
+                if(illegal.test(key)){
+                    arg_key += s(key, 'err') + '='
+                } else if (key == 'id' && illegal.test(val)){
+                    arg_key += s(key, 'err') + '='
+                    arg_val = s(val, 'err')
+                } else {
+                    arg_key += s(key, 'math') + '='
+                }
+            })
+         return b + arg_key + arg_val
+        } else {
         let arg_key = (c[0]) ? s(c[0], 'math') : "";
-        let arg_val = (c.length > 1) ? '=' + s(sytaxParseInline(c[1]), 'delimit') : "";
         if(illegal.test(c[0])){
             arg_key = s(c[0], 'err')
         }
-        if(c[0] == 'id' && illegal.test(c[1])){
-            arg_val = '=' + s(c[1], 'err')
+        return b + arg_key;
         }
-        let arg = arg_key + arg_val
-
-        return b + arg;
     });
-
     return esc(args)
 };
 
@@ -1328,7 +1342,7 @@ var blocks = {
     text: /^[^\n]+/,
     code: /^``([\S\s]*)/,
     comment: /^(\/\/|\%+)([\S\s]*)/,
-    equation: /^\$\$(\*?)([\n\r\s]*)(?:\[([\w-\|\=\s]+)\])?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
+    equation: /^\$\$(\*?)([\n\r\s]*)(?:refargs)?([\n\r\s]*)((?:[^\n]+\n*)*)(?:\n+|$)/,
     figure: /^@(!|\|) *(?:\[([\w-]+)\]) *([^\n]+)\n((?:[^\n]+\n*)*)(?:\n+|$)/,
     svg: /^\!svg(\*)?([\n\r\s]*)(?:refargs)?([\n\r\s]*)((?:[^\n]+\n*)*)(?:$)/,
     image: /^!(\*)?([\n\r\s]*)(?:refargs)(\s*)(\()([\w-:#/.&%=]*)(\))?([\s\S]*)/,
@@ -1351,6 +1365,9 @@ blocks.image = markthree.replace(blocks.image)
   ('refargs', blocks._refargs)
   ();
 blocks.envbeg = markthree.replace(blocks.envbeg)
+  ('refargs', blocks._refargs)
+  ();
+blocks.equation = markthree.replace(blocks.equation)
   ('refargs', blocks._refargs)
   ();
 

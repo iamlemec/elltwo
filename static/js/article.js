@@ -53,14 +53,14 @@ $(document).ready(function() {
     });
 });
 
-$(document).click(function(e) {
-    if (sidebar_show) {
-        if ($(e.target).closest('#sidebar').length == 0
-          && $(e.target).closest('#logo').length == 0) {
-           toggleSidebar();
-        }
-    }
-});
+// $(document).click(function(e) {
+//     if (sidebar_show) {
+//         if ($(e.target).closest('#sidebar').length == 0
+//           && $(e.target).closest('#logo').length == 0) {
+//            toggleSidebar();
+//         }
+//     }
+// });
 
 // SELECT
 

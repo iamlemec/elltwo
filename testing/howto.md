@@ -2,15 +2,22 @@
 
 Axiom L2 is a browser based platform for decentralized and collaborative technical documents. It has a wiki like structure with an emphasis on typesetting and intelligent referencing. Axiom L2 articles are written in a simple markup language barrowing elements of [Markdown](https://en.wikipedia.org/wiki/Markdown) and [LaTeX](https://www.latex-project.org/).
 
-# Structure & Editing 
+# [key=name=poo] Structure & Editing 
 
 Each article (denoted by a URL) is a collection of cells. Cells contain text which can be styled and referenced individually. For example, a cell could be a paragraph of text (like this one), an equation, an SVG figure, a custom environment, etc. In the same way that articles can be references from other articles in any wiki-like platform, cells that contain a reference can be referenced elsewhere, including across articles. \`
 
-Cells can be selected by clicking on them or by pressing `enter` and then navigating with the arrow keys. When a cell is selected, an addition click or `enter` with enter "edit mode." When in edit mode, the raw input of the cell is shown in an editable text box. When edit mode is escaped, by clicking elsewhere or pressing `esc`, changes will be rendered and the formatted text will be displayed. However, changes to the permanent (or global) until committed, either by pressing `shift + enter` while in edit mode or `ctrl + s` anytime (which will commit *all* uncommitted cells). Uncommitted cells are demarcated by a right border.
+Cells can be selected by clicking while holding `alt` (`option`) or by pressing `enter` and then navigating with the arrow keys. When a cell is selected, an addition click or `enter` with enter "edit mode." When in edit mode, the raw input of the cell is shown in an editable text box. When edit mode is escaped, by clicking elsewhere or pressing `esc`, changes will be rendered and the formatted text will be displayed. Changes are automatically saved upon rendering, but in the event of a server error or disruption, uncommitted cells are demarcated by a right border.
 
-#[sec_form]Formatting 
+## Keyboard Navigation
 
-Inline text formatting follows Markdown syntax: single `*italic*` renders as *Italic*, `**bold**` for **bold**, etc. Verbatim text is delimited by left quotes. Inline TeX typesetting is handled by KaTeX and delimited by single dollar signs: `$f: x \mapsto e^x$` renders as $f: x \mapsto e^x$.
+A list of keyboard shortcuts:
+
+- sdf
+- sadf
+
+# Formatting
+
+Inline text formatting follows Markdown syntax: single `*italic*` renders as *Italic*, `**bold**` for **bold**, etc. Verbatim text is delimited by left quotes `` `. Inline TeX typesetting is handled by KaTeX and delimited by single dollar signs: `$f: x \mapsto e^x$` renders as $f: x \mapsto e^x$.
 
 ##[env]Cell Level Formating
 
@@ -24,16 +31,15 @@ renders as
 
 $$[id=geo] \sum_{i=1}^\infty \frac{1}{2^n} = 1
 
-As seen above, you can pass arguments to the cell by means of placing `key=value` pairs inside brackets directly after the cell prefix. Mutiple arguments are separated by `|`.
-
 A list of cell prefixes:
 
 - `$$` : display math
-- `&svg` : svg (HTML5) code
+- `!svg` : svg (HTML5) code
 - `!` : images
 - `#` : section headings
 - `>>` LaTeX style environments
 - `<<` ending multi cell environments
+- ` `` ` code (verbatim) blocks
 
 ##[env]Enviorments
 
@@ -55,6 +61,19 @@ $$ \mu(\bigcap_{n=1}^{\infty }\bigcup_{k\geq n}^{\infty }E_{k}) = 0
 
 Prebuilt envrioments include **theorem**, **lemma**, **proof**, and **example**; others can be constructed by augmenting the render.js file.
 
+## [id=args] Passing Arguments
+
+As seen above, you can pass arguments to the cell by means of placing `key=value` pairs inside brackets directly after the cell prefix. Mutiple arguments are separated by `|` or a newline.
+
+Referencing is done through the `id` argument, so `id`s should be unique within articles. The `id` argument can be omitted so that `[geo]` will produce the same reference as `[id=geo]`. Multiple arguments can be set to the same via `[key1=key2=val]`. Keys (and the value for the `id` argument, must be alphanumeric (plus hyphens and underscores).
+
+A partial list of helpful arguments:
+
+- `name`: used for environments to create a displayed name.
+- `rt`: used to set the default display text when the environment is referenced.
+- `number`: a boolean, to number the environment or not.
+- `caption`: used for figures and images to set the caption text.
+
 # [sec_fig] Figures
 
 Cells can also contain figure and images. Images environments begin with an exclamation point `!` and can direct to external images via a URL or internal images using an image ID.
@@ -71,28 +90,26 @@ Images can be stored locally, and assessed via an ID. To upload an image render 
 
 Cells can also contain figure and images, including HTML5 SVG images. The `&SVG` prefix creates a 100x100 HTML canvas, rendering directly and HTML SVG elements the follow.
 
-&svg [id=fig|caption=An SVG figure|w=100] 
-<circle cx="50" cy="70" r="30", fill='tomato' opacity='.5'/>
-<circle cx="40" cy="50" r="30", fill='goldenrod' opacity='.5'/>
-<circle cx="60" cy="50" r="30", fill='steelblue' opacity='.5'/>
-
-&svg [id=fig|caption=none|w=100]
-<rect x="0" y="0" width="25" height="25", fill='#a0025e', stroke='none'/>
-<rect x="0" y="25" width="25" height="25", fill='#a2075b', stroke='none'/>
-<rect x="0" y="50" width="25" height="25", fill='#b22c52', stroke='none'/>
-<rect x="0" y="75" width="25" height="25", fill='#bd454c', stroke='none'/>
-<rect x="25" y="0" width="25" height="25", fill='#a1055e', stroke='none'/>
-<rect x="25" y="25" width="25" height="25", fill='#ab1d58', stroke='none'/>
-<rect x="25" y="50" width="25" height="25", fill='#c04e4b', stroke='none'/>
-<rect x="25" y="75" width="25" height="25", fill='#d67940', stroke='none'/>
-<rect x="50" y="0" width="25" height="25", fill='#B39442', stroke='none'/>
-<rect x="50" y="25" width="25" height="25", fill='#AB6F57', stroke='none'/>
-<rect x="50" y="50" width="25" height="25", fill='#A45069', stroke='none'/>
-<rect x="50" y="75" width="25" height="25", fill='#E0B423', stroke='none'/>
-<rect x="75" y="0" width="25" height="25", fill='#DA9031', stroke='none'/>
-<rect x="75" y="25" width="25" height="25", fill='#D36541', stroke='none'/>
-<rect x="75" y="50" width="25" height="25", fill='#CD404E', stroke='none'/>
-<rect x="75" y="75" width="25" height="25", fill='#cc4150', stroke='none'/>
+!svg [
+id=fig
+caption=An SVG figure rendered using HTML SVG styling.
+w=100]
+<rect x='0' y='0' width='25' height='25', fill='#66AF4C', stroke='#66AF4C'/>
+<rect x='0' y='25' width='25' height='25', fill='#5D9D68', stroke='#5D9D68'/>
+<rect x='0' y='50' width='25' height='25', fill='#52868A', stroke='#52868A'/>
+<rect x='0' y='75' width='25' height='25', fill='#4874A6', stroke='#4874A6'/>
+<rect x='25' y='0' width='25' height='25', fill='#8CB13F', stroke='#8CB13F'/>
+<rect x='25' y='25' width='25' height='25', fill='#849857', stroke='#849857'/>
+<rect x='25' y='50' width='25' height='25', fill='#7A7C73', stroke='#7A7C73'/>
+<rect x='25' y='75' width='25' height='25', fill='#72638A', stroke='#72638A'/>
+<rect x='50' y='0' width='25' height='25', fill='#BAB230', stroke='#BAB230'/>
+<rect x='50' y='25' width='25' height='25', fill='#B39442', stroke='#B39442'/>
+<rect x='50' y='50' width='25' height='25', fill='#AB6F57', stroke='#AB6F57'/>
+<rect x='50' y='75' width='25' height='25', fill='#A45069', stroke='#A45069'/>
+<rect x='75' y='0' width='25' height='25', fill='#E0B423', stroke='#E0B423'/>
+<rect x='75' y='25' width='25' height='25', fill='#DA9031', stroke='#DA9031'/>
+<rect x='75' y='50' width='25' height='25', fill='#D36541', stroke='#D36541'/>
+<rect x='75' y='75' width='25' height='25', fill='#CD404E', stroke='#CD404E'/>
 
 #[ref]Referencing 
 

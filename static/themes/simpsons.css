@@ -226,6 +226,12 @@ a.art_result {
     color: var(--font-col);
 }
 
+.art_result  .title{
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--delimit-col);
+}
+
 .heading {
     color: var(--hl2-col)
 }

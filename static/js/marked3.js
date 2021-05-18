@@ -102,10 +102,10 @@ function parseArgs(argsraw, number=true, set=true) {
 
   var fst;
   var args = {};
-  var rx = /[\s\=\:\#\.]/g //invalid chars for arg labels and id's
+  var rx = /[^a-zA-Z\d\_\-]/ //invalid chars for arg labels and id's
 
   if(!set){
-   rx = /[\s\=\#\.]/g //allow : for references
+   rx = /[^a-zA-Z\d\_\-\:]/ //allow : for references
   }
 
   //using lookbehinds, might not work on old browsers.
@@ -113,8 +113,12 @@ function parseArgs(argsraw, number=true, set=true) {
          .map(x => x.split(/(?<!\\)\=/))
          .filter(x => x.length > 1)
          .forEach(x => {
-          if(!rx.test(x[0]))
-            args[x[0]] = x[1]
+          let val = x.pop()
+          x.forEach(key => {
+            if(!rx.test(key)){
+              args[key] = val
+              }
+            })
           });
   // if ((Object.keys(args).length==0) && argsraw) {
   //   args['id'] = argsraw;
@@ -970,7 +974,8 @@ DivRenderer.prototype.ref = function(args) {
   const htext =  (text != undefined) ? `text="${text}"`: '';
   const pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
   const ptext = ('poptext' in args) ? `poptext="${args['poptext']}"`: '';
-  const href = (ext) ? `${window.location.origin}/r/${id.split(':')[0]}\#${id.split(':')[1]}` : `\#${id}`;
+  const x = (readonly) ? 'r' : 'a';
+  const href = (ext) ? `${window.location.origin}/${x}/${id.split(':')[0]}\#${id.split(':')[1]}` : `\#${id}`;
   return `<a href="${href}" class="reference ${pclass}" citekey="${id}" data-extern="${ext}" format="${format}" ${htext} ${ptext}></a>`;
 };
 
