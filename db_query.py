@@ -204,16 +204,16 @@ class AxiomDB:
         index = {p.pid: p for p in paras}
         return [index[p] for p in pids]
 
-    def get_art_titles(self, time=None):
+    def get_art_titles(self, aids=None, time=None):
         if time is None:
             time = datetime.utcnow()
 
-        arts = (self.session
-            .query(Article)
-            .filter(arttime(time))
-            .all()
-        )
-        return [art.short_title for art in arts]
+        if aids is None:
+            query = self.session.query(Article).filter(arttime(time))
+            return [art.short_title for art in query.all()]
+        else:
+            query = self.session.query(Article).filter(Article.aid.in_(aids)).filter(arttime(time))
+            return {art.aid: art.short_title for art in query.all()}
 
     def get_arts(self, time=None):
         if time is None:
@@ -519,6 +519,11 @@ class AxiomDB:
         arts = self.session.query(Article).filter(Article.aid.in_(match)).all()
         return sorted(arts, key=lambda a: match.index(a.aid))
 
+    def search_text(self, words, thresh=0.25):
+        match = [i for i, s in self.search_index(words, dtype='para') if s > thresh]
+        paras = self.session.query(Paragraph).filter(Paragraph.pid.in_(match)).all()
+        return sorted(paras, key=lambda a: match.index(a.pid))
+
     ##
     ## citation methods
     ##
@@ -804,8 +809,8 @@ class AxiomDB:
         self.session.commit()
 
     def update_password(self, user, password):
-        hash = generate_password_hash(password, method='sha256')
-        user.password = hash
+        phash = generate_password_hash(password, method='sha256')
+        user.password = phash
         self.session.add(user)
         self.session.commit()
 

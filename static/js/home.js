@@ -4,19 +4,19 @@ searchTitle = function(query, last_url) {
     client.sendCommand('search_title', query, function(response) {
         $('#results').empty();
 
-        var nres = Object.keys(response).length;
+        let nres = Object.keys(response).length;
         if (nres > 0) {
-            for (var title in response) {
-                var art = response[title];
-                var url = `a/${art.url}`;
-                var artdiv = $('<a>', {class: 'art_result', href: url});
-                var btext = art.blurb || art.title;
-                var blurb = $('<div>', {class: 'blurb', html: btext});
+            for (let title in response) {
+                let art = response[title];
+                let url = `a/${art.url}`;
+                let artdiv = $('<a>', {class: 'art_result', href: url});
+                let btext = art.blurb || art.title;
+                let blurb = $('<div>', {class: 'blurb', html: btext});
                 artdiv.append(blurb);
                 $('#results').append(artdiv);
             }
 
-            var sel;
+            let sel;
             if (last_url == undefined) {
                 sel = $('.art_result').first();
             } else {
@@ -30,6 +30,54 @@ searchTitle = function(query, last_url) {
     });
 };
 
+searchText = function(query, last_pid) {
+    client.sendCommand('search_text', query, function(response) {
+        $('#results').empty();
+
+        let nres = Object.keys(response).length;
+        if (nres > 0) {
+            for (let pid in response) {
+                let par = response[pid];
+                let url = `a/${par.url}`;
+                let raw = par.raw;
+                let artdiv = $('<a>', {class: 'art_result', href: url, pid: pid});
+                let blurb = $('<div>', {class: 'blurb', text: raw});
+                artdiv.append(blurb);
+                $('#results').append(artdiv);
+            }
+
+            let sel;
+            if (last_pid == undefined) {
+                sel = $('.art_result').first();
+            } else {
+                sel = $(`.art_result[pid="${last_pid}"]`);
+                if (sel.length == 0) {
+                    sel = $('.art_result').first();
+                }
+            }
+            sel.addClass('selected');
+        }
+    });
+};
+
+runQuery = function() {
+    let active = $('.art_result.selected').first();
+    let last_url = active.attr('href');
+    let last_pid = active.attr('pid');
+
+    let query = $('#query').val();
+    if (query.length > 0) {
+        let full_text = $('#full_text_check').is(':checked');
+        if (full_text) {
+            searchText(query, last_url);
+        } else {
+            searchTitle(query, last_pid);
+        }
+    } else {
+        $('#results').empty();
+    }
+};
+
 createArt = function() {
     query = $('#query').val();
     if (query.length > 0) {
@@ -38,6 +86,10 @@ createArt = function() {
         });
     }
 };
+
+$(document).on('change', '#full_text_check', function() {
+    runQuery();
+});
 
 $(document).on('click', '#submit', function() {
     createArt();
@@ -59,15 +111,7 @@ $(document).on('keydown', function(e) {
         }
     } else if (real || (key == 'backspace') || (key == 'delete') || andriod_is_fucking_stupid) {
         clearTimeout(timeout);
-        var last_url = active.attr('href');
-        timeout = setTimeout(function() {
-            var query = $('#query').val();
-            if (query.length > 0) {
-                searchTitle(query, last_url);
-            } else {
-                $('#results').empty();
-            }
-        }, 200);
+        timeout = setTimeout(runQuery, 200);
     } else if (key == 'arrowdown') {
         var next = active.next('.art_result');
         if (next.length > 0) {

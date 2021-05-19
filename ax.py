@@ -581,6 +581,20 @@ def search_title(data):
         } for art in results
     }
 
+@socketio.on('search_text')
+def search_title(data):
+    results = adb.search_text(data)
+
+    aids = set(par.aid for par in results)
+    titles = adb.get_art_titles(aids)
+
+    return {
+        par.pid: {
+            'url': titles[par.aid],
+            'raw': par.text
+        } for par in results
+    }
+
 @socketio.on('set_blurb')
 @login_decor
 def set_blurb(data):
