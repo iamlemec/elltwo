@@ -18,22 +18,29 @@
     font-size: 250%;
 }
 
-#new_art_id {
+#query {
     position: fixed;
-    width: 44%;
-    left: 20%;
     min-height: 40px;
     font-size: 130%;
+    left: 20%;
     top: 30%;
+    width: 44%;
+}
+
+#full_text {
+    position: fixed;
+    font-size: 100%;
+    left: 55%;
+    top: 31%;
 }
 
 #submit {
     position: fixed;
-    width: 15%;
-    right: 20%;
     min-height: 40px;
     font-size: 130%;
+    right: 20%;
     top: 30%;
+    width: 15%;
 }
 
 ::-moz-placeholder { /* Firefox 19+ */
@@ -112,12 +119,12 @@
     font-size: 300%;
 }
 
-#new_art_id {
+#query {
     position: fixed;
-    width: 59%;
-    left: 10%;
     font-size: 130%;
+    left: 10%;
     top: 25%;
+    width: 59%;
 }
 
 #submit {

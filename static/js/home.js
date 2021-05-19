@@ -31,7 +31,7 @@ searchTitle = function(query, last_url) {
 };
 
 createArt = function() {
-    query = $('#new_art_id').val();
+    query = $('#query').val();
     if (query.length > 0) {
         client.sendCommand('create_art', query, function(response) {
             window.location = response;
@@ -61,7 +61,7 @@ $(document).on('keydown', function(e) {
         clearTimeout(timeout);
         var last_url = active.attr('href');
         timeout = setTimeout(function() {
-            var query = $('#new_art_id').val();
+            var query = $('#query').val();
             if (query.length > 0) {
                 searchTitle(query, last_url);
             } else {

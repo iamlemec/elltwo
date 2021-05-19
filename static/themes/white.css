@@ -90,18 +90,18 @@ button:hover {
 /*    border-bottom: 1px dashed black;*/
 }
 
-.toc_entry{
+.toc_entry {
  color: var(--font-col);
 }
 
 /* paras */
 
-.title{
+.title {
     text-align: center;
     border-bottom: 2px solid black;
 }
 
-.env__heading{
+.env__heading {
     text-align: center;
     border-bottom: 1px solid black;
 }
@@ -122,18 +122,18 @@ button:hover {
     border-right: 2px solid var(--font-col-int);
 }
 
-.para.copy_sel{
-    background-color: var(--bg-hl-col);   
+.para.copy_sel {
+    background-color: var(--bg-hl-col);
 }
 
 
 /* text elements */
 
-.footnote{
+.footnote {
 /*   color: var(--delimit-col); */
 }
 
-.footnote > .num{
+.footnote > .num {
   color: var(--hl-col);
   font-size: 70%;
   vertical-align: super;
@@ -200,7 +200,7 @@ button:hover {
     border-bottom: 1px solid var(--hl-col);
 }
 
-.cc_row:first-child{
+.cc_row:first-child {
     color: var(--pop-fg-col);
 }
 
@@ -218,92 +218,89 @@ button:hover {
 
 /* syntax highlighting */
 
-.syn_hl{
+.syn_hl {
     color: var(--hl2-col);
 }
 
-.syn_math{
+.syn_math {
     color: var(--hl-col);
 }
 
-.syn_ref{
+.syn_ref {
     color: var(--font-col-int);
 }
 
-.syn_delimit{
+.syn_delimit {
     color: var(--delimit-col);
 }
 
-.syn_comment_head{
+.syn_comment_head {
     color: var(--font-col-int);
 }
 
-.syn_comment{
+.syn_comment {
     color: var(--comment);
 }
 
-.syn_code{
+.syn_code {
    background-color: var(--bg-hl2-col)!important;
    border-radius: 3px;
 }
 
-.brace{
+.brace {
     border-radius: 5px;
     background-color: var(--brace-col);
 }
 
 /* home page */
 
-#new_art_id{
+#query {
   background-color: var(--bg-hl-col);
   color: var(--font-col);
 }
 
-#submit{
+#submit {
   background-color: var(--bg-hl-col);
   border: none;
   color: var(--font-col);
 }
 
-.foot_butt{
+.foot_butt {
     border: .5px solid black;
 }
 
 
-.art_result{
+.art_result {
   background-color: var(--bg-hl-col);
 }
 
-a.art_result{
+a.art_result {
   color:  var(--font-col-int);
 }
 
-.blurb{
+.blurb {
   color: var(--font-col);
 }
 
-.blurb *{
+.blurb * {
   border: none;
   text-align: left;
 }
 
-.art_result  .title{
+.art_result .title {
     margin-bottom: 10px;
     padding-bottom: 5px;
     border-bottom: 1px solid var(--delimit-col);
-}
-
-.heading{
-  color: var(--hl2-col)
+    color: var(--hl2-col)
 }
 
 /* bib */
 
-#bib_input{
+#bib_input {
   background-color: var(--bg-hl-col);
 }
 
-.cite > a{
+.cite > a {
     color: var(--delimit-col);
 }
 
@@ -319,29 +316,29 @@ a.art_result{
     color: var(--hl-col)
 }
 
-.custom-select-trigger:after{
+.custom-select-trigger:after {
     border-bottom: 2px solid;
     border-right: 2px solid;
     border-color: var(--hl2-col);
 }
 
-.custom-select-trigger{
+.custom-select-trigger {
     background: var(--bg-hl2-col);
 }
 
-.custom-options{
+.custom-options {
     background: var(--bg-col);
 }
 
-.custom-option{
+.custom-option {
     border-bottom: 1px solid var(--bg-hl2-col);
 }
 
-.custom-option{
+.custom-option {
     background-color: var(--hl-col);
 
 }
 
-.custom-option:hover{
+.custom-option:hover {
     background-color: var(--bg-hl2-col);
 }

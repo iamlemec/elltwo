@@ -26,7 +26,12 @@
     <br>
     Simple Beautiful Collabrative
     </div>
-    <input type="text" autocomplete="off" autofocus="autofocus" name="new_art" id="new_art_id" placeholder="Search existing articles or create a new one">
+
+    <input type="text" autocomplete="off" autofocus="autofocus" name="query" id="query" placeholder="Search existing articles or create a new one" />
+    <div id="full_text">
+        <input type="checkbox" name="full_text" />
+        <label for="full_text">Full Text</label>
+    </div>
     <button class="submit" id="submit">Create</button>
 
     <div id="results_outer"><div id="results"></div></div>

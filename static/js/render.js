@@ -44,7 +44,7 @@ $(document).ready(function() {
     // join room specific to article and get locked paras
 
     $('.para').each(function() {
-        var para = $(this);
+        let para = $(this);
         makePara(para);
     });
 
@@ -52,7 +52,7 @@ $(document).ready(function() {
     createRefs();
 
     // set folded paras from cookie
-    var folded = cooks('folded') || folded;
+    folded = cooks('folded') || folded;
     folded.forEach(pid => {
         let para = getPara(pid);
         fold(para, init=true);
@@ -62,7 +62,7 @@ $(document).ready(function() {
     // set external reference for import_markdown arts
     if (g_ref) {
         $('.para').each(function() {
-            var para = $(this);
+            let para = $(this);
             updateRefHTML(para);
         });
         client.sendCommand('update_g_ref', {'aid': aid, 'g_ref': false}, function(response) {

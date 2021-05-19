@@ -3,8 +3,8 @@ var in_title = title;
 createTex = function() {
     keys = getBibRefs();
     var output = [];
-    $('.para').each(function() {
-        raw = $(this).attr('raw');
+    $('.para:not(.folder)').each(function() {
+        let raw = $(this).attr('raw');
         markout = markthree(raw, {renderer: new markthree.texRenderer});
         if (markout.env) {
             tex = texEnv(markout);
@@ -131,27 +131,27 @@ var tex_spec = {
     'end': texEndEnv,
 };
 
-texMacros = function(macros_dict){
-    macout = ""
+texMacros = function(macros_dict) {
+    macout = '';
     for (const [key, value] of Object.entries(macros_dict)) {
-        const num = (value.match(/(?<!\\)\#[0-9]+/g)||[]).length
+        const num = (value.match(/(?<!\\)\#[0-9]+/g)||[]).length;
         const box = num ? `[${num}]` : "";
-        macout += `\\newcommand{${key}}${box}{${value}} \n`
+        macout += `\\newcommand{${key}}${box}{${value}} \n`;
     }
-    return macout
+    return macout;
 };
 
-sEnv = function(s_env_spec){
-    envout = ""
+sEnv = function(s_env_spec) {
+    envout = '';
     for (const [key, value] of Object.entries(s_env_spec)) {
-        if(key!='proof'){
+        if (key!='proof') {
             nonum = `\\newtheorem{${key}}{${value.head}}`;
             num = `\\newtheorem*{${key}*}{${value.head}}`;
             envout += `${num}\n${nonum}\n`;
         }
     }
-    return envout 
-}
+    return envout;
+};
 
 /// export methods
 

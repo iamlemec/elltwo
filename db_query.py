@@ -792,8 +792,8 @@ class AxiomDB:
         return self.session.query(User).filter_by(email=email).one_or_none()
 
     def add_user(self, email, name, password):
-        hash = generate_password_hash(password, method='sha256')
-        new_user = User(email=email, name=name, password=hash)
+        phash = generate_password_hash(password, method='sha256')
+        new_user = User(email=email, name=name, password=phash)
         self.session.add(new_user)
         self.session.commit()
 
