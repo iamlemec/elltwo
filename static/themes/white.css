@@ -269,12 +269,11 @@ button:hover {
     border: .5px solid black;
 }
 
-
-.art_result {
+.result {
   background-color: var(--bg-hl-col);
 }
 
-a.art_result {
+a.result {
   color:  var(--font-col-int);
 }
 
@@ -287,7 +286,7 @@ a.art_result {
   text-align: left;
 }
 
-.art_result .title {
+.blurb .title {
     margin-bottom: 10px;
     padding-bottom: 5px;
     border-bottom: 1px solid var(--delimit-col);

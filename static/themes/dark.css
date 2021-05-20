@@ -112,7 +112,7 @@ button:hover {
 #content.sb_content{
     position: absolute;
     left: 20%;
-} 
+}
 
 .sb_content .para {
     left: 10% !important;
@@ -140,7 +140,7 @@ button:hover {
 }
 
 .para.copy_sel{
-    background-color: var(--pop-fg-col);   
+    background-color: var(--pop-fg-col);
 }
 
 
@@ -278,44 +278,43 @@ button:hover {
 
 /* home page */
 
-#new_art_id{
+#new_art_id {
   background-color: var(--bg-hl-col);
   color: var(--font-col);
 }
 
-#submit{
+#submit {
   background-color: var(--bg-hl-col);
   border: none;
   color: var(--font-col);
 }
 
-
-.art_result{
+.result {
   background-color: var(--bg-hl-col);
 }
 
-.code{
+.code {
    background-color: var(--bg-col);
    padding-left: 3px;
    padding-right: 3px;
    border-radius: 4px;
 }
 
-a.art_result{
+a.result {
   color:  var(--font-col-int);
 }
 
-.art_result  .title{
+.blurb .title {
     margin-bottom: 10px;
     padding-bottom: 5px;
     border-bottom: 1px solid var(--hl2-col);
 }
 
-.blurb{
+.blurb {
   color: var(--font-col);
 }
 
-.heading{
+.heading {
   color: var(--hl2-col)
 }
 

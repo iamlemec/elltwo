@@ -9,7 +9,7 @@ searchTitle = function(query, last_url) {
             for (let title in response) {
                 let art = response[title];
                 let url = `a/${art.url}`;
-                let artdiv = $('<a>', {class: 'art_result', href: url});
+                let artdiv = $('<a>', {class: 'result art_link', href: url});
                 let btext = art.blurb || art.title;
                 let blurb = $('<div>', {class: 'blurb', html: btext});
                 artdiv.append(blurb);
@@ -18,11 +18,11 @@ searchTitle = function(query, last_url) {
 
             let sel;
             if (last_url == undefined) {
-                sel = $('.art_result').first();
+                sel = $('.art_link').first();
             } else {
-                sel = $(`.art_result[href="${last_url}"]`);
+                sel = $(`.art_link[href="${last_url}"]`);
                 if (sel.length == 0) {
-                    sel = $('.art_result').first();
+                    sel = $('.art_link').first();
                 }
             }
             sel.addClass('selected');
@@ -40,19 +40,19 @@ searchText = function(query, last_pid) {
                 let par = response[pid];
                 let url = `a/${par.url}`;
                 let raw = par.raw;
-                let artdiv = $('<a>', {class: 'art_result', href: url, pid: pid});
-                let blurb = $('<div>', {class: 'blurb', text: raw});
+                let artdiv = $('<a>', {class: 'result par_link', href: url, pid: pid});
+                let blurb = $('<div>', {class: 'par_text', text: raw});
                 artdiv.append(blurb);
                 $('#results').append(artdiv);
             }
 
             let sel;
             if (last_pid == undefined) {
-                sel = $('.art_result').first();
+                sel = $('.par_link').first();
             } else {
-                sel = $(`.art_result[pid="${last_pid}"]`);
+                sel = $(`.par_link[pid="${last_pid}"]`);
                 if (sel.length == 0) {
-                    sel = $('.art_result').first();
+                    sel = $('.par_link').first();
                 }
             }
             sel.addClass('selected');
@@ -61,7 +61,7 @@ searchText = function(query, last_pid) {
 };
 
 runQuery = function() {
-    let active = $('.art_result.selected').first();
+    let active = $('.result.selected').first();
     let last_url = active.attr('href');
     let last_pid = active.attr('pid');
 
@@ -87,8 +87,23 @@ createArt = function() {
     }
 };
 
+getActive = function() {
+    return $('.result.selected').first();
+};
+
+setActive = function(res) {
+    $('.result').removeClass('selected');
+    res.addClass('selected');
+    ensureVisible(res);
+};
+
 $(document).on('change', '#full_text_check', function() {
+    $('#query').focus();
     runQuery();
+});
+
+$(document).on('click', '#full_text_label', function() {
+    $('#full_text_check').click();
 });
 
 $(document).on('click', '#submit', function() {
@@ -101,7 +116,9 @@ $(document).on('keydown', function(e) {
     var key = e.key.toLowerCase();
     var real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
     var andriod_is_fucking_stupid = e.keyCode == 229;
-    var active = $('.art_result.selected').first();
+
+    var active = getActive();
+
     if (e.ctrlKey && (key == 'enter')) {
         createArt();
     } else if (key == 'enter') {
@@ -113,19 +130,15 @@ $(document).on('keydown', function(e) {
         clearTimeout(timeout);
         timeout = setTimeout(runQuery, 200);
     } else if (key == 'arrowdown') {
-        var next = active.next('.art_result');
+        var next = active.next('.result');
         if (next.length > 0) {
-            $('.art_result').removeClass('selected');
-            next.addClass('selected');
-            ensureVisible(next);
+            setActive(next);
         }
         return false;
     } else if (key == 'arrowup') {
-        var prev = active.prev('.art_result');
+        var prev = active.prev('.result');
         if (prev.length > 0) {
-            $('.art_result').removeClass('selected');
-            prev.addClass('selected');
-            ensureVisible(prev);
+            setActive(prev);
         }
         return false;
     }

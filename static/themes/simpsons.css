@@ -82,11 +82,11 @@ button:hover {
 }
 
 .para.copy_sel{
-    background-color: var(--bg-hl-col);   
+    background-color: var(--bg-hl-col);
 }
 
 .para.copy_sel{
-    background-color: var(--bg-hl-col);   
+    background-color: var(--bg-hl-col);
 }
 
 
@@ -214,11 +214,11 @@ button:hover {
     color: var(--font-col);
 }
 
-.art_result {
+.result {
     background-color: var(--bg-hl-col);
 }
 
-a.art_result {
+a.result {
     color:  var(--font-col);
 }
 
@@ -226,7 +226,7 @@ a.art_result {
     color: var(--font-col);
 }
 
-.art_result  .title{
+.blurb .title {
     margin-bottom: 10px;
     padding-bottom: 5px;
     border-bottom: 1px solid var(--delimit-col);

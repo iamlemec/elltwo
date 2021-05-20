@@ -131,7 +131,7 @@ button:hover {
 }
 
 .para.copy_sel{
-    background-color: var(--bg-hl-col);   
+    background-color: var(--bg-hl-col);
 }
 
 .controlDots {
@@ -273,8 +273,8 @@ button:hover {
 
 /* home page */
 
-#new_art_id {
-  background-color: var(--bg-hl-col);
+#query {
+  background-color: var(--bg-hl2-col);
   color: var(--font-col);
 }
 
@@ -284,23 +284,22 @@ button:hover {
   color: var(--font-col);
 }
 
-.art_result {
+.result {
   background-color: var(--bg-hl-col);
 }
 
-a.art_result {
-  color:  var(--font-col-int);
+a.result {
+  color: var(--font-col-int);
 }
 
 .blurb {
   color: var(--font-col);
 }
 
-.art_result  .title{
+.blurb .title {
     margin-bottom: 10px;
     padding-bottom: 5px;
 }
-
 
 .heading {
   color: var(--hl2-col)
