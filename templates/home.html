@@ -28,11 +28,31 @@
     </div>
 
     <input type="text" autocomplete="off" autofocus="autofocus" name="query" id="query" placeholder="Search existing articles or create a new one" />
-    <div id="full_text">
+    
+
+<!--     <div id="full_text">
         <input type="checkbox" name="full_text" id="full_text_check" />
         <label for="full_text" id="full_text_label">Full Text</label>
-    </div>
-    <button class="submit" id="submit">Create</button>
+    </div> -->
+
+
+    <label class="toggle" for="full_text_check" id="full_text">
+            <input type="checkbox" class="toggle__input" name="full_text" id="full_text_check"/>
+            Full Text Search
+            <span class="toggle-track">
+                <span class="toggle-indicator">
+                    <!--    This check mark is optional  -->
+                    <span class="checkMark">
+                        <svg viewBox="0 0 24 24" id="ghq-svg-check" role="presentation" aria-hidden="true">
+                            <path d="M9.86 18a1 1 0 01-.73-.32l-4.86-5.17a1.001 1.001 0 011.46-1.37l4.12 4.39 8.41-9.2a1 1 0 111.48 1.34l-9.14 10a1 1 0 01-.73.33h-.01z"></path>
+                        </svg>
+                    </span>
+                </span>
+            </span>
+    </label>
+
+
+    <button class="create" id="submit">Create</button>
 
     <div id="results_outer"><div id="results"></div></div>
 {% endblock %}

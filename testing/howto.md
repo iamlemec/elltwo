@@ -2,7 +2,7 @@
 
 Axiom L2 is a browser based platform for decentralized and collaborative technical documents. It has a wiki like structure with an emphasis on typesetting and intelligent referencing. Axiom L2 articles are written in a simple markup language barrowing elements of [Markdown](https://en.wikipedia.org/wiki/Markdown) and [LaTeX](https://www.latex-project.org/).
 
-# [key=name=poo] Structure & Editing 
+# [key=name=poo] Structure & Editing
 
 Each article (denoted by a URL) is a collection of cells. Cells contain text which can be styled and referenced individually. For example, a cell could be a paragraph of text (like this one), an equation, an SVG figure, a custom environment, etc. In the same way that articles can be references from other articles in any wiki-like platform, cells that contain a reference can be referenced elsewhere, including across articles. \`
 

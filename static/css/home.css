@@ -24,23 +24,23 @@
     font-size: 130%;
     left: 20%;
     top: 30%;
-    width: 44%;
+    width: 49%;
 }
 
 #full_text {
     position: fixed;
-    font-size: 100%;
-    left: 55%;
-    top: 31%;
+    right: 31%;
+    top: 30%;
+    height: 40px;
 }
 
 #submit {
     position: fixed;
-    min-height: 40px;
-    font-size: 130%;
+    height: 40px;
+    font-size: 100%;
     right: 20%;
     top: 30%;
-    width: 15%;
+    width: 10%;
 }
 
 ::-moz-placeholder { /* Firefox 19+ */
@@ -110,6 +110,69 @@
     border-left: 2px solid var(--hl-col);
 }
 
+/* check mark */
+
+.toggle {
+	align-items: center;
+	display: flex;
+    font-size: 70%;
+}
+
+.toggle__input {
+    display: none;
+}
+
+.toggle-track {
+	background: var(--bg-col);
+	border: 1px solid black;
+	border-radius: 100px;
+	cursor: pointer;
+	display: flex;
+	height: 30px;
+	margin-right: 10px;
+    margin-left: 10px;
+	position: relative;
+	width: 56px;
+}
+
+.toggle-indicator {
+	align-items: center;
+	background: var(--bg-hl2-col);
+	border-radius: 24px;
+	bottom: 2px;
+	display: flex;
+	height: 24px;
+	justify-content: center;
+	left: 2px;
+	position: absolute;
+	transition: 200ms;
+	width: 24px;
+}
+
+
+.toggle__input:checked + .toggle-track .toggle-indicator {
+	background: var(--bg-hl2-col);
+	transform: translateX(25px);
+    
+}
+
+.toggle__input:checked + .toggle-track {
+    border: 1px solid var(--font-col-int);
+}
+
+.toggle__input:checked + .toggle-track .checkMark {
+		opacity: 1;
+		transition: opacity 200ms ease-in-out;
+	}
+
+.checkMark {
+	fill: var(--bg-hl-col);
+	height: 20px;
+	width: 20px;
+	opacity: 0;
+	transition: opacity 200ms ease-in-out;
+}
+
 @media only screen and (max-width: 815px) {
 
 #prompt {
@@ -128,19 +191,32 @@
     position: fixed;
     font-size: 130%;
     left: 10%;
-    top: 25%;
-    width: 59%;
+    top: 20%;
+    width: 80%;
+    height: 7%;
 }
 
 #submit {
     position: fixed;
     width: 20%;
     right: 10%;
-    min-height: 40px;
-    font-size: 130%;
-    top: 25%;
+    height: 30px;
+    font-size: 110%;
+    top: 29%;
+    border-radius: 24px;
+    border: 1px solid black;
+    background-color: var(--bg-col);
+    font-weight: 100;
 }
-
+    
+#full_text {
+    position: fixed;
+    right: 31%;
+    top: 29%;
+    height: 30px;
+}
+    
+    
 .result {
     display: block;
     margin-bottom: 20px;
@@ -172,3 +248,6 @@
 }
 
 }
+
+
+
