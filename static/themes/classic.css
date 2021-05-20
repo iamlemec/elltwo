@@ -249,7 +249,7 @@ button:hover {
 }
 
 a.result {
-    color:  var(--font-col);
+    color:  var(--font-col-int);
 }
 
 .blurb {
