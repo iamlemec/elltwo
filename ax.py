@@ -723,8 +723,9 @@ def trueUnlock(data):
     aid = data['room']
     rpid = [p for p in pids if locked.pop(p) is not None]
     app.logger.debug(f'room: {aid}')
-    if not(room[:2] == '__'): #do not send unlock to __home, __bib, etc
-        socketio.emit('unlock', rpid, room=aid) # since called exernally
+    if (data['room']):
+        if not(data['room'][:2] == '__'): #do not send unlock to __home, __bib, etc
+            socketio.emit('unlock', rpid, room=aid) # since called exernally
 
 @socketio.on('unlock')
 @login_decor

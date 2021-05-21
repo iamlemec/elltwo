@@ -37,9 +37,8 @@ searchText = function(query, last_pid) {
         if (nres > 0) {
             for (let pid in response) {
                 let par = response[pid];
-                let url = `a/${par.url}`;
                 let name = par.name;
-                let url = `a/${tit}?pid=${pid}`;
+                let url = `a/${par.url}?pid=${pid}`;
                 let raw = par.raw;
                 query.split(' ').forEach(q => {
                     if(q){
