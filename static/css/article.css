@@ -3,7 +3,7 @@
 #content.sb_content{
     position: absolute;
     left: 20%;
-} 
+}
 
 .sb_content .para {
     left: 13%;
@@ -149,7 +149,7 @@ button {
 
 .env__equation .latex{
     flex: 1;
-    text-align: center; 
+    text-align: center;
 }
 
 #pop .eqnum {
@@ -385,6 +385,7 @@ button {
 #pop .title {
     font-size: 25px;
     font-weight: bold;
+    margin-bottom: 10px;
 }
 
 #pop .env__heading_h1 {
@@ -466,7 +467,7 @@ button {
     border-top: 2px solid var(--font-col-int);
 }
 
-#sb_links{  
+#sb_links{
     margin-bottom: 20px;
 }
 

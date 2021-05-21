@@ -38,11 +38,13 @@ searchText = function(query, last_pid) {
         if (nres > 0) {
             for (let pid in response) {
                 let par = response[pid];
-                let url = `a/${par.url}`;
+                let tit = par.url;
+                let url = `a/${tit}?pid=${pid}`;
                 let raw = par.raw;
                 let artdiv = $('<a>', {class: 'result par_link', href: url, pid: pid});
+                let title = $('<div>', {class: 'par_title', text: tit});
                 let blurb = $('<div>', {class: 'par_text', text: raw});
-                artdiv.append(blurb);
+                artdiv.append([title, blurb]);
                 $('#results').append(artdiv);
             }
 

@@ -82,6 +82,12 @@
     font-size: 60%;
 }
 
+.par_title {
+    font-size: 60%;
+    font-family: monospace;
+    font-weight: bold;
+}
+
 .par_text {
     font-family: monospace;
     font-size: 60%;
@@ -153,7 +159,7 @@
 .toggle__input:checked + .toggle-track .toggle-indicator {
 	background: var(--bg-hl2-col);
 	transform: translateX(25px);
-    
+
 }
 
 .toggle__input:checked + .toggle-track {
@@ -208,15 +214,15 @@
     background-color: var(--bg-col);
     font-weight: 100;
 }
-    
+
 #full_text {
     position: fixed;
     right: 31%;
     top: 29%;
     height: 30px;
 }
-    
-    
+
+
 .result {
     display: block;
     margin-bottom: 20px;
@@ -248,6 +254,3 @@
 }
 
 }
-
-
-
