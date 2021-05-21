@@ -216,6 +216,10 @@ button:hover {
     color: teal;
 }
 
+#pop .title {
+    border-bottom-color: white;
+}
+
 /* syntax highlighting */
 
 .syn_hl {

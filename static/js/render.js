@@ -41,13 +41,13 @@ $(document).ready(function() {
         });
     });
 
-    // join room specific to article and get locked paras
-
+    // do actual rendering
     $('.para').each(function() {
         let para = $(this);
         makePara(para);
     });
 
+    // handle environments and references
     envClasses();
     createRefs();
 
@@ -70,8 +70,15 @@ $(document).ready(function() {
         });
     };
 
+    // send blurb back to server
     if (!readonly) {
         setBlurb();
+    }
+
+    // jump to pid if specified
+    if (pid !== null) {
+        let para = getPara(pid);
+        makeActive(para);
     }
 });
 
@@ -257,7 +264,6 @@ applyDiff = function(edits) {
 
 ///////////////// ENVS /////////
 
-
 //creates classes for environs
 envClasses = function(outer) {
     if (outer === undefined) {
@@ -368,7 +374,6 @@ envClasses = function(outer) {
     createTOC(outer);
     renderFold();
 };
-
 
 envFormat = function(ptxt, env, args) {
     if (env in env_spec) {
@@ -583,7 +588,6 @@ parse_preamble = function(raw){
     macros = Object.assign({}, int_macros, ext_macros);//merge internal and ext macros,overwrites internal
 };
 
-
 renderKatex = function(para) {
     para.find('span.latex').each(function() {
         var tex = $(this);
@@ -643,8 +647,6 @@ createTOC = function(outer) {
         toc.append(sec);
     });
 };
-
-
 
 /// REFERENCING and CITATIONS
 
@@ -994,7 +996,7 @@ renderPop = function(ref, tro, text, ext) {
     };
     link = mobile ? ref.attr('href'): false;
     createPop(pop, link);
-}
+};
 
 popError = function(err='not_found') {
     if (err == 'not_found') {
@@ -1239,9 +1241,8 @@ esc = function(raw){
              .replace(/\*/g, '&#42;')//*
              .replace(/\!/g, '&#33;')//!
              .replace(/%/g, '&#37;')//%
-
-    return out
-}
+    return out;
+};
 
 inlines = {
     comment: /%(?!%)([^\n]+?)(\n|$)/g,
@@ -1252,8 +1253,7 @@ inlines = {
     ilink: /\[\[([^\]]+)\]\]/g,
     em: /\*((?:\*\*|[\s\S])+?)\*(?!\*)/g,
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
-}
-
+};
 
 sytaxParseInline = function(raw) {
     var html = raw;
@@ -1291,11 +1291,11 @@ sytaxParseInline = function(raw) {
     });
 
     return html;
-}
+};
 
 s = function(text, cls) {
     return `<span class=syn_${cls}>${text}</span>`;
-}
+};
 
 //uses lookbehinds, might not work on old ass browsers
 //set = true is for non ref when seting ids
@@ -1307,7 +1307,7 @@ fArgs = function(argsraw, set=true){
         illegal = /[^a-zA-Z\d\_\-\:]/
     }
 
-    let args = argsraw.replace(argmatch, function(a,b,c) {     
+    let args = argsraw.replace(argmatch, function(a,b,c) {
         c = c.split(/(?<!\\)\=/);
         if(c.length > 1){
             let val = c.pop()
@@ -1334,7 +1334,6 @@ fArgs = function(argsraw, set=true){
     });
     return esc(args)
 };
-
 
 var blocks = {
     title: /^#\!([\n\r\s]*)(?:refargs)?([\n\r\s]*)([^\n]*)([\n\r]*)([\s\S]*)/,

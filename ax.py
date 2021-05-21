@@ -324,21 +324,22 @@ def confirm_token(token, expiration=3600):
 ### Article
 ###
 
-def GetArtData(title, edit, theme):
+def GetArtData(title, edit, theme, pid=None):
+    print(f'article: {title}:{pid}')
     themes = [t[:-4] for t in os.listdir('static/themes/')]
     art = adb.get_art_short(title)
     if art:
-        aid = art.aid
-        paras = adb.get_paras(aid)
+        paras = adb.get_paras(art.aid)
         ref_list = []
         if edit:
             bib_list = [cite.citekey for cite in adb.get_bib()]
-            ref_list = adb.get_refs(aid)
+            ref_list = adb.get_refs(art.aid)
             ref_list += bib_list
         return render_template(
             'article.html',
             title=art.title,
             aid=art.aid,
+            pid=pid,
             paras=paras,
             theme=theme,
             themes=themes,
@@ -357,15 +358,16 @@ def ErrorPage(title='Error', message=''):
 
 @app.route('/a/<title>', methods=['GET'])
 def RenderArticle(title):
-    theme=request.cookies.get('theme') or args.theme
+    theme = request.cookies.get('theme') or args.theme
+    pid = request.args.get('pid')
     if current_user.is_authenticated or not args.login:
-        return GetArtData(title, True, theme=theme)
+        return GetArtData(title, True, theme=theme, pid=pid)
     else:
         return redirect(url_for('RenderArticleRO', title=title))
 
 @app.route('/r/<title>', methods=['GET'])
 def RenderArticleRO(title):
-    theme=request.cookies.get('theme') or args.theme
+    theme = request.cookies.get('theme') or args.theme
     return GetArtData(title, False, theme=theme)
 
 @app.route('/i/<key>', methods=['GET'])

@@ -37,19 +37,31 @@ searchText = function(query, last_pid) {
         if (nres > 0) {
             for (let pid in response) {
                 let par = response[pid];
+<<<<<<< HEAD
                 let url = `a/${par.url}`;
                 let name = par.name;
+=======
+                let tit = par.url;
                 let url = `a/${tit}?pid=${pid}`;
+>>>>>>> 24989fccc764190699793bb70834ae8c0bcb668c
                 let raw = par.raw;
+                //experimental
                 query.split(' ').forEach(q => {
                     if(q){
                         raw = raw.replace(q, `<span class='hl'>${q}</span>`);
                     };
                 })
+
                 let artdiv = $('<a>', {class: 'result par_link', href: url, pid: pid});
+<<<<<<< HEAD
                 let blurb = $('<div>', {class: 'par_text', html: raw});
                 let art_name = $('<div>', {class: 'blurb_name', text: name});
                 artdiv.append([art_name,blurb]);
+=======
+                let title = $('<div>', {class: 'par_title', text: tit});
+                let blurb = $('<div>', {class: 'par_text', text: raw});
+                artdiv.append([title, blurb]);
+>>>>>>> 24989fccc764190699793bb70834ae8c0bcb668c
                 $('#results').append(artdiv);
             }
 
