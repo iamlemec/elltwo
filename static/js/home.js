@@ -33,16 +33,24 @@ searchTitle = function(query, last_url) {
 searchText = function(query, last_pid) {
     client.sendCommand('search_text', query, function(response) {
         $('#results').empty();
-
         let nres = Object.keys(response).length;
         if (nres > 0) {
             for (let pid in response) {
                 let par = response[pid];
                 let url = `a/${par.url}`;
+                let name = par.name;
                 let raw = par.raw;
+                //experimental
+                query.split(' ').forEach(q => {
+                    if(q){
+                        raw = raw.replace(q, `<span class='hl'>${q}</span>`);
+                    };
+                })
+
                 let artdiv = $('<a>', {class: 'result par_link', href: url, pid: pid});
-                let blurb = $('<div>', {class: 'par_text', text: raw});
-                artdiv.append(blurb);
+                let blurb = $('<div>', {class: 'par_text', html: raw});
+                let art_name = $('<div>', {class: 'blurb_name', text: name});
+                artdiv.append([art_name,blurb]);
                 $('#results').append(artdiv);
             }
 

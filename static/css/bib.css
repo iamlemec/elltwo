@@ -195,12 +195,13 @@ button {
 
 .editable > .control {
     display: flex;
+    align-content: center;
 }
 
 .controlButs {
     display: flex;
     width: 70%;
-    height: 70%;
+    height: 100%;
     justify-content: space-between;
 }
      

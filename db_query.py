@@ -213,7 +213,7 @@ class AxiomDB:
             return [art.short_title for art in query.all()]
         else:
             query = self.session.query(Article).filter(Article.aid.in_(aids)).filter(arttime(time))
-            return {art.aid: art.short_title for art in query.all()}
+            return {art.aid: {'name': art.title, 'url': art.short_title} for art in query.all()}
 
     def get_arts(self, time=None):
         if time is None:

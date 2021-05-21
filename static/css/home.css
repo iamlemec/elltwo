@@ -87,6 +87,17 @@
     font-size: 60%;
 }
 
+.blurb_name{
+    position: relative;
+    text-align: right;
+    margin-bottom: 3px;
+    right: 0;
+    color: var(--bg-hl2-col);
+    font-family: monospace;
+    font-size: 60%;
+    font-weight: bold;
+}
+
 .box {
     position: fixed;
     width: 40%;
@@ -108,6 +119,11 @@
 
 .result.selected {
     border-left: 2px solid var(--hl-col);
+}
+
+.hl{
+    color: var(--hl2-col);
+    font-weight: bold;
 }
 
 /* check mark */

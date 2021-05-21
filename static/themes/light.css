@@ -69,7 +69,7 @@ body {
 }
 
 button {
-    background-color: var(--bor-col);
+    background-color: var(--bg-hl-col);
     border: none;
     display:inline-block;
     cursor:pointer;
@@ -360,4 +360,12 @@ a.result {
 
 .custom-option:hover{
     background-color: var(--pop-bg-col);
+}
+
+@media only screen and (max-width: 815px) {
+
+button {
+    background-color: var(--bg-col);
+}
+    
 }

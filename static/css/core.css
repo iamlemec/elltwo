@@ -195,50 +195,36 @@ a.reference {
 
  #foot {
     align-items: center;
-    position: fixed;
+    display: flex;
     bottom: 0px;
     width: 100%;
-    margin: 0px;
     height: 40px;
     padding-right: 30px;
     padding-left: 30px;
     font-size: 70%;
-    background-color:  var(--bg-hl2-col);
 }
 
 #hoot {
-    position: absolute;
-    bottom: 2px;
-    left: 60px;
+    display: none;
 }
 
-#axell {
-    position: absolute;
-    bottom: 2px;
-    left: 30px;
-}
 
 #user_display {
     margin-right: 10px;
-    position: absolute;
-    bottom: 2px;
-    left: 150px;
 }
 
 .foot_butt {
     display: inline;
     font-size: 100%;
     border: 1px solid var(--delimit-col);
+    border-radius: 3px;
     margin-left: 0px;
     margin-right: 5px;
-    margin-bottom: 18px;
     top: 0;
     width: 70px;
 }
 
-#toggle_ll {
-   width: 100px;
-}
+
 
 #bg {
     position: fixed;
@@ -257,14 +243,6 @@ a.reference {
     padding-left: 0%;
     padding-right: 0%;
     font-size: 80%;
-}
-
-#locallogin {
-    width: 90%;
-}
-
-#locallogin:after {
-    left: 10%;
 }
 
 

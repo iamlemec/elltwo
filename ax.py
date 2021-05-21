@@ -586,11 +586,12 @@ def search_title(data):
     results = adb.search_text(data)
 
     aids = set(par.aid for par in results)
-    titles = adb.get_art_titles(aids)
+    titles = adb.get_art_titles(aids) #i modified this
 
     return {
         par.pid: {
-            'url': titles[par.aid],
+            'name': titles[par.aid]['name'].title(),
+            'url': titles[par.aid]['url'],
             'raw': par.text
         } for par in results
     }
@@ -719,7 +720,9 @@ def trueUnlock(data):
     pids = data['pids']
     aid = data['room']
     rpid = [p for p in pids if locked.pop(p) is not None]
-    socketio.emit('unlock', rpid, room=aid) # since called exernally
+    app.logger.debug(f'room: {aid}')
+    if not(room[:2] == '__'): #do not send unlock to __home, __bib, etc
+        socketio.emit('unlock', rpid, room=aid) # since called exernally
 
 @socketio.on('unlock')
 @login_decor

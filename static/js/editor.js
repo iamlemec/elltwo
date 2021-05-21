@@ -623,7 +623,7 @@ $(document).keydown(function(e) {
 /// mouse interface
 
 $(document).on('click', '.para', function(e) {
-    var alt = e.altKey;
+    var alt = e.altKey || mobile;
     var cmd = e.metaKey;
     if (alt) {
         var para = $(this);
@@ -641,7 +641,7 @@ $(document).on('click', '.para', function(e) {
 
 $(document).on('click', '#bg', function(e) {
     var targ = event.target.id;
-    var alt = e.altKey;
+    var alt = e.altKey || mobile;
     if (targ == 'bg' || targ == 'content') {
         if (alt) {
             makeActive(null);
