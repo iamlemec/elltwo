@@ -285,7 +285,7 @@ class AxiomDB:
         for pid, text in para_dict.items():
             self.update_para(pid, text, time=time)
 
-    def insert_after(self, pid, text='', time=None):
+    def insert_after(self, pid, text='', time=None, commit=True):
         if time is None:
             time = datetime.utcnow()
 
@@ -310,11 +310,12 @@ class AxiomDB:
             linn1 = splice_link(linn, time, prev=par1.pid)
             self.session.add(linn1)
 
-        self.session.commit()
+        if commit:
+            self.session.commit()
 
         return par1
 
-    def insert_before(self, pid, text='', time=None):
+    def insert_before(self, pid, text='', time=None, commit=True):
         if time is None:
             time = datetime.utcnow()
 
@@ -339,52 +340,23 @@ class AxiomDB:
             linp1 = splice_link(linp, time, next=par1.pid)
             self.session.add(linp1)
 
-        self.session.commit()
+        if commit:
+            self.session.commit()
 
         return par1
 
-    def paste_after(self, pid, cb, time=None):
+    def paste_after(self, pid, adds, time=None):
         if time is None:
             time = datetime.utcnow()
 
         if (par := self.get_para(pid, time=time)) is None:
             return
-        if (lin := self.get_link(pid, time=time)) is None:
-            return
 
-        linn = self.get_link(lin.next, time=time)
-        prev = pid
-        old_link = None
-        new_pid = None
         pid_map = []
-
-        for paste_id in cb:
-            paste = self.get_para(paste_id, time=time)
-            new_pid = self.create_pid()
-            new_para = Paragraph(aid=par.aid, pid=new_pid, text=paste.text, create_time=time)
-            new_link = Paralink(aid=par.aid, pid=new_pid, prev=prev, create_time=time)
-            d = [new_pid, paste_id]
-            if(par.aid != paste.aid):
-                d.append(paste.text)
-            pid_map.append(d)
-            self.session.add(new_para)
-            self.session.add(new_link)
-            if(old_link):
-                old_link.next = new_pid
-                self.session.add(old_link)
-            else:
-                lin0 = splice_link(lin, time, next=new_pid)
-                self.session.add(lin0)
-
-            prev = new_pid
-            old_link = new_link
-
-        if linn is not None:
-            old_link.next = linn.pid
-            #linn.delete_time = time
-            new_linn = splice_link(linn, time, prev=new_pid)
-            self.session.add(new_linn)
-            self.session.add(old_link)
+        for pid_add in adds:
+            para_add = self.get_para(pid_add, time=time)
+            new_para = self.insert_after(pid, para_add.text, time=time, commit=False)
+            pid_map.append([new_para.pid, para_add.text])
 
         self.session.commit()
 

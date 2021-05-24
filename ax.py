@@ -499,7 +499,7 @@ def update_bulk(data):
 def insert_after(data):
     text = data.get('text', '')
     par1 = adb.insert_after(data['pid'], text)
-    emit('insertPara', [data['pid'], par1.pid, False, text], room=data['room'])
+    emit('insertPara', [data['pid'], par1.pid, text, False], room=data['room'])
     return True
 
 @socketio.on('insert_before')
@@ -507,7 +507,7 @@ def insert_after(data):
 def insert_before(data):
     text = data.get('text', '')
     par1 = adb.insert_before(data['pid'], text)
-    emit('insertPara', [data['pid'], par1.pid, True, text], room=data['room'])
+    emit('insertPara', [data['pid'], par1.pid, text, True], room=data['room'])
     return True
 
 @socketio.on('paste_cells')
@@ -517,7 +517,7 @@ def paste_cells(data):
     cb = data.get('cb')
     if not cb:
         return False
-    pid_map = adb.paste_after(pid=pid,cb=cb)
+    pid_map = adb.paste_after(pid, cb)
     emit('pasteCB', [data['pid'], pid_map], room=data['room'])
     return True
 

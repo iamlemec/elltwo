@@ -195,26 +195,26 @@ deletePara = function(pid) {
     createRefs(); // we may be able to scope this more
 };
 
-insertParaRaw = function(pid, new_pid, before=true, raw='') {
-    console.log('insertPara:', pid, new_pid, before, raw);
+insertParaRaw = function(pid, new_pid, raw='', before=true) {
+    console.log('insertPara:', pid, new_pid, raw, before);
     var para = getPara(pid);
     var new_para = $('<div>', {class: 'para', pid: new_pid, raw: raw});
     if (before) {
-        let prev = para.prev()
-        if (prev.hasClass('folder')){
+        let prev = para.prev();
+        if (prev.hasClass('folder')) {
             prev.before(new_para);
         } else {
-        para.before(new_para);
+            para.before(new_para);
         }
     } else {
         para.after(new_para);
     }
     new_para.html(inner_para);
-    return new_para
+    return new_para;
 };
 
-insertPara = function(pid, new_pid, before=true, raw='') {
-    let new_para = insertParaRaw(pid, new_pid, before, raw);
+insertPara = function(pid, new_pid, raw='', before=true) {
+    let new_para = insertParaRaw(pid, new_pid, raw, before);
     rawToRender(new_para);
     rawToTextarea(new_para);
     makeActive(new_para);
@@ -222,19 +222,18 @@ insertPara = function(pid, new_pid, before=true, raw='') {
 };
 
 pasteCB = function(pid, paste) {
-        var n = null;
-    paste.forEach(d => { //d is [new_pid, paste_id, text] (text if forign)
-        const txt = getPara(d[1]).attr('raw') || d[2];
-        let new_para = insertParaRaw(pid, d[0], false, txt);
-        rawToRender(new_para, true); //defer
-        rawToTextarea(new_para);
-        n = n || new_para;
-        pid = d[0];
+    let para_act = null;
+    paste.forEach(d => {
+        const [new_pid, text] = d;
+        para_act = insertParaRaw(pid, new_pid, text, false);
+        rawToRender(para_act, true); // defer
+        rawToTextarea(para_act);
+        pid = new_pid;
     })
     envClasses();
     createRefs();
     $('.para').removeClass('copy_sel');
-    makeActive(n);
+    makeActive(para_act);
 };
 
 applyDiff = function(edits) {
@@ -253,7 +252,7 @@ applyDiff = function(edits) {
         var [pid, pre] = pos;
         if (pid in adds) {
             var raw = adds[pid];
-            insertPara(pre, pid, before=false, raw=raw);
+            insertPara(pre, pid, raw=raw, before=false);
         } else {
             var para = getPara(pid);
             var base = getPara(pre);
