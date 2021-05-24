@@ -32,6 +32,10 @@ from pathlib import Path
 ### initialize flask and friends
 ###
 
+# from engineio.payload import Payload
+
+# Payload.max_decode_packets = 50
+
 parser = argparse.ArgumentParser(description='Axiom2 server.')
 parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
 parser.add_argument('--path', type=str, default='axiom.db', help='Path to sqlite database file')
