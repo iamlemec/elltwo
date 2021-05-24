@@ -354,7 +354,8 @@ class AxiomDB:
 
         pid_map = []
         for pid_add in adds:
-            para_add = self.get_para(pid_add, time=time)
+            if (para_add := self.get_para(pid_add, time=time)) is None:
+                continue
             new_para = self.insert_after(pid, para_add.text, time=time, commit=False)
             pid_map.append([new_para.pid, para_add.text])
 
