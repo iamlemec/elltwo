@@ -590,13 +590,12 @@ def search_title(data):
     aids = set(par.aid for par in results)
     titles = adb.get_art_titles(aids) #i modified this
 
-    return {
-        par.pid: {
-            'name': titles[par.aid]['name'].title(),
-            'url': titles[par.aid]['url'],
-            'raw': par.text
-        } for par in results
-    }
+    return [{
+        'pid': par.pid,
+        'name': titles[par.aid]['name'].title(),
+        'url': titles[par.aid]['url'],
+        'raw': par.text
+    } for par in results]
 
 @socketio.on('set_blurb')
 @login_decor

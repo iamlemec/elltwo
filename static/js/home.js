@@ -35,16 +35,18 @@ searchText = function(query, last_pid) {
         $('#results').empty();
         let nres = Object.keys(response).length;
         if (nres > 0) {
-            for (let pid in response) {
-                let par = response[pid];
+            for (let idx in response) {
+                let par = response[idx];
+                let pid = par.pid;
                 let name = par.name;
                 let url = `a/${par.url}?pid=${pid}`;
                 let raw = par.raw;
                 query.split(' ').forEach(q => {
-                    if(q){
-                        raw = raw.replace(q, `<span class='hl'>${q}</span>`);
-                    };
-                })
+                    if (q.length > 0) {
+                        let re = new RegExp(q, 'i');
+                        raw = raw.replace(re, '<span class="hl">$&</span>');
+                    }
+                });
                 let artdiv = $('<a>', {class: 'result par_link', href: url, pid: pid});
                 let blurb = $('<div>', {class: 'par_text', html: raw});
                 let art_name = $('<div>', {class: 'blurb_name', text: name});

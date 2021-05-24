@@ -108,6 +108,12 @@ def shard_score(shards1, shards2):
             score += min(c1, c2)*dist_score(p1, p2)
     return score/ntoks
 
+# CES: constant elasticity of substitution
+# σ = 1 → sum
+# σ = ∞ → max
+def ces(v, σ=2):
+    return sum(x**σ for x in v)**(1/σ)
+
 ##
 ## db interface
 ##
@@ -873,7 +879,7 @@ class AxiomDB:
         sims = defaultdict(list)
         for (t, i, j), m in match.items():
             sims[(t, i)].append(max(shard_score(s, m) for s in shards.values()))
-        sims = [(k, sum(v)/len(shards)) for k, v in sims.items()]
+        sims = [(k, ces(v)) for k, v in sims.items()]
 
         # drop dtype if specified
         if dtype is not None:
