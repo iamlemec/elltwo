@@ -575,24 +575,22 @@ def create_art(title):
 @socketio.on('search_title')
 def search_title(data):
     results = adb.search_title(data)
-    return {
-        art.title: {
-            'url': art.short_title,
-            'title': art.title,
-            'blurb': art.blurb
-        } for art in results
-    }
+    return [{
+        'url': art.short_title,
+        'title': art.title,
+        'blurb': art.blurb
+    } for art in results]
 
 @socketio.on('search_text')
-def search_title(data):
+def search_text(data):
     results = adb.search_text(data)
 
     aids = set(par.aid for par in results)
-    titles = adb.get_art_titles(aids) #i modified this
+    titles = adb.get_art_titles(aids)
 
     return [{
         'pid': par.pid,
-        'name': titles[par.aid]['name'].title(),
+        'title': titles[par.aid]['title'],
         'url': titles[par.aid]['url'],
         'raw': par.text
     } for par in results]

@@ -6,14 +6,16 @@ searchTitle = function(query, last_url) {
 
         let nres = Object.keys(response).length;
         if (nres > 0) {
-            for (let title in response) {
-                let art = response[title];
+            for (let idx in response) {
+                let art = response[idx];
                 let url = `a/${art.url}`;
-                let artdiv = $('<a>', {class: 'result art_link', href: url});
+                let title = art.title;
                 let btext = art.blurb || art.title;
-                let blurb = $('<div>', {class: 'blurb', html: btext});
-                artdiv.append(blurb);
-                $('#results').append(artdiv);
+                let art_div = $('<a>', {class: 'result art_link', href: url});
+                let art_title = $('<div>', {class: 'blurb_name', text: title});
+                let art_blurb = $('<div>', {class: 'blurb', html: btext});
+                art_div.append([art_title, art_blurb]);
+                $('#results').append(art_div);
             }
 
             let sel;
@@ -38,7 +40,7 @@ searchText = function(query, last_pid) {
             for (let idx in response) {
                 let par = response[idx];
                 let pid = par.pid;
-                let name = par.name;
+                let title = par.title;
                 let url = `a/${par.url}?pid=${pid}`;
                 let raw = par.raw;
                 query.split(' ').forEach(q => {
@@ -47,11 +49,11 @@ searchText = function(query, last_pid) {
                         raw = raw.replace(re, '<span class="hl">$&</span>');
                     }
                 });
-                let artdiv = $('<a>', {class: 'result par_link', href: url, pid: pid});
-                let blurb = $('<div>', {class: 'par_text', html: raw});
-                let art_name = $('<div>', {class: 'blurb_name', text: name});
-                artdiv.append([art_name,blurb]);
-                $('#results').append(artdiv);
+                let art_div = $('<a>', {class: 'result par_link', href: url, pid: pid});
+                let art_blurb = $('<div>', {class: 'par_text', html: raw});
+                let art_title = $('<div>', {class: 'blurb_name', text: title});
+                art_div.append([art_title, art_blurb]);
+                $('#results').append(art_div);
             }
 
             let sel;
@@ -129,6 +131,8 @@ $(document).on('keydown', function(e) {
 
     if (e.ctrlKey && (key == 'enter')) {
         createArt();
+    } else if (e.ctrlKey && (key == '`')) {
+        $('#full_text_check').click();
     } else if (key == 'enter') {
         if (active.length > 0) {
             var url = active.attr('href');

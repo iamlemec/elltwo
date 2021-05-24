@@ -93,7 +93,7 @@
     font-size: 60%;
 }
 
-.blurb_name{
+.blurb_name {
     position: relative;
     text-align: right;
     margin-bottom: 3px;
@@ -102,6 +102,12 @@
     font-family: monospace;
     font-size: 60%;
     font-weight: bold;
+}
+
+.art_link .blurb_name {
+    position: absolute;
+    right: 5px;
+    top: 5px;
 }
 
 .box {

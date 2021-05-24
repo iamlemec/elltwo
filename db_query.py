@@ -219,7 +219,7 @@ class AxiomDB:
             return [art.short_title for art in query.all()]
         else:
             query = self.session.query(Article).filter(Article.aid.in_(aids)).filter(arttime(time))
-            return {art.aid: {'name': art.title, 'url': art.short_title} for art in query.all()}
+            return {art.aid: {'title': art.title, 'url': art.short_title} for art in query.all()}
 
     def get_arts(self, time=None):
         if time is None:
@@ -494,13 +494,15 @@ class AxiomDB:
         return [p.text for p in self.get_paras(art.aid)]
 
     def search_title(self, words, thresh=0.25):
+        now = datetime.utcnow()
         match = [i for i, s in self.search_index(words, dtype='title') if s > thresh]
-        arts = self.session.query(Article).filter(Article.aid.in_(match)).all()
+        arts = self.session.query(Article).filter(Article.aid.in_(match)).filter(arttime(now)).all()
         return sorted(arts, key=lambda a: match.index(a.aid))
 
     def search_text(self, words, thresh=0.25):
+        now = datetime.utcnow()
         match = [i for i, s in self.search_index(words, dtype='para') if s > thresh]
-        paras = self.session.query(Paragraph).filter(Paragraph.pid.in_(match)).all()
+        paras = self.session.query(Paragraph).filter(Paragraph.pid.in_(match)).filter(partime(now)).all()
         return sorted(paras, key=lambda a: match.index(a.pid))
 
     ##
