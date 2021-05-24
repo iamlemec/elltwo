@@ -61,7 +61,8 @@ $(document).ready(function() {
 
     // set external reference for import_markdown arts
     if (g_ref) {
-        $('.para').each(function() {
+        console.log('init global refs');
+        $('.para:not(.folder)').each(function() {
             let para = $(this);
             updateRefHTML(para);
         });
@@ -286,7 +287,7 @@ envClasses = function(outer) {
 
     // env state
     var env_name = null;
-    var env_id = null;
+    var env_pid = null;
     var env_args = null;
     var env_paras = [];
 
@@ -325,17 +326,17 @@ envClasses = function(outer) {
             envFormat(env_all, 'error', {code: 'heading', env: env_name});
 
             env_name = null;
-            env_id = null;
+            env_pid = null;
             env_args = null;
             env_paras = [];
         }
 
         if (!env_name && para.hasClass('env_beg')) { // cannot open an env if one is already open
             env_name = para.attr('env');
-            env_id = para.attr('pid'); //changed to use PID so all envs have this.
+            env_pid = para.attr('pid'); // changed to use PID so all envs have this
             env_args = para.data('args');
-            if (env_id != undefined) {
-                para.attr('env_sel', `[env_id="${env_id}"]`);
+            if (env_pid != undefined) {
+                para.attr('env_sel', `[env_pid="${env_pid}"]`);
             }
         }
 
@@ -347,15 +348,15 @@ envClasses = function(outer) {
             var env_all = $(env_paras);
             var txt_all = env_all.children('.p_text');
             env_all.addClass('env');
-            env_all.attr('env_id', env_id);
+            env_all.attr('env_pid', env_pid);
             txt_all.addClass(`env__${env_name}`);
-            if(folded.includes(env_id)){
+            if (folded.includes(env_pid)) {
                 env_all.addClass('folded');
             };
             envFormat(txt_all, env_name, env_args);
 
             env_name = null;
-            env_id = null;
+            env_pid = null;
             env_args = null;
             env_paras = [];
         }
@@ -424,12 +425,12 @@ simpleEnv = function(ptxt, env, head='', tail='', number=true, args={}) {
     last.append(pos);
 
     let fold = $('<div>', {class: `para folder`, html: pre_fold});
-    para = first.parent()
-    let env_id = para.attr('env_id')
-    fold.attr('fold_id', env_id)
-        .attr('fold_level', 0)
-    // if(!folded.includes(env_id)){
-    //     fold.addClass('folded')
+    para = first.parent();
+    let env_pid = para.attr('env_pid');
+    fold.attr('fold_id', env_pid)
+        .attr('fold_level', 0);
+    // if (!folded.includes(env_pid)) {
+    //     fold.addClass('folded');
     // }
     para.before(fold);
 };
@@ -489,13 +490,13 @@ headingEnv = function(ptxt, args) {
 
     let fold = $('<div>', {class: `para folder`, html: pre_fold});
     para = ptxt.parent()
-    let env_id = para.attr('pid')
-    para.attr('env_id', env_id)
+    let env_pid = para.attr('pid');
+    para.attr('env_pid', env_pid)
         .attr('head_level', args.level);
-    fold.attr('fold_id', env_id)
+    fold.attr('fold_id', env_pid)
         .attr('head_level', args.level)
         .attr('fold_level', 0);
-    // if(!folded.includes(env_id)){
+    // if (!folded.includes(env_pid)) {
     //     fold.addClass('folded')
     // }
     para.before(fold);
@@ -725,7 +726,7 @@ getTro = function(ref, callback) {
 
 troFromKey = function(key, tro={}) {
     tro.id = key;
-    tro.tro = $('#'+key); // the referenced object
+    tro.tro = $(`#${key}`); // the referenced object
     if (tro.tro != undefined) {
         if (tro.tro.hasClass('env_beg') || tro.tro.hasClass('env_one')) {
             if (tro.tro.hasClass('env_err')) {
@@ -1060,20 +1061,41 @@ createExtRef = function(id) {
     return ref;
 };
 
+// push reference blurb changes to server
 updateRefHTML = function(para) {
-    let new_id = para.attr('id') || para.attr('env_id');
+    // get para id, old_id is for when the update is an id change
+    let new_id = para.attr('id');
     let old_id = para.attr('old_id');
 
+    // the pid of it's containing env
+    let env_pid = para.attr('env_pid');
+    let env_beg = para.hasClass('env_beg');
+
+    // for this specific para
     if (new_id) {
-        ref_list.push(new_id)
+        ref_list.push(new_id);
         let ref = createExtRef(new_id);
         client.sendCommand('update_ref', ref, function(success) {
             console.log('success: updated ref');
         });
     }
 
+    // for containing env - this should already exist
+    if (env_pid && !env_beg) {
+        let epar = getPara(env_pid);
+        let env_id = epar.attr('id');
+        if (env_id) {
+            let ref = createExtRef(env_id);
+            client.sendCommand('update_ref', ref, function(success) {
+                console.log('success: updated ref');
+            });
+        }
+    }
+
+    // check if this was obscuring another samd-id para? otherwise delete
     if (old_id) {
-        if($('#'+old_id).length > 0){
+        let old_para = $(`#${old_id}`);
+        if (old_para.length > 0) {
             let ref = createExtRef(old_id);
             client.sendCommand('update_ref', ref, function(success) {
                 console.log('success: updated ref');
@@ -1081,7 +1103,7 @@ updateRefHTML = function(para) {
         } else {
             let i = ref_list.indexOf(old_id);
             if (i !== -1) {
-                ref_list.splice(i, 1)
+                ref_list.splice(i, 1);
             }
             let ref = {};
             ref.aid = aid;

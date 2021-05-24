@@ -681,7 +681,6 @@ def get_arts(data):
 @socketio.on('update_ref')
 @login_decor
 def update_ref(data):
-    #adb.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'], data['ref_text'])
     adb.create_ref(**data)
 
 @socketio.on('update_g_ref')
@@ -693,7 +692,7 @@ def update_g_ref(data):
 @login_decor
 def delete_ref(data):
     adb.delete_ref(data['key'],data['aid'])
-    #socketio.emit('deleteRef', data['key'], broadcast=True)
+    # socketio.emit('deleteRef', data['key'], broadcast=True)
 
 ###
 ### locking
@@ -721,7 +720,7 @@ def trueUnlock(data):
     rpid = [p for p in pids if locked.pop(p) is not None]
     app.logger.debug(f'room: {aid}')
     if (data['room']):
-        if not(data['room'][:2] == '__'): #do not send unlock to __home, __bib, etc
+        if not(data['room'][:2] == '__'): # do not send unlock to __home, __bib, etc
             socketio.emit('unlock', rpid, room=aid) # since called exernally
 
 @socketio.on('unlock')
