@@ -9,11 +9,10 @@ from flask_mail import Mail, Message
 
 import os, re, json, argparse, toml
 from io import BytesIO
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import namedtuple
 from random import getrandbits
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from apscheduler.schedulers.background import BackgroundScheduler
 from werkzeug.utils import secure_filename
 
 from werkzeug.security import check_password_hash
@@ -52,10 +51,6 @@ args = parser.parse_args()
 
 # login decorator (or not)
 login_decor = login_required if args.login else (lambda f: f)
-
-# start scheduler
-sched = BackgroundScheduler(daemon=True)
-sched.start()
 
 # create flask app
 app = Flask(__name__)
@@ -329,7 +324,7 @@ def confirm_token(token, expiration=3600):
 ###
 
 def GetArtData(title, edit, theme, pid=None):
-    print(f'article: {title}:{pid}')
+    print(f'article [{pid}]: {title}')
     themes = [t[:-4] for t in os.listdir('static/themes/')]
     art = adb.get_art_short(title)
     if art:
@@ -347,6 +342,7 @@ def GetArtData(title, edit, theme, pid=None):
             paras=paras,
             theme=theme,
             themes=themes,
+            timeout=args.timeout,
             max_size=args.max_size,
             edit=edit,
             ref_list=ref_list,
@@ -457,10 +453,9 @@ def socket_connect():
 def socket_disconnect():
     sid = request.sid
     app.logger.debug(f'disconnect: {sid}')
-    if sched.get_job(sid) is not None:
-        sched.remove_job(sid)
-    if (data := locked_by_sid(sid)):
-        trueUnlock(data)
+    aid, pids = locked_by_sid(sid)
+    if len(pids) > 0:
+        trueUnlock(aid, pids)
     roomed.pop(sid)
     emit('status', 'disconnected')
 
@@ -481,67 +476,59 @@ def room(data):
 @socketio.on('update_para')
 @login_decor
 def update_para(data):
-    adb.update_para(data['pid'], data['text'])
-    emit('updatePara',
-        [data['pid'], data['text']],
-        include_self=False,
-        room=data['room'])
-    unlock({'room': data['room'], 'pids': [data['pid']]})
-    return True
-
-@socketio.on('update_bulk')
-@login_decor
-def update_bulk(data):
-    paras = data['paras']
-    adb.bulk_update(paras)
-    pids = list(paras.keys())
-    emit('updateBulk', paras, include_self=False, room=data['room'])
-    unlock({'room': data['room'], 'pids': pids})
+    aid, pid, text = data['aid'], data['pid'], data['text']
+    adb.update_para(pid, text)
+    emit('updatePara', [pid, text], include_self=False, room=aid)
+    trueUnlock(aid, [pid])
     return True
 
 @socketio.on('insert_after')
 @login_decor
 def insert_after(data):
+    aid, pid = data['aid'], data['pid']
     text = data.get('text', '')
-    par1 = adb.insert_after(data['pid'], text)
-    emit('insertPara', [data['pid'], par1.pid, text, False], room=data['room'])
+    par1 = adb.insert_after(pid, text)
+    emit('insertPara', [pid, par1.pid, text, False], room=aid)
     return True
 
 @socketio.on('insert_before')
 @login_decor
 def insert_before(data):
+    aid, pid = data['aid'], data['pid']
     text = data.get('text', '')
-    par1 = adb.insert_before(data['pid'], text)
-    emit('insertPara', [data['pid'], par1.pid, text, True], room=data['room'])
+    par1 = adb.insert_before(pid, text)
+    emit('insertPara', [pid, par1.pid, text, True], room=aid)
     return True
 
 @socketio.on('paste_cells')
 @login_decor
 def paste_cells(data):
-    pid = data.get('pid')
-    cb = data.get('cb')
-    if not cb:
+    aid, pid, cb = data['aid'], data['pid'], data['cb']
+    if len(cb) == 0:
         return False
     pid_map = adb.paste_after(pid, cb)
-    emit('pasteCB', [data['pid'], pid_map], room=data['room'])
+    emit('pasteCB', [pid, pid_map], room=aid)
     return True
 
 @socketio.on('delete_para')
 @login_decor
 def delete_para(data):
-    adb.delete_para(data['pid'])
-    emit('deletePara', [data['pid']], room=data['room'])
+    aid, pid = data['aid'], data['pid']
+    adb.delete_para(pid)
+    emit('deletePara', [pid], room=aid)
     return True
 
 @socketio.on('get_commits')
 def get_commits(data):
-    dates = adb.get_commits(aid=data['aid'])
+    aid = data['aid']
+    dates = adb.get_commits(aid=aid)
     return [d.isoformat().replace('T', ' ') for d in dates]
 
 @socketio.on('get_history')
 def get_history(data):
-    paras = adb.get_paras(aid=data['aid'], time=data['date'])
-    diff = adb.diff_article(data['aid'], data['date'])
+    aid, date = data['aid'], data['date']
+    paras = adb.get_paras(aid=aid, time=date)
+    diff = adb.diff_article(aid, date)
     return {
         'paras': [(p.pid, p.text) for p in paras],
         'diff': list(diff['para_upd'] | diff['para_add']),
@@ -551,8 +538,9 @@ def get_history(data):
 @socketio.on('revert_history')
 @login_decor
 def revert_history(data):
-    diff = adb.diff_article(data['aid'], data['date'])
-    adb.revert_article(data['aid'], diff=diff)
+    aid, date = data['aid'], data['date']
+    diff = adb.diff_article(aid, date)
+    adb.revert_article(aid, diff=diff)
     order = order_links(diff['link_add'])
     edits = {
         'para_add': diff['para_add'],
@@ -560,7 +548,7 @@ def revert_history(data):
         'para_upd': diff['para_upd'],
         'position': order,
     }
-    emit('applyDiff', edits, room=data['aid'])
+    emit('applyDiff', edits, room=aid)
     return True
 
 ###
@@ -686,7 +674,6 @@ def get_arts(data):
 @socketio.on('update_ref')
 @login_decor
 def update_ref(data):
-    #adb.create_ref(data['key'], data['aid'], data['cite_type'], data['cite_env'], data['text'], data['ref_text'])
     adb.create_ref(**data)
 
 @socketio.on('update_g_ref')
@@ -698,7 +685,7 @@ def update_g_ref(data):
 @login_decor
 def delete_ref(data):
     adb.delete_ref(data['key'],data['aid'])
-    #socketio.emit('deleteRef', data['key'], broadcast=True)
+    # socketio.emit('deleteRef', data['key'], broadcast=True)
 
 ###
 ### locking
@@ -707,38 +694,39 @@ def delete_ref(data):
 roomed = Multimap()
 locked = Multimap()
 
+def locked_by_sid(sid):
+    return roomed.loc(sid), locked.get(sid)
+
+def trueUnlock(aid, pids):
+    app.logger.debug(f'trueUnlock: {aid} → {pids}')
+    rpid = [p for p in pids if locked.pop(p) is not None]
+    if len(rpid) > 0:
+        socketio.emit('unlock', rpid, room=aid)
+
 @socketio.on('lock')
 @login_decor
 def lock(data):
-    pid = data['pid']
-    aid = data['room']
     sid = request.sid # unique client id
+    aid, pid = data['aid'], data['pid']
     if (own := locked.loc(pid)) is not None:
         return own == sid
     locked.add(sid, pid)
-    timeout_sched(sid)
     emit('lock', [pid], room=aid, include_self=False)
     return True
-
-def trueUnlock(data):
-    pids = data['pids']
-    aid = data['room']
-    rpid = [p for p in pids if locked.pop(p) is not None]
-    app.logger.debug(f'room: {aid}')
-    if (data['room']):
-        if not(data['room'][:2] == '__'): #do not send unlock to __home, __bib, etc
-            socketio.emit('unlock', rpid, room=aid) # since called exernally
 
 @socketio.on('unlock')
 @login_decor
 def unlock(data):
-    trueUnlock(data)
+    aid, pids = data['aid'], data['pids']
+    trueUnlock(aid, pids)
 
-def locked_by_sid(sid):
-    return {
-        'pids': locked.get(sid),
-        'room': roomed.loc(sid),
-    }
+@socketio.on('timeout')
+def timeout(data):
+    sid = request.sid
+    app.logger.debug(f'timeout: {sid}')
+    aid, pids = locked_by_sid(sid)
+    if len(pids) > 0:
+        trueUnlock(aid, pids)
 
 ###
 ### image handling
@@ -773,28 +761,6 @@ def update_img_key(data):
     new_kw = data['new_kw']
     adb.update_image_key(key=key, new_key=new_key, new_kw=new_kw)
     return {'found': True}
-
-###
-### timeout
-###
-
-def timeout_exec(sid):
-    app.logger.debug(f'timeout: {sid}')
-    if (data := locked_by_sid(sid)) is not None:
-        unlock(data)
-
-def timeout_sched(sid):
-    run_date = datetime.now() + timedelta(seconds=args.timeout)
-    if sched.get_job(sid) is None:
-        sched.add_job(timeout_exec, id=sid, trigger='date', run_date=run_date, args=[sid])
-    else:
-        sched.reschedule_job(sid, trigger='date', run_date=run_date)
-
-@socketio.on('canary')
-def canary(data):
-    sid = request.sid
-    app.logger.debug(f'canary: {sid}')
-    timeout_sched(sid)
 
 ##
 ## run that babeee

@@ -4,10 +4,11 @@
    {{ super() }}
    <script type="text/javascript">
     title = '{{title}}';
-    aid = '{{aid}}';
-    pid = {% if pid == None %}null{% else %}'{{pid}}'{% endif %};
+    aid = {{aid|tojson}};
+    pid = {% if pid == None %}null{% else %}{{pid|tojson}}{% endif %};
     theme = '{{theme}}';
-    max_size = '{{max_size}}';
+    timeout = 1000*{{timeout|tojson}};
+    max_size = {{max_size|tojson}};
     g_ref = {{g_ref|tojson}};
     readonly = !{{edit|tojson}};
     ref_list = [];
