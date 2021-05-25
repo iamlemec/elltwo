@@ -156,7 +156,7 @@ trueMakeEditable = function(rw=true, cursor='end') {
     }
     syntaxHL(active_para);
 
-    client.schedCanary();
+    client.schedTimeout();
 };
 
 sendMakeEditable = function(cursor='end') {

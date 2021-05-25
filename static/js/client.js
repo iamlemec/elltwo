@@ -3,9 +3,8 @@ var client = (function() {
 // socketio connection
 var socket;
 
-// canary state
-var canary_id = null;
-var canary_freq = 1000*120;
+// timeout state
+var timeout_id = null;
 
 // takes optional connect event callback
 function connect(url, on_connect) {
@@ -89,16 +88,17 @@ function sendCommand(cmd, data="", ack=function(){}) {
 }
 
 function autoLockout() {
+    console.log('timeout');
     client.sendCommand('timeout');
-    canary_id = null;
+    timeout_id = null;
 }
 
-function schedCanary() {
-    // console.log(`schedCanary: ${canary_id}`);
-    if (canary_id !== null) {
-        clearTimeout(canary_id);
+function schedTimeout() {
+    // console.log(`schedTimeout: ${timeout_id}`);
+    if (timeout_id !== null) {
+        clearTimeout(timeout_id);
     }
-    canary_id = setTimeout(autoLockout, canary_freq);
+    timeout_id = setTimeout(autoLockout, timeout);
 };
 
 return {
@@ -106,7 +106,7 @@ return {
     connect: connect,
     disconnect: disconnect,
     sendCommand: sendCommand,
-    schedCanary: schedCanary,
+    schedTimeout: schedTimeout,
 };
 
 })();

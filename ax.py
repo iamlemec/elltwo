@@ -9,11 +9,10 @@ from flask_mail import Mail, Message
 
 import os, re, json, argparse, toml
 from io import BytesIO
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import namedtuple
 from random import getrandbits
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from apscheduler.schedulers.background import BackgroundScheduler
 from werkzeug.utils import secure_filename
 
 from werkzeug.security import check_password_hash
@@ -48,10 +47,6 @@ args = parser.parse_args()
 
 # login decorator (or not)
 login_decor = login_required if args.login else (lambda f: f)
-
-# start scheduler
-sched = BackgroundScheduler(daemon=True)
-sched.start()
 
 # create flask app
 app = Flask(__name__)
@@ -343,6 +338,7 @@ def GetArtData(title, edit, theme, pid=None):
             paras=paras,
             theme=theme,
             themes=themes,
+            timeout=args.timeout,
             max_size=args.max_size,
             edit=edit,
             ref_list=ref_list,
@@ -452,8 +448,6 @@ def socket_connect():
 def socket_disconnect():
     sid = request.sid
     app.logger.debug(f'disconnect: {sid}')
-    if sched.get_job(sid) is not None:
-        sched.remove_job(sid)
     aid, pids = locked_by_sid(sid)
     if len(pids) > 0:
         trueUnlock(aid, pids)
@@ -695,24 +689,25 @@ def delete_ref(data):
 roomed = Multimap()
 locked = Multimap()
 
+def locked_by_sid(sid):
+    return roomed.loc(sid), locked.get(sid)
+
+def trueUnlock(aid, pids):
+    app.logger.debug(f'trueUnlock: {aid} → {pids}')
+    rpid = [p for p in pids if locked.pop(p) is not None]
+    if len(rpid) > 0:
+        socketio.emit('unlock', rpid, room=aid)
+
 @socketio.on('lock')
 @login_decor
 def lock(data):
-    pid = data['pid']
-    aid = data['aid']
     sid = request.sid # unique client id
+    aid, pid = data['aid'], data['pid']
     if (own := locked.loc(pid)) is not None:
         return own == sid
     locked.add(sid, pid)
-    # timeout_sched(sid)
     emit('lock', [pid], room=aid, include_self=False)
     return True
-
-def trueUnlock(aid, pids):
-    rpid = [p for p in pids if locked.pop(p) is not None]
-    app.logger.debug(f'trueUnlock: {aid} → {pids} → {rpid}')
-    if len(rpid) > 0:
-        socketio.emit('unlock', rpid, room=aid)
 
 @socketio.on('unlock')
 @login_decor
@@ -727,9 +722,6 @@ def timeout(data):
     aid, pids = locked_by_sid(sid)
     if len(pids) > 0:
         trueUnlock(aid, pids)
-
-def locked_by_sid(sid):
-    return roomed.loc(sid), locked.get(sid)
 
 ###
 ### image handling

@@ -2,7 +2,7 @@
 FROM python:3.9-alpine
 
 # Set the working directory
-WORKDIR /opt/fuzzy
+WORKDIR /opt/axiom
 
 # Install base packages
 RUN apk --update add bash git make gcc g++ musl-dev
@@ -17,13 +17,13 @@ EXPOSE 80
 # Copy application code
 COPY *.py .
 COPY static/css static/css
+COPY static/favicon static/favicon
 COPY static/fonts static/fonts
 COPY static/img static/img
 COPY static/js static/js
 COPY static/katex/dist static/katex/dist
 COPY static/libs static/libs
 COPY static/themes static/themes
-COPY static/favicon static/favicon
 COPY templates templates
 
 # Load in cookie secret (SECRET_KEY and SECURITY_PASSWORD_SALT)
@@ -34,4 +34,4 @@ COPY testing testing
 RUN ["python", "db_populate.py"]
 
 # Run when the container launches
-CMD ["python", "-u", "ax.py", "--ip=0.0.0.0", "--port=80", "--debug"]
+CMD ["python", "-u", "ax.py", "--ip=0.0.0.0", "--port=80", "--reindex", "--debug"]

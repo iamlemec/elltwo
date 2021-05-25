@@ -1162,7 +1162,7 @@ syntaxHL = function(para,e=null) {
 
 $(document).on('input', '.p_input', function(e) {
     let para = $(this).parent('.para');
-    client.schedCanary();
+    client.schedTimeout();
     syntaxHL(para, e);
 });
 

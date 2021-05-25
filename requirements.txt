@@ -1,11 +1,8 @@
-apscheduler
 sqlalchemy
 flask
 flask_login
 flask_sqlalchemy
 flask_socketio>=5.0.0
 flask_mail
-blinker
 eventlet
 toml
-whoosh
