@@ -335,10 +335,10 @@ def GetArtData(title, edit, theme, pid=None):
     if art:
         paras = adb.get_paras(art.aid)
         ref_list = []
+        bib_list = []
         if edit:
             bib_list = [cite.citekey for cite in adb.get_bib()]
             ref_list = adb.get_refs(art.aid)
-            ref_list += bib_list
         return render_template(
             'article.html',
             title=art.title,
@@ -350,6 +350,7 @@ def GetArtData(title, edit, theme, pid=None):
             max_size=args.max_size,
             edit=edit,
             ref_list=ref_list,
+            bib_list=bib_list,
             g_ref=art.g_ref,
         )
     else:

@@ -190,6 +190,19 @@ updateParas = function(para_dict) {
 
 deletePara = function(pid) {
     var para = getPara(pid);
+    if(old_id = para.attr('id')){
+        let i = ref_list.indexOf(old_id);
+        if (i !== -1) {
+            ref_list.splice(i, 1)
+        }
+        let ref = {};
+        ref.aid = aid;
+        ref.key = old_id;
+        client.sendCommand('delete_ref', ref, function(success) {
+            console.log('success: deleted ref');
+        });
+    }
+    
     para.remove();
     envClasses();
     createRefs(); // we may be able to scope this more
@@ -881,8 +894,26 @@ ref_spec = {
 
 /// THIS IS REPATED FROM THE BIB.JS, we should make it more efficent
 
+
+ //this does not redner anything, it adds the cite keys
+// to the comand completion list, the name is a hold over
+//and becuase it is used for other pages (/b)
+renderBib = function(data){
+    data.forEach(cite => {
+        bib_list.push(cite.citekey)
+    })
+}
+
+deleteCite = function(data){
+    let i = bib_list.indexOf(data);
+    if (i !== -1) {
+        bib_list.splice(i, 1)
+    }
+}
+
 renderBibLocal = function(data){
     // $('#para_holder').empty();
+    console.log(data)
     data.map(createBibEntry);
 }
 
@@ -1171,7 +1202,7 @@ cc_search = function(list, search, placement) {
 cc_refs = function(raw, view, e) {
     cc = false;
     $('#cc_pop').remove();
-    let open_ref = /@(\[)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
+    let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     cur = e.target.selectionStart;
     if (cap = open_ref.exec(raw)) {
@@ -1183,8 +1214,10 @@ cc_refs = function(raw, view, e) {
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-
-            if (cap[3] && !cap[2]) { // searching for ext page
+            if(cap[1]=='@') { //bib search
+                let search = cap[2] || '';
+                cc_search(bib_list, search, p);
+            } else if (cap[3] && !cap[2]) { // searching for ext page
                 let ex_keys = Object.keys(ext_refs);
                 if (ex_keys.length == 0) { // if we have not made request
                     client.sendCommand('get_arts', '', function(arts) {
@@ -1260,8 +1293,8 @@ sytaxParseInline = function(raw) {
                .replace(/\>/g, '&GT')// html escape
                .replace(/\\\%/g, '\\&#37;')//comment escape
                .replace(/\\\$/g, '\\&#36;')//tex escape
-               .replace('_!L_', `<span class='brace'>`)
-               .replace('_!R_', `</span>`);
+               .replace('&!L&', `<span class='brace'>`)
+               .replace('&!R&', `</span>`);
 
     html = html.replace(inlines.comment, function(a,b,c) {
         return s('%', 'comment_head') + s(esc(b), 'comment') + c;
@@ -1407,7 +1440,8 @@ sytaxParseBlock = function(raw) {
         let star = (cap[4]) ? s(cap[4], 'hl') : "";
         let id = (cap[6]) ? s(fArgs(cap[6]), 'ref'): "";
         let text = (cap[8]) ? sytaxParseInline(cap[8]) : "";
-        return s('>>', 'delimit') + bang + cap[2] + env + star + cap[5] + id + cap[7] + text;
+        out = s('>>', 'delimit') + bang + cap[2] + env + star + cap[5] + id + cap[7] + text;
+        return out
     }
 
     if (cap = blocks.svg.exec(raw)) {
@@ -1516,8 +1550,8 @@ getBracePos = function(text, brace, match, cpos, rev=false) {
 };
 
 braceHL = function(view, text, pos, para) {
-    var L = `\_\!L\_`;
-    var R = `\_\!R\_`;
+    var L = `\&\!L\&`;
+    var R = `\&\!R\&`;
     var new_text = [
         text.slice(0, pos['l']),
         L,

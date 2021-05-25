@@ -355,7 +355,7 @@ make_cc = function() {
     var cctxt = $('.cc_row').first().text();
     var input = active_para.children('.p_input');
     var raw = input.val();
-    let open_ref = /@(\[)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
+    let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
     if (cap = open_ref.exec(raw)) {
         var l = cap.index;

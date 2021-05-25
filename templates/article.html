@@ -14,6 +14,10 @@
     {% for r in ref_list%}
         ref_list.push('{{r}}');
     {% endfor %}
+    bib_list = [];
+    {% for b in bib_list%}
+        bib_list.push('{{b}}');
+    {% endfor %}
 </script>
    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
    <script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
