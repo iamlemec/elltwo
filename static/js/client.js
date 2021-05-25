@@ -5,7 +5,7 @@ var socket;
 
 // canary state
 var canary_id = null;
-var canary_freq = 1000*30;
+var canary_freq = 1000*120;
 
 // takes optional connect event callback
 function connect(url, on_connect) {
@@ -88,15 +88,17 @@ function sendCommand(cmd, data="", ack=function(){}) {
     socket.emit(cmd, data, ack);
 }
 
+function autoLockout() {
+    client.sendCommand('timeout');
+    canary_id = null;
+}
+
 function schedCanary() {
-    console.log(`schedCanary: ${canary_id}`);
+    // console.log(`schedCanary: ${canary_id}`);
     if (canary_id !== null) {
-        return;
+        clearTimeout(canary_id);
     }
-    canary_id = setTimeout(function() {
-        client.sendCommand('canary');
-        canary_id = null;
-    }, canary_freq);
+    canary_id = setTimeout(autoLockout, canary_freq);
 };
 
 return {

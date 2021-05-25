@@ -720,6 +720,14 @@ def unlock(data):
     aid, pids = data['aid'], data['pids']
     trueUnlock(aid, pids)
 
+@socketio.on('timeout')
+def timeout(data):
+    sid = request.sid
+    app.logger.debug(f'timeout: {sid}')
+    aid, pids = locked_by_sid(sid)
+    if len(pids) > 0:
+        trueUnlock(aid, pids)
+
 def locked_by_sid(sid):
     return roomed.loc(sid), locked.get(sid)
 
@@ -756,30 +764,6 @@ def update_img_key(data):
     new_kw = data['new_kw']
     adb.update_image_key(key=key, new_key=new_key, new_kw=new_kw)
     return {'found': True}
-
-###
-### timeout (not working: threading issues with emit)
-###
-
-# def timeout_exec(sid):
-#     app.logger.debug(f'timeout: {sid}')
-#     aid, pids = locked_by_sid(sid)
-#     if len(pids) > 0:
-#         trueUnlock(aid, pids)
-#
-# def timeout_sched(sid):
-#     run_date = datetime.now() + timedelta(seconds=args.timeout)
-#     if sched.get_job(sid) is None:
-#         sched.add_job(timeout_exec, id=sid, trigger='date', run_date=run_date, args=[sid])
-#     else:
-#         sched.reschedule_job(sid, trigger='date', run_date=run_date)
-
-@socketio.on('canary')
-@login_decor
-def canary(data):
-    sid = request.sid
-    app.logger.debug(f'canary: {sid}')
-    # timeout_sched(sid)
 
 ##
 ## run that babeee
