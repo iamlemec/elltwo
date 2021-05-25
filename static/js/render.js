@@ -1,4 +1,4 @@
-/// init commands ///
+/// core renderer (includes readonly)
 
 // flags and global vars
 var ext_macros = {};
@@ -37,55 +37,25 @@ makePara = function(para, defer=true) {
     rawToTextarea(para);
 }
 
-$(document).ready(function() {
-    var url = `http://${document.domain}:${location.port}`;
-    client.connect(url, () => {
-        client.sendCommand('join_room', {'room': aid, 'get_locked': true}, (response) => {
-            lockParas(response);
-        });
-    });
-
-    // do actual rendering
+renderParas = function() {
     $('.para').each(function() {
         let para = $(this);
         makePara(para);
     });
+};
 
-    // handle environments and references
+// main rendering entry point (for all cases)
+initRender = function() {
+    // core renderer
+    renderParas();
+
+    // environ pass + refs
     envClasses();
     createRefs();
 
-    // set folded paras from cookie
-    folded = cooks('folded') || folded;
-    folded.forEach(pid => {
-        let para = getPara(pid);
-        fold(para, init=true);
-    })
-    renderFold();
-
-    // set external reference for import_markdown arts
-    if (g_ref) {
-        console.log('init global refs');
-        $('.para:not(.folder)').each(function() {
-            let para = $(this);
-            updateRefHTML(para);
-        });
-        client.sendCommand('update_g_ref', {'aid': aid, 'g_ref': false}, function(response) {
-            console.log(`g_ref set to '${response}'`);
-        });
-    };
-
-    // send blurb back to server
-    if (!readonly) {
-        setBlurb();
-    }
-
-    // jump to pid if specified
-    if (pid !== null) {
-        let para = getPara(pid);
-        makeActive(para);
-    }
-});
+    // sort out folding
+    initFold();
+};
 
 /////////////////// EDITING /////////
 
@@ -170,108 +140,6 @@ rawToTextarea = function(para) {
     var raw = para.attr('raw');
     textArea.val(raw);
 };
-
-/// Severer Command Editing
-
-updatePara = function(pid, raw) {
-    var para = getPara(pid);
-    para.attr('raw', raw);
-    rawToRender(para);
-};
-
-updateParas = function(para_dict) {
-    for (pid in para_dict) {
-        var para = getPara(pid);
-        para.attr('raw', para_dict[pid]);
-        rawToRender(para);
-    }
-};
-
-deletePara = function(pid) {
-    var para = getPara(pid);
-    if(old_id = para.attr('id')){
-        let i = ref_list.indexOf(old_id);
-        if (i !== -1) {
-            ref_list.splice(i, 1)
-        }
-        let ref = {};
-        ref.aid = aid;
-        ref.key = old_id;
-        client.sendCommand('delete_ref', ref, function(success) {
-            console.log('success: deleted ref');
-        });
-    }
-    
-    para.remove();
-    envClasses();
-    createRefs(); // we may be able to scope this more
-};
-
-insertParaRaw = function(pid, new_pid, raw='', before=true) {
-    console.log('insertPara:', pid, new_pid, raw, before);
-    var para = getPara(pid);
-    var new_para = $('<div>', {class: 'para', pid: new_pid, raw: raw});
-    if (before) {
-        let prev = para.prev();
-        if (prev.hasClass('folder')) {
-            prev.before(new_para);
-        } else {
-            para.before(new_para);
-        }
-    } else {
-        para.after(new_para);
-    }
-    new_para.html(inner_para);
-    return new_para;
-};
-
-insertPara = function(pid, new_pid, raw='', before=true) {
-    let new_para = insertParaRaw(pid, new_pid, raw, before);
-    rawToRender(new_para);
-    rawToTextarea(new_para);
-    makeActive(new_para);
-    sendMakeEditable();
-};
-
-pasteCB = function(pid, paste) {
-    let para_act = null;
-    paste.forEach(d => {
-        const [new_pid, text] = d;
-        para_act = insertParaRaw(pid, new_pid, text, false);
-        rawToRender(para_act, true); // defer
-        rawToTextarea(para_act);
-        pid = new_pid;
-    })
-    envClasses();
-    createRefs();
-    $('.para').removeClass('copy_sel');
-    makeActive(para_act);
-};
-
-applyDiff = function(edits) {
-    console.log('applyDiff', edits);
-
-    $.each(edits['para_del'], (i, pid) => {
-        deletePara(pid);
-    });
-
-    $.each(edits['para_upd'], (pid, raw) => {
-        updatePara(pid, raw);
-    });
-
-    var adds = edits['para_add'];
-    $.each(edits['position'], (i, pos) => {
-        var [pid, pre] = pos;
-        if (pid in adds) {
-            var raw = adds[pid];
-            insertPara(pre, pid, raw=raw, before=false);
-        } else {
-            var para = getPara(pid);
-            var base = getPara(pre);
-            base.after(para);
-        }
-    });
-}
 
 ///////////////// ENVS /////////
 
@@ -677,7 +545,7 @@ createRefs = function(para) {
         var ref = $(this);
         if (!ref.data('extern')) {
             var key = ref.attr('citekey');
-            if (($('#'+key).length == 0) && (key != '_self_')) {
+            if (($(`#${key}`).length == 0) && (key != '_self_')) {
                 citeKeys.add(key);
             };
         };
@@ -692,7 +560,7 @@ createRefs = function(para) {
         renderCiteText(para);
     }
 
-    //renderedCites = citeKeys;
+    // renderedCites = citeKeys;
 };
 
 getTro = function(ref, callback) {
@@ -891,30 +759,29 @@ ref_spec = {
     'text': refText,
 };
 
-/// THIS IS REPATED FROM THE BIB.JS, we should make it more efficent
-
+/// THIS IS REPEATED FROM THE BIB.JS, we should make it more efficent
 
  //this does not redner anything, it adds the cite keys
 // to the comand completion list, the name is a hold over
 //and becuase it is used for other pages (/b)
-renderBib = function(data){
+renderBib = function(data) {
     data.forEach(cite => {
-        bib_list.push(cite.citekey)
-    })
-}
+        bib_list.push(cite.citekey);
+    });
+};
 
-deleteCite = function(data){
+deleteCite = function(data) {
     let i = bib_list.indexOf(data);
     if (i !== -1) {
-        bib_list.splice(i, 1)
+        bib_list.splice(i, 1);
     }
-}
+};
 
-renderBibLocal = function(data){
+renderBibLocal = function(data) {
     // $('#para_holder').empty();
-    console.log(data)
+    console.log(data);
     data.map(createBibEntry);
-}
+};
 
 createBibEntry = function(cite) {
     $('#'+cite['citekey']).remove();
@@ -1075,117 +942,14 @@ pop_spec = {
     'error': popError,
 };
 
+/// syntax highlighting
 
-/// External References
-
-createExtRef = function(id) {
-    let tro = troFromKey(id);
-    let ref = {};
-    ref.aid = aid;
-    ref.key = id;
-    ref.cite_type = tro.cite_type;
-    ref.cite_env = tro.cite_env;
-    ref.text = popText(tro);
-    ref.ref_text = tro.ref_text;
-    return ref;
-};
-
-// push reference blurb changes to server
-updateRefHTML = function(para) {
-    // get para id, old_id is for when the update is an id change
-    let new_id = para.attr('id');
-    let old_id = para.attr('old_id');
-
-    // the pid of it's containing env
-    let env_pid = para.attr('env_pid');
-    let env_beg = para.hasClass('env_beg');
-
-    // for this specific para
-    if (new_id) {
-        ref_list.push(new_id);
-        let ref = createExtRef(new_id);
-        client.sendCommand('update_ref', ref, function(success) {
-            console.log('success: updated ref');
-        });
-    }
-
-    // for containing env - this should already exist
-    if (env_pid && !env_beg) {
-        let epar = getPara(env_pid);
-        let env_id = epar.attr('id');
-        if (env_id) {
-            let ref = createExtRef(env_id);
-            client.sendCommand('update_ref', ref, function(success) {
-                console.log('success: updated ref');
-            });
-        }
-    }
-
-    // check if this was obscuring another same-id para? otherwise delete
-    if (old_id) {
-        let old_para = $(`#${old_id}`);
-        if (old_para.length > 0) {
-            let ref = createExtRef(old_id);
-            client.sendCommand('update_ref', ref, function(success) {
-                console.log('success: updated ref');
-            });
-        } else {
-            let i = ref_list.indexOf(old_id);
-            if (i !== -1) {
-                ref_list.splice(i, 1);
-            }
-            let ref = {};
-            ref.aid = aid;
-            ref.key = old_id;
-            client.sendCommand('delete_ref', ref, function(success) {
-                console.log('success: deleted ref');
-            });
-        }
-    }
-};
-
-$.fn.ignore = function(sel) {
-    return this.clone().find(sel || '>*').remove().end();
-};
-
-getBlurb = function(len=200) {
-    var blurb = '';
-    var size = 0;
-    $('.para').not('.folder').each(function() {
-        var para = $(this);
-        var ptxt = para.children('.p_text');
-        var core = ptxt.ignore('.katex-mathml, .eqnum, img, svg')
-                       .removeClass('p_text');
-
-        var html = core[0].outerHTML;
-        blurb += html + ' ';
-
-        var text = core.text();
-        size += text.length;
-
-        if (size > len) {
-            blurb += '...';
-            return false;
-        }
-    });
-    return blurb;
-};
-
-setBlurb = function() {
-    var blurb = getBlurb();
-    client.sendCommand('set_blurb', {'aid': aid, 'blurb': blurb}, function(success) {
-            console.log('blurb set');
-        });
-};
-
-/// SyntaxHighlighting
-
-syntaxHL = function(para,e=null) {
+syntaxHL = function(para, e=null) {
     var text = para.children('.p_input');
     var view = para.children('.p_input_view');
     var raw = text.val();
-    if(e){
-        cc_refs(raw,view,e);
+    if (e) {
+        cc_refs(raw, view, e);
     }
     var parsed = sytaxParseBlock(raw);
     view.html(parsed);
@@ -1197,101 +961,14 @@ $(document).on('input', '.p_input', function(e) {
     syntaxHL(para, e);
 });
 
-/// command completion
-
-cc_search = function(list, search, placement) {
-    list = list.filter(el => el.includes(search));
-    if (list.length > 0) {
-        cc = true;
-        let pop = $('<div>', {id: 'cc_pop'});
-        list.forEach(r => {
-            let cc_row = $('<div>', {class: 'cc_row'});
-            cc_row.text(r);
-            pop.append(cc_row);
-        });
-        $('#bg').append(pop);
-
-        pop.css({
-            'left': placement.left + 'px', // offset 10px for padding
-            'top': placement.top + 'px', // offset up by 35 px
-        });
-    }
-};
-
-cc_refs = function(raw, view, e) {
-    cc = false;
-    $('#cc_pop').remove();
-    let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
-    let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
-    cur = e.target.selectionStart;
-    if (cap = open_ref.exec(raw)) {
-        // if cursor is near the match
-        let b = cap.index;
-        let e = b + cap[0].length;
-        if (cur >= b && cur <= e) {
-            raw = raw.slice(0,e) + `<span id=cc_pos></span>` + raw.slice(e)
-            view.html(raw);
-            let off = $('#cc_pos').offset();
-            let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-            if(cap[1]=='@') { //bib search
-                let search = cap[2] || '';
-                cc_search(bib_list, search, p);
-            } else if (cap[3] && !cap[2]) { // searching for ext page
-                let ex_keys = Object.keys(ext_refs);
-                if (ex_keys.length == 0) { // if we have not made request
-                    client.sendCommand('get_arts', '', function(arts) {
-                        ext_refs = arts;
-                        search = '';
-                        cc_search(Object.keys(arts), search, p);
-                    });
-                } else {
-                    search = cap[4] || '';
-                    cc_search(ex_keys, search, p);
-                }
-            } else if (cap[2] && cap[3]) {
-                client.sendCommand('get_refs', {'title': cap[2]}, function(data) {
-                    if (data.refs.length > 0) {
-                        ext_refs[data.title] = data.refs;
-                    }
-                    search = '';
-                    cc_search(data.refs, search, p);
-                });
-            } else {
-                let search = cap[4] || cap[2] || '';
-                cc_search(ref_list, search, p);
-            }
-        }
-        } else if (cap = open_i_link.exec(raw)) {
-                    let b = cap.index;
-                    let e = b + cap[0].length;
-            if (cur >= b && cur <= e) {
-                raw = raw.slice(0,e) + `<span id=cc_pos></span>` + raw.slice(e)
-                view.html(raw);
-                let off = $('#cc_pos').offset();
-                let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-                let ex_keys = Object.keys(ext_refs);
-                if (ex_keys.length == 0) { // if we have not made request
-                    client.sendCommand('get_arts', '', function(arts) {
-                        ext_refs = arts;
-                        search = '';
-                        cc_search(Object.keys(arts), search, p);
-                    });
-                } else {
-                    search = cap[1] || '';
-                    cc_search(ex_keys, search, p);
-                }
-        }
-    }
-};
-
-esc = function(raw){
+esc = function(raw) {
     out = raw.replace(/\[/g, '&#91;')
-             .replace(/\]/g, '&#93;')//brakets
-             .replace(/\$/g, '&#36;')//math
-             .replace(/\@/g, '&#36;')//@
-             .replace(/\*/g, '&#42;')//*
-             .replace(/\!/g, '&#33;')//!
-             .replace(/%/g, '&#37;')//%
+             .replace(/\]/g, '&#93;') // brackets
+             .replace(/\$/g, '&#36;') // math
+             .replace(/\@/g, '&#36;') // @
+             .replace(/\*/g, '&#42;') // *
+             .replace(/\!/g, '&#33;') // !
+             .replace(/%/g, '&#37;') // %
     return out;
 };
 
@@ -1350,8 +1027,7 @@ s = function(text, cls) {
 
 //uses lookbehinds, might not work on old ass browsers
 //set = true is for non ref when seting ids
-fArgs = function(argsraw, set=true){
-
+fArgs = function(argsraw, set=true) {
     var argmatch = /([\[\|\n\r])((?:[^\]\|\n\r]|(?<=\\)\||(?<=\\)\])*)/g
     var illegal = /[^a-zA-Z\d\_\-]/
     if(!set){
@@ -1586,4 +1262,113 @@ braceHL = function(view, text, pos, para) {
         $('.brace').contents().unwrap();
         syntaxHL(para);
     }, 800);
+};
+
+// folding/unfolding
+
+getFoldLevel = function(para) {
+    return parseInt(para.attr('fold_level'));
+};
+
+getFoldParas = function(pid) {
+    para = getPara(pid);
+    l = para.attr('head_level');
+    if (para.attr('env') == 'heading') {
+        let fps = [para];
+        let nx = Object.entries(para.nextAll('.para'));
+        for (const [k, p] of nx) {
+            if ($(p).attr('head_level') <= l) {
+                break;
+            }
+            if (!$(p).hasClass('folder')) {
+                fps.push(p);
+            }
+        }
+        //what the fuck jquery, why (returns differnt object type in the two cases)
+        return [$(fps), $(fps).first()[0]];
+    } else {
+        let fps = $(`[env_id=${pid}]`);
+        return [$(fps), $(fps).first()];
+    }
+};
+
+initFold = function() {
+    folded = cooks('folded') || folded;
+    folded.forEach(pid => {
+        let para = getPara(pid);
+        fold(para, init=true);
+    });
+    renderFold();
+};
+
+renderFold = function() {
+    $('.para:not(.folder)').each(function() {
+        let para = $(this);
+        let fl = getFoldLevel(para);
+        if (fl > 0) {
+            para.addClass('folded');
+        } else {
+            para.removeClass('folded');
+        }
+    });
+    $('.folder').each(function() {
+        let para = $(this);
+        let fl = getFoldLevel(para);
+        let pid = para.attr('fold_id');
+        let p = getPara(pid);
+        let flp = getFoldLevel(p);
+        if (fl > 0 && flp == 1) {
+            para.removeClass('folded');
+        } else {
+            para.addClass('folded');
+        }
+    });
+};
+
+fold = function(para, init=false) {
+    let env_id = para.attr('env_id');
+    let fold_id = para.attr('fold_id');
+    if (env_id) {
+        const foldParas = getFoldParas(env_id);
+        foldParas[0].each(function() {
+            let para = $(this);
+            const l = getFoldLevel(para);
+            para.attr('fold_level', l+1);
+        });
+        const fold = $(`[fold_id=${env_id}]`).first();
+        const l = getFoldLevel(fold);
+        fold.attr('fold_level', l+1);
+        makeActive(fold);
+        if (!init) {
+            folded.push(env_id);
+            const foldcookie = JSON.stringify(folded);
+            document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
+        }
+    } else if (fold_id) {
+        const index = folded.indexOf(fold_id);
+        if (index > -1) {
+            folded.splice(index, 1);
+        }
+        const foldParas = getFoldParas(fold_id);
+        foldParas[0].each(function() {
+            let para = $(this);
+            const l = getFoldLevel(para);
+            para.attr('fold_level', l-1);
+        });
+        const fold = $(`[fold_id=${fold_id}]`).first();
+        const l = getFoldLevel(fold);
+        fold.attr('fold_level', l-1);
+        makeActive(foldParas[1]);
+        const foldcookie = JSON.stringify(folded);
+        document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
+    }
+    renderFold();
+};
+
+unfold = function() {
+    $('.para').attr('fold_level', 0);
+    folded = [];
+    const foldcookie = JSON.stringify(folded);
+    document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
+    renderFold();
 };

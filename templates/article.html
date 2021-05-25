@@ -3,14 +3,21 @@
 {% block head %}
    {{ super() }}
    <script type="text/javascript">
-    title = '{{title}}';
-    aid = {{aid|tojson}};
-    pid = {% if pid == None %}null{% else %}{{pid|tojson}}{% endif %};
-    theme = '{{theme}}';
-    timeout = 1000*{{timeout|tojson}};
-    max_size = {{max_size|tojson}};
+    // article deets
+    const title = '{{title}}';
+    const aid = {{aid|tojson}};
     g_ref = {{g_ref|tojson}};
-    readonly = !{{edit|tojson}};
+    pid = {% if pid == None %}null{% else %}{{pid|tojson}}{% endif %};
+
+    // immutable options
+    const timeout = 1000*{{timeout|tojson}};
+    const max_size = {{max_size|tojson}};
+    const readonly = !{{edit|tojson}};
+
+    // mutable options
+    theme = '{{theme}}'; // default theme
+
+    // biblio and references
     ref_list = [];
     {% for r in ref_list%}
         ref_list.push('{{r}}');

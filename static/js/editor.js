@@ -4,7 +4,7 @@
 var active_para = null; // current active para
 var last_active = null; // to keep track of where cursor was
 var editable = false; // are we focused on the active para
-var writeable = !readonly; // can we actually modify contents
+var writeable = !readonly; // can we actually modify contents (depends on readonly and history mode)
 var cb = []; // clipboard for cell copy
 
 /// textarea manage
@@ -338,165 +338,6 @@ editShift = function(dir='up') {
     }
 };
 
-// reference completion
-
-next_cc = function(dir) {
-    let ccpop = $('#cc_pop')[0];
-    if (dir == 'up') {
-        f = ccpop.firstElementChild;
-        ccpop.appendChild(f); //apend first to end
-    } else if (dir == 'down') {
-        l = ccpop.lastElementChild;
-        ccpop.prepend(l); //append last child before first
-    }
-};
-
-make_cc = function() {
-    var cctxt = $('.cc_row').first().text();
-    var input = active_para.children('.p_input');
-    var raw = input.val();
-    let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
-    let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
-    if (cap = open_ref.exec(raw)) {
-        var l = cap.index;
-        var space = cap[5] || ""
-        if (cap[3] && !cap[2]) { // searching for ext page
-           raw = raw.replace(open_ref, function() {
-                const out = `@[${cctxt}:${space}`;
-                l = l + out.length - space.length
-                return out
-            });
-        } else if (cap[2] && cap[3]) {
-            raw = raw.replace(open_ref, function() {
-                const out = `@[${cap[2]}:${cctxt}]${space}`;
-                l = l + out.length - space.length
-                return out;
-            });
-        } else {
-            raw = raw.replace(open_ref, function() {
-                const out = `@[${cctxt}]${space}`;
-                l = l + out.length - space.length
-                return out;
-
-            });
-        }
-    } else if (cap = open_i_link.exec(raw)) {
-        var l = cap.index;
-        var space = cap[2] || ""
-        raw = raw.replace(open_i_link, function() {
-            const out = `[[${cctxt}]]${space}`;
-            l = l + out.length - space.length
-            return out;
-        });
-    }
-    input.val(raw);
-    resize(input[0]);
-    syntaxHL(active_para);
-    cc = false;
-    $('#cc_pop').remove();
-    input[0].setSelectionRange(l, l);
-};
-
-// folding/unfolding
-
-getFoldLevel = function(para) {
-    return parseInt(para.attr('fold_level'));
-};
-
-getFoldParas = function(pid){
-    para = getPara(pid);
-    l = para.attr('head_level');
-    if (para.attr('env') == 'heading') {
-        let fps = [para];
-        let nx = Object.entries(para.nextAll('.para'));
-        for (const [k, p] of nx) {
-            if ($(p).attr('head_level') <= l) {
-                break;
-            }
-            if (!$(p).hasClass('folder')) {
-                fps.push(p);
-            }
-        }
-        //what the fuck jquery, why (returns differnt object type in the two cases)
-        return [$(fps), $(fps).first()[0]];
-    } else {
-        let fps = $(`[env_id=${pid}]`);
-        return [$(fps), $(fps).first()];
-    }
-};
-
-renderFold = function() {
-    $('.para:not(.folder)').each(function() {
-        let para = $(this);
-        let fl = getFoldLevel(para);
-        if (fl > 0) {
-            para.addClass('folded');
-        } else {
-            para.removeClass('folded');
-        }
-    });
-    $('.folder').each(function() {
-        let para = $(this);
-        let fl = getFoldLevel(para);
-        let pid = para.attr('fold_id');
-        let p = getPara(pid);
-        let flp = getFoldLevel(p);
-        if (fl > 0 && flp == 1) {
-            para.removeClass('folded');
-        } else {
-            para.addClass('folded');
-        }
-    });
-};
-
-fold = function(para, init=false) {
-    let env_id = para.attr('env_id');
-    let fold_id = para.attr('fold_id');
-    if (env_id) {
-        const foldParas = getFoldParas(env_id);
-        foldParas[0].each(function() {
-            let para = $(this);
-            const l = getFoldLevel(para);
-            para.attr('fold_level', l+1);
-        });
-        const fold = $(`[fold_id=${env_id}]`).first();
-        const l = getFoldLevel(fold);
-        fold.attr('fold_level', l+1);
-        makeActive(fold);
-        if (!init) {
-            folded.push(env_id);
-            const foldcookie = JSON.stringify(folded);
-            document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
-        }
-    } else if (fold_id) {
-        const index = folded.indexOf(fold_id);
-        if (index > -1) {
-            folded.splice(index, 1);
-        }
-        const foldParas = getFoldParas(fold_id);
-        foldParas[0].each(function() {
-            let para = $(this);
-            const l = getFoldLevel(para);
-            para.attr('fold_level', l-1);
-        });
-        const fold = $(`[fold_id=${fold_id}]`).first();
-        const l = getFoldLevel(fold);
-        fold.attr('fold_level', l-1);
-        makeActive(foldParas[1]);
-        const foldcookie = JSON.stringify(folded);
-        document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
-    }
-    renderFold();
-};
-
-unfold = function() {
-    $('.para').attr('fold_level', 0);
-    folded = [];
-    const foldcookie = JSON.stringify(folded);
-    document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
-    renderFold();
-};
-
 // copy cell
 
 copyCells = function() {
@@ -528,7 +369,7 @@ $(document).keydown(function(e) {
     var shift = e.shiftKey;
 
     if (ctrl && key == 'enter') {
-        toggle_hist_map();
+        toggleHistMap();
         return false;
     } else if (shift && ctrl && key == 'f') {
         unfold();
@@ -536,7 +377,7 @@ $(document).keydown(function(e) {
         return false;
     }
     if (key == '§') {
-            toggleSidebar();
+        toggleSidebar();
     }
     if (!active_para) { // if we are inactive
         if (key == 'enter') {

@@ -354,7 +354,7 @@ def GetArtData(title, edit, theme, pid=None):
         return redirect(url_for('Home'))
 
 def ErrorPage(title='Error', message=''):
-    theme=request.cookies.get('theme') or args.theme
+    theme = request.cookies.get('theme') or args.theme
     return render_template('error.html', title=title, message=message, theme=theme)
 
 @app.route('/a/<title>', methods=['GET'])
