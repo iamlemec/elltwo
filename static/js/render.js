@@ -27,6 +27,10 @@ getPara = function(pid) {
     return $(`#content [pid=${pid}]`);
 };
 
+getPID = function(para) {
+    return parseInt(para.attr('pid'));
+};
+
 makePara = function(para, defer=true) {
     para.html(inner_para);
     rawToRender(para, defer); // postpone formatting
@@ -165,12 +169,6 @@ rawToTextarea = function(para) {
     var textArea = para.children('.p_input');
     var raw = para.attr('raw');
     textArea.val(raw);
-};
-
-updateFromTextarea = function(para) {
-    var raw = para.children('.p_input').val();
-    var pid = para.attr('pid');
-    client.sendCommand('update_para', {'pid': pid, 'text': raw});
 };
 
 /// Severer Command Editing
@@ -1092,7 +1090,7 @@ updateRefHTML = function(para) {
         }
     }
 
-    // check if this was obscuring another samd-id para? otherwise delete
+    // check if this was obscuring another same-id para? otherwise delete
     if (old_id) {
         let old_para = $(`#${old_id}`);
         if (old_para.length > 0) {
@@ -1162,11 +1160,10 @@ syntaxHL = function(para,e=null) {
     view.html(parsed);
 };
 
-$(document).on('input', '.p_input', function(e){
-    para=$(this).parent('.para');
-    // paraTimeOut();
+$(document).on('input', '.p_input', function(e) {
+    let para = $(this).parent('.para');
     client.schedCanary();
-    syntaxHL(para,e);
+    syntaxHL(para, e);
 });
 
 /// command completion

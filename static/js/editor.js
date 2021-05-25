@@ -65,7 +65,7 @@ sendUpdatePara = function(para, force=false) {
         return;
     }
     var pid = para.attr('pid');
-    var data = {room: aid, pid: pid, text: text};
+    var data = {aid: aid, pid: pid, text: text};
     client.sendCommand('update_para', data, on_success(() => {
         storeChange(para, text);
     }));
@@ -79,7 +79,7 @@ sendInsertBefore = function(para) {
     } else {
         var pid = para.attr('pid');
     };
-    let data = {room: aid, pid: pid};
+    let data = {aid: aid, pid: pid};
     client.sendCommand('insert_before', data, on_success(() => {
         // activePrevPara();
         // sendMakeEditable();
@@ -94,7 +94,7 @@ sendInsertAfter = function(para) {
     } else {
         var pid = para.attr('pid');
     };
-    let data = {room: aid, pid: pid};
+    let data = {aid: aid, pid: pid};
     client.sendCommand('insert_after', data, on_success(() => {
         // console.log(active_para)
         // activeNextPara()
@@ -104,7 +104,7 @@ sendInsertAfter = function(para) {
 
 sendDeletePara = function(para) {
     let pid = para.attr('pid');
-    let data = {room: aid, pid: pid};
+    let data = {aid: aid, pid: pid};
     let next = getNextPara(para);
     if (next.length == 0) {
         next = getPrevPara(para);
@@ -167,8 +167,8 @@ sendMakeEditable = function(cursor='end') {
             fold(active_para);
         }
         if (writeable) {
-            var pid = active_para.attr('pid');
-            var data = {pid: pid, room: aid};
+            let pid = active_para.attr('pid');
+            let data = {pid: pid, aid: aid};
             client.sendCommand('lock', data, function(response) {
                 if (response) {
                     trueMakeEditable(true, cursor);
@@ -224,7 +224,7 @@ lockParas = function(pids) {
 };
 
 sendUnlockPara = function(pids) {
-    var data = {pids: pids, room: aid};
+    var data = {aid: aid, pids: pids};
     client.sendCommand('unlock', data, function(response) {
         // console.log(response);
     });
@@ -512,7 +512,7 @@ pasteCells = function() {
     let pid = active_para.attr('pid');
     let ccb = cooks('cb') || cb;
     if (ccb && pid) {
-        let data = {room: aid, pid: pid, cb: ccb};
+        let data = {aid: aid, pid: pid, cb: ccb};
         client.sendCommand('paste_cells', data, function(response) {
             console.log(response);
         });
