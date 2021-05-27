@@ -137,14 +137,23 @@ button {
 /* DIV renderer stylying */
 
 
-.env__equation{
+.env__equation {
     display: flex;
     align-items: center;
     justify-content: flex-start;
 }
 
 .eqnum {
-    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+    color: var(--font-col);
+    border: 1px solid var(--font-col);
+    width: 25px;
+    height: 25px;
+    border-radius: 15%;
+    margin-right: 10px;
 }
 
 .env__equation .latex{

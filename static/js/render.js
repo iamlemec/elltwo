@@ -392,7 +392,7 @@ equationEnv = function(ptxt, args) {
     if (args.number) {
         var num = makeCounter('equation');
         var div = $('<div>', {class: 'env_add eqnum'});
-        div.append(['(', num, ')']);
+        div.append(num);
         ptxt.append(div);
     }
 };
