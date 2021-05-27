@@ -74,20 +74,20 @@
     padding-right: 8px;
 }
 
-.folded{
+.folded {
     display: none;
 }
 
-.folder .comment{
+.folder .comment {
     font-size: 15px;
     font-weight: normal;
 }
 
-.env__heading .comment.fold_text::after{
+.env__heading .comment.fold_text::after {
     content: "section folded, [ ⇧ + f ] to unfold";
 }
 
-.comment.fold_text::after{
+.comment.fold_text::after {
     content: "env folded, [ ⇧ + f ] to unfold";
 }
 
@@ -136,6 +136,9 @@ button {
 
 /* DIV renderer stylying */
 
+.comment {
+    white-space: pre;
+}
 
 .env__equation {
     display: flex;

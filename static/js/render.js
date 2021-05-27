@@ -313,7 +313,7 @@ simpleEnv = function(ptxt, env, head='', tail='', number=true, args={}) {
     let fold = $('<div>', {class: `para folder`, html: pre_fold});
     para = first.parent();
     let env_pid = para.attr('env_pid');
-    fold.attr('fold_id', env_pid)
+    fold.attr('fold_pid', env_pid)
         .attr('fold_level', 0);
     // if (!folded.includes(env_pid)) {
     //     fold.addClass('folded');
@@ -379,7 +379,7 @@ headingEnv = function(ptxt, args) {
     let env_pid = para.attr('pid');
     para.attr('env_pid', env_pid)
         .attr('head_level', args.level);
-    fold.attr('fold_id', env_pid)
+    fold.attr('fold_pid', env_pid)
         .attr('head_level', args.level)
         .attr('fold_level', 0);
     // if (!folded.includes(env_pid)) {
@@ -968,7 +968,19 @@ $(document).on('input', '.p_input', function(e) {
     syntaxHL(para, e);
 });
 
-esc = function(raw) {
+esc_md = function(raw){
+    return raw.replace(/\\/g, '&#92;')
+              .replace(/\//g, '&#47;')
+              .replace(/\[/g, '&#91;')
+              .replace(/\]/g, '&#93;')
+              .replace(/\*/g, '&#42;')
+              .replace(/\$/g, '&#36;')
+              .replace(/\@/g, '&#36;')
+              .replace(/\^/g, '&#94;')
+              .replace(/\!/g, '&#33;');
+};
+
+esc_html = function(raw) {
     return raw.replace(/\</g, '&lt;')
               .replace(/\>/g, '&gt;')
               .replace('&!L&', '<span class="brace">')
@@ -980,6 +992,7 @@ s = function(text, cls) {
 };
 
 var inline = {
+    escape: /\\([\\/`*{}\[\]()#+\-.!_>\$])/g,
     comment: /\/\/([^\n]+?)(\n|$)/g,
     code: /(`+)([\s\S]*?[^`])\1(?!`)/g,
     ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/g,
@@ -991,7 +1004,11 @@ var inline = {
 };
 
 syntaxParseInline = function(raw) {
-    let html = esc(raw);
+    let html = esc_html(raw);
+
+    html = html.replace(inline.escape, (a, b) =>
+        s('\\', 'comment_head') + s(esc_md(b), 'comment')
+    );
 
     html = html.replace(inline.comment, (a, b, c) =>
         s('//', 'comment_head') + s(b, 'comment') + c
@@ -1117,14 +1134,14 @@ syntaxParseBlock = function(raw) {
     if (cap = block.code.exec(raw)) {
         let space = cap[1] || '';
         let rest = raw.slice(cap[0].length);
-        let text = esc(rest);
+        let text = esc_html(rest);
         return s('``', 'hl') + space + s(text, 'code');
     }
 
     if (cap = block.comment.exec(raw)) {
         let space = cap[1] || '';
         let rest = raw.slice(cap[0].length);
-        let text = esc(rest);
+        let text = esc_html(rest);
         return s('//', 'comment_head') + space + s(text, 'comment');
     }
 
@@ -1297,7 +1314,7 @@ getFoldParas = function(pid) {
         //what the fuck jquery, why (returns differnt object type in the two cases)
         return [$(fps), $(fps).first()[0]];
     } else {
-        let fps = $(`[env_id=${pid}]`);
+        let fps = $(`[env_pid=${pid}]`);
         return [$(fps), $(fps).first()];
     }
 };
@@ -1324,7 +1341,7 @@ renderFold = function() {
     $('.folder').each(function() {
         let para = $(this);
         let fl = getFoldLevel(para);
-        let pid = para.attr('fold_id');
+        let pid = para.attr('fold_pid');
         let p = getPara(pid);
         let flp = getFoldLevel(p);
         if (fl > 0 && flp == 1) {
@@ -1336,36 +1353,37 @@ renderFold = function() {
 };
 
 fold = function(para, init=false) {
-    let env_id = para.attr('env_id');
-    let fold_id = para.attr('fold_id');
-    if (env_id) {
-        const foldParas = getFoldParas(env_id);
+    console.log('fold', para);
+    let env_pid = para.attr('env_pid');
+    let fold_pid = para.attr('fold_pid');
+    if (env_pid) {
+        const foldParas = getFoldParas(env_pid);
         foldParas[0].each(function() {
             let para = $(this);
             const l = getFoldLevel(para);
             para.attr('fold_level', l+1);
         });
-        const fold = $(`[fold_id=${env_id}]`).first();
+        const fold = $(`[fold_pid=${env_pid}]`).first();
         const l = getFoldLevel(fold);
         fold.attr('fold_level', l+1);
         makeActive(fold);
         if (!init) {
-            folded.push(env_id);
+            folded.push(env_pid);
             const foldcookie = JSON.stringify(folded);
             document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
         }
-    } else if (fold_id) {
-        const index = folded.indexOf(fold_id);
+    } else if (fold_pid) {
+        const index = folded.indexOf(fold_pid);
         if (index > -1) {
             folded.splice(index, 1);
         }
-        const foldParas = getFoldParas(fold_id);
+        const foldParas = getFoldParas(fold_pid);
         foldParas[0].each(function() {
             let para = $(this);
             const l = getFoldLevel(para);
             para.attr('fold_level', l-1);
         });
-        const fold = $(`[fold_id=${fold_id}]`).first();
+        const fold = $(`[fold_pid=${fold_pid}]`).first();
         const l = getFoldLevel(fold);
         fold.attr('fold_level', l-1);
         makeActive(foldParas[1]);

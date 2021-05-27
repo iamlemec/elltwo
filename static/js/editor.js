@@ -72,9 +72,9 @@ sendUpdatePara = function(para, force=false) {
 };
 
 sendInsertBefore = function(para) {
-    let fold_id = para.attr('fold_id');
-    if (fold_id) {
-        var env = $(`[env_id=${fold_id}]`);
+    let fold_pid = para.attr('fold_pid');
+    if (fold_pid) {
+        var env = $(`[env_pid=${fold_pid}]`);
         var pid = env.first().attr('pid');
     } else {
         var pid = para.attr('pid');
@@ -87,9 +87,9 @@ sendInsertBefore = function(para) {
 };
 
 sendInsertAfter = function(para) {
-    let fold_id = para.attr('fold_id');
-    if (fold_id) {
-        var env = $(`[env_id=${fold_id}]`);
+    let fold_pid = para.attr('fold_pid');
+    if (fold_pid) {
+        var env = $(`[env_pid=${fold_pid}]`);
         var pid = env.last().attr('pid')
     } else {
         var pid = para.attr('pid');

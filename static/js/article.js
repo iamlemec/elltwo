@@ -189,9 +189,9 @@ updateRefHTML = function(para) {
     // for containing env - this should already exist
     if (env_pid && !env_beg) {
         let epar = getPara(env_pid);
-        let env_id = epar.attr('id');
-        if (env_id) {
-            let ref = createExtRef(env_id);
+        let env_pid = epar.attr('id');
+        if (env_pid) {
+            let ref = createExtRef(env_pid);
             client.sendCommand('update_ref', ref, function(success) {
                 console.log('success: updated ref');
             });
@@ -673,13 +673,16 @@ function responsivefy(svg) {
 
 /// progress bar
 
-$(document).on('scroll', '#content', function() {
-    let elem = $('#content');
-    let spos = elem.scrollTop();
-    let shgt = elem[0].scrollHeight;
-    let hout = elem.outerHeight();
-    let spct = 100 * spos / (shgt - hout);
-    $('#prog_bar').css('width', `${spct}%`);
+$(document).ready(function() {
+    $('#content').scroll(function() {
+        console.log('scrollin');
+        let elem = $('#content');
+        let spos = elem.scrollTop();
+        let shgt = elem[0].scrollHeight;
+        let hout = elem.outerHeight();
+        let spct = 100 * spos / (shgt - hout);
+        $('#prog_bar').css('width', `${spct}%`);
+    });
 });
 
 /// mobile hover eqiv

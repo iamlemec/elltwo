@@ -479,7 +479,7 @@ Lexer.prototype.token = function(src) {
  */
 
 var inline = {
-  escape: /^\\([\\`*{}\[\]()#+\-.!_>\$%])/,
+  escape: /^\\([\\/`*{}\[\]()#+\-.!_>\$])/,
   in_comment: /^\/\/([^\n]+?)(?:\n|$)/,
   autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
   url: noop,
@@ -824,7 +824,7 @@ DivRenderer.prototype.empty = function(text) {
 
 DivRenderer.prototype.comment = function(text) {
   text = escape(text);
-  return `<div class="comment"><pre>${text}</pre></div>\n\n`;
+  return `<div class="comment">${text}</div>\n\n`;
 };
 
 DivRenderer.prototype.in_comment = function(text) {
