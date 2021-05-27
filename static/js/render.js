@@ -1062,7 +1062,7 @@ fArgs = function(argsraw, set=true) {
             return b + arg_key;
         }
     });
-    return esc(args);
+    return args;
 };
 
 var block = {
