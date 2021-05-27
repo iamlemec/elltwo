@@ -480,7 +480,7 @@ Lexer.prototype.token = function(src) {
 
 var inline = {
   escape: /^\\([\\/`*{}\[\]()#+\-.!_>\$])/,
-  in_comment: /^\/\/([^\n]+?)(?:\n|$)/,
+  in_comment: /^\/\/([^\n]*?)(?:\n|$)/,
   autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
   url: noop,
   tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^'">])*?>/,
