@@ -3,10 +3,6 @@
 /// initialization
 
 $(document).ready(function() {
-    initEditor();
-});
-
-initEditor = function() {
     // connect and join room
     connectServer();
 
@@ -25,7 +21,7 @@ initEditor = function() {
         let para = getPara(pid);
         makeActive(para);
     }
-};
+});
 
 connectServer = function() {
     var url = `http://${document.domain}:${location.port}`;

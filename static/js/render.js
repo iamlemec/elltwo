@@ -27,10 +27,6 @@ getPara = function(pid) {
     return $(`#content [pid=${pid}]`);
 };
 
-getPID = function(para) {
-    return parseInt(para.attr('pid'));
-};
-
 makePara = function(para, defer=true) {
     para.html(inner_para);
     rawToRender(para, defer); // postpone formatting
@@ -55,6 +51,17 @@ initRender = function() {
 
     // sort out folding
     initFold();
+};
+
+// for external readonly viewing
+renderMarkdown = function(md) {
+    readonly = true;
+    let content = $('#content');
+    md.split(/\n{2,}/).forEach((raw, pid) => {
+        let para = $('<div>', {class: 'para', pid: pid, raw: raw, fold_level: 0});
+        content.append(para);
+    });
+    initRender();
 };
 
 /////////////////// EDITING /////////
@@ -458,13 +465,13 @@ env_spec = {
 
 //// KATEX
 
-parse_preamble = function(raw){
-    int_macros = {}; //internal macros
-    macro_list = raw.split(/[\n,]+/)//split on \n or comma
-    .filter(macraw => macraw.includes(':')) //is it a macro?
-    .map(macraw => macraw.split(':'))//split on :
-    .forEach(el => int_macros[el[0]] = el[1]);//save internal macros
-    macros = Object.assign({}, int_macros, ext_macros);//merge internal and ext macros,overwrites internal
+parse_preamble = function(raw) {
+    let int_macros = {}; // internal macros
+    let macro_list = raw.split(/[\n,]+/) // split on \n or comma
+        .filter(macraw => macraw.includes(':')) // is it a macro?
+        .map(macraw => macraw.split(':')) // split on :
+        .forEach(el => int_macros[el[0]] = el[1]); // save internal macros
+    macros = Object.assign({}, int_macros, ext_macros); // merge internal and ext macros, overwrites internal
 };
 
 renderKatex = function(para) {
