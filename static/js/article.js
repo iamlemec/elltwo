@@ -677,16 +677,14 @@ function responsivefy(svg) {
 
 /// progress bar
 
-$(document).on('scroll', '#content', progress);
-
-progress = function() {
-    el = $('#content');
-    let s = el.scrollTop();
-    let sh = el[0].scrollHeight;
-    let h = el.outerHeight();
-    let p = 100 * s / (sh - h);
-    $('#prog_bar').css('width', p + '%');
-};
+$(document).on('scroll', '#content', function() {
+    let elem = $('#content');
+    let spos = elem.scrollTop();
+    let shgt = elem[0].scrollHeight;
+    let hout = elem.outerHeight();
+    let spct = 100 * spos / (shgt - hout);
+    $('#prog_bar').css('width', `${spct}%`);
+});
 
 /// mobile hover eqiv
 
