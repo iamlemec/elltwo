@@ -480,7 +480,7 @@ Lexer.prototype.token = function(src) {
 
 var inline = {
   escape: /^\\([\\`*{}\[\]()#+\-.!_>\$%])/,
-  in_comment: /^%(?:[^\n]+?)(?:\n|$)/,
+  in_comment: /^\/\/([^\n]+?)(?:\n|$)/,
   autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
   url: noop,
   tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^'">])*?>/,
@@ -491,7 +491,7 @@ var inline = {
   code: /^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/,
   br: /^ {2,}\n(?!\s*$)/,
   del: noop,
-  text: /^[\s\S]+?(?=[\\<!\[_*`\$\^@%]| {2,}\n|$)/,
+  text: /^[\s\S]+?(?=[\/\\<!\[_*`\$\^@%]| {2,}\n|$)/,
   math: /^\$((?:\\\$|[\s\S])+?)\$/,
   ref: /^@\[([\w-\|\=\:]+)\]/,
   footnote: /^\^\[(inside)\]/
@@ -619,7 +619,8 @@ InlineLexer.prototype.output = function(src) {
     // comment
     if (cap = this.rules.in_comment.exec(src)) {
       src = src.substring(cap[0].length);
-      out += this.renderer.in_comment(cap[0]); //passes entire comment to rendere (for tex)
+      text = cap[1];
+      out += this.renderer.in_comment(text);
       continue;
     }
 
@@ -823,7 +824,7 @@ DivRenderer.prototype.empty = function(text) {
 
 DivRenderer.prototype.comment = function(text) {
   text = escape(text);
-  return `<div class="comment">\n${text}\n</div>\n\n`;
+  return `<div class="comment"><pre>${text}</pre></div>\n\n`;
 };
 
 DivRenderer.prototype.in_comment = function(text) {
@@ -1025,6 +1026,10 @@ TexRenderer.prototype.empty = function(text) {
 };
 
 TexRenderer.prototype.comment = function(text) {
+  return `% ${text}`;
+};
+
+TexRenderer.prototype.in_comment = function(text) {
   return `% ${text}`;
 };
 
