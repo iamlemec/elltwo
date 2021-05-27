@@ -822,6 +822,7 @@ DivRenderer.prototype.empty = function(text) {
 };
 
 DivRenderer.prototype.comment = function(text) {
+  text = escape(text);
   return `<div class="comment">\n${text}\n</div>\n\n`;
 };
 

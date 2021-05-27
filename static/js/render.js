@@ -962,12 +962,10 @@ $(document).on('input', '.p_input', function(e) {
 });
 
 esc = function(raw) {
-    return raw.replace(/\[/g, '&#91;')  // [
-              .replace(/\]/g, '&#93;')  // ]
-              .replace(/\$/g, '&#36;')  // $
-              .replace(/\@/g, '&#36;')  // @
-              .replace(/\*/g, '&#42;')  // *
-              .replace(/\!/g, '&#33;')  // !
+    return raw.replace(/\</g, '&lt;')
+              .replace(/\>/g, '&gt;')
+              .replace('&!L&', '<span class="brace">')
+              .replace('&!R&', '</span>');
 };
 
 s = function(text, cls) {
@@ -977,7 +975,7 @@ s = function(text, cls) {
 var inline = {
     comment: /\/\/([^\n]+?)(\n|$)/g,
     code: /(`+)([\s\S]*?[^`])\1(?!`)/g,
-    ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/,
+    ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/g,
     math: /\$((?:\\\$|[\s\S])+?)\$/g,
     ref: /@(\[[\w-\|\=\:]+\])/g,
     ilink: /\[\[([^\]]+)\]\]/g,
@@ -986,17 +984,14 @@ var inline = {
 };
 
 syntaxParseInline = function(raw) {
-    let html = raw.replace(/</g, '&LT') // left html (<)
-                  .replace(/>/g, '&GT') // right html (>)
-                  .replace('&!L&', `<span class="brace">`) //
-                  .replace('&!R&', `</span>`); //
+    let html = esc(raw);
 
     html = html.replace(inline.comment, (a, b, c) =>
-        s('//', 'comment_head') + s(esc(b), 'comment') + c
+        s('//', 'comment_head') + s(b, 'comment') + c
     );
 
     html = html.replace(inline.code, (a, b, c) =>
-        s(b, 'comment_head') + s(esc(c), 'code') + s(b, 'comment_head')
+        s(b, 'comment_head') + s(c, 'code') + s(b, 'comment_head')
     );
 
     html = html.replace(inline.ftnt, (a, b) =>
