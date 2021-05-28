@@ -55,7 +55,6 @@ initRender = function() {
 
 // for external readonly viewing
 renderMarkdown = function(md) {
-    readonly = true;
     let content = $('#content');
     md.split(/\n{2,}/).forEach((raw, pid) => {
         let para = $('<div>', {class: 'para', pid: pid, raw: raw, fold_level: 0});
@@ -1034,8 +1033,9 @@ syntaxParseInline = function(raw) {
         s('[[', 'delimit') + s(b, 'ref') + s(']]', 'delimit')
     );
 
+    // escape so we don't highlight these on italics
     html = html.replace(inline.strong, (a, b) =>
-        s('**', 'comment_head') + b + s('**', 'comment_head')
+        s('&#42;&#42;', 'comment_head') + b + s('&#42;&#42;', 'comment_head')
     );
 
     html = html.replace(inline.em, (a, b) =>
