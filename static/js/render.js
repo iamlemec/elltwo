@@ -638,7 +638,7 @@ troFromKey = function(key, tro={}) {
 };
 
 renderCiteText = function(para) {
-    var refs;
+    let refs;
     if (para == undefined) {
         refs = $('.reference');
     } else {
@@ -706,10 +706,17 @@ refCite = function(ref, tro) {
 };
 
 refEquation = function(ref, tro, ext) {
-    var num = tro.find('.num')[0];
-    var text = $(num).text();
-    var citeText = (ext) ? `(${ext}, Eq. ${text})` :`(${text})`;
-    ref.text(citeText);
+    let num = tro.find('.num')[0];
+    let text = $(num).text();
+    let citebox = $('<span>', {class: 'eqn_cite', text: text});
+    let cite;
+    if (ext) {
+        txt = $('<span>', {class: 'eqn_cite_ext', text: ext});
+        cite = $('<span>').append([txt, citebox]);
+    } else {
+        cite = citebox;
+    }
+    ref.append(cite);
 };
 
 refEnv = function(ref, tro, env, ext) {

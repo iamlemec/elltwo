@@ -159,6 +159,20 @@ button {
     margin-right: 10px;
 }
 
+.eqn_cite {
+    font-family: monospace;
+    border: 1px solid var(--font-col);
+    color: var(--font-col);
+    border-radius: 4px;
+    padding: 0 5px 0 5px;
+    margin-right: 1px;
+}
+
+.eqn_cite_ext::after {
+    color: var(--font-col);
+    content: '—';
+}
+
 .env__equation .latex{
     flex: 1;
     text-align: center;
