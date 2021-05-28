@@ -189,9 +189,9 @@ updateRefHTML = function(para) {
     // for containing env - this should already exist
     if (env_pid && !env_beg) {
         let epar = getPara(env_pid);
-        let env_pid = epar.attr('id');
-        if (env_pid) {
-            let ref = createExtRef(env_pid);
+        let env_id = epar.attr('id');
+        if (env_id) {
+            let ref = createExtRef(env_id);
             client.sendCommand('update_ref', ref, function(success) {
                 console.log('success: updated ref');
             });
