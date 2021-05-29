@@ -1,11 +1,15 @@
 // bibliography tools
 
+export { getCiteData }
+
+import { createBibEntry } from './bib.js'
+
 function getCiteData(q) {
     q = q.replace(' ', '+');
     let url = 'https://api.crossref.org/works?rows=5&query.bibliographic=';
     $.getJSON(url+q).then(function(data) {
         let cts = data.message.items;
-        let data = cts.map(createbtjs).filter(Boolean);
+        data = cts.map(createbtjs).filter(Boolean);
         console.log(data);
         if (data.length == 0) {
             let nr = $('<span>', {class: `nr`, html: "No Results Found"});
@@ -24,7 +28,7 @@ function createbtjs(bd) {
     if (neededKeys.every(key => keys.includes(key))) {
         let btjs = {};
         btjs.title = bd.title[0];
-        authors = bd.author.map(a => a.family +", " + a.given);
+        let authors = bd.author.map(a => a.family +", " + a.given);
         btjs.author = authors.join(' and ');
         btjs.year = bd['published-print']['date-parts'][0][0];
         if (bd.hasOwnProperty('volume')) {
@@ -49,7 +53,7 @@ function createbtjs(bd) {
                 btjs.booktitle = bd['container-title'][0];
             }
         }
-        s = bd.author[0].family.toLowerCase() + btjs.year + btjs.title.split(' ')[0];
+        let s = bd.author[0].family.toLowerCase() + btjs.year + btjs.title.split(' ')[0];
         s = s.replace(/[^\w\s]/g, "");
         btjs.citekey = s;
         btjs.raw = toBibtexStr(btjs);
@@ -60,7 +64,8 @@ function createbtjs(bd) {
 }
 
 function toBibtexStr(btjs) {
-    bibtex = `@${btjs.entry_type}{${btjs.citekey}`
+    let bibtex = `@${btjs.entry_type}{${btjs.citekey}`;
+    let key;
     for (key in btjs) {
         if (key != 'entry_type' && key != 'citekey') {
             bibtex += `, ${key} = {${btjs[key]}}`;

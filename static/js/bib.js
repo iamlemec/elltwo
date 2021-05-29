@@ -1,10 +1,25 @@
+/* bibtex library browswer */
+
+export { createBibEntry }
+
+import { connect, addHandler, sendCommand } from './client.js'
+import { getCiteData } from './bib_search.js'
+
 $(document).ready(function() {
     let url = `http://${document.domain}:${location.port}`;
-    client.connect(url, () => {
-        client.sendCommand('join_room', {'room': '__bib'}, (response) => {
+    connect(url, () => {
+        sendCommand('join_room', {'room': '__bib'}, (response) => {
             console.log(response);
         });
-        client.sendCommand('get_bib', {'keys': ''});
+        sendCommand('get_bib', {'keys': ''});
+    });
+
+    addHandler('renderBib', function(refs) {
+        renderBib(refs);
+    });
+
+    addHandler('deleteCite', function(key) {
+        deleteCite(key);
     });
 });
 
@@ -35,7 +50,7 @@ $(document).on('click', '#create', function() {
     let json = generateJson(src);
     if (json) {
         json.entryTags.raw = src;
-        client.sendCommand('create_cite', json);
+        sendCommand('create_cite', json);
     }
 });
 
@@ -173,6 +188,6 @@ $(document).on('click', '.update', function(e) {
 $(document).on('click', '.delete', function() {
     let key = $(this).closest('.cite').attr('id');
     let data = {'key': key};
-    client.sendCommand('delete_cite', data);
+    sendCommand('delete_cite', data);
     $('.editable').removeClass('editable');
 });

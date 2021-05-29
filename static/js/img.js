@@ -1,4 +1,10 @@
-// image library
+/* image library browser */
+
+import { connect, sendCommand } from './client.js'
+import { renderKatex } from './math.js'
+import { connectDrops, renderImage } from './drop.js'
+
+// hard coded options
 
 let max_imgs = 50;
 
@@ -16,7 +22,7 @@ function renderBox(elem, key) {
 
 function renderImgs(img_list=imgs) {
     $('.img_src').remove();
-    imgs_n = img_list.slice(0, max_imgs);
+    let imgs_n = img_list.slice(0, max_imgs);
     imgs_n.forEach(img => {
         let [key, kws] = img;
         let img_cont = $('<div>', {class: 'img_cont img_src'});
@@ -77,7 +83,7 @@ $(document).on('click', '#img_update', function() {
     let new_kw = $('input#keywords').val();
     if (key != new_key || kw != new_kw) {
         let data = {'key': key, 'new_key': new_key, 'new_kw': new_kw};
-        client.sendCommand('update_image_key', data, (ret) => {
+        sendCommand('update_image_key', data, (ret) => {
             if (ret.found) {
                 let img = $(`#${key}`);
                 img.attr('id', new_key);
@@ -121,8 +127,8 @@ $(document).on('keyup', '#img_search', function(e) {
 
 $(document).ready(function() {
     let url = `http://${document.domain}:${location.port}`;
-    client.connect(url, () => {
-        client.sendCommand('join_room', {'room': '__img'}, (response) => {
+    connect(url, () => {
+        sendCommand('join_room', {'room': '__img'}, (response) => {
             console.log(response);
         });
     });

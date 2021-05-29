@@ -1,8 +1,8 @@
 {% extends "axiom.html" %}
 
 {% block head %}
-   {{ super() }}
-   <script type="text/javascript">
+    {{ super() }}
+    <script type="text/javascript">
     // article deets
     const title = '{{title}}';
     const aid = {{aid|tojson}};
@@ -26,16 +26,9 @@
     {% for b in bib_list%}
         bib_list.push('{{b}}');
     {% endfor %}
-</script>
-   <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
-   <script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
-   <script src={{ url_for('static', filename='libs/d3.v5.min.js') }} language="Javascript" type="text/javascript"></script>
-   <script src={{ url_for('static', filename='js/marked3.js') }} language="Javascript" type="text/javascript"></script>
-   <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
-   <script src={{ url_for('static', filename='js/drop.js') }} language="Javascript" type="text/javascript"></script>
-   <script src={{ url_for('static', filename='js/article.js') }} language="Javascript" type="text/javascript"></script>
-   <script src={{ url_for('static', filename='js/render.js') }} language="Javascript" type="text/javascript"></script>
-   <script src={{ url_for('static', filename='js/export.js') }} language="Javascript" type="text/javascript"></script>
+    </script>
+
+    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
 {% endblock %}
 
 {% block title %}{{title}}{% endblock %}
@@ -116,6 +109,9 @@ Font
 <button id="export_md" class="export_butt">MarkDown</button>
 </div>
 
-<script src={{ url_for('static', filename='js/editor.js') }} language="Javascript" type="text/javascript"></script>
+<script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
+<script src={{ url_for('static', filename='libs/d3.v5.min.js') }} language="Javascript" type="text/javascript"></script>
+<script src={{ url_for('static', filename='js/marked3.js') }} language="Javascript" type="text/javascript"></script>
+<script src={{ url_for('static', filename='js/article.js') }} type="module"></script>
 
 {% endblock %}

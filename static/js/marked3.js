@@ -1153,6 +1153,13 @@ TexRenderer.prototype.ilink = function(href) {
   return `\\href{${window.location.origin}/r/${href}}{${href}}`
 };
 
+TexRenderer.prototype.image = function(href) {
+  return `\\href{${href}}{${href}}`;
+};
+
+TexRenderer.prototype.imagelocal = function(key) {
+  return `[Image: ${key}]`;
+};
 TexRenderer.prototype.escape = function(esc) {
   return escape_latex(esc);
 };

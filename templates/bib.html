@@ -5,9 +5,7 @@
   <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/bib.css') }} />
   <script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
   <script src={{ url_for('static', filename='js/bibtexParse.js') }} language="Javascript" type="text/javascript"></script>
-  <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
-  <script src={{ url_for('static', filename='js/bib.js') }} language="Javascript" type="text/javascript"></script>
-  <script src={{ url_for('static', filename='js/bib_search.js') }} language="Javascript" type="text/javascript"></script>
+  <script src={{ url_for('static', filename='js/bib.js') }} type="module"></script>
 {% endblock %}
 
 {% block title %}Bib{% endblock %}

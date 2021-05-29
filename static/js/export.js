@@ -1,3 +1,9 @@
+/* exporting functionality */
+
+export { initExport }
+
+import { s_env_spec, macros } from './render.js'
+
 let in_title = title;
 
 function createTex() {
@@ -16,8 +22,8 @@ function createTex() {
         output.push(tex);
     });
 
-    tex_macros = texMacros(macros);
-    s_envs = sEnv(s_env_spec);
+    let tex_macros = texMacros(macros);
+    let s_envs = sEnv(s_env_spec);
 
     let dict = {
         'paras': output,
@@ -62,13 +68,13 @@ function texEnv(m) {
     let env = m.env;
     let spec = env.env;
     if (env.type == 'env_end') {
-        cte = current_tex_env;
+        let cte = current_tex_env;
         current_tex_env = null;
         return tex_spec.end(m.src, cte);
     }
     if (spec in tex_spec) {
         return tex_spec[spec](m.src, env);
-    } else if(spec in s_env_spec) {
+    } else if (spec in s_env_spec) {
         return texTheorem(m.src, env)
     } else {
         return tex_spec.error(m.src, env);
@@ -111,8 +117,7 @@ function texTitle(src, env) {
 
 function texEndEnv(src, env) {
     if (env !== null) {
-        out = `${src} \n \\end{${env}}`;
-        return out;
+        return `${src} \n \\end{${env}}`;
     } else {
         return `\\hl{ERROR} no enviorment to end`;
     }
@@ -145,8 +150,8 @@ function sEnv(s_env_spec) {
     let envout = '';
     for (const [key, value] of Object.entries(s_env_spec)) {
         if (key!='proof') {
-            nonum = `\\newtheorem{${key}}{${value.head}}`;
-            num = `\\newtheorem*{${key}*}{${value.head}}`;
+            let nonum = `\\newtheorem{${key}}{${value.head}}`;
+            let num = `\\newtheorem*{${key}*}{${value.head}}`;
             envout += `${num}\n${nonum}\n`;
         }
     }
@@ -155,18 +160,18 @@ function sEnv(s_env_spec) {
 
 /// export methods
 
-function export_markdown() {
+function exportMarkdown() {
     window.location.replace(`/em/${title}`);
 }
 
-function export_tex() {
+function exportTex() {
     let dict = createTex();
     let data = JSON.stringify(dict);
-    export_download('/et', 'data', data);
+    exportDownload('/et', 'data', data);
     //console.log(data)
 }
 
-function export_download(url, key, data) {
+function exportDownload(url, key, data) {
     // build a form
     let form = $('<form></form>').attr('action', url).attr('method', 'post');
     // add the one key/value
@@ -179,8 +184,8 @@ function export_download(url, key, data) {
 
 let exportbox = false;
 
-$(document).ready(function() {
+function initExport() {
     toggleBox(exportbox, '#export', '#export_options');
-    $('#export_tex').click(export_tex);
-    $('#export_md').click(export_markdown);
-});
+    $('#export_tex').click(exportTex);
+    $('#export_md').click(exportMarkdown);
+}

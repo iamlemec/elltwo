@@ -13,9 +13,7 @@
     <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
     <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/img.css') }} />
     <script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
-    <script src={{ url_for('static', filename='js/drop.js') }} language="Javascript" type="text/javascript"></script>
-    <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
-    <script src={{ url_for('static', filename='js/img.js') }} language="Javascript" type="text/javascript"></script>
+    <script src={{ url_for('static', filename='js/img.js') }} type="module"></script>
 
 {% endblock %}
 

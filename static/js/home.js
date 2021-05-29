@@ -1,7 +1,10 @@
-// home page and search
+/* home page and search */
+
+import { connect, sendCommand } from './client.js'
+import { renderKatex } from './math.js'
 
 function searchTitle(query, last_url) {
-    client.sendCommand('search_title', query, function(response) {
+    sendCommand('search_title', query, function(response) {
         $('#results').empty();
 
         let nres = Object.keys(response).length;
@@ -33,7 +36,7 @@ function searchTitle(query, last_url) {
 }
 
 function searchText(query, last_pid) {
-    client.sendCommand('search_text', query, function(response) {
+    sendCommand('search_text', query, function(response) {
         $('#results').empty();
         let nres = Object.keys(response).length;
         if (nres > 0) {
@@ -91,7 +94,7 @@ function runQuery() {
 function createArt() {
     let query = $('#query').val();
     if (query.length > 0) {
-        client.sendCommand('create_art', query, function(response) {
+        sendCommand('create_art', query, function(response) {
             window.location = response;
         });
     }
@@ -158,8 +161,8 @@ $(document).on('keydown', function(e) {
 
 $(document).ready(function() {
     let url = `http://${document.domain}:${location.port}`;
-    client.connect(url, () => {
-        client.sendCommand('join_room', {'room': '__home'}, (response) => {
+    connect(url, () => {
+        sendCommand('join_room', {'room': '__home'}, (response) => {
             console.log(response);
         });
     });

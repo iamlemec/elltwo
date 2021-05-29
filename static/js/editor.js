@@ -1,5 +1,14 @@
 ////// UI ///////
 
+export {
+    initEditor, setWriteable, resize, getActive, makeActive, lockParas,
+    unlockParas, sendMakeEditable, sendUpdatePara
+}
+
+import { sendCommand, schedTimeout } from './client.js'
+import { getPara, rawToRender, syntaxHL } from './render.js'
+import { updateRefHTML, toggleHistMap, cc, ccSet, ccNext, ccMake } from './article.js'
+
 /// global state
 
 let active_para = null; // current active para
@@ -7,6 +16,12 @@ let last_active = null; // to keep track of where cursor was
 let editable = false; // are we focused on the active para
 let writeable = !readonly; // can we actually modify contents (depends on readonly and history mode)
 let cb = []; // clipboard for cell copy
+
+/// mutate state
+
+function setWriteable(wr) {
+    writeable = wr;
+}
 
 /// textarea manage
 
@@ -17,11 +32,6 @@ function resize(textarea) {
     let para = $(textarea).parent('.para');
     para.css('min-height', h);
 }
-
-// resize text area on input (eliminate scroll)
-$(document).on('input focus', 'textarea', function() {
-    resize(this);
-});
 
 /// rendering and storage
 
@@ -67,7 +77,7 @@ function sendUpdatePara(para, force=false) {
     }
     let pid = para.attr('pid');
     let data = {aid: aid, pid: pid, text: text};
-    client.sendCommand('update_para', data, on_success(() => {
+    sendCommand('update_para', data, on_success(() => {
         storeChange(para, text);
     }));
 }
@@ -82,7 +92,7 @@ function sendInsertBefore(para) {
         pid = para.attr('pid');
     };
     let data = {aid: aid, pid: pid};
-    client.sendCommand('insert_before', data, on_success(() => {
+    sendCommand('insert_before', data, on_success(() => {
         // activePrevPara();
         // sendMakeEditable();
     }));
@@ -98,7 +108,7 @@ function sendInsertAfter(para) {
         pid = para.attr('pid');
     };
     let data = {aid: aid, pid: pid};
-    client.sendCommand('insert_after', data, on_success(() => {
+    sendCommand('insert_after', data, on_success(() => {
         // console.log(active_para)
         // activeNextPara()
         // sendMakeEditable();
@@ -112,7 +122,7 @@ function sendDeletePara(para) {
     if (next.length == 0) {
         next = getPrevPara(para);
     }
-    client.sendCommand('delete_para', data, on_success(() => {
+    sendCommand('delete_para', data, on_success(() => {
         if (next) {
             makeActive(next);
         }
@@ -159,7 +169,7 @@ function trueMakeEditable(rw=true, cursor='end') {
     }
     syntaxHL(active_para);
 
-    client.schedTimeout();
+    schedTimeout();
 }
 
 function sendMakeEditable(cursor='end') {
@@ -172,7 +182,7 @@ function sendMakeEditable(cursor='end') {
         if (writeable) {
             let pid = active_para.attr('pid');
             let data = {pid: pid, aid: aid};
-            client.sendCommand('lock', data, function(response) {
+            sendCommand('lock', data, function(response) {
                 if (response) {
                     trueMakeEditable(true, cursor);
                 };
@@ -192,7 +202,7 @@ function makeUnEditable(send=true) {
 
     $('#content').focus();
 
-    cc = false;
+    ccSet(false);
     $('#cc_pop').remove();
 
     if (active_para && editable) {
@@ -217,7 +227,7 @@ function lockParas(pids) {
 
 function sendUnlockPara(pids) {
     let data = {aid: aid, pids: pids};
-    client.sendCommand('unlock', data, function(response) {
+    sendCommand('unlock', data, function(response) {
         // console.log(response);
     });
 }
@@ -234,6 +244,10 @@ function unlockParas(pids) {
 }
 
 /// active para tracking
+
+function getActive() {
+    return active_para;
+}
 
 function makeActive(para, scroll=true) {
     if (!para) {
@@ -316,14 +330,14 @@ function editShift(dir='up') {
     if (dir == 'up') {
         if (top) {
             if (activePrevPara()) {
-                sendMakeEditable(cursor='end');
+                sendMakeEditable('end');
                 return false;
             }
         }
     } else if (dir == 'down') {
         if (bot) {
             if (activeNextPara()) {
-                sendMakeEditable(cursor='begin');
+                sendMakeEditable('begin');
                 return false;
             }
         }
@@ -346,164 +360,171 @@ function pasteCells() {
     let ccb = cooks('cb') || cb;
     if (ccb && pid) {
         let data = {aid: aid, pid: pid, cb: ccb};
-        client.sendCommand('paste_cells', data, function(response) {
+        sendCommand('paste_cells', data, function(response) {
             console.log(response);
         });
     }
 }
 
-/// KEYBOARD NAV
+/// initialization
 
-$(document).keydown(function(e) {
-    let key = e.key.toLowerCase();
-    let ctrl = e.ctrlKey;
-    let alt = e.altKey;
-    let shift = e.shiftKey;
+function initEditor() {
+    // resize text area on input (eliminate scroll)
+    $(document).on('input focus', 'textarea', function() {
+        resize(this);
+    });
 
-    if (ctrl && key == 'enter') {
-        toggleHistMap();
-        return false;
-    } else if (shift && ctrl && key == 'f') {
-        unfold();
-    } else if (ctrl && key == 's') {
-        return false;
-    }
-    if (key == '§') {
-        toggleSidebar();
-    }
-    if (!active_para) { // if we are inactive
-        if (key == 'enter') {
-            let foc_para = last_active || $('.para').first();
-            makeActive(foc_para);
-        }
-    } else if (active_para && !editable) {
-        if (key == 'enter' || key == 'w') {
-            sendMakeEditable();
+    // keyboard interface
+
+    $(document).keydown(function(e) {
+        let key = e.key.toLowerCase();
+        let ctrl = e.ctrlKey;
+        let alt = e.altKey;
+        let shift = e.shiftKey;
+
+        if (ctrl && key == 'enter') {
+            toggleHistMap();
             return false;
-        }else if (key == 'arrowup') {
-            if(shift){
-                active_para.addClass('copy_sel')
-            } else {
-                $('.para').removeClass('copy_sel')
-            }
-            activePrevPara();
+        } else if (shift && ctrl && key == 'f') {
+            unfold();
+        } else if (ctrl && key == 's') {
             return false;
-        } else if (key == 'arrowdown') {
-            if(shift){
-                active_para.addClass('copy_sel')
-            } else {
-                $('.para').removeClass('copy_sel')
-            }
-            activeNextPara();
-            return false;
-        } else if (ctrl && key == 'home') {
-            activeFirstPara();
-        } else if (ctrl && key == 'end') {
-            activeLastPara();
-        } else if (ctrl && key == 'c') {
-            copyCells();
-        } else if (ctrl && key == 'v') {
-            pasteCells();
-        } else if (key == 'escape') {
-            makeActive(null);
-        } else if (shift && key == 'f') {
-            fold(active_para);
         }
-        if (writeable) { // if we are active but not in edit mode
-            if (key == 'a') {
-                sendInsertBefore(active_para);
-            } else if (key == 'b') {
-                sendInsertAfter(active_para);
-            } else if (shift && key == 'd') {
-                sendDeletePara(active_para);
-            }
+        if (key == '§') {
+            toggleSidebar();
         }
-    } else if (active_para && editable) { // we are active and editable
-        if (key == 'arrowup' || key == 'arrowleft') {
-            if (cc) { // if there is an open command completion window
-                next_cc('down');
+        if (!active_para) { // if we are inactive
+            if (key == 'enter') {
+                let foc_para = last_active || $('.para').first();
+                makeActive(foc_para);
+            }
+        } else if (active_para && !editable) {
+            if (key == 'enter' || key == 'w') {
+                sendMakeEditable();
                 return false;
-            } else {
-                return editShift('up');
-            }
-        } else if (key == 'arrowdown' || key == 'arrowright') {
-            if (cc) {
-                next_cc('up');
+            }else if (key == 'arrowup') {
+                if(shift){
+                    active_para.addClass('copy_sel')
+                } else {
+                    $('.para').removeClass('copy_sel')
+                }
+                activePrevPara();
                 return false;
-            } else {
-                return editShift('down');
+            } else if (key == 'arrowdown') {
+                if(shift){
+                    active_para.addClass('copy_sel')
+                } else {
+                    $('.para').removeClass('copy_sel')
+                }
+                activeNextPara();
+                return false;
+            } else if (ctrl && key == 'home') {
+                activeFirstPara();
+            } else if (ctrl && key == 'end') {
+                activeLastPara();
+            } else if (ctrl && key == 'c') {
+                copyCells();
+            } else if (ctrl && key == 'v') {
+                pasteCells();
+            } else if (key == 'escape') {
+                makeActive(null);
+            } else if (shift && key == 'f') {
+                fold(active_para);
             }
-        } else if (key == 'escape') {
-            if (cc) {
-                cc = false;
-                $('#cc_pop').remove();
-            } else {
+            if (writeable) { // if we are active but not in edit mode
+                if (key == 'a') {
+                    sendInsertBefore(active_para);
+                } else if (key == 'b') {
+                    sendInsertAfter(active_para);
+                } else if (shift && key == 'd') {
+                    sendDeletePara(active_para);
+                }
+            }
+        } else if (active_para && editable) { // we are active and editable
+            if (key == 'arrowup' || key == 'arrowleft') {
+                if (cc) { // if there is an open command completion window
+                    ccNext('down');
+                    return false;
+                } else {
+                    return editShift('up');
+                }
+            } else if (key == 'arrowdown' || key == 'arrowright') {
+                if (cc) {
+                    ccNext('up');
+                    return false;
+                } else {
+                    return editShift('down');
+                }
+            } else if (key == 'escape') {
+                if (cc) {
+                    ccSet(false);
+                    $('#cc_pop').remove();
+                } else {
+                    makeUnEditable();
+                }
+            } else if (!shift && key == 'enter') {
+                if (cc) {
+                    ccMake();
+                    return false;
+                }
+            } else if (shift && key == 'enter') {
                 makeUnEditable();
-            }
-        } else if (!shift && key == 'enter') {
-            if (cc) {
-                make_cc();
+                sendInsertAfter(active_para);
                 return false;
             }
-        } else if (shift && key == 'enter') {
-            makeUnEditable();
-            sendInsertAfter(active_para);
+        }
+    });
+
+    /// mouse interface
+
+    $(document).on('click', '.para', function(e) {
+        let alt = e.altKey || mobile;
+        let cmd = e.metaKey;
+        if (alt) {
+            let para = $(this);
+            if (!para.hasClass('active')) {
+                makeActive($(this));
+            } else if (!editable) {
+                sendMakeEditable();
+            }
+            return false;
+        } else if (active_para && cmd){
+            $(this).addClass('copy_sel');
             return false;
         }
-    }
-});
+    });
 
-/// mouse interface
-
-$(document).on('click', '.para', function(e) {
-    let alt = e.altKey || mobile;
-    let cmd = e.metaKey;
-    if (alt) {
-        let para = $(this);
-        if (!para.hasClass('active')) {
-            makeActive($(this));
-        } else if (!editable) {
-            sendMakeEditable();
+    $(document).on('click', '#bg', function(e) {
+        let targ = event.target.id;
+        let alt = e.altKey || mobile;
+        if (targ == 'bg' || targ == 'content') {
+            if (alt) {
+                makeActive(null);
+            } else {
+                $('.para').removeClass('copy_sel')
+            }
         }
-        return false;
-    } else if (active_para && cmd){
-        $(this).addClass('copy_sel');
-        return false;
-    }
-});
+    });
 
-$(document).on('click', '#bg', function(e) {
-    let targ = event.target.id;
-    let alt = e.altKey || mobile;
-    if (targ == 'bg' || targ == 'content') {
-        if (alt) {
-            makeActive(null);
-        } else {
-            $('.para').removeClass('copy_sel')
-        }
-    }
-});
+    $(document).on('click', '.update', function() {
+        let para = $(this).parents('.para');
+        sendUpdatePara(para);
+    });
 
-$(document).on('click', '.update', function() {
-    let para = $(this).parents('.para');
-    sendUpdatePara(para);
-});
+    $(document).on('click', '.before', function() {
+        let para = $(this).parents('.para');
+        sendInsertBefore(para);
+    });
 
-$(document).on('click', '.before', function() {
-    let para = $(this).parents('.para');
-    sendInsertBefore(para);
-});
+    $(document).on('click', '.after', function() {
+        let para = $(this).parents('.para');
+        sendInsertAfter(para);
+    });
 
-$(document).on('click', '.after', function() {
-    let para = $(this).parents('.para');
-    sendInsertAfter(para);
-});
+    $(document).on('click', '.delete', function() {
+        let para = $(this).parents('.para');
+        sendDeletePara(para);
+    });
 
-$(document).on('click', '.delete', function() {
-    let para = $(this).parents('.para');
-    sendDeletePara(para);
-});
-
-$(document).ready(function() {
     $('#content').focus();
-});
+}

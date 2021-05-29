@@ -1,5 +1,9 @@
 // drop to upload — used in article and img
 
+export { connectDrops, renderImage, imgCache }
+
+import { sendCommand } from './client.js'
+
 /// global state
 
 let imgCache = {};
@@ -90,7 +94,7 @@ function renderImage(img, key) {
         let url = imgCache[key];
         img.attr('src', url);
     } else {
-        client.sendCommand('get_image', {'key': key}, (ret) => {
+        sendCommand('get_image', {'key': key}, (ret) => {
             if (ret.found) {
                 const blob = new Blob([ret.data], {type: ret.mime});
                 let url = URL.createObjectURL(blob);

@@ -1,5 +1,22 @@
 /* advanced article features */
 
+export {
+    insertPara, updatePara, updateParas, deletePara, updateRefHTML,
+    toggleHistMap, cc, ccSet, ccNext, ccMake, ccRefs
+}
+
+import {
+    initRender, getPara, innerPara, rawToRender, rawToTextarea, envClasses,
+    createRefs, createTOC, troFromKey, popText, syntaxHL, renderBib
+} from './render.js'
+import {
+    initEditor, setWriteable, resize, getActive, makeActive, lockParas,
+    unlockParas, sendMakeEditable, sendUpdatePara
+} from './editor.js'
+import { connect, addHandler, sendCommand } from './client.js'
+import { connectDrops } from './drop.js'
+import { initExport } from './export.js'
+
 /// global state
 
 // default options
@@ -12,6 +29,10 @@ let current_font = 'default';
 
 // history
 let hist_vis = false;
+let updateHistMap;
+
+// command/reference completion
+let cc = false; // is there a cc window open?
 
 /// initialization
 
@@ -28,6 +49,8 @@ $(document).ready(function() {
     // create full UI
     initSidebar();
     initHistory();
+    initExport();
+    initEditor();
 
     // jump to pid if specified
     if (pid !== null) {
@@ -38,10 +61,50 @@ $(document).ready(function() {
 
 function connectServer() {
     let url = `http://${document.domain}:${location.port}`;
-    client.connect(url, () => {
-        client.sendCommand('join_room', {'room': aid, 'get_locked': true}, (response) => {
+    connect(url, () => {
+        sendCommand('join_room', {'room': aid, 'get_locked': true}, (response) => {
             lockParas(response);
         });
+    });
+
+    addHandler('updatePara', function(data) {
+        updatePara(...data);
+    });
+
+    addHandler('updateBulk', function(data) {
+        updateParas(data);
+    });
+
+    addHandler('insertPara', function(data) {
+        insertPara(...data);
+    });
+
+    addHandler('pasteCB', function(data) {
+        pasteCB(...data);
+    });
+
+    addHandler('deletePara', function(data) {
+        deletePara(...data);
+    });
+
+    addHandler('applyDiff', function(data) {
+        applyDiff(data);
+    });
+
+    addHandler('lock', function(pids) {
+        lockParas(pids);
+    });
+
+    addHandler('unlock', function(pids) {
+        unlockParas(pids);
+    });
+
+    addHandler('renderBib', function(refs) {
+        renderBib(refs);
+    });
+
+    addHandler('deleteCite', function(key) {
+        deleteCite(key);
     });
 }
 
@@ -53,7 +116,7 @@ function syncServer() {
             let para = $(this);
             updateRefHTML(para);
         });
-        client.sendCommand('update_g_ref', {'aid': aid, 'g_ref': false}, function(response) {
+        sendCommand('update_g_ref', {'aid': aid, 'g_ref': false}, function(response) {
             console.log(`g_ref set to '${response}'`);
         });
     };
@@ -74,15 +137,14 @@ function updatePara(pid, raw) {
 
 function updateParas(para_dict) {
     for (pid in para_dict) {
-        let para = getPara(pid);
-        para.attr('raw', para_dict[pid]);
-        rawToRender(para);
+        updatePara(pid, para_dict[pid]);
     }
 }
 
 function deletePara(pid) {
     let para = getPara(pid);
-    if(old_id = para.attr('id')){
+    let old_id;
+    if (old_id = para.attr('id')) {
         let i = ref_list.indexOf(old_id);
         if (i !== -1) {
             ref_list.splice(i, 1)
@@ -90,7 +152,7 @@ function deletePara(pid) {
         let ref = {};
         ref.aid = aid;
         ref.key = old_id;
-        client.sendCommand('delete_ref', ref, function(success) {
+        sendCommand('delete_ref', ref, function(success) {
             console.log('success: deleted ref');
         });
     }
@@ -114,7 +176,7 @@ function insertParaRaw(pid, new_pid, raw='', before=true) {
     } else {
         para.after(new_para);
     }
-    new_para.html(inner_para);
+    new_para.html(innerPara);
     return new_para;
 }
 
@@ -194,7 +256,7 @@ function updateRefHTML(para) {
     if (new_id) {
         ref_list.push(new_id);
         let ref = createExtRef(new_id);
-        client.sendCommand('update_ref', ref, function(success) {
+        sendCommand('update_ref', ref, function(success) {
             console.log('success: updated ref');
         });
     }
@@ -205,7 +267,7 @@ function updateRefHTML(para) {
         let env_id = epar.attr('id');
         if (env_id) {
             let ref = createExtRef(env_id);
-            client.sendCommand('update_ref', ref, function(success) {
+            sendCommand('update_ref', ref, function(success) {
                 console.log('success: updated ref');
             });
         }
@@ -216,7 +278,7 @@ function updateRefHTML(para) {
         let old_para = $(`#${old_id}`);
         if (old_para.length > 0) {
             let ref = createExtRef(old_id);
-            client.sendCommand('update_ref', ref, function(success) {
+            sendCommand('update_ref', ref, function(success) {
                 console.log('success: updated ref');
             });
         } else {
@@ -227,7 +289,7 @@ function updateRefHTML(para) {
             let ref = {};
             ref.aid = aid;
             ref.key = old_id;
-            client.sendCommand('delete_ref', ref, function(success) {
+            sendCommand('delete_ref', ref, function(success) {
                 console.log('success: deleted ref');
             });
         }
@@ -259,7 +321,7 @@ function getBlurb(len=200) {
 
 function setBlurb() {
     let blurb = getBlurb();
-    client.sendCommand('set_blurb', {'aid': aid, 'blurb': blurb}, function(success) {
+    sendCommand('set_blurb', {'aid': aid, 'blurb': blurb}, function(success) {
         console.log('blurb set');
     });
 }
@@ -385,6 +447,7 @@ function renderPreview(hist) {
     let preview = $('#preview');
     let content = $('#content');
 
+    let active_para = getActive();
     let pid0 = active_para ? active_para.attr('pid') : null;
     let ppos = active_para ? active_para.position().top : null;
     let cpos = content.scrollTop();
@@ -519,7 +582,7 @@ function initHistory(data) {
 
         d3.select('#revert_hist').classed('selected', true);
 
-        client.sendCommand('get_history', {'aid': aid, 'date': d.commit}, renderPreview);
+        sendCommand('get_history', {'aid': aid, 'date': d.commit}, renderPreview);
     }
 
     function generalClick(d, i) {
@@ -543,6 +606,7 @@ function initHistory(data) {
 
         // round date range
         let xrange = (xmax - xmin0)/(1000*60*60); // hours
+        let xdel;
         if (xrange <= 1) {
             xdel = 1;
         } else if (xrange <= 24) {
@@ -582,7 +646,7 @@ function initHistory(data) {
 }
 
 function launchHistMap() {
-    client.sendCommand('get_commits', {'aid': aid}, function(dates) {
+    sendCommand('get_commits', {'aid': aid}, function(dates) {
         updateHistMap(
             dates.map(d => ({
                 'commit': d,
@@ -600,6 +664,7 @@ function hideHistPreview() {
     $('#revert_hist').removeClass('selected');
     $('.hist_pop').remove();
 
+    let active_para = getActive();
     let cpos = preview.scrollTop();
     let ppos = active_para ? active_para.position().top : null;
 
@@ -633,7 +698,7 @@ function toggleHistMap() {
         $('#prog_bar').hide();
     }
     hist_vis = !hist_vis;
-    writeable = !readonly && !hist_vis;
+    setWriteable(!readonly && !hist_vis);
 }
 
 function revertHistory() {
@@ -643,16 +708,16 @@ function revertHistory() {
     }
     let data = act.datum();
     let args = {aid: aid, date: data.commit};
-    client.sendCommand('revert_history', args, on_success(launchHistMap));
+    sendCommand('revert_history', args, on_success(launchHistMap));
 }
 
 $(document).on('click', '#show_hist', toggleHistMap);
 $(document).on('click', '#revert_hist', revertHistory);
 
 function responsivefy(svg) {
-    width = window.innerWidth;
-    height = svg.attr('height'); //mobile ? 150 : 100;
-    aspect = width / height;
+    let width = window.innerWidth;
+    let height = svg.attr('height'); //mobile ? 150 : 100;
+    let aspect = width / height;
 
     // add viewBox and preserveAspectRatio properties,
     svg.attr("viewBox", "0 0 " + width + " " + height)
@@ -673,7 +738,6 @@ function responsivefy(svg) {
 
 $(document).ready(function() {
     $('#content').scroll(function() {
-        console.log('scrollin');
         let elem = $('#content');
         let spos = elem.scrollTop();
         let shgt = elem[0].scrollHeight;
@@ -715,12 +779,16 @@ connectDrops(function(box, data) {
     para.attr('raw', raw);
     rawToRender(para, false);
     rawToTextarea(para);
-    sendUpdatePara(para, force=true);
+    sendUpdatePara(para, true);
 });
 
 /// reference completion
 
-function next_cc(dir) {
+function ccSet(cc_new) {
+    cc = cc_new;
+}
+
+function ccNext(dir) {
     let ccpop = $('#cc_pop')[0];
     if (dir == 'up') {
         f = ccpop.firstElementChild;
@@ -731,14 +799,16 @@ function next_cc(dir) {
     }
 }
 
-function make_cc() {
+function ccMake() {
     let cctxt = $('.cc_row').first().text();
+    let active_para = getActive();
     let input = active_para.children('.p_input');
     let raw = input.val();
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
+    let cap, l;
     if (cap = open_ref.exec(raw)) {
-        let l = cap.index;
+        l = cap.index;
         let space = cap[5] || ""
         if (cap[3] && !cap[2]) { // searching for ext page
            raw = raw.replace(open_ref, function() {
@@ -761,7 +831,7 @@ function make_cc() {
             });
         }
     } else if (cap = open_i_link.exec(raw)) {
-        let l = cap.index;
+        l = cap.index;
         let space = cap[2] || ""
         raw = raw.replace(open_i_link, function() {
             const out = `[[${cctxt}]]${space}`;
@@ -779,7 +849,7 @@ function make_cc() {
 
 /// command completion
 
-function cc_search(list, search, placement) {
+function ccSearch(list, search, placement) {
     list = list.filter(el => el.includes(search));
     if (list.length > 0) {
         cc = true;
@@ -798,12 +868,13 @@ function cc_search(list, search, placement) {
     }
 }
 
-function cc_refs(raw, view, e) {
+function ccRefs(raw, view, e) {
     cc = false;
     $('#cc_pop').remove();
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
-    cur = e.target.selectionStart;
+    let cur = e.target.selectionStart;
+    let cap;
     if (cap = open_ref.exec(raw)) {
         // if cursor is near the match
         let b = cap.index;
@@ -815,30 +886,30 @@ function cc_refs(raw, view, e) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             if (cap[1]=='@') { //bib search
                 let search = cap[2] || '';
-                cc_search(bib_list, search, p);
+                ccSearch(bib_list, search, p);
             } else if (cap[3] && !cap[2]) { // searching for ext page
                 let ex_keys = Object.keys(ext_refs);
                 if (ex_keys.length == 0) { // if we have not made request
-                    client.sendCommand('get_arts', '', function(arts) {
+                    sendCommand('get_arts', '', function(arts) {
                         ext_refs = arts;
                         search = '';
-                        cc_search(Object.keys(arts), search, p);
+                        ccSearch(Object.keys(arts), search, p);
                     });
                 } else {
                     search = cap[4] || '';
-                    cc_search(ex_keys, search, p);
+                    ccSearch(ex_keys, search, p);
                 }
             } else if (cap[2] && cap[3]) {
-                client.sendCommand('get_refs', {'title': cap[2]}, function(data) {
+                sendCommand('get_refs', {'title': cap[2]}, function(data) {
                     if (data.refs.length > 0) {
                         ext_refs[data.title] = data.refs;
                     }
                     search = '';
-                    cc_search(data.refs, search, p);
+                    ccSearch(data.refs, search, p);
                 });
             } else {
                 let search = cap[4] || cap[2] || '';
-                cc_search(ref_list, search, p);
+                ccSearch(ref_list, search, p);
             }
         }
     } else if (cap = open_i_link.exec(raw)) {
@@ -851,14 +922,14 @@ function cc_refs(raw, view, e) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let ex_keys = Object.keys(ext_refs);
             if (ex_keys.length == 0) { // if we have not made request
-                client.sendCommand('get_arts', '', function(arts) {
+                sendCommand('get_arts', '', function(arts) {
                     ext_refs = arts;
                     search = '';
-                    cc_search(Object.keys(arts), search, p);
+                    ccSearch(Object.keys(arts), search, p);
                 });
             } else {
                 search = cap[1] || '';
-                cc_search(ex_keys, search, p);
+                ccSearch(ex_keys, search, p);
             }
         }
     }

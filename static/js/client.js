@@ -1,4 +1,4 @@
-let client = (function() {
+export { connect, addHandler, sendCommand, schedTimeout }
 
 // socketio connection
 let socket;
@@ -34,46 +34,10 @@ function connect(url, on_connect) {
     socket.io.on('reconnect', () => {
         console.log(`socket reconnect: ${socket.id}`);
     });
+}
 
-    socket.on('updatePara', function(data) {
-        updatePara(...data);
-    });
-
-    socket.on('updateBulk', function(data) {
-        updateParas(data);
-    });
-
-    socket.on('insertPara', function(data) {
-        insertPara(...data);
-    });
-
-    socket.on('pasteCB', function(data) {
-        pasteCB(...data);
-    });
-
-    socket.on('deletePara', function(data) {
-        deletePara(...data);
-    });
-
-    socket.on('applyDiff', function(data) {
-        applyDiff(data);
-    });
-
-    socket.on('lock', function(pids) {
-        lockParas(pids);
-    });
-
-    socket.on('unlock', function(pids) {
-        unlockParas(pids);
-    });
-
-    socket.on('renderBib', function(refs) {
-        renderBib(refs);
-    });
-
-    socket.on('deleteCite', function(key) {
-        deleteCite(key);
-    });
+function addHandler(signal, callback) {
+    socket.on(signal, callback);
 }
 
 function disconnect() {
@@ -89,7 +53,7 @@ function sendCommand(cmd, data="", ack=function(){}) {
 
 function autoLockout() {
     console.log('timeout');
-    client.sendCommand('timeout');
+    sendCommand('timeout');
     timeout_id = null;
 }
 
@@ -100,13 +64,3 @@ function schedTimeout() {
     }
     timeout_id = setTimeout(autoLockout, timeout);
 }
-
-return {
-    socket: socket,
-    connect: connect,
-    disconnect: disconnect,
-    sendCommand: sendCommand,
-    schedTimeout: schedTimeout,
-};
-
-})();

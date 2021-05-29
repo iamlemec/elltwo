@@ -6,8 +6,7 @@
     {{ super() }}
     <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
     <script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
-    <script src={{ url_for('static', filename='js/client.js') }} language="Javascript" type="text/javascript"></script>
-    <script src={{ url_for('static', filename='js/home.js') }} language="Javascript" type="text/javascript"></script>
+    <script src={{ url_for('static', filename='js/home.js') }} type="module"></script>
 {% endblock %}
 
 {% block header %}{% endblock %}
@@ -28,7 +27,7 @@
     <br>
     Simple Beautiful Collabrative
     </div>
-    
+
 
 <!--     <div id="full_text">
         <input type="checkbox" name="full_text" id="full_text_check" />

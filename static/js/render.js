@@ -1,14 +1,24 @@
 /// core renderer (includes readonly)
 
+export {
+    initRender, getPara, innerPara, renderKatex, rawToRender, rawToTextarea,
+    envClasses, createRefs, createTOC, troFromKey, popText, syntaxHL, renderBib,
+    s_env_spec, macros
+}
+
+import { sendCommand, schedTimeout } from './client.js'
+import { renderKatex } from './math.js'
+import { ccRefs } from './article.js'
+import { imgCache } from './drop.js'
+
 // flags and global vars
 let ext_macros = {};
 let macros = ext_macros;
-let cc = false; // is there a cc window open?
 let ext_refs = {};
 let folded = []; // current folded pids
 
 // inner HTML for para structure. Included here for updating paras
-const inner_para = `
+const innerPara = `
 <div class="p_text"></div>
 <div class="p_input_view"></div>
 <textarea readonly class="p_input"></textarea>
@@ -28,7 +38,7 @@ function getPara(pid) {
 }
 
 function makePara(para, defer=true) {
-    para.html(inner_para);
+    para.html(innerPara);
     rawToRender(para, defer); // postpone formatting
     rawToTextarea(para);
 }
@@ -82,7 +92,7 @@ function rawToRender(para, defer, raw=null) {
     para.children('.p_text').html(html_text);
 
     // render math
-    renderKatex(para);
+    renderKatex(para, macros);
 
     // must remove old classes, to prevent pileup / artifacts
     para.removeClass('env_end')
@@ -300,7 +310,7 @@ function simpleEnv(ptxt, env, head='', tail='', number=true, args={}) {
         ptxt.parent().attr('ref_text', ref_text);
     }
     pre.append('. ');
-    fold_t = $('<span>', {class: `comment fold_text`});
+    let fold_t = $('<span>', {class: `comment fold_text`});
     pre_fold.append(['. ', fold_t]);
     first.prepend(pre);
 
@@ -310,7 +320,7 @@ function simpleEnv(ptxt, env, head='', tail='', number=true, args={}) {
     last.append(pos);
 
     let fold = $('<div>', {class: `para folder`, html: pre_fold});
-    para = first.parent();
+    let para = first.parent();
     let env_pid = para.attr('env_pid');
     fold.attr('fold_pid', env_pid)
         .attr('fold_level', 0);
@@ -353,28 +363,27 @@ function titleEnv(ptxt, args) {
 function headingEnv(ptxt, args) {
     ptxt.addClass(`env__heading_h${args.level}`);
     ptxt.attr('head_level', args.level);
-    pre_fold = ptxt.clone();
+    let pre_fold = ptxt.clone();
     let num = $('<span>', {class: 'env_add'});
     let pre_num = num.clone()
     if (args.number) {
-        l = 1;
+        let l = 1;
         while (args.level - l) {
             num.append(makeCounter(`heading${l}`, 0));
             num.append('.');
             l += 1;
         }
-        pre_num = num.clone()
+        pre_num = num.clone();
         num.append(makeCounter(`heading${l}`, 0));
         pre_num.append(makeCounter(`heading${l}`, 1));
     }
     ptxt.prepend([num, ' ']);
     pre_fold.prepend([pre_num, ' ']);
-    fold_t = $('<span>', {class: `comment fold_text`});
+    let fold_t = $('<span>', {class: `comment fold_text`});
     pre_fold.append([' ', fold_t]);
 
-
     let fold = $('<div>', {class: `para folder`, html: pre_fold});
-    para = ptxt.parent()
+    let para = ptxt.parent();
     let env_pid = para.attr('pid');
     para.attr('env_pid', env_pid)
         .attr('head_level', args.level);
@@ -427,7 +436,7 @@ function imgEnv(ptxt, args) {
         var url = imgCache[key];
         img.attr('src', url);
     } else {
-        client.sendCommand('get_image', {'key': key}, (ret) => {
+        sendCommand('get_image', {'key': key}, (ret) => {
             if (ret.found) {
                 const blob = new Blob([ret.data], {type: ret.mime});
                 var url = URL.createObjectURL(blob);
@@ -469,38 +478,6 @@ function parse_preamble(raw) {
         .map(macraw => macraw.split(':')) // split on :
         .forEach(el => int_macros[el[0]] = el[1]); // save internal macros
     macros = Object.assign({}, int_macros, ext_macros); // merge internal and ext macros, overwrites internal
-}
-
-function renderKatex(para) {
-    para.find('span.latex').each(function() {
-        var tex = $(this);
-        var src = tex.text();
-        tex.empty();
-        try {
-            katex.render(src, tex[0], {macros: macros,
-            throwOnError: false,
-            });
-        } catch (e) {
-            console.log(para.text());
-            console.log(src);
-            console.log(e);
-        }
-    });
-    para.find('div.latex').each(function() {
-        var tex = $(this);
-        var src = tex.text();
-        $(this).empty();
-        try {
-            katex.render(src, tex[0], {displayMode: true,
-                macros: macros,
-                throwOnError: false,
-            });
-        } catch (e) {
-            console.log(para.text());
-            console.log(src);
-            console.log(e);
-        }
-    });
 }
 
 /// Numbering and TOC
@@ -557,7 +534,7 @@ function createRefs(para) {
     });
 
     if (citeKeys.size > 0) {
-        client.sendCommand('get_cite', {'keys': [...citeKeys]}, function(response) {
+        sendCommand('get_cite', {'keys': [...citeKeys]}, function(response) {
             renderBibLocal(response);
             renderCiteText(para);
         });
@@ -580,7 +557,7 @@ function getTro(ref, callback) {
         tro.cite_type = 'self';
         callback(ref, tro, text);
     } else if (key == '_ilink_') {
-        client.sendCommand('get_blurb', ref.attr('href'), function(response) {
+        sendCommand('get_blurb', ref.attr('href'), function(response) {
             if (response) {
                 tro.tro = response;
                 tro.cite_type = 'ilink';
@@ -594,7 +571,7 @@ function getTro(ref, callback) {
         });
     } else if (ref.data('extern')) {
         let [extern, citekey] = key.split(':');
-        client.sendCommand('get_ref', {'title': extern, 'key': citekey}, function(data) {
+        sendCommand('get_ref', {'title': extern, 'key': citekey}, function(data) {
             tro.tro = $($.parseHTML(data.text));
             tro.cite_type = data.cite_type;
             tro.cite_env = data.cite_env;
@@ -681,11 +658,12 @@ function renderRef(ref, tro, text, ext) {
 }
 
 function refCite(ref, tro) {
-    var authors = tro.attr('authors').split(',');
-    var year = tro.attr('year');
-    var format = ref.attr('format') || '';
-    var href = '#' + tro.attr('id');
+    let authors = tro.attr('authors').split(',');
+    let year = tro.attr('year');
+    let format = ref.attr('format') || '';
+    let href = '#' + tro.attr('id');
 
+    let citeText;
     if (authors.length == 2) {
         citeText = `${authors[0]} and ${authors[1]}`;
     } else if (authors.length < 2) {
@@ -708,14 +686,13 @@ function refEquation(ref, tro, ext) {
     let num = tro.find('.num')[0];
     let text = $(num).text();
     let citebox = $('<span>', {class: 'eqn_cite', text: text});
-    let cite;
+    ref.empty();
     if (ext) {
-        txt = $('<span>', {class: 'eqn_cite_ext', text: ext});
-        cite = $('<span>').append([txt, citebox]);
+        let txt = $('<span>', {class: 'eqn_cite_ext', text: ext});
+        ref.append([txt, citebox]);
     } else {
-        cite = citebox;
+        ref.append(citebox);
     }
-    ref.append(cite);
 }
 
 function refEnv(ref, tro, env, ext) {
@@ -791,7 +768,7 @@ function deleteCite(data) {
 
 function renderBibLocal(data) {
     // $('#para_holder').empty();
-    console.log(data);
+    // console.log(data);
     data.map(createBibEntry);
 }
 
@@ -849,23 +826,24 @@ if (!mobile) {
     }, '.pop_anchor');
 }
 
-function createPop(html='', link=false) {
+function createPop(ref, html='', link=false) {
     let pop = $('<div>', {id: 'pop', href: link, html: html});
     $('#bg').append(pop);
 
-    h = pop.height();
-    w = pop.width();
+    let h = pop.height();
+    let w = pop.width();
 
     if (!mobile) { // no mouse binding with mobile popups
-        $(this).mousemove(function(event) {
+        ref.mousemove(function(event) {
             let mid = window.innerHeight / 2;
+            let x = event.pageX - 0.5*w - 10;
             let y = event.pageY - h - 35;
             if (event.pageY < mid) { // if on top half of page
                 y = event.pageY + 35;
             }
             pop.css({
-                'left': (event.pageX - 0.5*w - 10) + 'px', // offset 10px for padding
-                'top': (y) + 'px', // offset up by 35 px
+                'left': `${x}px`, // offset 10px for padding
+                'top': `${y}px`, // offset up by 35 px
             });
         });
     }
@@ -902,8 +880,8 @@ function renderPop(ref, tro, text, ext) {
     } else {
         pop = popText(tro);
     };
-    link = mobile ? ref.attr('href'): false;
-    createPop(pop, link);
+    let link = mobile ? ref.attr('href'): false;
+    createPop(ref, pop, link);
 }
 
 function popError(err='not_found') {
@@ -961,7 +939,7 @@ function syntaxHL(para, e=null) {
     let view = para.children('.p_input_view');
     let raw = text.val();
     if (e) {
-        cc_refs(raw, view, e);
+        ccRefs(raw, view, e);
     }
     let parsed = syntaxParseBlock(raw);
     view.html(parsed);
@@ -969,7 +947,7 @@ function syntaxHL(para, e=null) {
 
 $(document).on('input', '.p_input', function(e) {
     let para = $(this).parent('.para');
-    client.schedTimeout();
+    schedTimeout();
     syntaxHL(para, e);
 });
 
@@ -1122,6 +1100,8 @@ block.envbeg = markthree.replace(block.envbeg)
   ();
 
 function syntaxParseBlock(raw) {
+    let cap;
+
     if (cap = block.title.exec(raw)) {
         let id = cap[2] ? s(fArgs(cap[2]), 'ref') : '';
         let tit = cap[4] ? syntaxParseInline(cap[4]) : '';
@@ -1248,6 +1228,7 @@ function getBracePos(text, brace, match, cpos, rev=false) {
 
     let z = 1;
     let pos = cpos;
+    let char;
 
     while (true) {
         pos += 1;
