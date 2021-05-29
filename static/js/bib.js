@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    var url = `http://${document.domain}:${location.port}`;
+    let url = `http://${document.domain}:${location.port}`;
     client.connect(url, () => {
         client.sendCommand('join_room', {'room': '__bib'}, (response) => {
             console.log(response);
@@ -8,8 +8,8 @@ $(document).ready(function() {
     });
 });
 
-generateJson = function(src) {
-    var json = bibtexParse.toJSON(src);
+function generateJson(src) {
+    let json = bibtexParse.toJSON(src);
     if (!json[0]) {
         return 'Err: bibtex entry incorrectly specified';
     } else {
@@ -26,13 +26,13 @@ generateJson = function(src) {
          return json[0];
         }
     }
-};
+}
 
 /// editing
 
 $(document).on('click', '#create', function() {
-    var src = $('#bib_input').val();
-    var json = generateJson(src);
+    let src = $('#bib_input').val();
+    let json = generateJson(src);
     if (json) {
         json.entryTags.raw = src;
         client.sendCommand('create_cite', json);
@@ -40,7 +40,7 @@ $(document).on('click', '#create', function() {
 });
 
 $(document).on('click', '#search', function() {
-    var q = $('#bib_input').val();
+    let q = $('#bib_input').val();
     $('#search_results').find('.cite').remove();
     $('.nr').remove();""
     $('#search_results').show();
@@ -53,7 +53,7 @@ $(document).on('click', '#xsr', function() {
     $('#search_results').hide();
 });
 
-renderBib = function(data) {
+function renderBib(data) {
     //data.map(createBibEntry);
     data.forEach(function(cite) {
         createBibEntry(cite, $('#para_holder'));
@@ -65,46 +65,43 @@ renderBib = function(data) {
     }
 }
 
-deleteCite = function(key) {
+function deleteCite(key) {
     $('#'+key).remove();
-};
+}
 
-createBibEntry = function(cite, target, results=false) {
-        console.log(cite.title)
+function createBibEntry(cite, target, results=false) {
+    console.log(cite.title);
 
     target.find('#'+cite['citekey']).remove();
 
+    let yr = cite['year'] ? ` ${cite['year']}. ` : '';
+    let vol = cite['volume'] ? `, ${cite['volume']}` : '';
+    let num = cite['number'] ? `, no. ${cite['number']}` : '';
+    let pgs = cite['pages'] ? `, pp. ${cite['pages']}` : '';
+    let title = cite['title'] ? `${cite['title']}` : '';
+    let raw = cite['raw'];
+    let pubs = ['book', 'incollection'];
+    let jns = ['article', 'techreport', 'unpublished'];
+    let wild = [undefined];
+    let doi = cite['DOI'] ? `<a target='_blank' href=https://www.doi.org/${cite['DOI']}>[Go]</a>` : '';
 
-    var yr = cite['year'] ? ` ${cite['year']}. ` : '';
-    var vol = cite['volume'] ? `, ${cite['volume']}` : '';
-    var num = cite['number'] ? `, no. ${cite['number']}` : '';
-    var pgs = cite['pages'] ? `, pp. ${cite['pages']}` : '';
-    var title = cite['title'] ? `${cite['title']}` : '';
-    var raw = cite['raw'];
-    var pubs = ['book', 'incollection'];
-    var jns = ['article', 'techreport', 'unpublished'];
-    var wild = [undefined];
-    var doi = cite['DOI'] ? `<a target='_blank' href=https://www.doi.org/${cite['DOI']}>[Go]</a>` : '';
-
-
-    var pub;
-    var journal;
+    let pub;
+    let journal;
     if (pubs.includes(cite['entry_type'])) {
         pub = cite['publisher'] || '';
         journal = (cite['booktitle']) ? `In ${cite['booktitle']}`: '';
     } else if (jns.includes(cite['entry_type'])) {
-        pub = ""
+        pub = '';
         journal = cite['journal'] || 'mimeo';
     } else if (wild.includes(cite['entry_type'])) {
         pub = pub = cite['publisher'] || '';
         journal = cite['journal'] || cite['booktitle'] || '';
-    };
+    }
 
+    let author = `<b>${cite['author']}</b> ` || '';
+    let index = (vol || num || pgs) ? `${vol + num + pgs}.` : '';
 
-    var author = `<b>${cite['author']}</b> ` || '';
-    var index = (vol || num || pgs) ? `${vol + num + pgs}.` : '';
-
-    var buts = `<button class="update">Update</button>
+    let buts = `<button class="update">Update</button>
                 <button class="delete">Delete</button>`;
 
     if (results) {
@@ -122,12 +119,12 @@ createBibEntry = function(cite, target, results=false) {
             </div>
         </div>`
     );
-};
+}
 
 //editing and nav
 
-copy_citekey = function(cite) {
-    var textArea = document.createElement("textarea");
+function copy_citekey(cite) {
+    let textArea = document.createElement("textarea");
     textArea.value = $(cite).attr('id');
     document.body.appendChild(textArea);
     textArea.select();
@@ -142,30 +139,30 @@ $(document).on('click', '.cite', function() {
 });
 
 $(document).click(function(e) {
-        if($(e.target).closest('.cite').length == 0){
-           $('.editable').removeClass('editable');
-           };
-       });
-
-$(document).on('click', '#search_results > .cite', function() {
-    editcite(this)
+    if ($(e.target).closest('.cite').length == 0) {
+        $('.editable').removeClass('editable');
+    }
 });
 
-sortCite = function(id) {
-    var divs = $(".cite");
-    var alphabeticallyOrderedDivs = divs.sort(function(a, b) {
+$(document).on('click', '#search_results > .cite', function() {
+    editcite(this);
+});
+
+function sortCite(id) {
+    let divs = $(".cite");
+    let alphabeticallyOrderedDivs = divs.sort(function(a, b) {
         return $(a).text() > $(b).text();
     });
     $(id).html(alphabeticallyOrderedDivs);
-};
+}
 
-editcite = function(el) {
-    var src = $(el).closest('.cite').attr('raw');
+function editcite(el) {
+    let src = $(el).closest('.cite').attr('raw');
     $('#bib_input').val(src);
     $('#search_results').find('.cite').remove();
     $('.nr').remove()
     $('#search_results').hide();
-};
+}
 
 $(document).on('click', '.update', function(e) {
     editcite(this);
@@ -174,8 +171,8 @@ $(document).on('click', '.update', function(e) {
 });
 
 $(document).on('click', '.delete', function() {
-    var key = $(this).closest('.cite').attr('id');
-    var data = {'key': key};
+    let key = $(this).closest('.cite').attr('id');
+    let data = {'key': key};
     client.sendCommand('delete_cite', data);
     $('.editable').removeClass('editable');
 });

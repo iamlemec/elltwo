@@ -85,3 +85,9 @@ cooks = function(name) {
         return JSON.parse(f);
     }
 };
+
+// jquery malarkey
+
+$.fn.ignore = function(sel) {
+    return this.clone().find(sel || '>*').remove().end();
+};

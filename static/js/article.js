@@ -1,5 +1,18 @@
 /* advanced article features */
 
+/// global state
+
+// default options
+let default_theme = theme;
+let sidebar_show = false;
+
+// current options
+let current_theme = 'default';
+let current_font = 'default';
+
+// history
+let hist_vis = false;
+
 /// initialization
 
 $(document).ready(function() {
@@ -23,16 +36,16 @@ $(document).ready(function() {
     }
 });
 
-connectServer = function() {
-    var url = `http://${document.domain}:${location.port}`;
+function connectServer() {
+    let url = `http://${document.domain}:${location.port}`;
     client.connect(url, () => {
         client.sendCommand('join_room', {'room': aid, 'get_locked': true}, (response) => {
             lockParas(response);
         });
     });
-};
+}
 
-syncServer = function() {
+function syncServer() {
     // set external reference for import_markdown arts
     if (g_ref) {
         console.log('init global refs');
@@ -49,26 +62,26 @@ syncServer = function() {
     if (!readonly) {
         setBlurb();
     }
-};
+}
 
 /// server command editing
 
-updatePara = function(pid, raw) {
-    var para = getPara(pid);
+function updatePara(pid, raw) {
+    let para = getPara(pid);
     para.attr('raw', raw);
     rawToRender(para);
-};
+}
 
-updateParas = function(para_dict) {
+function updateParas(para_dict) {
     for (pid in para_dict) {
-        var para = getPara(pid);
+        let para = getPara(pid);
         para.attr('raw', para_dict[pid]);
         rawToRender(para);
     }
-};
+}
 
-deletePara = function(pid) {
-    var para = getPara(pid);
+function deletePara(pid) {
+    let para = getPara(pid);
     if(old_id = para.attr('id')){
         let i = ref_list.indexOf(old_id);
         if (i !== -1) {
@@ -87,10 +100,10 @@ deletePara = function(pid) {
     createRefs(); // we may be able to scope this more
 };
 
-insertParaRaw = function(pid, new_pid, raw='', before=true) {
+function insertParaRaw(pid, new_pid, raw='', before=true) {
     console.log('insertPara:', pid, new_pid, raw, before);
-    var para = getPara(pid);
-    var new_para = $('<div>', {class: 'para', pid: new_pid, raw: raw});
+    let para = getPara(pid);
+    let new_para = $('<div>', {class: 'para', pid: new_pid, raw: raw});
     if (before) {
         let prev = para.prev();
         if (prev.hasClass('folder')) {
@@ -103,17 +116,17 @@ insertParaRaw = function(pid, new_pid, raw='', before=true) {
     }
     new_para.html(inner_para);
     return new_para;
-};
+}
 
-insertPara = function(pid, new_pid, raw='', before=true) {
+function insertPara(pid, new_pid, raw='', before=true) {
     let new_para = insertParaRaw(pid, new_pid, raw, before);
     rawToRender(new_para);
     rawToTextarea(new_para);
     makeActive(new_para);
     sendMakeEditable();
-};
+}
 
-pasteCB = function(pid, paste) {
+function pasteCB(pid, paste) {
     let para_act = null;
     paste.forEach(d => {
         const [new_pid, text] = d;
@@ -126,9 +139,9 @@ pasteCB = function(pid, paste) {
     createRefs();
     $('.para').removeClass('copy_sel');
     makeActive(para_act);
-};
+}
 
-applyDiff = function(edits) {
+function applyDiff(edits) {
     console.log('applyDiff', edits);
 
     $.each(edits['para_del'], (i, pid) => {
@@ -139,15 +152,15 @@ applyDiff = function(edits) {
         updatePara(pid, raw);
     });
 
-    var adds = edits['para_add'];
+    let adds = edits['para_add'];
     $.each(edits['position'], (i, pos) => {
-        var [pid, pre] = pos;
+        let [pid, pre] = pos;
         if (pid in adds) {
-            var raw = adds[pid];
+            let raw = adds[pid];
             insertPara(pre, pid, raw=raw, before=false);
         } else {
-            var para = getPara(pid);
-            var base = getPara(pre);
+            let para = getPara(pid);
+            let base = getPara(pre);
             base.after(para);
         }
     });
@@ -155,7 +168,7 @@ applyDiff = function(edits) {
 
 /// external references and blurbs
 
-createExtRef = function(id) {
+function createExtRef(id) {
     let tro = troFromKey(id);
     let ref = {};
     ref.aid = aid;
@@ -165,10 +178,10 @@ createExtRef = function(id) {
     ref.text = popText(tro);
     ref.ref_text = tro.ref_text;
     return ref;
-};
+}
 
 // push reference blurb changes to server
-updateRefHTML = function(para) {
+function updateRefHTML(para) {
     // get para id, old_id is for when the update is an id change
     let new_id = para.attr('id');
     let old_id = para.attr('old_id');
@@ -219,25 +232,21 @@ updateRefHTML = function(para) {
             });
         }
     }
-};
+}
 
-$.fn.ignore = function(sel) {
-    return this.clone().find(sel || '>*').remove().end();
-};
-
-getBlurb = function(len=200) {
-    var blurb = '';
-    var size = 0;
+function getBlurb(len=200) {
+    let blurb = '';
+    let size = 0;
     $('.para').not('.folder').each(function() {
-        var para = $(this);
-        var ptxt = para.children('.p_text');
-        var core = ptxt.ignore('.katex-mathml, .eqnum, img, svg')
+        let para = $(this);
+        let ptxt = para.children('.p_text');
+        let core = ptxt.ignore('.katex-mathml, .eqnum, img, svg')
                        .removeClass('p_text');
 
-        var html = core[0].outerHTML;
+        let html = core[0].outerHTML;
         blurb += html + ' ';
 
-        var text = core.text();
+        let text = core.text();
         size += text.length;
 
         if (size > len) {
@@ -246,40 +255,32 @@ getBlurb = function(len=200) {
         }
     });
     return blurb;
-};
+}
 
-setBlurb = function() {
-    var blurb = getBlurb();
+function setBlurb() {
+    let blurb = getBlurb();
     client.sendCommand('set_blurb', {'aid': aid, 'blurb': blurb}, function(success) {
-            console.log('blurb set');
-        });
-};
+        console.log('blurb set');
+    });
+}
 
 /// sidebar
 
-// default options
-default_theme = theme;
-sidebar_show = false;
-
-// current options
-current_theme = 'default';
-current_font = 'default';
-
-themeLink = function(name) {
+function themeLink(name) {
     return $('<link>', {
         id: 'theme',
         type: 'text/css',
         rel: 'stylesheet',
         href: `/static/themes/${name}.css`,
     });
-};
+}
 
-toggleSidebar = function() {
+function toggleSidebar() {
     $('#sidebar').animate({width: 'toggle'}, 100);
     $('#logo').toggleClass('opened');
     $('#content').toggleClass('sb_content');
     sidebar_show = !sidebar_show;
-};
+}
 
 $(document).on('click', '#logo', toggleSidebar);
 
@@ -306,7 +307,6 @@ $(document).on('change', '#font_select', function() {
     }
 });
 
-
 /*
 $(document).click(function(e) {
     if (sidebar_show) {
@@ -318,12 +318,12 @@ $(document).click(function(e) {
 });
 */
 
-initSidebar = function() {
+function initSidebar() {
     $(".custom-select").each(function() {
-        var classes = $(this).attr("class"),
+        let classes = $(this).attr("class"),
             id      = $(this).attr("id"),
             name    = $(this).attr("name");
-        var template =  '<div class="' + classes + '">';
+        let template =  '<div class="' + classes + '">';
             template += '<span class="custom-select-trigger">' + $(this).attr("placeholder") + '</span>';
             template += '<div class="custom-options">';
         $(this).find("option").each(function() {
@@ -351,7 +351,7 @@ initSidebar = function() {
     });
 
     $(".custom-option").on("click", function() {
-        var x = $(this).parents(".custom-select-wrapper").find("select")
+        let x = $(this).parents(".custom-select-wrapper").find("select")
         x.val($(this).data("value"));
         x.trigger('change');
         $(this).parents(".custom-options").find(".custom-option").removeClass("selection");
@@ -359,44 +359,42 @@ initSidebar = function() {
         $(this).parents(".custom-select").removeClass("opened");
         $(this).parents(".custom-select").find(".custom-select-trigger").text($(this).text());
     });
-};
+}
 
 /// history
 
-var hist_vis = false;
-
-localDate = function(d) {
-    var d1 = new Date(d);
+function localDate(d) {
+    let d1 = new Date(d);
     d1.setTime(d1.getTime()-(d1.getTimezoneOffset()*60*1000));
     return d1;
-};
+}
 
-paraReadonly = function(pid, raw) {
-    var para = $('<div>', {class: 'para', pid: pid, raw: raw});
-    var ptxt = $('<div>', {class: 'p_text'});
-    var pviw = $('<div>', {class: 'p_input_view'});
-    var pinp = $('<textarea>', {class: 'p_input', val: raw});
+function paraReadonly(pid, raw) {
+    let para = $('<div>', {class: 'para', pid: pid, raw: raw});
+    let ptxt = $('<div>', {class: 'p_text'});
+    let pviw = $('<div>', {class: 'p_input_view'});
+    let pinp = $('<textarea>', {class: 'p_input', val: raw});
     pinp.prop('readonly', true);
     para.append(ptxt);
     para.append(pviw);
     para.append(pinp);
     return para;
-};
+}
 
-renderPreview = function(hist) {
-    var preview = $('#preview');
-    var content = $('#content');
+function renderPreview(hist) {
+    let preview = $('#preview');
+    let content = $('#content');
 
-    var pid0 = active_para ? active_para.attr('pid') : null;
-    var ppos = active_para ? active_para.position().top : null;
-    var cpos = content.scrollTop();
+    let pid0 = active_para ? active_para.attr('pid') : null;
+    let ppos = active_para ? active_para.position().top : null;
+    let cpos = content.scrollTop();
 
     preview.empty();
 
-    var new_active = null;
+    let new_active = null;
     $.each(hist.paras, (i, p) => {
-        var [pid, raw] = p;
-        var para = paraReadonly(pid, raw);
+        let [pid, raw] = p;
+        let para = paraReadonly(pid, raw);
         if (pid == pid0) {
             new_active = para;
         }
@@ -419,23 +417,23 @@ renderPreview = function(hist) {
         cpos = preview.scrollTop() + active_para.position().top - ppos;
     }
     preview.scrollTop(cpos);
-};
+}
 
-initHistory = function(data) {
+function initHistory(data) {
     // fixed params // different for mobile
-    var hpadding = mobile ? 20 : 50;
-    var radius = mobile ? 6 : 4;
+    let hpadding = mobile ? 20 : 50;
+    let radius = mobile ? 6 : 4;
 
     // these should be dynamic
-    var width = window.innerWidth;
-    var height = mobile ? 150 : 100;
+    let width = window.innerWidth;
+    let height = mobile ? 150 : 100;
 
     // clean house
-    var hist = d3.select('#hist');
+    let hist = d3.select('#hist');
     hist.selectAll('*').remove();
 
     // create svg element
-    var svg = hist.append('svg')
+    let svg = hist.append('svg')
         .attr('id', 'svgg')
         .attr('width', width)
         .attr('height', height)
@@ -443,25 +441,25 @@ initHistory = function(data) {
         .call(responsivefy);
 
     // scaleEx controls how zoomed we go
-    var zoom = d3.zoom()
+    let zoom = d3.zoom()
         .scaleExtent([0.5, 5000])
         .translateExtent([[-100, -100], [width + 90, height + 100]])
         .on('zoom', zoomed);
 
-    var x = d3.scaleTime()
+    let x = d3.scaleTime()
         .range([hpadding, width - hpadding]);
 
-    var xAxis = d3.axisBottom(x)
+    let xAxis = d3.axisBottom(x)
         .ticks(10)
         .tickSize(5)
         .tickPadding(-20);
 
-    var gX = svg.append('g')
+    let gX = svg.append('g')
         .attr('class', 'axis--x')
         .attr('transform', `translate(0,${0.7*height})`)
         .call(xAxis);
 
-    var gDot = svg.append('g')
+    let gDot = svg.append('g')
         .attr('fill', 'none')
         .attr('stroke-linecap', 'round');
 
@@ -469,7 +467,7 @@ initHistory = function(data) {
 
     function zoomed() {
         // store transform
-        var zTrans = d3.event.transform.rescaleX(x);
+        let zTrans = d3.event.transform.rescaleX(x);
         xAxis.scale(zTrans);
 
         // rescale axis
@@ -486,16 +484,16 @@ initHistory = function(data) {
           .attr('r', radius + 2)
 
         // Specify where to put label of text
-        var tooltip = d3.select('#bg').append('div')
+        let tooltip = d3.select('#bg').append('div')
             .attr('id',  `hp_${i}`)  // Create an id for text so we can select it later for removing on mouseout
             .attr('class', 'hist_pop')
             .text(d.date.toLocaleString());
 
-        var ttw = tooltip.node().getBoundingClientRect().width;
-        var tth = tooltip.node().getBoundingClientRect().height;
+        let ttw = tooltip.node().getBoundingClientRect().width;
+        let tth = tooltip.node().getBoundingClientRect().height;
 
-        var left = d3.event.pageX - ttw/2;
-        var right = d3.event.pageY - tth - 10
+        let left = d3.event.pageX - ttw/2;
+        let right = d3.event.pageY - tth - 10
 
         tooltip.style('left', `${left}px`)
                .style('top', `${right}px`);
@@ -537,14 +535,14 @@ initHistory = function(data) {
 
     function updateCommits(data) {
         // round to hour/day/week
-        var xmax = new Date(Date.now());
+        let xmax = new Date(Date.now());
         xmax.setHours(xmax.getHours()+1);
 
         // get date min
-        var xmin0 = d3.min(data.map(d => d.date));
+        let xmin0 = d3.min(data.map(d => d.date));
 
         // round date range
-        var xrange = (xmax - xmin0)/(1000*60*60); // hours
+        let xrange = (xmax - xmin0)/(1000*60*60); // hours
         if (xrange <= 1) {
             xdel = 1;
         } else if (xrange <= 24) {
@@ -554,7 +552,7 @@ initHistory = function(data) {
         }
 
         // set rounded min
-        var xmin = new Date(xmax);
+        let xmin = new Date(xmax);
         xmin.setHours(xmin.getHours()-xdel-1);
 
         // rescale axis
@@ -565,7 +563,7 @@ initHistory = function(data) {
         gDot.selectAll('circle').remove();
 
         // add new circles
-        var zTrans = xAxis.scale();
+        let zTrans = xAxis.scale();
         gDot.selectAll('cirlce')
             .data(data).enter()
             .append('circle')
@@ -581,9 +579,9 @@ initHistory = function(data) {
 
     // callback for updates
     updateHistMap = updateCommits;
-};
+}
 
-launchHistMap = function() {
+function launchHistMap() {
     client.sendCommand('get_commits', {'aid': aid}, function(dates) {
         updateHistMap(
             dates.map(d => ({
@@ -595,23 +593,23 @@ launchHistMap = function() {
     });
 }
 
-hideHistPreview = function() {
-    var preview = $('#preview');
-    var content = $('#content');
+function hideHistPreview() {
+    let preview = $('#preview');
+    let content = $('#content');
 
     $('#revert_hist').removeClass('selected');
     $('.hist_pop').remove();
 
-    var cpos = preview.scrollTop();
-    var ppos = active_para ? active_para.position().top : null;
+    let cpos = preview.scrollTop();
+    let ppos = active_para ? active_para.position().top : null;
 
     content.show();
     preview.hide();
 
     if (active_para) {
-        var pid = active_para.attr('pid');
-        var para = content.children(`[pid=${pid}]`);
-        var new_active = (para.length > 0) ? para : null;
+        let pid = active_para.attr('pid');
+        let para = content.children(`[pid=${pid}]`);
+        let new_active = (para.length > 0) ? para : null;
 
         // make active and align scroll
         makeActive(new_active, false);
@@ -625,7 +623,7 @@ hideHistPreview = function() {
     createTOC(content);
 }
 
-toggleHistMap = function() {
+function toggleHistMap() {
     $('#hist').toggle();
     if (hist_vis) {
         hideHistPreview();
@@ -638,15 +636,15 @@ toggleHistMap = function() {
     writeable = !readonly && !hist_vis;
 }
 
-revertHistory = function() {
-    var act = d3.selectAll('circle.active');
+function revertHistory() {
+    let act = d3.selectAll('circle.active');
     if (act.empty()) {
         return;
     }
-    var data = act.datum();
-    var args = {aid: aid, date: data.commit};
+    let data = act.datum();
+    let args = {aid: aid, date: data.commit};
     client.sendCommand('revert_history', args, on_success(launchHistMap));
-};
+}
 
 $(document).on('click', '#show_hist', toggleHistMap);
 $(document).on('click', '#revert_hist', revertHistory);
@@ -665,7 +663,7 @@ function responsivefy(svg) {
 
     // get width of container and resize svg to fit it
     function resize() {
-        var targetWidth = window.innerWidth;
+        let targetWidth = window.innerWidth;
         svg.attr("width", targetWidth);
         svg.attr("height", Math.round(targetWidth / aspect));
     }
@@ -691,9 +689,9 @@ if (mobile) {
     $(document).on('click', '.pop_anchor', function(e) {
         e.preventDefault();
         $('#pop').remove();
-        var ref = $(this);
+        let ref = $(this);
         ref.data('show_pop', true);
-        var html = getTro(ref, renderPop);
+        let html = getTro(ref, renderPop);
         return false;
     });
 
@@ -711,9 +709,9 @@ if (mobile) {
 
 connectDrops(function(box, data) {
     console.log(data);
-    var para = box.closest('.para');
-    var key = data.key;
-    var raw = `! [id=${key}|caption=none]`;
+    let para = box.closest('.para');
+    let key = data.key;
+    let raw = `! [id=${key}|caption=none]`;
     para.attr('raw', raw);
     rawToRender(para, false);
     rawToTextarea(para);
@@ -722,7 +720,7 @@ connectDrops(function(box, data) {
 
 /// reference completion
 
-next_cc = function(dir) {
+function next_cc(dir) {
     let ccpop = $('#cc_pop')[0];
     if (dir == 'up') {
         f = ccpop.firstElementChild;
@@ -731,17 +729,17 @@ next_cc = function(dir) {
         l = ccpop.lastElementChild;
         ccpop.prepend(l); //append last child before first
     }
-};
+}
 
-make_cc = function() {
-    var cctxt = $('.cc_row').first().text();
-    var input = active_para.children('.p_input');
-    var raw = input.val();
+function make_cc() {
+    let cctxt = $('.cc_row').first().text();
+    let input = active_para.children('.p_input');
+    let raw = input.val();
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
     if (cap = open_ref.exec(raw)) {
-        var l = cap.index;
-        var space = cap[5] || ""
+        let l = cap.index;
+        let space = cap[5] || ""
         if (cap[3] && !cap[2]) { // searching for ext page
            raw = raw.replace(open_ref, function() {
                 const out = `@[${cctxt}:${space}`;
@@ -763,8 +761,8 @@ make_cc = function() {
             });
         }
     } else if (cap = open_i_link.exec(raw)) {
-        var l = cap.index;
-        var space = cap[2] || ""
+        let l = cap.index;
+        let space = cap[2] || ""
         raw = raw.replace(open_i_link, function() {
             const out = `[[${cctxt}]]${space}`;
             l = l + out.length - space.length
@@ -777,11 +775,11 @@ make_cc = function() {
     cc = false;
     $('#cc_pop').remove();
     input[0].setSelectionRange(l, l);
-};
+}
 
 /// command completion
 
-cc_search = function(list, search, placement) {
+function cc_search(list, search, placement) {
     list = list.filter(el => el.includes(search));
     if (list.length > 0) {
         cc = true;
@@ -798,9 +796,9 @@ cc_search = function(list, search, placement) {
             'top': placement.top + 'px', // offset up by 35 px
         });
     }
-};
+}
 
-cc_refs = function(raw, view, e) {
+function cc_refs(raw, view, e) {
     cc = false;
     $('#cc_pop').remove();
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
@@ -815,7 +813,7 @@ cc_refs = function(raw, view, e) {
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-            if(cap[1]=='@') { //bib search
+            if (cap[1]=='@') { //bib search
                 let search = cap[2] || '';
                 cc_search(bib_list, search, p);
             } else if (cap[3] && !cap[2]) { // searching for ext page
@@ -864,4 +862,4 @@ cc_refs = function(raw, view, e) {
             }
         }
     }
-};
+}

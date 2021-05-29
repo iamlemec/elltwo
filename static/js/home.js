@@ -1,6 +1,6 @@
 // home page and search
 
-searchTitle = function(query, last_url) {
+function searchTitle(query, last_url) {
     client.sendCommand('search_title', query, function(response) {
         $('#results').empty();
 
@@ -30,9 +30,9 @@ searchTitle = function(query, last_url) {
             sel.addClass('selected');
         }
     });
-};
+}
 
-searchText = function(query, last_pid) {
+function searchText(query, last_pid) {
     client.sendCommand('search_text', query, function(response) {
         $('#results').empty();
         let nres = Object.keys(response).length;
@@ -68,9 +68,9 @@ searchText = function(query, last_pid) {
             sel.addClass('selected');
         }
     });
-};
+}
 
-runQuery = function() {
+function runQuery() {
     let active = $('.result.selected').first();
     let last_url = active.attr('href');
     let last_pid = active.attr('pid');
@@ -86,26 +86,26 @@ runQuery = function() {
     } else {
         $('#results').empty();
     }
-};
+}
 
-createArt = function() {
-    query = $('#query').val();
+function createArt() {
+    let query = $('#query').val();
     if (query.length > 0) {
         client.sendCommand('create_art', query, function(response) {
             window.location = response;
         });
     }
-};
+}
 
-getActive = function() {
+function getActive() {
     return $('.result.selected').first();
-};
+}
 
-setActive = function(res) {
+function setActive(res) {
     $('.result').removeClass('selected');
     res.addClass('selected');
     ensureVisible(res);
-};
+}
 
 $(document).on('change', '#full_text_check', function() {
     $('#query').focus();
@@ -123,11 +123,11 @@ $(document).on('click', '#submit', function() {
 let timeout = null;
 
 $(document).on('keydown', function(e) {
-    var key = e.key.toLowerCase();
-    var real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
-    var andriod_is_fucking_stupid = e.keyCode == 229;
+    let key = e.key.toLowerCase();
+    let real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
+    let andriod_is_fucking_stupid = e.keyCode == 229;
 
-    var active = getActive();
+    let active = getActive();
 
     if (e.ctrlKey && (key == 'enter')) {
         createArt();
@@ -135,20 +135,20 @@ $(document).on('keydown', function(e) {
         $('#full_text_check').click();
     } else if (key == 'enter') {
         if (active.length > 0) {
-            var url = active.attr('href');
+            let url = active.attr('href');
             window.location = url;
         }
     } else if (real || (key == 'backspace') || (key == 'delete') || andriod_is_fucking_stupid) {
         clearTimeout(timeout);
         timeout = setTimeout(runQuery, 200);
     } else if (key == 'arrowdown') {
-        var next = active.next('.result');
+        let next = active.next('.result');
         if (next.length > 0) {
             setActive(next);
         }
         return false;
     } else if (key == 'arrowup') {
-        var prev = active.prev('.result');
+        let prev = active.prev('.result');
         if (prev.length > 0) {
             setActive(prev);
         }
@@ -157,7 +157,7 @@ $(document).on('keydown', function(e) {
 });
 
 $(document).ready(function() {
-    var url = `http://${document.domain}:${location.port}`;
+    let url = `http://${document.domain}:${location.port}`;
     client.connect(url, () => {
         client.sendCommand('join_room', {'room': '__home'}, (response) => {
             console.log(response);

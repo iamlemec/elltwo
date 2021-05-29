@@ -1,19 +1,25 @@
 // drop to upload — used in article and img
 
-img_types = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/gif'];
+/// global state
 
-uploadImg = function(file, key, callback) {
+let imgCache = {};
+
+/// handle images
+
+let img_types = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/gif'];
+
+function uploadImg(file, key, callback) {
     console.log('uploadImg:', file.name, file.type, file.size);
     if (!img_types.includes(file.type)) {
         return `Unsupported file type: ${file.type}`;
     }
     if (file.size > 1024*max_size) {
-        var ksize = Math.floor(file.size/1024);
+        let ksize = Math.floor(file.size/1024);
         return `File size too large (${ksize}kb > 1024kb)`;
     }
-    var fbase = file.name.split('.')[0];
-    var key = name || fbase;
-    var form_data = new FormData();
+    let fbase = file.name.split('.')[0];
+    let key = name || fbase;
+    let form_data = new FormData();
     form_data.append('file', file);
     form_data.append('key', key);
     $.ajax({
@@ -26,12 +32,12 @@ uploadImg = function(file, key, callback) {
         success: callback,
     });
     return null;
-};
+}
 
-handleDrop = function(box, files, key, callback) {
+function handleDrop(box, files, key, callback) {
     if (files.length == 1) {
-        var file = files[0];
-        var ret = uploadImg(file, key, function(data) {
+        let file = files[0];
+        let ret = uploadImg(file, key, function(data) {
             callback(box, data);
         });
         if (ret == null) {
@@ -42,9 +48,9 @@ handleDrop = function(box, files, key, callback) {
     } else if (files.length > 1) {
         box.text('Please upload a single image file');
     }
-};
+}
 
-connectDrops = function(callback) {
+function connectDrops(callback) {
     $(document).on('dragover', '.dropzone', function(e) {
         $(this).addClass('dragover');
         return false;
@@ -56,18 +62,18 @@ connectDrops = function(callback) {
     });
 
     $(document).on('drop', '.dropzone', function(e) {
-        var box = $(this);
-        var key = box.attr('key');
-        var files = e.originalEvent.dataTransfer.files;
+        let box = $(this);
+        let key = box.attr('key');
+        let files = e.originalEvent.dataTransfer.files;
         handleDrop(box, files, key, callback);
         return false;
     });
 
     $(document).on('click', '.dropzone', function(e) {
-        var box = $(this);
-        var input = $('<input>', {type: 'file', style: 'display: none'});
+        let box = $(this);
+        let input = $('<input>', {type: 'file', style: 'display: none'});
         input.on('change', function() {
-            var files = this.files;
+            let files = this.files;
             handleDrop(box, files, null, callback);
             input.remove();
         });
@@ -75,24 +81,22 @@ connectDrops = function(callback) {
         input.trigger('click');
         return false;
     });
-};
+}
 
 // image retrieval
 
-imgCache = {};
-
-renderImage = function(img, key) {
+function renderImage(img, key) {
     if (key in imgCache) {
-        var url = imgCache[key];
+        let url = imgCache[key];
         img.attr('src', url);
     } else {
         client.sendCommand('get_image', {'key': key}, (ret) => {
             if (ret.found) {
                 const blob = new Blob([ret.data], {type: ret.mime});
-                var url = URL.createObjectURL(blob);
+                let url = URL.createObjectURL(blob);
                 imgCache[key] = url;
                 img.attr('src', url);
             }
         });
     }
-};
+}

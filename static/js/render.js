@@ -1,14 +1,14 @@
 /// core renderer (includes readonly)
 
 // flags and global vars
-var ext_macros = {};
-var macros = ext_macros;
-var cc = false; // is there a cc window open?
-var ext_refs = {};
-var folded = []; // current folded pids
+let ext_macros = {};
+let macros = ext_macros;
+let cc = false; // is there a cc window open?
+let ext_refs = {};
+let folded = []; // current folded pids
 
 // inner HTML for para structure. Included here for updating paras
-inner_para = `
+const inner_para = `
 <div class="p_text"></div>
 <div class="p_input_view"></div>
 <textarea readonly class="p_input"></textarea>
@@ -23,25 +23,25 @@ inner_para = `
 </div>
 `;
 
-getPara = function(pid) {
+function getPara(pid) {
     return $(`#content [pid=${pid}]`);
-};
+}
 
-makePara = function(para, defer=true) {
+function makePara(para, defer=true) {
     para.html(inner_para);
     rawToRender(para, defer); // postpone formatting
     rawToTextarea(para);
 }
 
-renderParas = function() {
+function renderParas() {
     $('.para').each(function() {
         let para = $(this);
         makePara(para);
     });
-};
+}
 
 // main rendering entry point (for all cases)
-initRender = function() {
+function initRender() {
     // core renderer
     renderParas();
 
@@ -51,22 +51,22 @@ initRender = function() {
 
     // sort out folding
     initFold();
-};
+}
 
 // for external readonly viewing
-renderMarkdown = function(md) {
+function renderMarkdown(md) {
     let content = $('#content');
     md.split(/\n{2,}/).forEach((raw, pid) => {
         let para = $('<div>', {class: 'para', pid: pid, raw: raw, fold_level: 0});
         content.append(para);
     });
     initRender();
-};
+}
 
 /////////////////// EDITING /////////
 
 // get raw text from data-raw attribute, parse, render
-rawToRender = function(para, defer, raw=null) {
+function rawToRender(para, defer, raw=null) {
     // render with markthree
     let mark_in = (raw === null) ? para.attr('raw') : raw;
     let mark_out = markthree(mark_in);
@@ -137,20 +137,20 @@ rawToRender = function(para, defer, raw=null) {
         if (old_id && (old_id != new_id)) { // if id changed, and old has not already been assigned
             old_id = para.attr('old_id') || old_id;
             para.attr('old_id', old_id);
-        };
+        }
     }
-};
+}
 
-rawToTextarea = function(para) {
+function rawToTextarea(para) {
     var textArea = para.children('.p_input');
     var raw = para.attr('raw');
     textArea.val(raw);
-};
+}
 
 ///////////////// ENVS /////////
 
 //creates classes for environs
-envClasses = function(outer) {
+function envClasses(outer) {
     if (outer === undefined) {
         outer = $('#content');
     }
@@ -258,9 +258,9 @@ envClasses = function(outer) {
     createNumbers(outer);
     createTOC(outer);
     renderFold();
-};
+}
 
-envFormat = function(ptxt, env, args) {
+function envFormat(ptxt, env, args) {
     if (env in env_spec) {
         env_spec[env](ptxt, args);
     } else if (env in s_env_spec) {
@@ -274,11 +274,11 @@ envFormat = function(ptxt, env, args) {
 
 //// ENV formatting
 
-makeCounter = function(env, inc=1) {
+function makeCounter(env, inc=1) {
     return $('<span>', {class: 'num', counter: env, inc: inc});
 }
 
-simpleEnv = function(ptxt, env, head='', tail='', number=true, args={}) {
+function simpleEnv(ptxt, env, head='', tail='', number=true, args={}) {
     let num = (args.number) && number;
     let name = args.name || '';
     let ref_text = args.ref_text || args.rt || '';
@@ -318,10 +318,10 @@ simpleEnv = function(ptxt, env, head='', tail='', number=true, args={}) {
     //     fold.addClass('folded');
     // }
     para.before(fold);
-};
+}
 
 // we probably want to pass targ as an argument
-errorEnv = function(ptxt, args) {
+function errorEnv(ptxt, args) {
     var mesg;
     var targ;
 
@@ -344,13 +344,13 @@ errorEnv = function(ptxt, args) {
 
     var pre = $('<div>', {class: 'env_add error_footer', html: mesg});
     ptxt.append(pre);
-};
+}
 
-titleEnv = function(ptxt, args) {
+function titleEnv(ptxt, args) {
     return ptxt;
-};
+}
 
-headingEnv = function(ptxt, args) {
+function headingEnv(ptxt, args) {
     ptxt.addClass(`env__heading_h${args.level}`);
     ptxt.attr('head_level', args.level);
     pre_fold = ptxt.clone();
@@ -385,18 +385,18 @@ headingEnv = function(ptxt, args) {
     //     fold.addClass('folded')
     // }
     para.before(fold);
-};
+}
 
-equationEnv = function(ptxt, args) {
+function equationEnv(ptxt, args) {
     if (args.number) {
         var num = makeCounter('equation');
         var div = $('<div>', {class: 'env_add eqnum'});
         div.append(num);
         ptxt.append(div);
     }
-};
+}
 
-figEnv = function(ptxt, args) {
+function figEnv(ptxt, args) {
     if (args.caption != 'none') {
         var num = (args.number) ? makeCounter('figure') : '';
         var space = (num) ? ' ' : '';
@@ -413,11 +413,9 @@ figEnv = function(ptxt, args) {
     if (w) {
         ptxt.find('.fig_cont').css('width', `${w}%`);
     }
-};
+}
 
-imgCache = {};
-
-imgEnv = function(ptxt, args) {
+function imgEnv(ptxt, args) {
     figEnv(ptxt, args);
 
     var fig = ptxt.find('.fig_cont');
@@ -438,11 +436,11 @@ imgEnv = function(ptxt, args) {
             }
         });
     }
-};
+}
 
 // simple envs for user creation and simpler setup
 // number is if number is defult (can be overidden with *)
-s_env_spec = {
+let s_env_spec = {
     'theorem': {head: 'Theorem', tail: '--', number: true},
     'lemma': {head: 'Lemma', tail: '--', number: true},
     'axiom': {head: 'Axiom', tail: '--', number: true},
@@ -451,7 +449,7 @@ s_env_spec = {
     'proof': {head: 'Proof', tail: `<span class='qed'>&#8718;</span>`, number: false},
 };
 
-env_spec = {
+let env_spec = {
     'heading': headingEnv,
     'equation': equationEnv,
     'title': titleEnv,
@@ -464,16 +462,16 @@ env_spec = {
 
 //// KATEX
 
-parse_preamble = function(raw) {
+function parse_preamble(raw) {
     let int_macros = {}; // internal macros
     let macro_list = raw.split(/[\n,]+/) // split on \n or comma
         .filter(macraw => macraw.includes(':')) // is it a macro?
         .map(macraw => macraw.split(':')) // split on :
         .forEach(el => int_macros[el[0]] = el[1]); // save internal macros
     macros = Object.assign({}, int_macros, ext_macros); // merge internal and ext macros, overwrites internal
-};
+}
 
-renderKatex = function(para) {
+function renderKatex(para) {
     para.find('span.latex').each(function() {
         var tex = $(this);
         var src = tex.text();
@@ -503,42 +501,43 @@ renderKatex = function(para) {
             console.log(e);
         }
     });
-
-};
+}
 
 /// Numbering and TOC
 
-createNumbers = function(outer) {
-    var nums = {};
+function createNumbers(outer) {
+    let nums = {};
     outer.find('.num').each(function() {
-        var counter = $(this).attr('counter');
-        var inc = parseInt($(this).attr('inc'));
+        let num = $(this);
+        let counter = num.attr('counter');
+        let inc = parseInt(num.attr('inc'));
         nums[counter] = nums[counter] || 0;
         nums[counter] += inc;
-        $(this).text(nums[counter]);
+        num.text(nums[counter]);
     });
-};
+}
 
-createTOC = function(outer) {
+function createTOC(outer) {
     toc = $('#toc');
     toc.find('.toc_entry').remove();
     outer.find('.env__heading').not('.folder .env__heading').each(function() {
-        let level = $(this).attr('head_level');
-        let text = $(this).text();
-        let id = $(this).parent('.para').attr('id');
+        let head = $(this);
+        let level = head.attr('head_level');
+        let text = head.text();
+        let id = head.parent('.para').attr('id');
         let sec = id
             ? $('<a>', {class: `toc_entry head_level${level}`, href: '#'+id, text: text})
             : $('<span>', {class: `toc_entry head_level${level}`, text: text});
         toc.append(sec);
     });
-};
+}
 
 /// REFERENCING and CITATIONS
 
 // renderedCites = new Set(); // state var, citations previously rendered
 
-createRefs = function(para) {
-    var refs;
+function createRefs(para) {
+    let refs;
     if (para == undefined) {
         refs = $('.reference');
     } else {
@@ -546,11 +545,11 @@ createRefs = function(para) {
     }
 
     // get citations
-    var citeKeys = new Set();
+    let citeKeys = new Set();
     refs.each(function() {
-        var ref = $(this);
+        let ref = $(this);
         if (!ref.data('extern')) {
-            var key = ref.attr('citekey');
+            let key = ref.attr('citekey');
             if (($(`#${key}`).length == 0) && (key != '_self_')) {
                 citeKeys.add(key);
             };
@@ -567,14 +566,14 @@ createRefs = function(para) {
     }
 
     // renderedCites = citeKeys;
-};
+}
 
-getTro = function(ref, callback) {
+function getTro(ref, callback) {
     //var ref = $(this); // the reference (actually an 'a' tag)
-    var text = ref.attr('text') || '';
+    let text = ref.attr('text') || '';
 
-    var tro = {};
-    var key = ref.attr('citekey');
+    let tro = {};
+    let key = ref.attr('citekey');
 
     if (key == '_self_') {
         tro.tro = ref;
@@ -594,7 +593,7 @@ getTro = function(ref, callback) {
             callback(ref, tro, text, true);
         });
     } else if (ref.data('extern')) {
-        var [extern, citekey] = key.split(':');
+        let [extern, citekey] = key.split(':');
         client.sendCommand('get_ref', {'title': extern, 'key': citekey}, function(data) {
             tro.tro = $($.parseHTML(data.text));
             tro.cite_type = data.cite_type;
@@ -607,9 +606,9 @@ getTro = function(ref, callback) {
         text = text || tro.tro.attr('ref_text') || '';
         callback(ref, tro, text);
     }
-};
+}
 
-troFromKey = function(key, tro={}) {
+function troFromKey(key, tro={}) {
     tro.id = key;
     tro.tro = $(`#${key}`); // the referenced object
     if (tro.tro != undefined) {
@@ -635,9 +634,9 @@ troFromKey = function(key, tro={}) {
         tro.cite_err = 'not_found';
     }
     return tro;
-};
+}
 
-renderCiteText = function(para) {
+function renderCiteText(para) {
     let refs;
     if (para == undefined) {
         refs = $('.reference');
@@ -658,10 +657,10 @@ renderCiteText = function(para) {
         $('#bib_block').hide();
     }
     */
-};
+}
 
 // routing is split due to aysc of sever commands
-renderRef = function(ref, tro, text, ext) {
+function renderRef(ref, tro, text, ext) {
     if (text.length > 0) {
         ref_spec.text(ref, tro.tro, text);
     } else if (tro.cite_type == 'self') {
@@ -678,10 +677,10 @@ renderRef = function(ref, tro, text, ext) {
         ref_spec.cite(ref, tro.tro);
     } else if (tro.cite_type == 'err') {
         ref_spec.error(ref);
-    };
-};
+    }
+}
 
-refCite = function(ref, tro) {
+function refCite(ref, tro) {
     var authors = tro.attr('authors').split(',');
     var year = tro.attr('year');
     var format = ref.attr('format') || '';
@@ -703,9 +702,9 @@ refCite = function(ref, tro) {
 
     ref.text(citeText);
     ref.attr('href', '');
-};
+}
 
-refEquation = function(ref, tro, ext) {
+function refEquation(ref, tro, ext) {
     let num = tro.find('.num')[0];
     let text = $(num).text();
     let citebox = $('<span>', {class: 'eqn_cite', text: text});
@@ -717,50 +716,50 @@ refEquation = function(ref, tro, ext) {
         cite = citebox;
     }
     ref.append(cite);
-};
+}
 
-refEnv = function(ref, tro, env, ext) {
-    var format = ref.attr('format') || '';
-    var num = tro.find('.num')[0];
-    var text = $(num).text();
+function refEnv(ref, tro, env, ext) {
+    let format = ref.attr('format') || '';
+    let num = tro.find('.num')[0];
+    let text = $(num).text();
 
-    var citeText;
+    let citeText;
     if (format == 'plain') {
         citeText = text;
     } else {
         citeText = `${env} ${text}`;
     }
 
-    if(ext){
+    if (ext) {
         citeText += ` [${ext}]`
     }
 
     ref.text(citeText);
 };
 
-refText = function(ref, tro, text) {
+function refText(ref, tro, text) {
     ref.text(text);
-};
+}
 
-refError = function(ref) {
-    var href = ref.attr('citekey') || '';
+function refError(ref) {
+    let href = ref.attr('citekey') || '';
     ref.html(`<span class="ref_error">@[${href}]</span>`);
-};
+}
 
-refSection = function(ref, tro, ext) {
+function refSection(ref, tro, ext) {
     refEnv(ref, tro, 'Section', ext);
-};
+}
 
-refFigure = function(ref, tro, ext) {
+function refFigure(ref, tro, ext) {
     refEnv(ref, tro, 'Figure', ext);
-};
+}
 
-refSelf = function(ref) {
-    var text = ref.attr('text');
+function refSelf(ref) {
+    let text = ref.attr('text');
     ref.text(text);
-};
+}
 
-ref_spec = {
+let ref_spec = {
     'cite': refCite,
     'self': refSelf,
     'error': refError,
@@ -777,38 +776,38 @@ ref_spec = {
  //this does not redner anything, it adds the cite keys
 // to the comand completion list, the name is a hold over
 //and becuase it is used for other pages (/b)
-renderBib = function(data) {
+function renderBib(data) {
     data.forEach(cite => {
         bib_list.push(cite.citekey);
     });
-};
+}
 
-deleteCite = function(data) {
+function deleteCite(data) {
     let i = bib_list.indexOf(data);
     if (i !== -1) {
         bib_list.splice(i, 1);
     }
-};
+}
 
-renderBibLocal = function(data) {
+function renderBibLocal(data) {
     // $('#para_holder').empty();
     console.log(data);
     data.map(createBibEntry);
-};
+}
 
-createBibEntry = function(cite) {
+function createBibEntry(cite) {
     $('#'+cite['citekey']).remove();
 
-    var yr = cite['year'] ? ` ${cite['year']}. ` : '';
-    var vol = cite['volume'] ? `, ${cite['volume']}` : '';
-    var num = cite['number'] ? `, no. ${cite['number']}` : '';
-    var pgs = cite['pages'] ? `, pp. ${cite['pages']}` : '';
-    var title = cite['title'] ? `${cite['title']}` : '';
-    var pubs = ['book', 'incollection'];
-    var jns = ['article', 'techreport', 'unpublished'];
+    let yr = cite['year'] ? ` ${cite['year']}. ` : '';
+    let vol = cite['volume'] ? `, ${cite['volume']}` : '';
+    let num = cite['number'] ? `, no. ${cite['number']}` : '';
+    let pgs = cite['pages'] ? `, pp. ${cite['pages']}` : '';
+    let title = cite['title'] ? `${cite['title']}` : '';
+    let pubs = ['book', 'incollection'];
+    let jns = ['article', 'techreport', 'unpublished'];
 
-    var pub;
-    var journal;
+    let pub;
+    let journal;
     if (pubs.includes(cite['entry_type'])) {
         pub = cite['publisher'] || '';
         journal = (cite['booktitle']) ? `In ${cite['booktitle']}`: '';
@@ -817,10 +816,10 @@ createBibEntry = function(cite) {
         journal = cite['journal'] || 'mimeo';
     }
 
-    var author = `<b>${cite['author']}</b>. ` || '';
-    var index = (vol || num || pgs) ? `${vol + num + pgs}.` : '';
+    let author = `<b>${cite['author']}</b>. ` || '';
+    let index = (vol || num || pgs) ? `${vol + num + pgs}.` : '';
 
-    var author_list = cite['author'].split(' and ').map(auth => auth.split(',')[0]);
+    let author_list = cite['author'].split(' and ').map(auth => auth.split(',')[0]);
 
     $('#bib_block').append(
         `<div class="cite" id=${cite['citekey']} cite-type="cite" authors="${author_list}" year="${cite['year']}">
@@ -830,19 +829,19 @@ createBibEntry = function(cite) {
         <span class="citekey">${cite['citekey']}</span>
         </div>`
     );
-};
+}
 
 //// POPUP FUNCTIONALITY // turned off for mobile for now
 
 if (!mobile) {
     $(document).on({
         mouseenter: function() {
-            var ref = $(this);
+            let ref = $(this);
             ref.data('show_pop', true);
-            var html = getTro(ref, renderPop);
+            let html = getTro(ref, renderPop);
         },
         mouseleave: function() {
-            var ref = $(this);
+            let ref = $(this);
             ref.data('show_pop', false);
             $('#pop').remove();
             $(window).unbind('mousemove')
@@ -850,8 +849,8 @@ if (!mobile) {
     }, '.pop_anchor');
 }
 
-createPop = function(html='', link=false) {
-    var pop = $('<div>', {id: 'pop', href: link, html: html});
+function createPop(html='', link=false) {
+    let pop = $('<div>', {id: 'pop', href: link, html: html});
     $('#bg').append(pop);
 
     h = pop.height();
@@ -859,8 +858,8 @@ createPop = function(html='', link=false) {
 
     if (!mobile) { // no mouse binding with mobile popups
         $(this).mousemove(function(event) {
-            var mid = window.innerHeight / 2;
-            var y = event.pageY - h - 35;
+            let mid = window.innerHeight / 2;
+            let y = event.pageY - h - 35;
             if (event.pageY < mid) { // if on top half of page
                 y = event.pageY + 35;
             }
@@ -870,18 +869,18 @@ createPop = function(html='', link=false) {
             });
         });
     }
-};
+}
 
 // generates pop text from tro (only for internal refs)
-popText = function(tro) {
+function popText(tro) {
     if (tro.cite_type == 'self') {
         return pop_spec.self(tro.tro);
     } else if (tro.cite_type == 'env') {
         if (tro.cite_env in pop_spec) {
-            var paras = $(tro.cite_sel);
+            let paras = $(tro.cite_sel);
             return pop_spec[tro.cite_env](paras);
         } else if (tro.cite_env in s_env_spec) { //simple env
-            var paras = $(tro.cite_sel);
+            let paras = $(tro.cite_sel);
             return popEnv(paras)
         } else {
             return pop_spec.error('not_found');
@@ -891,13 +890,13 @@ popText = function(tro) {
     } else if (tro.cite_type == 'err') {
         return pop_spec.error(tro.cite_err);
     }
-};
+}
 
-renderPop = function(ref, tro, text, ext) {
+function renderPop(ref, tro, text, ext) {
     if (!ref.data('show_pop')) { // we've since left with mouse
         return;
     }
-    var pop;
+    let pop;
     if (ext != undefined) {
         pop = tro.tro;
     } else {
@@ -905,9 +904,9 @@ renderPop = function(ref, tro, text, ext) {
     };
     link = mobile ? ref.attr('href'): false;
     createPop(pop, link);
-};
+}
 
-popError = function(err='not_found') {
+function popError(err='not_found') {
     if (err == 'not_found') {
         return "[Reference Not Found]";
     } else if (err == 'env_err') {
@@ -915,35 +914,35 @@ popError = function(err='not_found') {
     } else {
         return "[Error]";
     }
-};
+}
 
-popSection = function(tro) {
+function popSection(tro) {
     return tro.children('.p_text').text();
-};
+}
 
-popEquation = function(tro) {
+function popEquation(tro) {
     return tro.children('.p_text').html();
-};
+}
 
-popCite = function(tro) {
+function popCite(tro) {
     return tro.find('.citeText').html();
-};
+}
 
-popSelf = function(tro) {
+function popSelf(tro) {
     return tro.find('.ft_content').html();
-};
+}
 
-popEnv = function(tro) {
-    var html = '';
+function popEnv(tro) {
+    let html = '';
     tro.each(function() {
-        var ptxt = $(this).children('.p_text');
+        let ptxt = $(this).children('.p_text');
         html += ptxt.html();
     });
 
     return html;
-};
+}
 
-pop_spec = {
+let pop_spec = {
     'heading': popSection,
     'cite': popCite,
     'equation': popEquation,
@@ -957,7 +956,7 @@ pop_spec = {
 
 /// syntax highlighting
 
-syntaxHL = function(para, e=null) {
+function syntaxHL(para, e=null) {
     let text = para.children('.p_input');
     let view = para.children('.p_input_view');
     let raw = text.val();
@@ -966,7 +965,7 @@ syntaxHL = function(para, e=null) {
     }
     let parsed = syntaxParseBlock(raw);
     view.html(parsed);
-};
+}
 
 $(document).on('input', '.p_input', function(e) {
     let para = $(this).parent('.para');
@@ -974,7 +973,7 @@ $(document).on('input', '.p_input', function(e) {
     syntaxHL(para, e);
 });
 
-esc_md = function(raw){
+function esc_md(raw) {
     return raw.replace(/\\/g, '&#92;')
               .replace(/\//g, '&#47;')
               .replace(/\[/g, '&#91;')
@@ -984,20 +983,20 @@ esc_md = function(raw){
               .replace(/\@/g, '&#36;')
               .replace(/\^/g, '&#94;')
               .replace(/\!/g, '&#33;');
-};
+}
 
-esc_html = function(raw) {
+function esc_html(raw) {
     return raw.replace(/\</g, '&lt;')
               .replace(/\>/g, '&gt;')
               .replace('&!L&', '<span class="brace">')
               .replace('&!R&', '</span>');
-};
+}
 
-s = function(text, cls) {
+function s(text, cls) {
     return `<span class="syn_${cls}">${text}</span>`;
-};
+}
 
-var inline = {
+let inline = {
     escape: /\\([\\/`*{}\[\]()#+\-.!_>\$])/g,
     comment: /\/\/([^\n]*?)(\n|$)/g,
     code: /(`+)([\s\S]*?[^`])\1(?!`)/g,
@@ -1009,7 +1008,7 @@ var inline = {
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
 };
 
-syntaxParseInline = function(raw) {
+function syntaxParseInline(raw) {
     let html = esc_html(raw);
 
     html = html.replace(inline.escape, (a, b) =>
@@ -1050,11 +1049,11 @@ syntaxParseInline = function(raw) {
     );
 
     return html;
-};
+}
 
 // uses lookbehinds, might not work on old ass-browsers
 // set = true is for non ref when seting ids
-fArgs = function(argsraw, set=true) {
+function fArgs(argsraw, set=true) {
     let argmatch = /([\[\|\n\r])((?:[^\]\|\n\r]|(?<=\\)\||(?<=\\)\])*)/g;
     let illegal = /[^a-zA-Z\d\_\-]/;
     if (!set) {
@@ -1087,9 +1086,9 @@ fArgs = function(argsraw, set=true) {
         }
     });
     return args;
-};
+}
 
-var block = {
+let block = {
     title: /^#!( *)(?:refargs)?(\s*)([^\n]*)(\s*)/,
     heading: /^(#{1,6})(\*?)( *)(?:refargs)?( *)([^\n]+?)$/,
     code: /^``((?: |\n)?)/,
@@ -1122,7 +1121,7 @@ block.envbeg = markthree.replace(block.envbeg)
   ('refargs', block._refargs)
   ();
 
-syntaxParseBlock = function(raw) {
+function syntaxParseBlock(raw) {
     if (cap = block.title.exec(raw)) {
         let id = cap[2] ? s(fArgs(cap[2]), 'ref') : '';
         let tit = cap[4] ? syntaxParseInline(cap[4]) : '';
@@ -1195,7 +1194,7 @@ syntaxParseBlock = function(raw) {
     }
 
     return syntaxParseInline(raw);
-};
+}
 
 $(document).on('keyup', '.p_input', function(e) {
     let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
@@ -1205,7 +1204,7 @@ $(document).on('keyup', '.p_input', function(e) {
     }
 });
 
-braceMatch = function(textarea, para) {
+function braceMatch(textarea, para) {
     let delimit = {'(': ')', '[': ']', '{': '}'};
     let rev_delimit = {')': '(', ']': '[', '}': '{'};
 
@@ -1238,9 +1237,9 @@ braceMatch = function(textarea, para) {
     } else {
         $('.brace').contents().unwrap();
     }
-};
+}
 
-getBracePos = function(text, brace, match, cpos, rev=false) {
+function getBracePos(text, brace, match, cpos, rev=false) {
     let len = text.length;
     if (rev) {
         text = text.split('').reverse().join('');
@@ -1276,16 +1275,14 @@ getBracePos = function(text, brace, match, cpos, rev=false) {
     } else {
         return {'l': cpos, 'r': pos};
     }
-};
+}
 
-braceHL = function(view, text, pos, para) {
-    let L = `\&\!L\&`;
-    let R = `\&\!R\&`;
-    var new_text = [
+function braceHL(view, text, pos, para) {
+    let new_text = [
         text.slice(0, pos['l']),
-        L,
+        `\&\!L\&`,
         text.slice(pos['l'], pos['r']+1),
-        R,
+        `\&\!R\&`,
         text.slice(pos['r']+1)
     ].join('');
 
@@ -1296,17 +1293,17 @@ braceHL = function(view, text, pos, para) {
         $('.brace').contents().unwrap();
         syntaxHL(para);
     }, 800);
-};
+}
 
 // folding/unfolding
 
-getFoldLevel = function(para) {
+function getFoldLevel(para) {
     return parseInt(para.attr('fold_level'));
-};
+}
 
-getFoldParas = function(pid) {
-    para = getPara(pid);
-    l = para.attr('head_level');
+function getFoldParas(pid) {
+    let para = getPara(pid);
+    let l = para.attr('head_level');
     if (para.attr('env') == 'heading') {
         let fps = [para];
         let nx = Object.entries(para.nextAll('.para'));
@@ -1318,24 +1315,24 @@ getFoldParas = function(pid) {
                 fps.push(p);
             }
         }
-        //what the fuck jquery, why (returns differnt object type in the two cases)
+        // what the fuck jquery, why (returns differnt object type in the two cases)
         return [$(fps), $(fps).first()[0]];
     } else {
         let fps = $(`[env_pid=${pid}]`);
         return [$(fps), $(fps).first()];
     }
-};
+}
 
-initFold = function() {
+function initFold() {
     folded = cooks('folded') || folded;
     folded.forEach(pid => {
         let para = getPara(pid);
         fold(para, init=true);
     });
     renderFold();
-};
+}
 
-renderFold = function() {
+function renderFold() {
     $('.para:not(.folder)').each(function() {
         let para = $(this);
         let fl = getFoldLevel(para);
@@ -1357,9 +1354,9 @@ renderFold = function() {
             para.addClass('folded');
         }
     });
-};
+}
 
-fold = function(para, init=false) {
+function fold(para, init=false) {
     console.log('fold', para);
     let env_pid = para.attr('env_pid');
     let fold_pid = para.attr('fold_pid');
@@ -1398,12 +1395,12 @@ fold = function(para, init=false) {
         document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
     }
     renderFold();
-};
+}
 
-unfold = function() {
+function unfold() {
     $('.para').attr('fold_level', 0);
     folded = [];
     const foldcookie = JSON.stringify(folded);
     document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
     renderFold();
-};
+}

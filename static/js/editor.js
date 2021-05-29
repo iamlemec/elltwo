@@ -1,21 +1,22 @@
 ////// UI ///////
 
-// global state
-var active_para = null; // current active para
-var last_active = null; // to keep track of where cursor was
-var editable = false; // are we focused on the active para
-var writeable = !readonly; // can we actually modify contents (depends on readonly and history mode)
-var cb = []; // clipboard for cell copy
+/// global state
+
+let active_para = null; // current active para
+let last_active = null; // to keep track of where cursor was
+let editable = false; // are we focused on the active para
+let writeable = !readonly; // can we actually modify contents (depends on readonly and history mode)
+let cb = []; // clipboard for cell copy
 
 /// textarea manage
 
-resize = function(textarea) {
+function resize(textarea) {
     textarea.style.height = 'auto';
     let h = (textarea.scrollHeight) + 'px';
     textarea.style.height = h;
     let para = $(textarea).parent('.para');
     para.css('min-height', h);
-};
+}
 
 // resize text area on input (eliminate scroll)
 $(document).on('input focus', 'textarea', function() {
@@ -25,7 +26,7 @@ $(document).on('input focus', 'textarea', function() {
 /// rendering and storage
 
 // store a change locally, if no change also unlock server side
-localChange = function(para, send=true) {
+function localChange(para, send=true) {
     let text = para.children('.p_input').val();
     let raw = para.attr('raw');
     if (text != raw) {
@@ -33,66 +34,68 @@ localChange = function(para, send=true) {
         sendUpdatePara(para);
     } else {
         if (send) {
-            var pid = para.attr('pid');
+            let pid = para.attr('pid');
             sendUnlockPara([pid]);
         }
     }
     rawToRender(para, false, text); // local changes only
-};
+}
 
 // store change server side if any local changes
-storeChange = function(para, raw) {
+function storeChange(para, raw) {
     para.attr('raw', raw);
     updateRefHTML(para);
     $(para).removeClass('changed')
            .removeAttr('old_id');
-};
+}
 
 /// server comms and callbacks
 
-on_success = function(func) {
+function on_success(func) {
     return function(success) {
         if (success) {
             func();
         }
     };
-};
+}
 
-sendUpdatePara = function(para, force=false) {
+function sendUpdatePara(para, force=false) {
     let text = para.children('.p_input').val();
     let raw = para.attr('raw');
     if (text == raw && !force) {
         return;
     }
-    var pid = para.attr('pid');
-    var data = {aid: aid, pid: pid, text: text};
+    let pid = para.attr('pid');
+    let data = {aid: aid, pid: pid, text: text};
     client.sendCommand('update_para', data, on_success(() => {
         storeChange(para, text);
     }));
-};
+}
 
-sendInsertBefore = function(para) {
+function sendInsertBefore(para) {
     let fold_pid = para.attr('fold_pid');
+    let pid;
     if (fold_pid) {
-        var env = $(`[env_pid=${fold_pid}]`);
-        var pid = env.first().attr('pid');
+        let env = $(`[env_pid=${fold_pid}]`);
+        pid = env.first().attr('pid');
     } else {
-        var pid = para.attr('pid');
+        pid = para.attr('pid');
     };
     let data = {aid: aid, pid: pid};
     client.sendCommand('insert_before', data, on_success(() => {
         // activePrevPara();
         // sendMakeEditable();
     }));
-};
+}
 
-sendInsertAfter = function(para) {
+function sendInsertAfter(para) {
     let fold_pid = para.attr('fold_pid');
+    let pid;
     if (fold_pid) {
-        var env = $(`[env_pid=${fold_pid}]`);
-        var pid = env.last().attr('pid')
+        let env = $(`[env_pid=${fold_pid}]`);
+        pid = env.last().attr('pid')
     } else {
-        var pid = para.attr('pid');
+        pid = para.attr('pid');
     };
     let data = {aid: aid, pid: pid};
     client.sendCommand('insert_after', data, on_success(() => {
@@ -100,9 +103,9 @@ sendInsertAfter = function(para) {
         // activeNextPara()
         // sendMakeEditable();
     }));
-};
+}
 
-sendDeletePara = function(para) {
+function sendDeletePara(para) {
     let pid = para.attr('pid');
     let data = {aid: aid, pid: pid};
     let next = getNextPara(para);
@@ -114,38 +117,38 @@ sendDeletePara = function(para) {
             makeActive(next);
         }
     }));
-};
+}
 
 // revertChange?
 
 /// para editable
 
-placeCursor = function(loc) {
+function placeCursor(loc) {
     console.log('placeCursor:', loc);
     if (active_para && writeable) {
-        var text = active_para.children('.p_input');
+        let text = active_para.children('.p_input');
         text.focus();
         if (loc == 'begin') {
             text[0].setSelectionRange(0, 0);
         } else if (loc == 'end') {
-            var tlen = text[0].value.length;
+            let tlen = text[0].value.length;
             text[0].setSelectionRange(tlen, tlen);
         }
     }
-};
+}
 
-unPlaceCursor = function() {
+function unPlaceCursor() {
     if (active_para && writeable) {
-        var text = active_para.children('.p_input');
+        let text = active_para.children('.p_input');
         text.blur();
     }
-};
+}
 
-trueMakeEditable = function(rw=true, cursor='end') {
+function trueMakeEditable(rw=true, cursor='end') {
     editable = true;
     active_para.addClass('editable');
 
-    var text = active_para.children('.p_input');
+    let text = active_para.children('.p_input');
     resize(text[0]);
     if (rw) {
         text.prop('readonly', false);
@@ -157,9 +160,9 @@ trueMakeEditable = function(rw=true, cursor='end') {
     syntaxHL(active_para);
 
     client.schedTimeout();
-};
+}
 
-sendMakeEditable = function(cursor='end') {
+function sendMakeEditable(cursor='end') {
     $('.para').removeClass('editable');
     $('.para').removeClass('copy_sel');
     if (active_para) {
@@ -178,9 +181,9 @@ sendMakeEditable = function(cursor='end') {
             trueMakeEditable(false);
         }
     }
-};
+}
 
-makeUnEditable = function(send=true) {
+function makeUnEditable(send=true) {
     $('.para.editable')
         .removeClass('editable')
         .css('min-height', '30px')
@@ -201,49 +204,38 @@ makeUnEditable = function(send=true) {
             $('#foot').show();
         };
     }
-};
+}
 
 /// para locking
 
-/*
-let lockout = null;
-
-paraTimeOut = function() {
-    clearTimeout(lockout);
-    lockout = setTimeout(function () {
-        makeUnEditable();
-    }, 1000*60*3); // 3 mins
-};
-*/
-
-lockParas = function(pids) {
+function lockParas(pids) {
     pids.forEach(function(pid) {
-        var para = getPara(pid);
+        let para = getPara(pid);
         para.addClass('locked');
     });
-};
+}
 
-sendUnlockPara = function(pids) {
-    var data = {aid: aid, pids: pids};
+function sendUnlockPara(pids) {
+    let data = {aid: aid, pids: pids};
     client.sendCommand('unlock', data, function(response) {
         // console.log(response);
     });
-};
+}
 
-unlockParas = function(pids) {
+function unlockParas(pids) {
     console.log('unlockParas');
     pids.forEach(function(pid) {
-        var para = getPara(pid);
+        let para = getPara(pid);
         para.removeClass('locked');
         if (para.hasClass('editable')) {
             makeUnEditable(false);
         }
     });
-};
+}
 
 /// active para tracking
 
-makeActive = function(para, scroll=true) {
+function makeActive(para, scroll=true) {
     if (!para) {
         $('.para').removeClass('copy_sel');
     }
@@ -259,20 +251,20 @@ makeActive = function(para, scroll=true) {
             ensureVisible(active_para);
         }
     }
-};
+}
 
-getNextPara = function(para) {
+function getNextPara(para) {
     return (para || active_para).nextAll('.para:not(.folded)').first();
-};
+}
 
-getPrevPara = function(para) {
+function getPrevPara(para) {
     return (para || active_para).prevAll('.para:not(.folded)').first();
-};
+}
 
 // next para
-activeNextPara = function() {
+function activeNextPara() {
     if (active_para) {
-        var next = getNextPara();
+        let next = getNextPara();
         if (next.length > 0) {
             makeActive(next);
             return true;
@@ -280,11 +272,11 @@ activeNextPara = function() {
             return false;
         }
     }
-};
+}
 
-activePrevPara = function() {
+function activePrevPara() {
     if (active_para) {
-        var prev = getPrevPara();
+        let prev = getPrevPara();
         if (prev.length > 0) {
             makeActive(prev);
             return true;
@@ -292,28 +284,28 @@ activePrevPara = function() {
             return false;
         }
     }
-};
+}
 
-activeFirstPara = function() {
-    var first = $('.para').first();
+function activeFirstPara() {
+    let first = $('.para').first();
     if (first.length > 0) {
         makeActive(first);
     }
-};
+}
 
-activeLastPara = function() {
-    var last = $('.para').last();
+function activeLastPara() {
+    let last = $('.para').last();
     if (last.length > 0) {
         makeActive(last);
     }
-};
+}
 
-editShift = function(dir='up') {
-    var top, bot;
+function editShift(dir='up') {
+    let top, bot;
     if (writeable) {
-        var input = active_para.children('.p_input')[0];
-        var cpos = input.selectionStart;
-        var tlen = input.value.length;
+        let input = active_para.children('.p_input')[0];
+        let cpos = input.selectionStart;
+        let tlen = input.value.length;
         top = (cpos == 0);
         bot = (cpos == tlen);
     } else {
@@ -336,20 +328,20 @@ editShift = function(dir='up') {
             }
         }
     }
-};
+}
 
 // copy cell
 
-copyCells = function() {
+function copyCells() {
     cb = [];
     $('.copy_sel, .active').each(function() {
         cb.push($(this).attr('pid'));
     })
     const cbcookie = JSON.stringify(cb);
     document.cookie = `cb=${cbcookie}; path=/; max-age=60; samesite=lax; secure`;
-};
+}
 
-pasteCells = function() {
+function pasteCells() {
     let pid = active_para.attr('pid');
     let ccb = cooks('cb') || cb;
     if (ccb && pid) {
@@ -358,15 +350,15 @@ pasteCells = function() {
             console.log(response);
         });
     }
-};
+}
 
 /// KEYBOARD NAV
 
 $(document).keydown(function(e) {
-    var key = e.key.toLowerCase();
-    var ctrl = e.ctrlKey;
-    var alt = e.altKey;
-    var shift = e.shiftKey;
+    let key = e.key.toLowerCase();
+    let ctrl = e.ctrlKey;
+    let alt = e.altKey;
+    let shift = e.shiftKey;
 
     if (ctrl && key == 'enter') {
         toggleHistMap();
@@ -381,7 +373,7 @@ $(document).keydown(function(e) {
     }
     if (!active_para) { // if we are inactive
         if (key == 'enter') {
-            var foc_para = last_active || $('.para').first();
+            let foc_para = last_active || $('.para').first();
             makeActive(foc_para);
         }
     } else if (active_para && !editable) {
@@ -464,10 +456,10 @@ $(document).keydown(function(e) {
 /// mouse interface
 
 $(document).on('click', '.para', function(e) {
-    var alt = e.altKey || mobile;
-    var cmd = e.metaKey;
+    let alt = e.altKey || mobile;
+    let cmd = e.metaKey;
     if (alt) {
-        var para = $(this);
+        let para = $(this);
         if (!para.hasClass('active')) {
             makeActive($(this));
         } else if (!editable) {
@@ -481,8 +473,8 @@ $(document).on('click', '.para', function(e) {
 });
 
 $(document).on('click', '#bg', function(e) {
-    var targ = event.target.id;
-    var alt = e.altKey || mobile;
+    let targ = event.target.id;
+    let alt = e.altKey || mobile;
     if (targ == 'bg' || targ == 'content') {
         if (alt) {
             makeActive(null);
@@ -493,22 +485,22 @@ $(document).on('click', '#bg', function(e) {
 });
 
 $(document).on('click', '.update', function() {
-    var para = $(this).parents('.para');
+    let para = $(this).parents('.para');
     sendUpdatePara(para);
 });
 
 $(document).on('click', '.before', function() {
-    var para = $(this).parents('.para');
+    let para = $(this).parents('.para');
     sendInsertBefore(para);
 });
 
 $(document).on('click', '.after', function() {
-    var para = $(this).parents('.para');
+    let para = $(this).parents('.para');
     sendInsertAfter(para);
 });
 
 $(document).on('click', '.delete', function() {
-    var para = $(this).parents('.para');
+    let para = $(this).parents('.para');
     sendDeletePara(para);
 });
 

@@ -1,10 +1,10 @@
-var client = (function() {
+let client = (function() {
 
 // socketio connection
-var socket;
+let socket;
 
 // timeout state
-var timeout_id = null;
+let timeout_id = null;
 
 // takes optional connect event callback
 function connect(url, on_connect) {
@@ -99,7 +99,7 @@ function schedTimeout() {
         clearTimeout(timeout_id);
     }
     timeout_id = setTimeout(autoLockout, timeout);
-};
+}
 
 return {
     socket: socket,
