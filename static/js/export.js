@@ -2,6 +2,7 @@
 
 export { initExport }
 
+import { toggleBox } from './utils.js'
 import { s_env_spec, macros } from './render.js'
 
 let in_title = title;
@@ -182,10 +183,8 @@ function exportDownload(url, key, data) {
 
 // box
 
-let exportbox = false;
-
 function initExport() {
-    toggleBox(exportbox, '#export', '#export_options');
+    toggleBox(false, '#export', '#export_options');
     $('#export_tex').click(exportTex);
     $('#export_md').click(exportMarkdown);
 }

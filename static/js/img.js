@@ -100,7 +100,7 @@ $(document).on('click', '#img_update', function() {
 
 function mSearch(img, list) {
     let value = 0;
-    target = img[0] + img[1];
+    let target = img[0] + img[1];
     list.forEach(word => {
       value = value + target.includes(word);
     });
@@ -114,8 +114,8 @@ $(document).on('keyup', '#img_search', function(e) {
     timeout = setTimeout(function() {
         let ss = $('#img_search').val();
         if (ss) {
-            s_terms = ss.split(' ');
-            imgs_s = imgs.filter(img => mSearch(img, s_terms) > 0);
+            let s_terms = ss.split(' ');
+            let imgs_s = imgs.filter(img => mSearch(img, s_terms) > 0);
             renderImgs(imgs_s);
         } else {
             renderImgs();

@@ -1,11 +1,12 @@
 /// core renderer (includes readonly)
 
 export {
-    initRender, getPara, innerPara, renderKatex, rawToRender, rawToTextarea,
-    envClasses, createRefs, createTOC, troFromKey, popText, syntaxHL, renderBib,
-    s_env_spec, macros, fold
+    initRender, renderMarkdown, getPara, innerPara, renderKatex, rawToRender,
+    rawToTextarea, envClasses, createRefs, createTOC, troFromKey, popText,
+    syntaxHL, renderBib, s_env_spec, macros, fold
 }
 
+import { cooks } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { renderKatex } from './math.js'
 import { imgCache } from './drop.js'
@@ -496,7 +497,7 @@ function createNumbers(outer) {
 }
 
 function createTOC(outer) {
-    toc = $('#toc');
+    let toc = $('#toc');
     toc.find('.toc_entry').remove();
     outer.find('.env__heading').not('.folder .env__heading').each(function() {
         let head = $(this);

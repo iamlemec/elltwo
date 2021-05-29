@@ -5,6 +5,7 @@ export {
     unlockParas, sendMakeEditable, sendUpdatePara
 }
 
+import { ensureVisible, cooks } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { getPara, rawToRender, syntaxHL, fold } from './render.js'
 import { updateRefHTML, toggleHistMap, cc, ccSet, ccNext, ccMake } from './article.js'

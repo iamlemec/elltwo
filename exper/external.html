@@ -1,0 +1,50 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link type="text/css" rel="stylesheet" href="/local/axiom/static/css/core.css" />
+    <link type="text/css" rel="stylesheet" href="/local/axiom/static/css/article.css" />
+    <link type="text/css" rel="stylesheet" href="/local/axiom/static/themes/white.css" id="theme" />
+    <link type="text/css" rel="stylesheet" href="/local/axiom/static/katex/dist/katex.min.css" />
+
+</head>
+
+<body>
+
+<div id="content"></div>
+
+<script type="text/javascript">
+    // immutable options
+    const title = 'test';
+    const readonly = true;
+    const mobile = window.matchMedia('(max-width: 815px)').matches;
+
+    // mutable options
+    var theme = 'white';
+</script>
+
+<script src="/local/axiom/static/libs/jquery-3.5.0.min.js" type="text/javascript"> </script>
+<script src="/local/axiom/static/katex/dist/katex.min.js" type="text/javascript"></script>
+<script src="/local/axiom/static/js/marked3.js" type="text/javascript"></script>
+
+<script type="module">
+import { initMarkdown } from '/local/axiom/static/js/article.js'
+initMarkdown(`
+#! External Test
+
+Hello world $x^2$
+
+$$ [test] \\int_0^{\\infty} \\exp(-x^2) dx
+
+See @[test] for more info
+
+I am the MEC
+`.trim());
+</script>
+
+</body>
+
+</html>

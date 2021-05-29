@@ -1,5 +1,6 @@
 /* home page and search */
 
+import { ensureVisible } from './utils.js'
 import { connect, sendCommand } from './client.js'
 import { renderKatex } from './math.js'
 

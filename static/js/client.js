@@ -1,9 +1,10 @@
 export { connect, addHandler, sendCommand, schedTimeout }
 
 // socketio connection
-let socket;
+let socket = null;
 
 // timeout state
+let timeout = 1000*180; // 3 mins
 let timeout_id = null;
 
 // takes optional connect event callback
@@ -41,14 +42,19 @@ function addHandler(signal, callback) {
 }
 
 function disconnect() {
-    if (socket) {
+    if (socket !== null) {
         socket.close();
+        socket = null;
     }
 }
 
-function sendCommand(cmd, data="", ack=function(){}) {
-    console.log('sending', cmd);
-    socket.emit(cmd, data, ack);
+function sendCommand(cmd, data='', ack=function(){}) {
+    if (socket !== null) {
+        console.log(`sending: ${cmd}`);
+        socket.emit(cmd, data, ack);
+    } else {
+        console.log(`tried to send "${cmd}" without connection`);
+    }
 }
 
 function autoLockout() {
@@ -58,7 +64,6 @@ function autoLockout() {
 }
 
 function schedTimeout() {
-    // console.log(`schedTimeout: ${timeout_id}`);
     if (timeout_id !== null) {
         clearTimeout(timeout_id);
     }

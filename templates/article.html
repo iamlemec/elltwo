@@ -109,9 +109,13 @@ Font
 <button id="export_md" class="export_butt">MarkDown</button>
 </div>
 
-<script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
-<script src={{ url_for('static', filename='libs/d3.v5.min.js') }} language="Javascript" type="text/javascript"></script>
-<script src={{ url_for('static', filename='js/marked3.js') }} language="Javascript" type="text/javascript"></script>
-<script src={{ url_for('static', filename='js/article.js') }} type="module"></script>
+<script src="{{ url_for('static', filename='libs/socket.io.min.js') }}" language="Javascript" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='libs/d3.v5.min.js') }}" language="Javascript" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='js/marked3.js') }}" language="Javascript" type="text/javascript"></script>
+
+<script type="module">
+import { initArticle } from '{{ url_for('static', filename='js/article.js') }}';
+initArticle();
+</script>
 
 {% endblock %}

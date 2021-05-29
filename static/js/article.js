@@ -1,13 +1,14 @@
 /* advanced article features */
 
 export {
-    insertPara, updatePara, updateParas, deletePara, updateRefHTML,
-    toggleHistMap, cc, ccSet, ccNext, ccMake, ccRefs
+    initArticle, initMarkdown, insertPara, updatePara, updateParas, deletePara,
+    updateRefHTML, toggleHistMap, cc, ccSet, ccNext, ccMake, ccRefs
 }
 
+import { initUser } from './user.js'
 import {
-    initRender, getPara, innerPara, rawToRender, rawToTextarea, envClasses,
-    createRefs, createTOC, troFromKey, popText, syntaxHL, renderBib
+    initRender, renderMarkdown, getPara, innerPara, rawToRender, rawToTextarea,
+    envClasses, createRefs, createTOC, troFromKey, popText, syntaxHL, renderBib
 } from './render.js'
 import {
     initEditor, setWriteable, resize, getActive, makeActive, lockParas,
@@ -36,7 +37,7 @@ let cc = false; // is there a cc window open?
 
 /// initialization
 
-$(document).ready(function() {
+function initArticle() {
     // connect and join room
     connectServer();
 
@@ -47,6 +48,7 @@ $(document).ready(function() {
     syncServer();
 
     // create full UI
+    initUser();
     initSidebar();
     initHistory();
     initExport();
@@ -57,7 +59,15 @@ $(document).ready(function() {
         let para = getPara(pid);
         makeActive(para);
     }
-});
+}
+
+function initMarkdown(md) {
+    // deploy and render
+    renderMarkdown(md);
+
+    // limited UI
+    initEditor();
+}
 
 function connectServer() {
     let url = `http://${document.domain}:${location.port}`;
@@ -301,8 +311,8 @@ function getBlurb(len=200) {
     let size = 0;
     $('.para').not('.folder').each(function() {
         let para = $(this);
-        let ptxt = para.children('.p_text');
-        let core = ptxt.ignore('.katex-mathml, .eqnum, img, svg')
+        let ptxt = para.children('.p_text').clone();
+        let core = ptxt.find('.katex-mathml, .eqnum, img, svg').remove().end()
                        .removeClass('p_text');
 
         let html = core[0].outerHTML;

@@ -1,26 +1,23 @@
-// general login stuff
+/* random utilities */
 
-var loginbox = false;
+export { toggleBox, ensureVisible, cooks }
 
-toggleBox = function(bool, button, box) {
-    $(document).ready(function() {
-        $(button).click(function() {
-            if (bool) {
-                $(box).hide();
-                bool = false;
-            } else {
-                $(box).show();
-                bool = true;
-            };
-        });
+function toggleBox(bool, button, box) {
+    $(button).click(function() {
+        if (bool) {
+            $(box).hide();
+            bool = false;
+        } else {
+            $(box).show();
+            bool = true;
+        };
     });
 
     $(document).click(function(e) {
         if (bool) {
-            var targ = $(e.target);
-            var close_butt = targ.closest(button);
-            var close_box = targ.closest(box);
-            //console.log(targ, close_butt,close_box)
+            let targ = $(e.target);
+            let close_butt = targ.closest(button);
+            let close_box = targ.closest(box);
             if ((close_butt.length == 0) && (close_box.length == 0)) {
                 $(box).hide();
                 bool = false;
@@ -29,16 +26,12 @@ toggleBox = function(bool, button, box) {
     });
 };
 
-$(document).ready(function() {
-    toggleBox(loginbox, '#toggle_ll', '#locallogin');
-});
-
 // scrolling
 
-var scrollSpeed = 100;
-var scrollFudge = 100;
+let scrollSpeed = 100;
+let scrollFudge = 100;
 
-ensureVisible = function(elem) {
+function ensureVisible(elem) {
     let cont = elem.parent();
     let scroll = cont.scrollTop();
     let height = cont.height();
@@ -58,17 +51,11 @@ ensureVisible = function(elem) {
 
 // get json cookies
 
-cooks = function(name) {
+function cooks(name) {
     const cookies = `; ${document.cookie}`;
     const parts = cookies.split(`; ${name}=`);
     if (parts.length == 2) {
         const f = parts.pop().split(';').shift();
         return JSON.parse(f);
     }
-};
-
-// jquery malarkey
-
-$.fn.ignore = function(sel) {
-    return this.clone().find(sel || '>*').remove().end();
 };
