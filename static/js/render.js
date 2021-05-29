@@ -3,13 +3,14 @@
 export {
     initRender, getPara, innerPara, renderKatex, rawToRender, rawToTextarea,
     envClasses, createRefs, createTOC, troFromKey, popText, syntaxHL, renderBib,
-    s_env_spec, macros
+    s_env_spec, macros, fold
 }
 
 import { sendCommand, schedTimeout } from './client.js'
 import { renderKatex } from './math.js'
-import { ccRefs } from './article.js'
 import { imgCache } from './drop.js'
+import { makeActive } from './editor.js'
+import { ccRefs } from './article.js'
 
 // flags and global vars
 let ext_macros = {};

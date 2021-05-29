@@ -6,7 +6,7 @@ export {
 }
 
 import { sendCommand, schedTimeout } from './client.js'
-import { getPara, rawToRender, syntaxHL } from './render.js'
+import { getPara, rawToRender, syntaxHL, fold } from './render.js'
 import { updateRefHTML, toggleHistMap, cc, ccSet, ccNext, ccMake } from './article.js'
 
 /// global state
