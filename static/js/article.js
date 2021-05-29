@@ -791,10 +791,10 @@ function ccSet(cc_new) {
 function ccNext(dir) {
     let ccpop = $('#cc_pop')[0];
     if (dir == 'up') {
-        f = ccpop.firstElementChild;
+        let f = ccpop.firstElementChild;
         ccpop.appendChild(f); //apend first to end
     } else if (dir == 'down') {
-        l = ccpop.lastElementChild;
+        let l = ccpop.lastElementChild;
         ccpop.prepend(l); //append last child before first
     }
 }
