@@ -40,7 +40,7 @@ function getBibRefs() {
 
 function replaceCites(keys, text) {
     let ref = /\\(c)?ref\{([\w-:]+)\}/g;
-    let text = text.replaceAll(ref, function(m, p1, p2) {
+    text = text.replaceAll(ref, function(m, p1, p2) {
         if (keys.includes(p2)) {
             return `\\cite{${p2}}`;
         } else {
