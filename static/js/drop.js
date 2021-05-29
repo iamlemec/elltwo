@@ -18,7 +18,7 @@ function uploadImg(file, key, callback) {
         return `File size too large (${ksize}kb > 1024kb)`;
     }
     let fbase = file.name.split('.')[0];
-    let key = name || fbase;
+    key = name || fbase;
     let form_data = new FormData();
     form_data.append('file', file);
     form_data.append('key', key);

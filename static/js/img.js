@@ -14,7 +14,7 @@ function renderBox(elem, key) {
     renderImage(img, key);
  }
 
-function render_imgs(img_list=imgs) {
+function renderImgs(img_list=imgs) {
     $('.img_src').remove();
     imgs_n = img_list.slice(0, max_imgs);
     imgs_n.forEach(img => {
@@ -25,7 +25,7 @@ function render_imgs(img_list=imgs) {
     });
 };
 
-function copy_key(keyspan) {
+function copyKey(keyspan) {
     let textArea = document.createElement("textarea");
     textArea.value = $(keyspan).text();
     document.body.appendChild(textArea);
@@ -50,7 +50,7 @@ $(document).on('click', '.img_src', function(e) {
     let ks = $(e.target).closest('.keyspan');
     if (ks.length > 0) {
         $('.keyspan').removeClass('copied');
-        copy_key(ks);
+        copyKey(ks);
         $(ks).addClass('copied');
     } else {
         let src = img.attr('src');
@@ -92,7 +92,7 @@ $(document).on('click', '#img_update', function() {
 
 // search mechanism
 
-function m_search(img, list) {
+function mSearch(img, list) {
     let value = 0;
     target = img[0] + img[1];
     list.forEach(word => {
@@ -109,10 +109,10 @@ $(document).on('keyup', '#img_search', function(e) {
         let ss = $('#img_search').val();
         if (ss) {
             s_terms = ss.split(' ');
-            imgs_s = imgs.filter(img => m_search(img, s_terms) > 0);
-            render_imgs(imgs_s);
+            imgs_s = imgs.filter(img => mSearch(img, s_terms) > 0);
+            renderImgs(imgs_s);
         } else {
-            render_imgs();
+            renderImgs();
         }
     }, 300);
 });
@@ -127,5 +127,5 @@ $(document).ready(function() {
         });
     });
     renderKatex();
-    render_imgs();
+    renderImgs();
 });
