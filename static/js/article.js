@@ -5,6 +5,8 @@ export {
     updateRefHTML, toggleHistMap, cc, ccSet, ccNext, ccMake, ccRefs
 }
 
+import { setCookie, cooks } from './utils.js'
+import { config, state, initConfig, initState, initCache } from './state.js'
 import { initUser } from './user.js'
 import {
     initRender, renderMarkdown, getPara, innerPara, rawToRender, rawToTextarea,
@@ -21,12 +23,7 @@ import { initExport } from './export.js'
 /// global state
 
 // default options
-let default_theme = theme;
 let sidebar_show = false;
-
-// current options
-let current_theme = 'default';
-let current_font = 'default';
 
 // history
 let hist_vis = false;
@@ -37,7 +34,28 @@ let cc = false; // is there a cc window open?
 
 /// initialization
 
-function initArticle() {
+let default_config = {
+    theme: 'classic',
+    font: 'default',
+    timeout: 180,
+    max_size: 1024,
+    readonly: true,
+    title: null,
+    aid: null,
+};
+
+let default_state = {
+};
+
+let default_cache = {
+};
+
+function initArticle(args) {
+    // load in server side config/cache
+    initConfig(default_config, args.config || {});
+    initState(default_state);
+    initCache(default_cache, args.cache || {});
+
     // connect and join room
     connectServer();
 
@@ -45,7 +63,7 @@ function initArticle() {
     initRender();
 
     // update blurbs and refs
-    syncServer();
+    syncServer(args.update_refs || false);
 
     // create full UI
     initUser();
@@ -55,15 +73,20 @@ function initArticle() {
     initEditor();
 
     // jump to pid if specified
-    if (pid !== null) {
+    let pid = args.pid;
+    if (pid !== undefined) {
         let para = getPara(pid);
         makeActive(para);
     }
 }
 
-function initMarkdown(md) {
+function initMarkdown(args) {
+    initConfig(default_config, args.config || {});
+    initState(default_state);
+    initCache(default_cache, args.cache || {});
+
     // deploy and render
-    renderMarkdown(md);
+    renderMarkdown(args.md || '');
 
     // limited UI
     initEditor();
@@ -72,7 +95,7 @@ function initMarkdown(md) {
 function connectServer() {
     let url = `http://${document.domain}:${location.port}`;
     connect(url, () => {
-        sendCommand('join_room', {'room': aid, 'get_locked': true}, (response) => {
+        sendCommand('join_room', {'room': config.aid, 'get_locked': true}, (response) => {
             lockParas(response);
         });
     });
@@ -118,21 +141,21 @@ function connectServer() {
     });
 }
 
-function syncServer() {
+function syncServer(update_refs) {
     // set external reference for import_markdown arts
-    if (g_ref) {
+    if (update_refs) {
         console.log('init global refs');
         $('.para:not(.folder)').each(function() {
             let para = $(this);
             updateRefHTML(para);
         });
-        sendCommand('update_g_ref', {'aid': aid, 'g_ref': false}, function(response) {
+        sendCommand('update_g_ref', {'aid': config.aid, 'g_ref': false}, function(response) {
             console.log(`g_ref set to '${response}'`);
         });
     };
 
     // send blurb back to server
-    if (!readonly) {
+    if (!config.readonly) {
         setBlurb();
     }
 }
@@ -160,7 +183,7 @@ function deletePara(pid) {
             ref_list.splice(i, 1)
         }
         let ref = {};
-        ref.aid = aid;
+        ref.aid = config.aid;
         ref.key = old_id;
         sendCommand('delete_ref', ref, function(success) {
             console.log('success: deleted ref');
@@ -243,7 +266,7 @@ function applyDiff(edits) {
 function createExtRef(id) {
     let tro = troFromKey(id);
     let ref = {};
-    ref.aid = aid;
+    ref.aid = config.aid;
     ref.key = id;
     ref.cite_type = tro.cite_type;
     ref.cite_env = tro.cite_env;
@@ -297,7 +320,7 @@ function updateRefHTML(para) {
                 ref_list.splice(i, 1);
             }
             let ref = {};
-            ref.aid = aid;
+            ref.aid = config.aid;
             ref.key = old_id;
             sendCommand('delete_ref', ref, function(success) {
                 console.log('success: deleted ref');
@@ -331,7 +354,7 @@ function getBlurb(len=200) {
 
 function setBlurb() {
     let blurb = getBlurb();
-    sendCommand('set_blurb', {'aid': aid, 'blurb': blurb}, function(success) {
+    sendCommand('set_blurb', {'aid': config.aid, 'blurb': blurb}, function(success) {
         console.log('blurb set');
     });
 }
@@ -354,28 +377,37 @@ function toggleSidebar() {
     sidebar_show = !sidebar_show;
 }
 
+function setTheme(theme) {
+    config.theme = theme;
+    let tset = (theme == 'default') ? 'classic' : theme;
+    setCookie('theme', theme);
+    $('#theme').remove();
+    let link = themeLink(tset);
+    $('head').append(link);
+}
+
+function setFont(font) {
+    config.font = font;
+    let fset = (font == 'default') ? '' : font;
+    setCookie('font', font);
+    $('#content').css('font-family', fset);
+}
+
 $(document).on('click', '#logo', toggleSidebar);
 
 $(document).on('change', '#theme_select', function() {
     let tselect = $(this);
     let tchoice = tselect.children('option:selected').text();
-    if (tchoice != current_theme) {
-        current_theme = tchoice;
-        let tset = (tchoice == 'default') ? default_theme : tchoice;
-        document.cookie = `theme=${tchoice}; path=/; samesite=lax; secure`;
-        $('#theme').remove();
-        let link = themeLink(tset);
-        $('head').append(link);
+    if (tchoice != config.theme) {
+        setTheme(tchoice);
     }
 });
 
 $(document).on('change', '#font_select', function() {
     let fselect = $(this);
     let fchoice = fselect.children('option:selected').text();
-    if (fchoice != current_font) {
-        current_font = fchoice;
-        let fset = (fchoice == 'default') ? '' : fchoice;
-        $('#content').css('font-family', fset);
+    if (fchoice != config.font) {
+        setFont(fchoice);
     }
 });
 
@@ -391,45 +423,106 @@ $(document).click(function(e) {
 */
 
 function initSidebar() {
-    $(".custom-select").each(function() {
-        let classes = $(this).attr("class"),
-            id      = $(this).attr("id"),
-            name    = $(this).attr("name");
-        let template =  '<div class="' + classes + '">';
-            template += '<span class="custom-select-trigger">' + $(this).attr("placeholder") + '</span>';
-            template += '<div class="custom-options">';
-        $(this).find("option").each(function() {
-            template += '<span class="custom-option ' + $(this).attr("class") + '" data-value="' + $(this).attr("value") + '">' + $(this).html() + '</span>';
-        });
-        template += '</div></div>';
+    console.log('initSidebar');
 
-        $(this).wrap('<div class="custom-select-wrapper"></div>');
-        $(this).hide();
-        $(this).after(template);
+    let theme_select = $('#theme_select');
+    let font_select = $('#font_select');
+
+    makeSelect(theme_select);
+    makeSelect(font_select);
+
+    setSelect(theme_select, config.theme);
+    setSelect(font_select, config.font);
+
+    setTheme(config.theme);
+    setFont(config.font);
+}
+
+function showOption(sel1, opt) {
+    sel1.find('.custom-option').removeClass('selection');
+    opt.addClass('selection');
+
+    let txt = opt.text();
+    sel1.removeClass('opened');
+    sel1.find('.custom-select-trigger').text(txt);
+}
+
+function setSelect(sel, txt) {
+    let wrap = sel.parents('.custom-select-wrapper');
+    let sel1 = wrap.find('.custom-select');
+
+    let trig = sel1.find('.custom-select-trigger');
+    if (trig.text() == txt) {
+        return;
+    }
+
+    let opt = sel1.find('.custom-option')
+                  .filter((i, x) => x.innerText == txt)
+                  .first();
+    if (opt.length == 0) {
+        return;
+    }
+
+    let val = opt.data('value');
+    sel.val(val);
+
+    showOption(sel1, opt);
+}
+
+function makeSelect(sel) {
+    let cls   = sel.attr('class'),
+        id    = sel.attr('id'),
+        name  = sel.attr('name'),
+        place = sel.attr('placeholder');
+
+    let template = [
+        '<div>',
+        `<div class="custom-select ${cls}">`,
+        `<span class="custom-select-trigger">${place}</span>`,
+        '<div class="custom-options">'
+    ];
+
+    sel.find('option').each(function() {
+        let opt = $(this);
+        let value = opt.attr('value'),
+            html  = opt.html();
+        template.push(
+            `<span class="custom-option" data-value="${value}">${html}</span>`
+        );
     });
 
-    $(".custom-option:first-of-type").hover(function() {
-        $(this).parents(".custom-options").addClass("option-hover");
+    template.push('</div>');
+    template = template.join('\n');
+    let temp = $(template);
+
+    sel.wrap('<div class="custom-select-wrapper"></div>');
+    sel.hide();
+    sel.after(temp);
+
+    let sel1 = temp.find('.custom-select');
+
+    temp.find('.custom-option:first-of-type').hover(function() {
+        $(this).parents('.custom-options').addClass('option-hover');
     }, function() {
-        $(this).parents(".custom-options").removeClass("option-hover");
+        $(this).parents('.custom-options').removeClass('option-hover');
     });
 
-    $(".custom-select-trigger").on("click", function() {
-        $('html').one('click',function() {
-            $(".custom-select").removeClass("opened");
+    temp.find('.custom-select-trigger').on('click', function() {
+        $('html').one('click', function() {
+            sel1.removeClass('opened');
         });
-        $(this).parents(".custom-select").toggleClass("opened");
+        sel1.toggleClass('opened');
         event.stopPropagation();
     });
 
-    $(".custom-option").on("click", function() {
-        let x = $(this).parents(".custom-select-wrapper").find("select")
-        x.val($(this).data("value"));
-        x.trigger('change');
-        $(this).parents(".custom-options").find(".custom-option").removeClass("selection");
-        $(this).addClass("selection");
-        $(this).parents(".custom-select").removeClass("opened");
-        $(this).parents(".custom-select").find(".custom-select-trigger").text($(this).text());
+    temp.find('.custom-option').on('click', function() {
+        let opt = $(this);
+        let val = opt.data('value');
+
+        sel.val(val);
+        sel.trigger('change');
+
+        showOption(sel1, opt);
     });
 }
 
@@ -592,7 +685,7 @@ function initHistory(data) {
 
         d3.select('#revert_hist').classed('selected', true);
 
-        sendCommand('get_history', {'aid': aid, 'date': d.commit}, renderPreview);
+        sendCommand('get_history', {'aid': config.aid, 'date': d.commit}, renderPreview);
     }
 
     function generalClick(d, i) {
@@ -656,7 +749,7 @@ function initHistory(data) {
 }
 
 function launchHistMap() {
-    sendCommand('get_commits', {'aid': aid}, function(dates) {
+    sendCommand('get_commits', {'aid': config.aid}, function(dates) {
         updateHistMap(
             dates.map(d => ({
                 'commit': d,
@@ -708,7 +801,7 @@ function toggleHistMap() {
         $('#prog_bar').hide();
     }
     hist_vis = !hist_vis;
-    setWriteable(!readonly && !hist_vis);
+    setWriteable(!config.readonly && !hist_vis);
 }
 
 function revertHistory() {
@@ -717,7 +810,7 @@ function revertHistory() {
         return;
     }
     let data = act.datum();
-    let args = {aid: aid, date: data.commit};
+    let args = {aid: config.aid, date: data.commit};
     sendCommand('revert_history', args, on_success(launchHistMap));
 }
 

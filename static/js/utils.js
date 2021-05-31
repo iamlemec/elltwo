@@ -1,6 +1,14 @@
 /* random utilities */
 
-export { toggleBox, ensureVisible, cooks }
+export { merge, toggleBox, ensureVisible, setCookie, cooks }
+
+// js tricks
+
+function merge() {
+    return Object.assign({}, ...arguments);
+}
+
+// toggle boxen
 
 function toggleBox(bool, button, box) {
     $(button).click(function() {
@@ -50,6 +58,10 @@ function ensureVisible(elem) {
 };
 
 // get json cookies
+
+function setCookie(key, value) {
+    document.cookie = `${key}=${value}; path=/; samesite=lax; secure`;
+}
 
 function cooks(name) {
     const cookies = `; ${document.cookie}`;

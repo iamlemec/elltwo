@@ -2,30 +2,16 @@
 
 {% block head %}
     {{ super() }}
+
     <script type="text/javascript">
-    // article deets
-    const title = '{{title}}';
-    const aid = {{aid|tojson}};
-    g_ref = {{g_ref|tojson}};
-    pid = {% if pid == None %}null{% else %}{{pid|tojson}}{% endif %};
-
-    // immutable options
-    const timeout = 1000*{{timeout|tojson}};
-    const max_size = {{max_size|tojson}};
-    const readonly = !{{edit|tojson}};
-
-    // mutable options
-    theme = '{{theme}}'; // default theme
-
-    // biblio and references
-    ref_list = [];
-    {% for r in ref_list%}
-        ref_list.push('{{r}}');
-    {% endfor %}
-    bib_list = [];
-    {% for b in bib_list%}
-        bib_list.push('{{b}}');
-    {% endfor %}
+        ref_list = [];
+        {% for r in ref_list%}
+            ref_list.push('{{r}}');
+        {% endfor %}
+        bib_list = [];
+        {% for b in bib_list%}
+            bib_list.push('{{b}}');
+        {% endfor %}
     </script>
 
     <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
@@ -44,18 +30,19 @@
 <div id=sidebar_inner>
 
 <div class="options">
+
 <div class="option">
 Theme
- <select id="theme_select" name="theme_select" class="custom-select sources" placeholder="default">
-    {% for t in themes%}
+<select id="theme_select" name="theme_select" class="sources" placeholder="default">
+    {% for t in themes %}
     <option value="{{t}}">{{t}}</option>
     {% endfor %}
-  </select>
-
+</select>
 </div>
+
 <div class="option">
 Font
-<select id="font_select" name="font_select" class="custom-select sources" placeholder="default">
+<select id="font_select" name="font_select" class="sources" placeholder="default">
     <option value="default">default</option>
     <option value="serif">serif</option>
     <option value="sans-serif">sans-serif</option>
@@ -63,6 +50,7 @@ Font
     <option value="sim">simpsons</option>
 </select>
 </div>
+
 </div>
 
 <div id="sb_links">
@@ -109,13 +97,27 @@ Font
 <button id="export_md" class="export_butt">MarkDown</button>
 </div>
 
-<script src="{{ url_for('static', filename='libs/socket.io.min.js') }}" language="Javascript" type="text/javascript"></script>
-<script src="{{ url_for('static', filename='libs/d3.v5.min.js') }}" language="Javascript" type="text/javascript"></script>
-<script src="{{ url_for('static', filename='js/marked3.js') }}" language="Javascript" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='libs/socket.io.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='libs/d3.v5.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='js/marked3.js') }}" type="text/javascript"></script>
 
 <script type="module">
 import { initArticle } from '{{ url_for('static', filename='js/article.js') }}';
-initArticle();
+initArticle({
+    config: {
+        theme: '{{ theme }}',
+        font: '{{ font }}',
+        timeout: {{ timeout|tojson }},
+        max_size: {{ max_size|tojson }},
+        readonly: {{ readonly|tojson }},
+        title: '{{ title }}',
+        aid: {{ aid|tojson }},
+    },
+    cache: {
+    },
+    pid: {{ pid if pid is not none else 'undefined' }},
+    update_refs: {{ g_ref|tojson }},
+});
 </script>
 
 {% endblock %}

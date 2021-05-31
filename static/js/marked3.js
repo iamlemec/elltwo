@@ -976,8 +976,7 @@ DivRenderer.prototype.ref = function(args) {
   const htext =  (text != undefined) ? `text="${text}"`: '';
   const pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
   const ptext = ('poptext' in args) ? `poptext="${args['poptext']}"`: '';
-  const x = (readonly) ? 'r' : 'a';
-  const href = (ext) ? `${window.location.origin}/${x}/${id.split(':')[0]}\#${id.split(':')[1]}` : `\#${id}`;
+  const href = (ext) ? `${window.location.origin}/a/${id.split(':')[0]}\#${id.split(':')[1]}` : `\#${id}`;
   return `<a href="${href}" class="reference ${pclass}" citekey="${id}" data-extern="${ext}" format="${format}" ${htext} ${ptext}></a>`;
 };
 

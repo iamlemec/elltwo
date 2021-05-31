@@ -2,6 +2,7 @@
 
 export { connectDrops, renderImage, imgCache }
 
+import { config } from './state.js'
 import { sendCommand } from './client.js'
 
 /// global state
@@ -17,7 +18,7 @@ function uploadImg(file, key, callback) {
     if (!img_types.includes(file.type)) {
         return `Unsupported file type: ${file.type}`;
     }
-    if (file.size > 1024*max_size) {
+    if (file.size > 1024*config.max_size) {
         let ksize = Math.floor(file.size/1024);
         return `File size too large (${ksize}kb > 1024kb)`;
     }

@@ -5,6 +5,7 @@ export {
     unlockParas, sendMakeEditable, sendUpdatePara
 }
 
+import { config, state } from './state.js'
 import { ensureVisible, cooks } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { getPara, rawToRender, syntaxHL, fold } from './render.js'
@@ -15,7 +16,7 @@ import { updateRefHTML, toggleHistMap, cc, ccSet, ccNext, ccMake } from './artic
 let active_para = null; // current active para
 let last_active = null; // to keep track of where cursor was
 let editable = false; // are we focused on the active para
-let writeable = !readonly; // can we actually modify contents (depends on readonly and history mode)
+let writeable = !config.readonly; // can we actually modify contents (depends on readonly and history mode)
 let cb = []; // clipboard for cell copy
 
 /// mutate state
@@ -77,7 +78,7 @@ function sendUpdatePara(para, force=false) {
         return;
     }
     let pid = para.attr('pid');
-    let data = {aid: aid, pid: pid, text: text};
+    let data = {aid: config.aid, pid: pid, text: text};
     sendCommand('update_para', data, on_success(() => {
         storeChange(para, text);
     }));
@@ -92,7 +93,7 @@ function sendInsertBefore(para) {
     } else {
         pid = para.attr('pid');
     };
-    let data = {aid: aid, pid: pid};
+    let data = {aid: config.aid, pid: pid};
     sendCommand('insert_before', data, on_success(() => {
         // activePrevPara();
         // sendMakeEditable();
@@ -108,7 +109,7 @@ function sendInsertAfter(para) {
     } else {
         pid = para.attr('pid');
     };
-    let data = {aid: aid, pid: pid};
+    let data = {aid: config.aid, pid: pid};
     sendCommand('insert_after', data, on_success(() => {
         // console.log(active_para)
         // activeNextPara()
@@ -118,7 +119,7 @@ function sendInsertAfter(para) {
 
 function sendDeletePara(para) {
     let pid = para.attr('pid');
-    let data = {aid: aid, pid: pid};
+    let data = {aid: config.aid, pid: pid};
     let next = getNextPara(para);
     if (next.length == 0) {
         next = getPrevPara(para);
@@ -182,7 +183,7 @@ function sendMakeEditable(cursor='end') {
         }
         if (writeable) {
             let pid = active_para.attr('pid');
-            let data = {pid: pid, aid: aid};
+            let data = {pid: pid, aid: config.aid};
             sendCommand('lock', data, function(response) {
                 if (response) {
                     trueMakeEditable(true, cursor);
@@ -227,7 +228,7 @@ function lockParas(pids) {
 }
 
 function sendUnlockPara(pids) {
-    let data = {aid: aid, pids: pids};
+    let data = {aid: config.aid, pids: pids};
     sendCommand('unlock', data, function(response) {
         // console.log(response);
     });
@@ -360,7 +361,7 @@ function pasteCells() {
     let pid = active_para.attr('pid');
     let ccb = cooks('cb') || cb;
     if (ccb && pid) {
-        let data = {aid: aid, pid: pid, cb: ccb};
+        let data = {aid: config.aid, pid: pid, cb: ccb};
         sendCommand('paste_cells', data, function(response) {
             console.log(response);
         });

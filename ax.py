@@ -323,7 +323,7 @@ def confirm_token(token, expiration=3600):
 ### Article
 ###
 
-def GetArtData(title, edit, theme, pid=None):
+def GetArtData(title, edit, theme, font, pid=None):
     print(f'article [{pid}]: {title}')
     themes = [t[:-4] for t in os.listdir('static/themes/')]
     art = adb.get_art_short(title)
@@ -341,10 +341,11 @@ def GetArtData(title, edit, theme, pid=None):
             pid=pid,
             paras=paras,
             theme=theme,
+            font=font,
             themes=themes,
             timeout=args.timeout,
             max_size=args.max_size,
-            edit=edit,
+            readonly=not edit,
             ref_list=ref_list,
             bib_list=bib_list,
             g_ref=art.g_ref,
@@ -360,16 +361,18 @@ def ErrorPage(title='Error', message=''):
 @app.route('/a/<title>', methods=['GET'])
 def RenderArticle(title):
     theme = request.cookies.get('theme') or args.theme
+    font = request.cookies.get('font') or 'default'
     pid = request.args.get('pid')
     if current_user.is_authenticated or not args.login:
-        return GetArtData(title, True, theme=theme, pid=pid)
+        return GetArtData(title, True, theme=theme, font=font, pid=pid)
     else:
         return redirect(url_for('RenderArticleRO', title=title))
 
 @app.route('/r/<title>', methods=['GET'])
 def RenderArticleRO(title):
     theme = request.cookies.get('theme') or args.theme
-    return GetArtData(title, False, theme=theme)
+    font = request.cookies.get('font') or 'default'
+    return GetArtData(title, False, theme=theme, font=font)
 
 @app.route('/i/<key>', methods=['GET'])
 def GetImage(key):
@@ -400,7 +403,6 @@ def export_tex():
     data = json.loads(data)
 
     title = data['title']
-    in_title = data['in_title']
     paras = data['paras']
     bib = adb.get_bib_dict(keys=data['keys'])
     macros = data['macros']
@@ -409,7 +411,7 @@ def export_tex():
     fname = f'{title}.tex'
 
     tex = render_template('template.tex',
-        in_title=in_title,
+        title=title,
         paras=paras, bib=bib,
         macros=macros,
         s_envs=s_envs,

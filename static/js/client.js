@@ -1,10 +1,11 @@
 export { connect, addHandler, sendCommand, schedTimeout }
 
+import { config } from './state.js'
+
 // socketio connection
 let socket = null;
 
 // timeout state
-let timeout = 1000*180; // 3 mins
 let timeout_id = null;
 
 // takes optional connect event callback
@@ -67,5 +68,5 @@ function schedTimeout() {
     if (timeout_id !== null) {
         clearTimeout(timeout_id);
     }
-    timeout_id = setTimeout(autoLockout, timeout);
+    timeout_id = setTimeout(autoLockout, 1000*config.timeout);
 }

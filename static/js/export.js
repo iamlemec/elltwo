@@ -3,11 +3,13 @@
 export { initExport }
 
 import { toggleBox } from './utils.js'
+import { state } from './state.js'
 import { s_env_spec, macros } from './render.js'
 
-let in_title = title;
+let title;
 
 function createTex() {
+    title = state.title;
     let keys = getBibRefs();
     let output = [];
     $('.para:not(.folder)').each(function() {
@@ -29,7 +31,6 @@ function createTex() {
     let dict = {
         'paras': output,
         'keys': keys,
-        'in_title': in_title,
         'title': title,
         'macros': tex_macros,
         's_envs': s_envs,
@@ -112,7 +113,7 @@ function texTheorem(src, env) {
 }
 
 function texTitle(src, env) {
-    in_title = src;
+    title = src;
     return '';
 }
 
