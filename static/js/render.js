@@ -3,22 +3,16 @@
 export {
     initRender, renderMarkdown, getPara, innerPara, renderKatex, rawToRender,
     rawToTextarea, envClasses, createRefs, createTOC, troFromKey, popText,
-    syntaxHL, renderBib, s_env_spec, macros, fold
+    syntaxHL, renderBib, s_env_spec, fold
 }
 
 import { cooks } from './utils.js'
-import { cache } from './state.js'
+import { config, cache, state } from './state.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { renderKatex } from './math.js'
 import { imgCache } from './drop.js'
 import { makeActive } from './editor.js'
 import { ccRefs } from './article.js'
-
-// flags and global vars
-let ext_macros = {};
-let macros = ext_macros;
-let ext_refs = {};
-let folded = []; // current folded pids
 
 // inner HTML for para structure. Included here for updating paras
 const innerPara = `
@@ -95,7 +89,7 @@ function rawToRender(para, defer, raw=null) {
     para.children('.p_text').html(html_text);
 
     // render math
-    renderKatex(para, macros);
+    renderKatex(para, state.macros);
 
     // must remove old classes, to prevent pileup / artifacts
     para.removeClass('env_end')
@@ -248,7 +242,7 @@ function envClasses(outer) {
             env_all.addClass('env');
             env_all.attr('env_pid', env_pid);
             txt_all.addClass(`env__${env_name}`);
-            if (folded.includes(env_pid)) {
+            if (cache.folded.includes(env_pid)) {
                 env_all.addClass('folded');
             };
             envFormat(txt_all, env_name, env_args);
@@ -327,7 +321,7 @@ function simpleEnv(ptxt, env, head='', tail='', number=true, args={}) {
     let env_pid = para.attr('env_pid');
     fold.attr('fold_pid', env_pid)
         .attr('fold_level', 0);
-    // if (!folded.includes(env_pid)) {
+    // if (!cache.folded.includes(env_pid)) {
     //     fold.addClass('folded');
     // }
     para.before(fold);
@@ -393,7 +387,7 @@ function headingEnv(ptxt, args) {
     fold.attr('fold_pid', env_pid)
         .attr('head_level', args.level)
         .attr('fold_level', 0);
-    // if (!folded.includes(env_pid)) {
+    // if (!cache.folded.includes(env_pid)) {
     //     fold.addClass('folded')
     // }
     para.before(fold);
@@ -480,7 +474,7 @@ function parse_preamble(raw) {
         .filter(macraw => macraw.includes(':')) // is it a macro?
         .map(macraw => macraw.split(':')) // split on :
         .forEach(el => int_macros[el[0]] = el[1]); // save internal macros
-    macros = Object.assign({}, int_macros, ext_macros); // merge internal and ext macros, overwrites internal
+    state.macros = Object.assign({}, int_macros, config.macros); // merge internal and ext macros, overwrites internal
 }
 
 /// Numbering and TOC
@@ -1313,8 +1307,8 @@ function getFoldParas(pid) {
 }
 
 function initFold() {
-    folded = cooks('folded') || folded;
-    folded.forEach(pid => {
+    cache.folded = cooks('folded') || cache.folded;
+    cache.folded.forEach(pid => {
         let para = getPara(pid);
         fold(para, init=true);
     });
@@ -1361,14 +1355,14 @@ function fold(para, init=false) {
         fold.attr('fold_level', l+1);
         makeActive(fold);
         if (!init) {
-            folded.push(env_pid);
-            const foldcookie = JSON.stringify(folded);
+            cache.folded.push(env_pid);
+            const foldcookie = JSON.stringify(cache.folded);
             document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
         }
     } else if (fold_pid) {
-        const index = folded.indexOf(fold_pid);
+        const index = cache.folded.indexOf(fold_pid);
         if (index > -1) {
-            folded.splice(index, 1);
+            cache.folded.splice(index, 1);
         }
         const foldParas = getFoldParas(fold_pid);
         foldParas[0].each(function() {
@@ -1380,7 +1374,7 @@ function fold(para, init=false) {
         const l = getFoldLevel(fold);
         fold.attr('fold_level', l-1);
         makeActive(foldParas[1]);
-        const foldcookie = JSON.stringify(folded);
+        const foldcookie = JSON.stringify(cache.folded);
         document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
     }
     renderFold();
@@ -1388,8 +1382,8 @@ function fold(para, init=false) {
 
 function unfold() {
     $('.para').attr('fold_level', 0);
-    folded = [];
-    const foldcookie = JSON.stringify(folded);
+    cache.folded = [];
+    const foldcookie = JSON.stringify(cache.folded);
     document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
     renderFold();
 }

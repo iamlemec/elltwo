@@ -30,7 +30,7 @@
 </head>
 
 <body>
-    <div id="bg" {% if not edit %}class="readonly"{% endif %}>
+    <div id="bg" {% if readonly %}class="readonly"{% endif %}>
 
         {% block header %}{% endblock %}
 

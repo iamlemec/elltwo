@@ -2,7 +2,7 @@
 
 export {
     initArticle, initMarkdown, insertPara, updatePara, updateParas, deletePara,
-    updateRefHTML, toggleHistMap, cc, ccSet, ccNext, ccMake, ccRefs
+    updateRefHTML, toggleHistMap, ccNext, ccMake, ccRefs
 }
 
 import { setCookie, cooks } from './utils.js'
@@ -13,50 +13,56 @@ import {
     envClasses, createRefs, createTOC, troFromKey, popText, syntaxHL, renderBib
 } from './render.js'
 import {
-    initEditor, setWriteable, resize, getActive, makeActive, lockParas,
-    unlockParas, sendMakeEditable, sendUpdatePara
+    initEditor, resize, makeActive, lockParas, unlockParas, sendMakeEditable,
+    sendUpdatePara
 } from './editor.js'
 import { connect, addHandler, sendCommand } from './client.js'
 import { connectDrops } from './drop.js'
 import { initExport } from './export.js'
 
-/// global state
-
-// default options
-let sidebar_show = false;
-
 // history
-let hist_vis = false;
 let updateHistMap;
-
-// command/reference completion
-let cc = false; // is there a cc window open?
 
 /// initialization
 
 let default_config = {
-    theme: 'classic',
-    font: 'default',
-    timeout: 180,
-    max_size: 1024,
-    readonly: true,
-    title: null,
-    aid: null,
+    theme: 'classic', // theme to use
+    font: 'default', // font to use
+    timeout: 180, // para lock timeout
+    max_size: 1024, // max image size
+    readonly: true, // is session readonly
+    macros: {}, // external katex macros
+    title: null, // default article title
+    aid: null, // article identifier
 };
 
 let default_cache = {
-    'ref': [],
-    'bib': [],
+    ref: [], // internal references
+    bib: [], // bibliography entries
+    ext_ref: {}, // external ref info
+    folded: [], // current folded pids
 };
 
 let default_state = {
+    sidebar_show: false, // is sidebar shown
+    hist_vis: false, // is history mode on
+    editable: false, // are we focused on the active para
+    writeable: false, // can we actually modify contents
+    active_para: null, // current active para
+    last_active: null, // to keep track of where cursor was
+    macros: {}, // internal katex macros
+    cc: false, // is there a command completion window open
+    cb: [], // clipboard for cell copy
 };
 
 function initArticle(args) {
     // load in server side config/cache
     initConfig(default_config, args.config || {});
     initCache(default_cache, args.cache || {});
+
+    // set state and make consistent
     initState(default_state);
+    state.writeable = !config.readonly;
 
     // connect and join room
     connectServer();
@@ -376,7 +382,7 @@ function toggleSidebar() {
     $('#sidebar').animate({width: 'toggle'}, 100);
     $('#logo').toggleClass('opened');
     $('#content').toggleClass('sb_content');
-    sidebar_show = !sidebar_show;
+    state.sidebar_show = !state.sidebar_show;
 }
 
 function setTheme(theme) {
@@ -415,7 +421,7 @@ $(document).on('change', '#font_select', function() {
 
 /*
 $(document).click(function(e) {
-    if (sidebar_show) {
+    if (state.sidebar_show) {
         if ($(e.target).closest('#sidebar').length == 0
           && $(e.target).closest('#logo').length == 0) {
            toggleSidebar();
@@ -552,9 +558,8 @@ function renderPreview(hist) {
     let preview = $('#preview');
     let content = $('#content');
 
-    let active_para = getActive();
-    let pid0 = active_para ? active_para.attr('pid') : null;
-    let ppos = active_para ? active_para.position().top : null;
+    let pid0 = state.active_para ? state.active_para.attr('pid') : null;
+    let ppos = state.active_para ? state.active_para.position().top : null;
     let cpos = content.scrollTop();
 
     preview.empty();
@@ -582,7 +587,7 @@ function renderPreview(hist) {
     // make active and ensure same relative position
     makeActive(new_active, false);
     if (ppos !== null) {
-        cpos = preview.scrollTop() + active_para.position().top - ppos;
+        cpos = preview.scrollTop() + state.active_para.position().top - ppos;
     }
     preview.scrollTop(cpos);
 }
@@ -769,22 +774,21 @@ function hideHistPreview() {
     $('#revert_hist').removeClass('selected');
     $('.hist_pop').remove();
 
-    let active_para = getActive();
     let cpos = preview.scrollTop();
-    let ppos = active_para ? active_para.position().top : null;
+    let ppos = state.active_para ? state.active_para.position().top : null;
 
     content.show();
     preview.hide();
 
-    if (active_para) {
-        let pid = active_para.attr('pid');
+    if (state.active_para) {
+        let pid = state.active_para.attr('pid');
         let para = content.children(`[pid=${pid}]`);
         let new_active = (para.length > 0) ? para : null;
 
         // make active and align scroll
         makeActive(new_active, false);
         if (ppos !== null) {
-            cpos = content.scrollTop() + active_para.position().top - ppos;
+            cpos = content.scrollTop() + state.active_para.position().top - ppos;
         }
     }
 
@@ -795,15 +799,15 @@ function hideHistPreview() {
 
 function toggleHistMap() {
     $('#hist').toggle();
-    if (hist_vis) {
+    if (state.hist_vis) {
         hideHistPreview();
         $('#prog_bar').show();
     } else {
         launchHistMap();
         $('#prog_bar').hide();
     }
-    hist_vis = !hist_vis;
-    setWriteable(!config.readonly && !hist_vis);
+    state.hist_vis = !state.hist_vis;
+    state.writeable = !config.readonly && !state.hist_vis;
 }
 
 function revertHistory() {
@@ -889,10 +893,6 @@ connectDrops(function(box, data) {
 
 /// reference completion
 
-function ccSet(cc_new) {
-    cc = cc_new;
-}
-
 function ccNext(dir) {
     let ccpop = $('#cc_pop')[0];
     if (dir == 'up') {
@@ -906,8 +906,7 @@ function ccNext(dir) {
 
 function ccMake() {
     let cctxt = $('.cc_row').first().text();
-    let active_para = getActive();
-    let input = active_para.children('.p_input');
+    let input = state.active_para.children('.p_input');
     let raw = input.val();
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
@@ -946,8 +945,8 @@ function ccMake() {
     }
     input.val(raw);
     resize(input[0]);
-    syntaxHL(active_para);
-    cc = false;
+    syntaxHL(state.active_para);
+    state.cc = false;
     $('#cc_pop').remove();
     input[0].setSelectionRange(l, l);
 }
@@ -957,7 +956,7 @@ function ccMake() {
 function ccSearch(list, search, placement) {
     list = list.filter(el => el.includes(search));
     if (list.length > 0) {
-        cc = true;
+        state.cc = true;
         let pop = $('<div>', {id: 'cc_pop'});
         list.forEach(r => {
             let cc_row = $('<div>', {class: 'cc_row'});
@@ -974,7 +973,7 @@ function ccSearch(list, search, placement) {
 }
 
 function ccRefs(raw, view, e) {
-    cc = false;
+    state.cc = false;
     $('#cc_pop').remove();
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
@@ -993,24 +992,22 @@ function ccRefs(raw, view, e) {
                 let search = cap[2] || '';
                 ccSearch(cache.bib, search, p);
             } else if (cap[3] && !cap[2]) { // searching for ext page
-                let ex_keys = Object.keys(ext_refs);
+                let ex_keys = Object.keys(cache.ext_ref);
                 if (ex_keys.length == 0) { // if we have not made request
                     sendCommand('get_arts', '', function(arts) {
-                        ext_refs = arts;
-                        search = '';
-                        ccSearch(Object.keys(arts), search, p);
+                        cache.ext_ref = arts;
+                        ccSearch(Object.keys(arts), '', p);
                     });
                 } else {
-                    search = cap[4] || '';
+                    let search = cap[4] || '';
                     ccSearch(ex_keys, search, p);
                 }
             } else if (cap[2] && cap[3]) {
                 sendCommand('get_refs', {'title': cap[2]}, function(data) {
                     if (data.refs.length > 0) {
-                        ext_refs[data.title] = data.refs;
+                        cache.ext_ref[data.title] = data.refs;
                     }
-                    search = '';
-                    ccSearch(data.refs, search, p);
+                    ccSearch(data.refs, '', p);
                 });
             } else {
                 let search = cap[4] || cap[2] || '';
@@ -1021,14 +1018,14 @@ function ccRefs(raw, view, e) {
         let b = cap.index;
         let e = b + cap[0].length;
         if (cur >= b && cur <= e) {
-            raw = raw.slice(0,e) + `<span id=cc_pos></span>` + raw.slice(e)
+            raw = raw.slice(0,e) + `<span id="cc_pos"></span>` + raw.slice(e)
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-            let ex_keys = Object.keys(ext_refs);
+            let ex_keys = Object.keys(cache.ext_ref);
             if (ex_keys.length == 0) { // if we have not made request
                 sendCommand('get_arts', '', function(arts) {
-                    ext_refs = arts;
+                    cache.ext_ref = arts;
                     search = '';
                     ccSearch(Object.keys(arts), search, p);
                 });

@@ -4,7 +4,7 @@ export { initExport }
 
 import { toggleBox } from './utils.js'
 import { state } from './state.js'
-import { s_env_spec, macros } from './render.js'
+import { s_env_spec } from './render.js'
 
 let title;
 
@@ -25,7 +25,7 @@ function createTex() {
         output.push(tex);
     });
 
-    let tex_macros = texMacros(macros);
+    let tex_macros = texMacros(state.macros);
     let s_envs = sEnv(s_env_spec);
 
     let dict = {

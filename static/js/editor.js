@@ -1,29 +1,15 @@
 ////// UI ///////
 
 export {
-    initEditor, setWriteable, resize, getActive, makeActive, lockParas,
-    unlockParas, sendMakeEditable, sendUpdatePara
+    initEditor, resize, makeActive, lockParas, unlockParas,
+    sendMakeEditable, sendUpdatePara
 }
 
 import { config, state } from './state.js'
 import { ensureVisible, cooks } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { getPara, rawToRender, syntaxHL, fold } from './render.js'
-import { updateRefHTML, toggleHistMap, cc, ccSet, ccNext, ccMake } from './article.js'
-
-/// global state
-
-let active_para = null; // current active para
-let last_active = null; // to keep track of where cursor was
-let editable = false; // are we focused on the active para
-let writeable = !config.readonly; // can we actually modify contents (depends on readonly and history mode)
-let cb = []; // clipboard for cell copy
-
-/// mutate state
-
-function setWriteable(wr) {
-    writeable = wr;
-}
+import { updateRefHTML, toggleHistMap, ccNext, ccMake } from './article.js'
 
 /// textarea manage
 
@@ -111,8 +97,8 @@ function sendInsertAfter(para) {
     };
     let data = {aid: config.aid, pid: pid};
     sendCommand('insert_after', data, on_success(() => {
-        // console.log(active_para)
-        // activeNextPara()
+        // console.log(state.active_para);
+        // activeNextPara();
         // sendMakeEditable();
     }));
 }
@@ -137,8 +123,8 @@ function sendDeletePara(para) {
 
 function placeCursor(loc) {
     console.log('placeCursor:', loc);
-    if (active_para && writeable) {
-        let text = active_para.children('.p_input');
+    if (state.active_para && state.writeable) {
+        let text = state.active_para.children('.p_input');
         text.focus();
         if (loc == 'begin') {
             text[0].setSelectionRange(0, 0);
@@ -150,17 +136,17 @@ function placeCursor(loc) {
 }
 
 function unPlaceCursor() {
-    if (active_para && writeable) {
-        let text = active_para.children('.p_input');
+    if (state.active_para && state.writeable) {
+        let text = state.active_para.children('.p_input');
         text.blur();
     }
 }
 
 function trueMakeEditable(rw=true, cursor='end') {
-    editable = true;
-    active_para.addClass('editable');
+    state.editable = true;
+    state.active_para.addClass('editable');
 
-    let text = active_para.children('.p_input');
+    let text = state.active_para.children('.p_input');
     resize(text[0]);
     if (rw) {
         text.prop('readonly', false);
@@ -169,7 +155,7 @@ function trueMakeEditable(rw=true, cursor='end') {
             $('#foot').hide();
         };
     }
-    syntaxHL(active_para);
+    syntaxHL(state.active_para);
 
     schedTimeout();
 }
@@ -177,12 +163,12 @@ function trueMakeEditable(rw=true, cursor='end') {
 function sendMakeEditable(cursor='end') {
     $('.para').removeClass('editable');
     $('.para').removeClass('copy_sel');
-    if (active_para) {
-        if (active_para.hasClass('folder')) {
-            fold(active_para);
+    if (state.active_para) {
+        if (state.active_para.hasClass('folder')) {
+            fold(state.active_para);
         }
-        if (writeable) {
-            let pid = active_para.attr('pid');
+        if (state.writeable) {
+            let pid = state.active_para.attr('pid');
             let data = {pid: pid, aid: config.aid};
             sendCommand('lock', data, function(response) {
                 if (response) {
@@ -204,13 +190,13 @@ function makeUnEditable(send=true) {
 
     $('#content').focus();
 
-    ccSet(false);
+    state.cc = false;
     $('#cc_pop').remove();
 
-    if (active_para && editable) {
-        editable = false;
-        if (writeable) {
-            localChange(active_para, send);
+    if (state.active_para && state.editable) {
+        state.editable = false;
+        if (state.writeable) {
+            localChange(state.active_para, send);
         }
         if (mobile) {
             $('#foot').show();
@@ -247,39 +233,35 @@ function unlockParas(pids) {
 
 /// active para tracking
 
-function getActive() {
-    return active_para;
-}
-
 function makeActive(para, scroll=true) {
     if (!para) {
         $('.para').removeClass('copy_sel');
     }
     makeUnEditable();
     $('.para').removeClass('active');
-    if (active_para) {
-        last_active = active_para;
+    if (state.active_para) {
+        state.last_active = state.active_para;
     }
-    active_para = para;
-    if (active_para) {
+    state.active_para = para;
+    if (state.active_para) {
         para.addClass('active');
         if (scroll) {
-            ensureVisible(active_para);
+            ensureVisible(state.active_para);
         }
     }
 }
 
 function getNextPara(para) {
-    return (para || active_para).nextAll('.para:not(.folded)').first();
+    return (para || state.active_para).nextAll('.para:not(.folded)').first();
 }
 
 function getPrevPara(para) {
-    return (para || active_para).prevAll('.para:not(.folded)').first();
+    return (para || state.active_para).prevAll('.para:not(.folded)').first();
 }
 
 // next para
 function activeNextPara() {
-    if (active_para) {
+    if (state.active_para) {
         let next = getNextPara();
         if (next.length > 0) {
             makeActive(next);
@@ -291,7 +273,7 @@ function activeNextPara() {
 }
 
 function activePrevPara() {
-    if (active_para) {
+    if (state.active_para) {
         let prev = getPrevPara();
         if (prev.length > 0) {
             makeActive(prev);
@@ -318,8 +300,8 @@ function activeLastPara() {
 
 function editShift(dir='up') {
     let top, bot;
-    if (writeable) {
-        let input = active_para.children('.p_input')[0];
+    if (state.writeable) {
+        let input = state.active_para.children('.p_input')[0];
         let cpos = input.selectionStart;
         let tlen = input.value.length;
         top = (cpos == 0);
@@ -349,17 +331,19 @@ function editShift(dir='up') {
 // copy cell
 
 function copyCells() {
-    cb = [];
+    state.cb = [];
     $('.copy_sel, .active').each(function() {
-        cb.push($(this).attr('pid'));
+        let para = $(this);
+        let pid = para.attr('pid');
+        state.cb.push(pid);
     })
-    const cbcookie = JSON.stringify(cb);
+    const cbcookie = JSON.stringify(state.cb);
     document.cookie = `cb=${cbcookie}; path=/; max-age=60; samesite=lax; secure`;
 }
 
 function pasteCells() {
-    let pid = active_para.attr('pid');
-    let ccb = cooks('cb') || cb;
+    let pid = state.active_para.attr('pid');
+    let ccb = cooks('cb') || state.cb;
     if (ccb && pid) {
         let data = {aid: config.aid, pid: pid, cb: ccb};
         sendCommand('paste_cells', data, function(response) {
@@ -395,18 +379,18 @@ function initEditor() {
         if (key == '§') {
             toggleSidebar();
         }
-        if (!active_para) { // if we are inactive
+        if (!state.active_para) { // if we are inactive
             if (key == 'enter') {
-                let foc_para = last_active || $('.para').first();
+                let foc_para = state.last_active || $('.para').first();
                 makeActive(foc_para);
             }
-        } else if (active_para && !editable) {
+        } else if (state.active_para && !state.editable) {
             if (key == 'enter' || key == 'w') {
                 sendMakeEditable();
                 return false;
             }else if (key == 'arrowup') {
                 if(shift){
-                    active_para.addClass('copy_sel')
+                    state.active_para.addClass('copy_sel')
                 } else {
                     $('.para').removeClass('copy_sel')
                 }
@@ -414,7 +398,7 @@ function initEditor() {
                 return false;
             } else if (key == 'arrowdown') {
                 if(shift){
-                    active_para.addClass('copy_sel')
+                    state.active_para.addClass('copy_sel')
                 } else {
                     $('.para').removeClass('copy_sel')
                 }
@@ -431,47 +415,47 @@ function initEditor() {
             } else if (key == 'escape') {
                 makeActive(null);
             } else if (shift && key == 'f') {
-                fold(active_para);
+                fold(state.active_para);
             }
-            if (writeable) { // if we are active but not in edit mode
+            if (state.writeable) { // if we are active but not in edit mode
                 if (key == 'a') {
-                    sendInsertBefore(active_para);
+                    sendInsertBefore(state.active_para);
                 } else if (key == 'b') {
-                    sendInsertAfter(active_para);
+                    sendInsertAfter(state.active_para);
                 } else if (shift && key == 'd') {
-                    sendDeletePara(active_para);
+                    sendDeletePara(state.active_para);
                 }
             }
-        } else if (active_para && editable) { // we are active and editable
+        } else if (state.active_para && state.editable) { // we are active and editable
             if (key == 'arrowup' || key == 'arrowleft') {
-                if (cc) { // if there is an open command completion window
+                if (state.cc) { // if there is an open command completion window
                     ccNext('down');
                     return false;
                 } else {
                     return editShift('up');
                 }
             } else if (key == 'arrowdown' || key == 'arrowright') {
-                if (cc) {
+                if (state.cc) {
                     ccNext('up');
                     return false;
                 } else {
                     return editShift('down');
                 }
             } else if (key == 'escape') {
-                if (cc) {
-                    ccSet(false);
+                if (state.cc) {
+                    state.cc = false;
                     $('#cc_pop').remove();
                 } else {
                     makeUnEditable();
                 }
             } else if (!shift && key == 'enter') {
-                if (cc) {
+                if (state.cc) {
                     ccMake();
                     return false;
                 }
             } else if (shift && key == 'enter') {
                 makeUnEditable();
-                sendInsertAfter(active_para);
+                sendInsertAfter(state.active_para);
                 return false;
             }
         }
@@ -486,11 +470,11 @@ function initEditor() {
             let para = $(this);
             if (!para.hasClass('active')) {
                 makeActive($(this));
-            } else if (!editable) {
+            } else if (!state.editable) {
                 sendMakeEditable();
             }
             return false;
-        } else if (active_para && cmd){
+        } else if (state.active_para && cmd) {
             $(this).addClass('copy_sel');
             return false;
         }
