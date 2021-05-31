@@ -7,6 +7,7 @@ export {
 }
 
 import { cooks } from './utils.js'
+import { cache } from './state.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { renderKatex } from './math.js'
 import { imgCache } from './drop.js'
@@ -752,19 +753,19 @@ let ref_spec = {
 
 /// THIS IS REPEATED FROM THE BIB.JS, we should make it more efficent
 
- //this does not redner anything, it adds the cite keys
+// this does not render anything, it adds the cite keys
 // to the comand completion list, the name is a hold over
-//and becuase it is used for other pages (/b)
+// and becuase it is used for other pages (/b)
 function renderBib(data) {
     data.forEach(cite => {
-        bib_list.push(cite.citekey);
+        cache.bib.push(cite.citekey);
     });
 }
 
 function deleteCite(data) {
-    let i = bib_list.indexOf(data);
+    let i = cache.bib.indexOf(data);
     if (i !== -1) {
-        bib_list.splice(i, 1);
+        cache.bib.splice(i, 1);
     }
 }
 

@@ -625,9 +625,7 @@ def delete_cite(data):
 
 @socketio.on('get_bib')
 def get_bib(data):
-    keys = data['keys']
-    if not keys:
-        keys=None
+    keys = data.get('keys', None)
     bib = adb.get_bib_dict(keys=keys)
     socketio.emit('renderBib', bib)
 

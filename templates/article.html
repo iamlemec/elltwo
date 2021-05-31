@@ -2,18 +2,6 @@
 
 {% block head %}
     {{ super() }}
-
-    <script type="text/javascript">
-        ref_list = [];
-        {% for r in ref_list%}
-            ref_list.push('{{r}}');
-        {% endfor %}
-        bib_list = [];
-        {% for b in bib_list%}
-            bib_list.push('{{b}}');
-        {% endfor %}
-    </script>
-
     <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
 {% endblock %}
 
@@ -54,8 +42,8 @@ Font
 </div>
 
 <div id="sb_links">
-<div id="sb_links_title">Helpful Links</div>
 
+<div id="sb_links_title">Helpful Links</div>
 <a href={{ url_for('RenderBib') }}>Bibliography</a>
 <a href={{ url_for('RenderArticle', title='howto') }}>Documentation</a>
 <a href={{ url_for('Img') }}>Image Lib</a>
@@ -63,11 +51,7 @@ Font
 </div>
 
 <div id="toc_title">Contents</div>
-<div id=toc_wrap>
-<div id="toc">
-</div>
-</div>
-
+<div id=toc_wrap><div id="toc"></div></div>
 
 </div>
 </div>
@@ -75,16 +59,17 @@ Font
 {% endblock %}
 
 {% block content %}
-    {% for p in paras %}
-        <div class="para" pid="{{p.pid}}" raw="{{p.text}}" fold_level="0"></div>
-    {% endfor%}
-        <div id="bib_block">
-          <div class="bib_heading">References</div>
-        </div>
+
+{% for p in paras %}
+<div class="para" pid="{{p.pid}}" raw="{{p.text}}" fold_level="0"></div>
+{% endfor%}
+<div id="bib_block"><div class="bib_heading">References</div></div>
+
 {% endblock %}
 
 {% block foot %}
-<div id=prog_bar></div>
+
+<div id="prog_bar"></div>
 <div id="hist"></div>
 
 <span class="push"></span>
@@ -92,7 +77,7 @@ Font
 <button id="show_hist" class="foot_butt">History</button>
 <button id="export" class="foot_butt">Export</button>
 
-<div id=export_options class=box>
+<div id="export_options" class="box">
 <button id="export_tex" class="export_butt">TeX</button>
 <button id="export_md" class="export_butt">MarkDown</button>
 </div>
@@ -103,21 +88,25 @@ Font
 
 <script type="module">
 import { initArticle } from '{{ url_for('static', filename='js/article.js') }}';
-initArticle({
-    config: {
-        theme: '{{ theme }}',
-        font: '{{ font }}',
-        timeout: {{ timeout|tojson }},
-        max_size: {{ max_size|tojson }},
-        readonly: {{ readonly|tojson }},
-        title: '{{ title }}',
-        aid: {{ aid|tojson }},
+initArticle({{
+{
+    'config': {
+        'theme': theme,
+        'font': font,
+        'timeout': timeout,
+        'max_size': max_size,
+        'readonly': readonly,
+        'title': title,
+        'aid': aid,
     },
-    cache: {
+    'cache': {
+        'ref': ref_list,
+        'bib': bib_list,
     },
-    pid: {{ pid if pid is not none else 'undefined' }},
-    update_refs: {{ g_ref|tojson }},
-});
+    'pid': pid,
+    'update_refs': g_ref,
+} | tojson
+}});
 </script>
 
 {% endblock %}

@@ -6,7 +6,7 @@ export {
 }
 
 import { setCookie, cooks } from './utils.js'
-import { config, state, initConfig, initState, initCache } from './state.js'
+import { config, state, cache, initConfig, initState, initCache } from './state.js'
 import { initUser } from './user.js'
 import {
     initRender, renderMarkdown, getPara, innerPara, rawToRender, rawToTextarea,
@@ -44,17 +44,19 @@ let default_config = {
     aid: null,
 };
 
-let default_state = {
+let default_cache = {
+    'ref': [],
+    'bib': [],
 };
 
-let default_cache = {
+let default_state = {
 };
 
 function initArticle(args) {
     // load in server side config/cache
     initConfig(default_config, args.config || {});
-    initState(default_state);
     initCache(default_cache, args.cache || {});
+    initState(default_state);
 
     // connect and join room
     connectServer();
@@ -74,7 +76,7 @@ function initArticle(args) {
 
     // jump to pid if specified
     let pid = args.pid;
-    if (pid !== undefined) {
+    if (pid !== undefined && pid !== null) {
         let para = getPara(pid);
         makeActive(para);
     }
@@ -82,8 +84,8 @@ function initArticle(args) {
 
 function initMarkdown(args) {
     initConfig(default_config, args.config || {});
-    initState(default_state);
     initCache(default_cache, args.cache || {});
+    initState(default_state);
 
     // deploy and render
     renderMarkdown(args.md || '');
@@ -178,9 +180,9 @@ function deletePara(pid) {
     let para = getPara(pid);
     let old_id;
     if (old_id = para.attr('id')) {
-        let i = ref_list.indexOf(old_id);
+        let i = cache.ref.indexOf(old_id);
         if (i !== -1) {
-            ref_list.splice(i, 1)
+            cache.ref.splice(i, 1);
         }
         let ref = {};
         ref.aid = config.aid;
@@ -287,7 +289,7 @@ function updateRefHTML(para) {
 
     // for this specific para
     if (new_id) {
-        ref_list.push(new_id);
+        cache.ref.push(new_id);
         let ref = createExtRef(new_id);
         sendCommand('update_ref', ref, function(success) {
             console.log('success: updated ref');
@@ -315,9 +317,9 @@ function updateRefHTML(para) {
                 console.log('success: updated ref');
             });
         } else {
-            let i = ref_list.indexOf(old_id);
+            let i = cache.ref.indexOf(old_id);
             if (i !== -1) {
-                ref_list.splice(i, 1);
+                cache.ref.splice(i, 1);
             }
             let ref = {};
             ref.aid = config.aid;
@@ -989,7 +991,7 @@ function ccRefs(raw, view, e) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             if (cap[1]=='@') { //bib search
                 let search = cap[2] || '';
-                ccSearch(bib_list, search, p);
+                ccSearch(cache.bib, search, p);
             } else if (cap[3] && !cap[2]) { // searching for ext page
                 let ex_keys = Object.keys(ext_refs);
                 if (ex_keys.length == 0) { // if we have not made request
@@ -1012,7 +1014,7 @@ function ccRefs(raw, view, e) {
                 });
             } else {
                 let search = cap[4] || cap[2] || '';
-                ccSearch(ref_list, search, p);
+                ccSearch(cache.ref, search, p);
             }
         }
     } else if (cap = open_i_link.exec(raw)) {

@@ -30,6 +30,7 @@ function initCache(ch) {
     cache = merge(...arguments);
 }
 
+/*
 function getCacheType(type) {
     if (!(type in cache)) {
         cache[type] = {};
@@ -49,3 +50,4 @@ function invCached(type, key) {
     let sub = getCacheType(type);
     delete sub[key];
 }
+*/

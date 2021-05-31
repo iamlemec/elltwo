@@ -11,7 +11,7 @@ $(document).ready(function() {
         sendCommand('join_room', {'room': '__bib'}, (response) => {
             console.log(response);
         });
-        sendCommand('get_bib', {'keys': ''});
+        sendCommand('get_bib', {});
     });
 
     addHandler('renderBib', function(refs) {
