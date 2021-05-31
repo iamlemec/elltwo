@@ -2,18 +2,10 @@
 
 {% block head %}
 
-    {{ super() }}
+{{ super() }}
 
-    <script type="text/javascript">
-    max_size = '{{max_size}}';
-    imgs = {{imgs|tojson}};
-    readonly = !{{edit|tojson}};
-    </script>
-
-    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
-    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/img.css') }} />
-    <script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
-    <script src={{ url_for('static', filename='js/img.js') }} type="module"></script>
+<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
+<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/img.css') }} />
 
 {% endblock %}
 
@@ -23,27 +15,45 @@
 
 {% block content %}
 
-    <div id="prompt">
-    <span id="title"><span class="latex">\ell^2</span> Image Library </span>
-    </div>
+<div id="prompt">
+<span id="title"><span class="latex">\ell^2</span> Image Library </span>
+</div>
 
-    <input type="text" autocomplete="off" autofocus="autofocus" name="img_search" id="img_search" placeholder="Search existing images">
-    <button class="submit" id="img_submit">Search</button>
+<input type="text" autocomplete="off" autofocus="autofocus" name="img_search" id="img_search" placeholder="Search existing images">
+<button class="submit" id="img_submit">Search</button>
 
-    <div id="img_results_outer">
-        <div id="img_results">
-            <div id="dropzone" class="img_cont dropzone">Drop Image or Click to Upload</div>
-        </div>
+<div id="img_results_outer">
+    <div id="img_results">
+        <div id="dropzone" class="img_cont dropzone">Drop Image or Click to Upload</div>
     </div>
+</div>
 
-    <div id=display>
-        <img id="display_img"></img>
-        <div id="display_update">
-            <div class="keywordtitle">Keywords: </div><input type="text" autocomplete="off" autofocus="autofocus" name="keywords" id="keywords" placeholder=""><br>
-            <div class="keywordtitle">Image Key: </div><input type="text" autocomplete="off" autofocus="autofocus" name="key" id="key" placeholder="">
-        </div>
-        <button id="img_update">Update</button>
+<div id=display>
+    <img id="display_img"></img>
+    <div id="display_update">
+        <div class="keywordtitle">Keywords: </div><input type="text" autocomplete="off" autofocus="autofocus" name="keywords" id="keywords" placeholder=""><br>
+        <div class="keywordtitle">Image Key: </div><input type="text" autocomplete="off" autofocus="autofocus" name="key" id="key" placeholder="">
     </div>
+    <button id="img_update">Update</button>
+</div>
+
+<script src={{ url_for('static', filename='libs/socket.io.min.js') }} type="text/javascript"></script>
+
+<script type="module">
+import { initImage } from '{{ url_for('static', filename='js/img.js') }}'
+initImage({{
+{
+    'config': {
+        'readonly': readonly,
+        'max_size': max_size,
+        'max_imgs': max_imgs,
+    },
+    'cache': {
+        'img': img,
+    },
+} | tojson
+}});
+</script>
 
 {% endblock %}
 

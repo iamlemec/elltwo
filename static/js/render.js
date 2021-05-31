@@ -10,7 +10,6 @@ import { cooks } from './utils.js'
 import { config, cache, state } from './state.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { renderKatex } from './math.js'
-import { imgCache } from './drop.js'
 import { makeActive } from './editor.js'
 import { ccRefs } from './article.js'
 
@@ -429,15 +428,15 @@ function imgEnv(ptxt, args) {
     fig.append(img);
 
     var key = ptxt.parent().attr('id');
-    if (key in imgCache) {
-        var url = imgCache[key];
+    if (key in cache.img) {
+        var url = cache.img[key];
         img.attr('src', url);
     } else {
         sendCommand('get_image', {'key': key}, (ret) => {
             if (ret.found) {
                 const blob = new Blob([ret.data], {type: ret.mime});
                 var url = URL.createObjectURL(blob);
-                imgCache[key] = url;
+                cache.img[key] = url;
                 img.attr('src', url);
             }
         });

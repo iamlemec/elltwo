@@ -1,4 +1,4 @@
-/* advanced article features */
+/* main article entry point */
 
 export {
     initArticle, initMarkdown, insertPara, updatePara, updateParas, deletePara,
@@ -6,7 +6,9 @@ export {
 }
 
 import { setCookie, cooks } from './utils.js'
-import { config, state, cache, initConfig, initState, initCache } from './state.js'
+import {
+    config, state, cache, initConfig, initState, initCache
+} from './state.js'
 import { initUser } from './user.js'
 import {
     initRender, renderMarkdown, getPara, innerPara, rawToRender, rawToTextarea,
@@ -39,6 +41,7 @@ let default_config = {
 let default_cache = {
     ref: [], // internal references
     bib: [], // bibliography entries
+    img: {}, // local image cache
     ext_ref: {}, // external ref info
     folded: [], // current folded pids
 };
@@ -431,8 +434,6 @@ $(document).click(function(e) {
 */
 
 function initSidebar() {
-    console.log('initSidebar');
-
     let theme_select = $('#theme_select');
     let font_select = $('#font_select');
 
@@ -881,7 +882,6 @@ if (mobile) {
 /// drop to upload
 
 connectDrops(function(box, data) {
-    console.log(data);
     let para = box.closest('.para');
     let key = data.key;
     let raw = `! [id=${key}|caption=none]`;

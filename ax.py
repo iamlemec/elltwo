@@ -40,14 +40,18 @@ parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to u
 parser.add_argument('--path', type=str, default='axiom.db', help='Path to sqlite database file')
 parser.add_argument('--ip', type=str, default='127.0.0.1', help='IP address to serve on')
 parser.add_argument('--port', type=int, default=5000, help='Main port to serve on')
-parser.add_argument('--timeout', type=int, default=180, help='Client timeout time in seconds')
 parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 parser.add_argument('--login', action='store_true', help='Require login for editing')
+parser.add_argument('--conf', type=str, default='conf.toml', help='path to configuation file')
 parser.add_argument('--auth', type=str, default='auth.toml', help='user authorization config')
 parser.add_argument('--mail', type=str, default=None, help='mail authorization config')
-parser.add_argument('--max-size', type=int, default=1024, help='max image size in kilobytes')
 parser.add_argument('--reindex', action='store_true', help='reindex search database on load')
 args = parser.parse_args()
+
+# get base configuration
+config = toml.load(args.conf)
+if 'themes' not in config:
+    config['themes'] = [os.path.splitext(t)[0] for t in os.listdir('static/themes')]
 
 # login decorator (or not)
 login_decor = login_required if args.login else (lambda f: f)
@@ -323,9 +327,8 @@ def confirm_token(token, expiration=3600):
 ### Article
 ###
 
-def GetArtData(title, edit, theme, font, pid=None):
+def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
     print(f'article [{pid}]: {title}')
-    themes = [t[:-4] for t in os.listdir('static/themes/')]
     art = adb.get_art_short(title)
     if art:
         paras = adb.get_paras(art.aid)
@@ -338,17 +341,16 @@ def GetArtData(title, edit, theme, font, pid=None):
             'article.html',
             title=art.title,
             aid=art.aid,
-            pid=pid,
+            g_ref=art.g_ref,
             paras=paras,
             theme=theme,
             font=font,
-            themes=themes,
-            timeout=args.timeout,
-            max_size=args.max_size,
+            pid=pid,
             readonly=not edit,
             ref_list=ref_list,
             bib_list=bib_list,
-            g_ref=art.g_ref,
+            timeout=config['timeout'],
+            max_size=config['max_size'],
         )
     else:
         flash(f'Article "{title}" does not exist.')
@@ -358,21 +360,25 @@ def ErrorPage(title='Error', message=''):
     theme = request.cookies.get('theme') or args.theme
     return render_template('error.html', title=title, message=message, theme=theme)
 
+def getStyle(req):
+    return {
+        'theme': request.cookies.get('theme') or args.theme,
+        'font': request.cookies.get('font') or 'default',
+    }
+
 @app.route('/a/<title>', methods=['GET'])
 def RenderArticle(title):
-    theme = request.cookies.get('theme') or args.theme
-    font = request.cookies.get('font') or 'default'
+    style = getStyle(request)
     pid = request.args.get('pid')
     if current_user.is_authenticated or not args.login:
-        return GetArtData(title, True, theme=theme, font=font, pid=pid)
+        return GetArtData(title, edit=True, pid=pid, **style)
     else:
         return redirect(url_for('RenderArticleRO', title=title))
 
 @app.route('/r/<title>', methods=['GET'])
 def RenderArticleRO(title):
-    theme = request.cookies.get('theme') or args.theme
-    font = request.cookies.get('font') or 'default'
-    return GetArtData(title, False, theme=theme, font=font)
+    style = getStyle(request)
+    return GetArtData(title, edit=False, **style)
 
 @app.route('/i/<key>', methods=['GET'])
 def GetImage(key):
@@ -415,7 +421,8 @@ def export_tex():
         paras=paras, bib=bib,
         macros=macros,
         s_envs=s_envs,
-        date=datetime.now())
+        date=datetime.now(),
+    )
 
     resp = Response(tex)
     resp.headers['Content-Type'] = 'text/tex'
@@ -425,20 +432,21 @@ def export_tex():
 
 @app.route('/b', methods=['GET'])
 def RenderBib():
-    theme=request.cookies.get('theme') or args.theme
+    theme = request.cookies.get('theme') or args.theme
     return render_template('bib.html', theme=theme)
 
 @app.route('/img', methods=['GET','POST'])
 def Img():
     edit = current_user.is_authenticated or not args.login
-    theme=request.cookies.get('theme') or args.theme
-    imgs = [[i.key, i.keywords] for i in adb.get_images()]
-    imgs.reverse()
+    style = getStyle(request)
+    img = [(i.key, i.keywords) for i in adb.get_images()]
+    img.reverse()
     return render_template('img.html',
-        imgs=imgs,
-        theme=theme,
-        max_size=args.max_size,
-        edit=edit,
+        img=img,
+        readonly=not edit,
+        max_size=config['max_size'],
+        max_imgs=config['max_imgs'],
+        **style,
     )
 
 ###

@@ -1,13 +1,9 @@
 // drop to upload — used in article and img
 
-export { connectDrops, renderImage, imgCache }
+export { connectDrops, renderImage }
 
-import { config } from './state.js'
+import { config, cache } from './state.js'
 import { sendCommand } from './client.js'
-
-/// global state
-
-let imgCache = {};
 
 /// handle images
 
@@ -91,15 +87,15 @@ function connectDrops(callback) {
 // image retrieval
 
 function renderImage(img, key) {
-    if (key in imgCache) {
-        let url = imgCache[key];
+    if (key in cache.img) {
+        let url = cache.img[key];
         img.attr('src', url);
     } else {
         sendCommand('get_image', {'key': key}, (ret) => {
             if (ret.found) {
                 const blob = new Blob([ret.data], {type: ret.mime});
                 let url = URL.createObjectURL(blob);
-                imgCache[key] = url;
+                cache.img[key] = url;
                 img.attr('src', url);
             }
         });
