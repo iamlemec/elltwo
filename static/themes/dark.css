@@ -236,31 +236,31 @@ button:hover {
 
 /* syntax highlighting */
 
-.syn_hl{
+.syn_hl {
     color: var(--hl-col);
 }
 
-.syn_math{
+.syn_math {
     color: var(--hl2-col);
 }
 
-.syn_ref{
+.syn_ref {
     color: var(--delimit-col);
 }
 
-.syn_delimit{
+.syn_delimit {
     color: var(--font-col-int);
 }
 
-.syn_comment_head{
+.syn_comment_head {
     color: var(--font-col-int);
 }
 
-.syn_comment{
+.syn_comment {
     color: var(--bg-hl2-col);
 }
 
-.syn_code{
+.syn_code {
    background-color: var(--brace-col)!important;
    border-radius: 3px;
 }
@@ -271,8 +271,7 @@ button:hover {
     border-radius: 3px;
 }
 
-
-.brace{
+.brace {
     background-color: var(--brace-col);
 }
 

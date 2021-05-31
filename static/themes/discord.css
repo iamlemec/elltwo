@@ -253,11 +253,11 @@ button:hover {
     color: var(--dollar-col);
 }
 
-.syn_comment_head{
+.syn_comment_head {
     color: var(--font-col-int);
 }
 
-.syn_comment{
+.syn_comment {
     color: var(--bor-col);
 }
 

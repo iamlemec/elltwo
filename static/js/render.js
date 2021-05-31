@@ -978,6 +978,7 @@ function s(text, cls) {
 
 let inline = {
     escape: /\\([\\/`*{}\[\]()#+\-.!_>\$])/g,
+    url: /(https?):\/\/([^\s<]+[^<.,:;"')\]\s])/g,
     comment: /\/\/([^\n]*?)(\n|$)/g,
     code: /(`+)([\s\S]*?[^`])\1(?!`)/g,
     ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/g,
@@ -993,6 +994,10 @@ function syntaxParseInline(raw) {
 
     html = html.replace(inline.escape, (a, b) =>
         s('\\', 'comment_head') + s(esc_md(b), 'comment')
+    );
+
+    html = html.replace(inline.url, (a, b, c) =>
+        s(b, 'hl') + ':' + s('&#47;&#47;', 'math') + s(c.replace(/\//g, s('/', 'math')), 'comment')
     );
 
     html = html.replace(inline.comment, (a, b, c) =>

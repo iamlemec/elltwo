@@ -196,6 +196,14 @@ button:hover {
     color: var(--delimit-col);
 }
 
+.syn_comment_head {
+    color: var(--font-col-int);
+}
+
+.syn_comment {
+    color: var(--comment-col);
+}
+
 .brace {
     border-radius: 5px;
     background-color: var(--brace-col);

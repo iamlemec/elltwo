@@ -207,15 +207,15 @@ button:hover {
     color: var(--delimit-col);
 }
 
-.syn_comment_head{
+.syn_comment_head {
     color: var(--font-col-int);
 }
 
-.syn_comment{
+.syn_comment {
     color: var(--comment);
 }
 
-.syn_code{
+.syn_code {
    background-color: var(--bg-hl2-col)!important;
    border-radius: 3px;
 }
