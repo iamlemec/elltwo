@@ -19,7 +19,7 @@
     {% endif %}
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='katex/dist/katex.min.css') }}" />
 
-    <script type="text/javascript">var mobile = window.matchMedia('(max-width: 815px)').matches</script>
+    <script type="text/javascript">const mobile = window.matchMedia('(max-width: 815px)').matches</script>
     <script src="{{ url_for('static', filename='libs/jquery-3.5.0.min.js') }}"> </script>
     <script src="{{ url_for('static', filename='katex/dist/katex.min.js') }}"></script>
 
