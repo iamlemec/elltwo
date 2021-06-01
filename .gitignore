@@ -42,4 +42,5 @@ pip-delete-this-directory.txt
 screenlog.*
 
 # Config / Auth
-*.toml
+auth.toml
+mail.toml
