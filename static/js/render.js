@@ -57,6 +57,41 @@ function initRender() {
 
     // sort out folding
     initFold();
+
+    // connect event handlers
+    eventRender();
+}
+
+function eventRender() {
+    if (!mobile) {
+        $(document).on({
+            mouseenter: function() {
+                let ref = $(this);
+                ref.data('show_pop', true);
+                let html = getTro(ref, renderPop);
+            },
+            mouseleave: function() {
+                let ref = $(this);
+                ref.data('show_pop', false);
+                $('#pop').remove();
+                $(window).unbind('mousemove')
+            },
+        }, '.pop_anchor');
+    }
+
+    $(document).on('input', '.p_input', function(e) {
+        let para = $(this).parent('.para');
+        schedTimeout();
+        syntaxHL(para, e);
+    });
+
+    $(document).on('keyup', '.p_input', function(e) {
+        let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
+        if (arrs.includes(e.keyCode)) {
+            var para = $(this).parent('.para');
+            braceMatch(this, para);
+        }
+    });
 }
 
 // for external readonly viewing
@@ -683,13 +718,11 @@ function refEquation(ref, tro, ext) {
     let text = $(num).text();
     let citebox = $('<span>', {class: 'eqn_cite', text: text});
     ref.empty();
+    ref.append(citebox);
     if (ext) {
-        let txt = $('<span>', {class: 'eqn_cite_ext', text: ext});
-        ref.append([txt, citebox]);
-    } else {
-        ref.append(citebox);
-    }
-}
+        let txt = $('<span>', {class: 'eqn_cite_ext', text: `[${ext}]`});
+        ref.append(txt);
+    }}
 
 function refEnv(ref, tro, env, ext) {
     let format = ref.attr('format') || '';
@@ -805,22 +838,6 @@ function createBibEntry(cite) {
 }
 
 //// POPUP FUNCTIONALITY // turned off for mobile for now
-
-if (!mobile) {
-    $(document).on({
-        mouseenter: function() {
-            let ref = $(this);
-            ref.data('show_pop', true);
-            let html = getTro(ref, renderPop);
-        },
-        mouseleave: function() {
-            let ref = $(this);
-            ref.data('show_pop', false);
-            $('#pop').remove();
-            $(window).unbind('mousemove')
-        },
-    }, '.pop_anchor');
-}
 
 function createPop(ref, html='', link=false) {
     let pop = $('<div>', {id: 'pop', href: link, html: html});
@@ -940,12 +957,6 @@ function syntaxHL(para, e=null) {
     let parsed = syntaxParseBlock(raw);
     view.html(parsed);
 }
-
-$(document).on('input', '.p_input', function(e) {
-    let para = $(this).parent('.para');
-    schedTimeout();
-    syntaxHL(para, e);
-});
 
 function esc_md(raw) {
     return raw.replace(/\\/g, '&#92;')
@@ -1176,14 +1187,6 @@ function syntaxParseBlock(raw) {
 
     return syntaxParseInline(raw);
 }
-
-$(document).on('keyup', '.p_input', function(e) {
-    let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
-    if (arrs.includes(e.keyCode)) {
-        var para = $(this).parent('.para');
-        braceMatch(this, para);
-    }
-});
 
 function braceMatch(textarea, para) {
     let delimit = {'(': ')', '[': ']', '{': '}'};

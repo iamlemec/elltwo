@@ -168,7 +168,7 @@ button {
     margin-right: 1px;
 }
 
-.eqn_cite_ext::after {
+.eqn_cite_ext::before {
     color: var(--font-col);
     content: '—';
 }

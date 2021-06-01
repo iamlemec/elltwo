@@ -63,9 +63,14 @@ function initArticle(args) {
     initConfig(default_config, args.config || {});
     initCache(default_cache, args.cache || {});
 
-    // set state and make consistent
+    // set current state
     initState(default_state);
+
+    // make state consistent
     state.writeable = !config.readonly;
+    if (config.readonly) {
+        $('#bg').addClass('readonly');
+    }
 
     // connect and join room
     connectServer();
@@ -98,6 +103,12 @@ function initMarkdown(args) {
     initConfig(default_config, args.config || {});
     initCache(default_cache, args.cache || {});
     initState(default_state);
+
+    // make state consistent
+    state.writeable = !config.readonly;
+    if (config.readonly) {
+        $('#bg').addClass('readonly');
+    }
 
     // deploy and render
     renderMarkdown(args.md || '');
