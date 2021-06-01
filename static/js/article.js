@@ -60,8 +60,8 @@ let default_state = {
 
 function initArticle(args) {
     // load in server side config/cache
-    initConfig(default_config, args.config || {});
-    initCache(default_cache, args.cache || {});
+    initConfig(default_config, args.config ?? {});
+    initCache(default_cache, args.cache ?? {});
 
     // set current state
     initState(default_state);
@@ -79,7 +79,7 @@ function initArticle(args) {
     initRender();
 
     // update blurbs and refs
-    syncServer(args.update_refs || false);
+    syncServer(args.update_refs ?? false);
 
     // create full UI
     initUser();
@@ -92,8 +92,8 @@ function initArticle(args) {
     eventArticle();
 
     // jump to pid if specified
-    let pid = args.pid;
-    if (pid !== undefined && pid !== null) {
+    let pid = args.pid ?? null;
+    if (pid !== null) {
         let para = getPara(pid);
         makeActive(para);
     }
