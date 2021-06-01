@@ -83,6 +83,9 @@ function initArticle(args) {
     initExport();
     initEditor();
 
+    // connect event handlers
+    eventArticle();
+
     // jump to pid if specified
     let pid = args.pid;
     if (pid !== undefined && pid !== null) {
@@ -169,6 +172,83 @@ function syncServer(update_refs) {
     if (!config.readonly) {
         setBlurb();
     }
+}
+
+function eventArticle() {
+    // statusbar
+    $(document).on('click', '#logo', toggleSidebar);
+    $(document).on('click', '#show_hist', toggleHistMap);
+    $(document).on('click', '#revert_hist', revertHistory);
+
+    // sidebar
+    $(document).on('change', '#theme_select', function() {
+        let tselect = $(this);
+        let tchoice = tselect.children('option:selected').text();
+        if (tchoice != config.theme) {
+            setTheme(tchoice);
+        }
+    });
+
+    $(document).on('change', '#font_select', function() {
+        let fselect = $(this);
+        let fchoice = fselect.children('option:selected').text();
+        if (fchoice != config.font) {
+            setFont(fchoice);
+        }
+    });
+
+    /*
+    $(document).click(function(e) {
+        if (state.sidebar_show) {
+            if ($(e.target).closest('#sidebar').length == 0
+              && $(e.target).closest('#logo').length == 0) {
+               toggleSidebar();
+            }
+        }
+    });
+    */
+
+    // progress bar
+    $('#content').scroll(function() {
+        let elem = $('#content');
+        let spos = elem.scrollTop();
+        let shgt = elem[0].scrollHeight;
+        let hout = elem.outerHeight();
+        let spct = 100 * spos / (shgt - hout);
+        $('#prog_bar').css('width', `${spct}%`);
+    });
+
+    // mobile hover eqiv
+    if (mobile) {
+        $(document).on('click', '.pop_anchor', function(e) {
+            e.preventDefault();
+            $('#pop').remove();
+            let ref = $(this);
+            ref.data('show_pop', true);
+            let html = getTro(ref, renderPop);
+            return false;
+        });
+
+        $(document).click(function(e) {
+            if ($(e.target).closest('#pop').length == 0) {
+                $('#pop').remove();
+            } else {
+                window.location = $('#pop').attr('href');
+                $('#pop').remove();
+            }
+        });
+    }
+
+    // drop to upload
+    connectDrops(function(box, data) {
+        let para = box.closest('.para');
+        let key = data.key;
+        let raw = `! [id=${key}|caption=none]`;
+        para.attr('raw', raw);
+        rawToRender(para, false);
+        rawToTextarea(para);
+        sendUpdatePara(para, true);
+    });
 }
 
 /// server command editing
@@ -403,35 +483,6 @@ function setFont(font) {
     setCookie('font', font);
     $('#content').css('font-family', fset);
 }
-
-$(document).on('click', '#logo', toggleSidebar);
-
-$(document).on('change', '#theme_select', function() {
-    let tselect = $(this);
-    let tchoice = tselect.children('option:selected').text();
-    if (tchoice != config.theme) {
-        setTheme(tchoice);
-    }
-});
-
-$(document).on('change', '#font_select', function() {
-    let fselect = $(this);
-    let fchoice = fselect.children('option:selected').text();
-    if (fchoice != config.font) {
-        setFont(fchoice);
-    }
-});
-
-/*
-$(document).click(function(e) {
-    if (state.sidebar_show) {
-        if ($(e.target).closest('#sidebar').length == 0
-          && $(e.target).closest('#logo').length == 0) {
-           toggleSidebar();
-        }
-    }
-});
-*/
 
 function initSidebar() {
     let theme_select = $('#theme_select');
@@ -821,9 +872,6 @@ function revertHistory() {
     sendCommand('revert_history', args, on_success(launchHistMap));
 }
 
-$(document).on('click', '#show_hist', toggleHistMap);
-$(document).on('click', '#revert_hist', revertHistory);
-
 function responsivefy(svg) {
     let width = window.innerWidth;
     let height = svg.attr('height'); //mobile ? 150 : 100;
@@ -843,53 +891,6 @@ function responsivefy(svg) {
         svg.attr("height", Math.round(targetWidth / aspect));
     }
 }
-
-/// progress bar
-
-$(document).ready(function() {
-    $('#content').scroll(function() {
-        let elem = $('#content');
-        let spos = elem.scrollTop();
-        let shgt = elem[0].scrollHeight;
-        let hout = elem.outerHeight();
-        let spct = 100 * spos / (shgt - hout);
-        $('#prog_bar').css('width', `${spct}%`);
-    });
-});
-
-/// mobile hover eqiv
-
-if (mobile) {
-    $(document).on('click', '.pop_anchor', function(e) {
-        e.preventDefault();
-        $('#pop').remove();
-        let ref = $(this);
-        ref.data('show_pop', true);
-        let html = getTro(ref, renderPop);
-        return false;
-    });
-
-    $(document).click(function(e) {
-        if ($(e.target).closest('#pop').length == 0) {
-            $('#pop').remove();
-        } else {
-            window.location = $('#pop').attr('href');
-            $('#pop').remove();
-        }
-    });
-}
-
-/// drop to upload
-
-connectDrops(function(box, data) {
-    let para = box.closest('.para');
-    let key = data.key;
-    let raw = `! [id=${key}|caption=none]`;
-    para.attr('raw', raw);
-    rawToRender(para, false);
-    rawToTextarea(para);
-    sendUpdatePara(para, true);
-});
 
 /// reference completion
 
