@@ -148,6 +148,7 @@ function trueMakeEditable(rw=true, cursor='end') {
 
     let text = state.active_para.children('.p_input');
     resize(text[0]);
+
     if (rw) {
         text.prop('readonly', false);
         placeCursor(cursor);
@@ -155,6 +156,7 @@ function trueMakeEditable(rw=true, cursor='end') {
             $('#foot').hide();
         };
     }
+
     syntaxHL(state.active_para);
 
     schedTimeout();

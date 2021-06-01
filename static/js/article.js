@@ -65,12 +65,7 @@ function initArticle(args) {
 
     // set current state
     initState(default_state);
-
-    // make state consistent
-    state.writeable = !config.readonly;
-    if (config.readonly) {
-        $('#bg').addClass('readonly');
-    }
+    setWriteable(!config.readonly);
 
     // connect and join room
     connectServer();
@@ -102,19 +97,22 @@ function initArticle(args) {
 function initMarkdown(args) {
     initConfig(default_config, args.config || {});
     initCache(default_cache, args.cache || {});
-    initState(default_state);
 
-    // make state consistent
-    state.writeable = !config.readonly;
-    if (config.readonly) {
-        $('#bg').addClass('readonly');
-    }
+    // set current state
+    initState(default_state);
+    setWriteable(!config.readonly);
 
     // deploy and render
     renderMarkdown(args.md || '');
 
     // limited UI
     initEditor();
+}
+
+function setWriteable(wr) {
+    console.log('setWriteable', wr);
+    state.writeable = wr;
+    $('#bg').toggleClass('writeable', wr);
 }
 
 function connectServer() {
@@ -870,7 +868,7 @@ function toggleHistMap() {
         $('#prog_bar').hide();
     }
     state.hist_vis = !state.hist_vis;
-    state.writeable = !config.readonly && !state.hist_vis;
+    setWriteable(!config.readonly && !state.hist_vis);
 }
 
 function revertHistory() {
