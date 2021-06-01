@@ -5,20 +5,21 @@ export {
     updateRefHTML, toggleHistMap, ccNext, ccMake, ccRefs
 }
 
-import { setCookie, cooks } from './utils.js'
+import { setCookie, cooks, getPara } from './utils.js'
 import {
     config, state, cache, initConfig, initState, initCache
 } from './state.js'
+import { connect, addHandler, sendCommand, schedTimeout } from './client.js'
 import { initUser } from './user.js'
 import {
-    initRender, renderMarkdown, getPara, innerPara, rawToRender, rawToTextarea,
-    envClasses, createRefs, createTOC, troFromKey, popText, syntaxHL, renderBib
+    initRender, renderMarkdown, innerPara, rawToRender, rawToTextarea,
+    envClasses, createRefs, createTOC, troFromKey, popText, syntaxHL, renderBib,
+    braceMatch
 } from './render.js'
 import {
     initEditor, resize, makeActive, lockParas, unlockParas, sendMakeEditable,
     sendUpdatePara
 } from './editor.js'
-import { connect, addHandler, sendCommand } from './client.js'
 import { connectDrops } from './drop.js'
 import { initExport } from './export.js'
 
@@ -95,15 +96,15 @@ function initArticle(args) {
 }
 
 function initMarkdown(args) {
-    initConfig(default_config, args.config || {});
-    initCache(default_cache, args.cache || {});
+    initConfig(default_config, args.config ?? {});
+    initCache(default_cache, args.cache ?? {});
 
     // set current state
     initState(default_state);
     setWriteable(!config.readonly);
 
     // deploy and render
-    renderMarkdown(args.md || '');
+    renderMarkdown(args.md ?? '');
 
     // limited UI
     initEditor();
@@ -257,6 +258,25 @@ function eventArticle() {
         rawToRender(para, false);
         rawToTextarea(para);
         sendUpdatePara(para, true);
+    });
+
+    $(document).on('input', '.p_input', function(e) {
+        let para = $(this).parent('.para');
+        let text = para.children('.p_input');
+        let view = para.children('.p_input_view');
+        let raw = text.val();
+        let cur = e.target.selectionStart;
+        schedTimeout();
+        ccRefs(view, raw, cur);
+        syntaxHL(para);
+    });
+
+    $(document).on('keyup', '.p_input', function(e) {
+        let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
+        if (arrs.includes(e.keyCode)) {
+            var para = $(this).parent('.para');
+            braceMatch(this, para);
+        }
     });
 }
 
@@ -982,19 +1002,19 @@ function ccSearch(list, search, placement) {
     }
 }
 
-function ccRefs(raw, view, e) {
+// show command completion popup for references (@[]) and article links ([[]])
+function ccRefs(view, raw, cur) {
     state.cc = false;
     $('#cc_pop').remove();
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
-    let cur = e.target.selectionStart;
     let cap;
     if (cap = open_ref.exec(raw)) {
         // if cursor is near the match
         let b = cap.index;
         let e = b + cap[0].length;
         if (cur >= b && cur <= e) {
-            raw = raw.slice(0,e) + `<span id=cc_pos></span>` + raw.slice(e)
+            raw = raw.slice(0, e) + '<span id="cc_pos"></span>' + raw.slice(e);
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
@@ -1028,7 +1048,7 @@ function ccRefs(raw, view, e) {
         let b = cap.index;
         let e = b + cap[0].length;
         if (cur >= b && cur <= e) {
-            raw = raw.slice(0,e) + `<span id="cc_pos"></span>` + raw.slice(e)
+            raw = raw.slice(0, e) + '<span id="cc_pos"></span>' + raw.slice(e);
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};

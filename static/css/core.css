@@ -3,13 +3,6 @@
     src: url(/static/fonts/lmroman10-regular.otf);
 }
 
-@font-face {
-  font-family: 'simpsons';
-  font-style: normal;
-  font-weight: 100;
-  src: url('/static/fonts/sim.ttf') format('truetype');
-}
-
 body {
     font-family: 'Open Sans', sans-serif;
 }

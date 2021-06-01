@@ -1,17 +1,18 @@
 /// core renderer (includes readonly)
 
 export {
-    initRender, renderMarkdown, getPara, innerPara, renderKatex, rawToRender,
-    rawToTextarea, envClasses, createRefs, createTOC, troFromKey, popText,
-    syntaxHL, renderBib, s_env_spec, fold
+    initRender, initMarkdown, renderMarkdown, innerPara, renderKatex,
+    rawToRender, rawToTextarea, envClasses, createRefs, createTOC, troFromKey,
+    popText, syntaxHL, renderBib, s_env_spec, getFoldLevel, renderFold,
+    braceMatch
 }
 
-import { cooks } from './utils.js'
-import { config, cache, state } from './state.js'
+import { cooks, getPara } from './utils.js'
+import {
+    config, cache, state, initConfig, initCache, initState
+} from './state.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { renderKatex } from './math.js'
-import { makeActive } from './editor.js'
-import { ccRefs } from './article.js'
 
 // inner HTML for para structure. Included here for updating paras
 const innerPara = `
@@ -28,10 +29,6 @@ const innerPara = `
 </div>
 </div>
 `;
-
-function getPara(pid) {
-    return $(`#content [pid=${pid}]`);
-}
 
 function makePara(para, defer=true) {
     para.html(innerPara);
@@ -78,23 +75,27 @@ function eventRender() {
             },
         }, '.pop_anchor');
     }
-
-    $(document).on('input', '.p_input', function(e) {
-        let para = $(this).parent('.para');
-        schedTimeout();
-        syntaxHL(para, e);
-    });
-
-    $(document).on('keyup', '.p_input', function(e) {
-        let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
-        if (arrs.includes(e.keyCode)) {
-            var para = $(this).parent('.para');
-            braceMatch(this, para);
-        }
-    });
 }
 
-// for external readonly viewing
+/// for external readonly viewing
+
+let markdown_config = {
+    'macros': {},
+};
+
+let markdown_state = {
+    'macros': {},
+};
+
+let markdown_cache = {};
+
+function initMarkdown(args) {
+    initConfig(markdown_config, args.config ?? {});
+    initCache(markdown_cache, args.cache ?? {});
+    initState(markdown_state);
+    renderMarkdown(args.md ?? '');
+}
+
 function renderMarkdown(md) {
     let content = $('#content');
     md.split(/\n{2,}/).forEach((raw, pid) => {
@@ -137,7 +138,7 @@ function rawToRender(para, defer, raw=null) {
     // fill in env identifiers
     if (env_info != null) {
         if ('preamble' in env_info) {
-            parse_preamble(env_info.preamble);
+            parsePreamble(env_info.preamble);
         };
         if ('env' in env_info) {
             para.attr('env', env_info.env);
@@ -502,7 +503,7 @@ let env_spec = {
 
 //// KATEX
 
-function parse_preamble(raw) {
+function parsePreamble(raw) {
     let int_macros = {}; // internal macros
     let macro_list = raw.split(/[\n,]+/) // split on \n or comma
         .filter(macraw => macraw.includes(':')) // is it a macro?
@@ -947,13 +948,10 @@ let pop_spec = {
 
 /// syntax highlighting
 
-function syntaxHL(para, e=null) {
+function syntaxHL(para) {
     let text = para.children('.p_input');
     let view = para.children('.p_input_view');
     let raw = text.val();
-    if (e) {
-        ccRefs(raw, view, e);
-    }
     let parsed = syntaxParseBlock(raw);
     view.html(parsed);
 }
@@ -1280,32 +1278,10 @@ function braceHL(view, text, pos, para) {
     }, 800);
 }
 
-// folding/unfolding
+/// folding (render only)
 
 function getFoldLevel(para) {
     return parseInt(para.attr('fold_level'));
-}
-
-function getFoldParas(pid) {
-    let para = getPara(pid);
-    let l = para.attr('head_level');
-    if (para.attr('env') == 'heading') {
-        let fps = [para];
-        let nx = Object.entries(para.nextAll('.para'));
-        for (const [k, p] of nx) {
-            if ($(p).attr('head_level') <= l) {
-                break;
-            }
-            if (!$(p).hasClass('folder')) {
-                fps.push(p);
-            }
-        }
-        // what the fuck jquery, why (returns differnt object type in the two cases)
-        return [$(fps), $(fps).first()[0]];
-    } else {
-        let fps = $(`[env_pid=${pid}]`);
-        return [$(fps), $(fps).first()];
-    }
 }
 
 function initFold() {
@@ -1339,53 +1315,4 @@ function renderFold() {
             para.addClass('folded');
         }
     });
-}
-
-function fold(para, init=false) {
-    console.log('fold', para);
-    let env_pid = para.attr('env_pid');
-    let fold_pid = para.attr('fold_pid');
-    if (env_pid) {
-        const foldParas = getFoldParas(env_pid);
-        foldParas[0].each(function() {
-            let para = $(this);
-            const l = getFoldLevel(para);
-            para.attr('fold_level', l+1);
-        });
-        const fold = $(`[fold_pid=${env_pid}]`).first();
-        const l = getFoldLevel(fold);
-        fold.attr('fold_level', l+1);
-        makeActive(fold);
-        if (!init) {
-            cache.folded.push(env_pid);
-            const foldcookie = JSON.stringify(cache.folded);
-            document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
-        }
-    } else if (fold_pid) {
-        const index = cache.folded.indexOf(fold_pid);
-        if (index > -1) {
-            cache.folded.splice(index, 1);
-        }
-        const foldParas = getFoldParas(fold_pid);
-        foldParas[0].each(function() {
-            let para = $(this);
-            const l = getFoldLevel(para);
-            para.attr('fold_level', l-1);
-        });
-        const fold = $(`[fold_pid=${fold_pid}]`).first();
-        const l = getFoldLevel(fold);
-        fold.attr('fold_level', l-1);
-        makeActive(foldParas[1]);
-        const foldcookie = JSON.stringify(cache.folded);
-        document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
-    }
-    renderFold();
-}
-
-function unfold() {
-    $('.para').attr('fold_level', 0);
-    cache.folded = [];
-    const foldcookie = JSON.stringify(cache.folded);
-    document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
-    renderFold();
 }

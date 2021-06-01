@@ -6,10 +6,173 @@ export {
 }
 
 import { config, state } from './state.js'
-import { ensureVisible, cooks } from './utils.js'
+import { ensureVisible, cooks, getPara } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
-import { getPara, rawToRender, syntaxHL, fold } from './render.js'
+import { rawToRender, syntaxHL, getFoldLevel, renderFold } from './render.js'
 import { updateRefHTML, toggleHistMap, ccNext, ccMake } from './article.js'
+
+/// initialization
+
+function initEditor() {
+    // resize text area on input (eliminate scroll)
+    $(document).on('input focus', 'textarea', function() {
+        resize(this);
+    });
+
+    // keyboard interface
+
+    $(document).keydown(function(e) {
+        let key = e.key.toLowerCase();
+        let ctrl = e.ctrlKey;
+        let alt = e.altKey;
+        let shift = e.shiftKey;
+
+        if (ctrl && key == 'enter') {
+            toggleHistMap();
+            return false;
+        } else if (shift && ctrl && key == 'f') {
+            unfold();
+        } else if (ctrl && key == 's') {
+            return false;
+        }
+        if (key == '§') {
+            toggleSidebar();
+        }
+        if (!state.active_para) { // if we are inactive
+            if (key == 'enter') {
+                let foc_para = state.last_active || $('.para').first();
+                makeActive(foc_para);
+            }
+        } else if (state.active_para && !state.editable) {
+            if (key == 'enter' || key == 'w') {
+                sendMakeEditable();
+                return false;
+            }else if (key == 'arrowup') {
+                if(shift){
+                    state.active_para.addClass('copy_sel')
+                } else {
+                    $('.para').removeClass('copy_sel')
+                }
+                activePrevPara();
+                return false;
+            } else if (key == 'arrowdown') {
+                if(shift){
+                    state.active_para.addClass('copy_sel')
+                } else {
+                    $('.para').removeClass('copy_sel')
+                }
+                activeNextPara();
+                return false;
+            } else if (ctrl && key == 'home') {
+                activeFirstPara();
+            } else if (ctrl && key == 'end') {
+                activeLastPara();
+            } else if (ctrl && key == 'c') {
+                copyCells();
+            } else if (ctrl && key == 'v') {
+                pasteCells();
+            } else if (key == 'escape') {
+                makeActive(null);
+            } else if (shift && key == 'f') {
+                fold(state.active_para);
+            }
+            if (state.writeable) { // if we are active but not in edit mode
+                if (key == 'a') {
+                    sendInsertBefore(state.active_para);
+                } else if (key == 'b') {
+                    sendInsertAfter(state.active_para);
+                } else if (shift && key == 'd') {
+                    sendDeletePara(state.active_para);
+                }
+            }
+        } else if (state.active_para && state.editable) { // we are active and editable
+            if (key == 'arrowup' || key == 'arrowleft') {
+                if (state.cc) { // if there is an open command completion window
+                    ccNext('down');
+                    return false;
+                } else {
+                    return editShift('up');
+                }
+            } else if (key == 'arrowdown' || key == 'arrowright') {
+                if (state.cc) {
+                    ccNext('up');
+                    return false;
+                } else {
+                    return editShift('down');
+                }
+            } else if (key == 'escape') {
+                if (state.cc) {
+                    state.cc = false;
+                    $('#cc_pop').remove();
+                } else {
+                    makeUnEditable();
+                }
+            } else if (!shift && key == 'enter') {
+                if (state.cc) {
+                    ccMake();
+                    return false;
+                }
+            } else if (shift && key == 'enter') {
+                makeUnEditable();
+                sendInsertAfter(state.active_para);
+                return false;
+            }
+        }
+    });
+
+    /// mouse interface
+
+    $(document).on('click', '.para', function(e) {
+        let alt = e.altKey || mobile;
+        let cmd = e.metaKey;
+        if (alt) {
+            let para = $(this);
+            if (!para.hasClass('active')) {
+                makeActive($(this));
+            } else if (!state.editable) {
+                sendMakeEditable();
+            }
+            return false;
+        } else if (state.active_para && cmd) {
+            $(this).addClass('copy_sel');
+            return false;
+        }
+    });
+
+    $(document).on('click', '#bg', function(e) {
+        let targ = event.target.id;
+        let alt = e.altKey || mobile;
+        if (targ == 'bg' || targ == 'content') {
+            if (alt) {
+                makeActive(null);
+            } else {
+                $('.para').removeClass('copy_sel')
+            }
+        }
+    });
+
+    $(document).on('click', '.update', function() {
+        let para = $(this).parents('.para');
+        sendUpdatePara(para);
+    });
+
+    $(document).on('click', '.before', function() {
+        let para = $(this).parents('.para');
+        sendInsertBefore(para);
+    });
+
+    $(document).on('click', '.after', function() {
+        let para = $(this).parents('.para');
+        sendInsertAfter(para);
+    });
+
+    $(document).on('click', '.delete', function() {
+        let para = $(this).parents('.para');
+        sendDeletePara(para);
+    });
+
+    $('#content').focus();
+}
 
 /// textarea manage
 
@@ -354,165 +517,75 @@ function pasteCells() {
     }
 }
 
-/// initialization
+// folding (editing)
 
-function initEditor() {
-    // resize text area on input (eliminate scroll)
-    $(document).on('input focus', 'textarea', function() {
-        resize(this);
-    });
-
-    // keyboard interface
-
-    $(document).keydown(function(e) {
-        let key = e.key.toLowerCase();
-        let ctrl = e.ctrlKey;
-        let alt = e.altKey;
-        let shift = e.shiftKey;
-
-        if (ctrl && key == 'enter') {
-            toggleHistMap();
-            return false;
-        } else if (shift && ctrl && key == 'f') {
-            unfold();
-        } else if (ctrl && key == 's') {
-            return false;
-        }
-        if (key == '§') {
-            toggleSidebar();
-        }
-        if (!state.active_para) { // if we are inactive
-            if (key == 'enter') {
-                let foc_para = state.last_active || $('.para').first();
-                makeActive(foc_para);
+function getFoldParas(pid) {
+    let para = getPara(pid);
+    let l = para.attr('head_level');
+    if (para.attr('env') == 'heading') {
+        let fps = [para];
+        let nx = Object.entries(para.nextAll('.para'));
+        for (const [k, p] of nx) {
+            if ($(p).attr('head_level') <= l) {
+                break;
             }
-        } else if (state.active_para && !state.editable) {
-            if (key == 'enter' || key == 'w') {
-                sendMakeEditable();
-                return false;
-            }else if (key == 'arrowup') {
-                if(shift){
-                    state.active_para.addClass('copy_sel')
-                } else {
-                    $('.para').removeClass('copy_sel')
-                }
-                activePrevPara();
-                return false;
-            } else if (key == 'arrowdown') {
-                if(shift){
-                    state.active_para.addClass('copy_sel')
-                } else {
-                    $('.para').removeClass('copy_sel')
-                }
-                activeNextPara();
-                return false;
-            } else if (ctrl && key == 'home') {
-                activeFirstPara();
-            } else if (ctrl && key == 'end') {
-                activeLastPara();
-            } else if (ctrl && key == 'c') {
-                copyCells();
-            } else if (ctrl && key == 'v') {
-                pasteCells();
-            } else if (key == 'escape') {
-                makeActive(null);
-            } else if (shift && key == 'f') {
-                fold(state.active_para);
-            }
-            if (state.writeable) { // if we are active but not in edit mode
-                if (key == 'a') {
-                    sendInsertBefore(state.active_para);
-                } else if (key == 'b') {
-                    sendInsertAfter(state.active_para);
-                } else if (shift && key == 'd') {
-                    sendDeletePara(state.active_para);
-                }
-            }
-        } else if (state.active_para && state.editable) { // we are active and editable
-            if (key == 'arrowup' || key == 'arrowleft') {
-                if (state.cc) { // if there is an open command completion window
-                    ccNext('down');
-                    return false;
-                } else {
-                    return editShift('up');
-                }
-            } else if (key == 'arrowdown' || key == 'arrowright') {
-                if (state.cc) {
-                    ccNext('up');
-                    return false;
-                } else {
-                    return editShift('down');
-                }
-            } else if (key == 'escape') {
-                if (state.cc) {
-                    state.cc = false;
-                    $('#cc_pop').remove();
-                } else {
-                    makeUnEditable();
-                }
-            } else if (!shift && key == 'enter') {
-                if (state.cc) {
-                    ccMake();
-                    return false;
-                }
-            } else if (shift && key == 'enter') {
-                makeUnEditable();
-                sendInsertAfter(state.active_para);
-                return false;
+            if (!$(p).hasClass('folder')) {
+                fps.push(p);
             }
         }
-    });
+        // what the fuck jquery, why (returns differnt object type in the two cases)
+        return [$(fps), $(fps).first()[0]];
+    } else {
+        let fps = $(`[env_pid=${pid}]`);
+        return [$(fps), $(fps).first()];
+    }
+}
 
-    /// mouse interface
-
-    $(document).on('click', '.para', function(e) {
-        let alt = e.altKey || mobile;
-        let cmd = e.metaKey;
-        if (alt) {
+function fold(para, init=false) {
+    console.log('fold', para);
+    let env_pid = para.attr('env_pid');
+    let fold_pid = para.attr('fold_pid');
+    if (env_pid) {
+        const foldParas = getFoldParas(env_pid);
+        foldParas[0].each(function() {
             let para = $(this);
-            if (!para.hasClass('active')) {
-                makeActive($(this));
-            } else if (!state.editable) {
-                sendMakeEditable();
-            }
-            return false;
-        } else if (state.active_para && cmd) {
-            $(this).addClass('copy_sel');
-            return false;
+            const l = getFoldLevel(para);
+            para.attr('fold_level', l+1);
+        });
+        const fold = $(`[fold_pid=${env_pid}]`).first();
+        const l = getFoldLevel(fold);
+        fold.attr('fold_level', l+1);
+        makeActive(fold);
+        if (!init) {
+            cache.folded.push(env_pid);
+            const foldcookie = JSON.stringify(cache.folded);
+            document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
         }
-    });
-
-    $(document).on('click', '#bg', function(e) {
-        let targ = event.target.id;
-        let alt = e.altKey || mobile;
-        if (targ == 'bg' || targ == 'content') {
-            if (alt) {
-                makeActive(null);
-            } else {
-                $('.para').removeClass('copy_sel')
-            }
+    } else if (fold_pid) {
+        const index = cache.folded.indexOf(fold_pid);
+        if (index > -1) {
+            cache.folded.splice(index, 1);
         }
-    });
+        const foldParas = getFoldParas(fold_pid);
+        foldParas[0].each(function() {
+            let para = $(this);
+            const l = getFoldLevel(para);
+            para.attr('fold_level', l-1);
+        });
+        const fold = $(`[fold_pid=${fold_pid}]`).first();
+        const l = getFoldLevel(fold);
+        fold.attr('fold_level', l-1);
+        makeActive(foldParas[1]);
+        const foldcookie = JSON.stringify(cache.folded);
+        document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
+    }
+    renderFold();
+}
 
-    $(document).on('click', '.update', function() {
-        let para = $(this).parents('.para');
-        sendUpdatePara(para);
-    });
-
-    $(document).on('click', '.before', function() {
-        let para = $(this).parents('.para');
-        sendInsertBefore(para);
-    });
-
-    $(document).on('click', '.after', function() {
-        let para = $(this).parents('.para');
-        sendInsertAfter(para);
-    });
-
-    $(document).on('click', '.delete', function() {
-        let para = $(this).parents('.para');
-        sendDeletePara(para);
-    });
-
-    $('#content').focus();
+function unfold() {
+    $('.para').attr('fold_level', 0);
+    cache.folded = [];
+    const foldcookie = JSON.stringify(cache.folded);
+    document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
+    renderFold();
 }

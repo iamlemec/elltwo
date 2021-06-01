@@ -1,11 +1,17 @@
 /* random utilities */
 
-export { merge, toggleBox, ensureVisible, setCookie, cooks }
+export { merge, toggleBox, ensureVisible, setCookie, cooks, getPara }
 
 // js tricks
 
 function merge() {
     return Object.assign({}, ...arguments);
+}
+
+// para tools
+
+function getPara(pid) {
+    return $(`#content [pid=${pid}]`);
 }
 
 // toggle boxen
