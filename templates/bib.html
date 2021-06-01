@@ -1,11 +1,11 @@
 {% extends "axiom.html" %}
 
 {% block head %}
-  {{ super() }}
-  <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/bib.css') }} />
-  <script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
-  <script src={{ url_for('static', filename='js/bibtexParse.js') }} language="Javascript" type="text/javascript"></script>
-  <script src={{ url_for('static', filename='js/bib.js') }} type="module"></script>
+
+{{ super() }}
+
+<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/bib.css') }} />
+
 {% endblock %}
 
 {% block title %}Bib{% endblock %}
@@ -14,19 +14,29 @@
 
 {% block content %}
 
-    <div id=prompt><span id=title>Bibliography</span></span>
-     </div>
+<div id=prompt><span id=title>Bibliography</span></span></div>
 
-      <div id=para_holder>
-      </div>
-      <div id=search_results>
-        <div id=s_heading>Search Results <span id=xsr>&#9746</span></div>
-      </div>
-      <textarea id="bib_input" placeholder="Search the web for citations, or enter bibtex directly..."></textarea>
-      <div id='search_button_wrap'>
-      <button id="create">Create</button>
-      <button id="search">Search</button>
-      </div>
+<div id=para_holder></div>
+
+<div id=search_results>
+<div id=s_heading>Search Results <span id=xsr>&#9746</span></div>
+</div>
+
+<textarea id="bib_input" placeholder="Search the web for citations, or enter bibtex directly..."></textarea>
+
+<div id='search_button_wrap'>
+<button id="create">Create</button>
+<button id="search">Search</button>
+</div>
+
+<script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
+<script src={{ url_for('static', filename='js/bibtexParse.js') }} language="Javascript" type="text/javascript"></script>
+
+<script type="module">
+import { initBib } from '{{ url_for('static', filename='js/bib.js') }}'
+initBib();
+</script>
+
 {% endblock %}
 
 {% block foot %}{% endblock %}

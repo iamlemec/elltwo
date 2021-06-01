@@ -1,30 +1,28 @@
-
-
-
-
 <html>
-  <head>
-    <style type="text/css" >
-      #box{
-        margin-left: 40px;
-      }
-      #sig{
-        margin-left: 40px;
-      }
-  </style>
-  </head>
-  <body>
-  <a href="{{url_for('Home',  _external=True)}}">
+
+<head>
+
+<style type="text/css" >
+#box {
+    margin-left: 40px;
+}
+#sig {
+    margin-left: 40px;
+}
+</style>
+
+</head>
+
+<body>
+
+<a href="{{ url_for('Home', _external=True) }}">
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
-    <tr>
-        <td align="center">
-        <img src='cid:logo' width=200>
-        </td>
-    </tr>
+<tr><td align="center"><img src="cid:logo" width="200"></td></tr>
 </table>
 </a>
 
-<div id=box>
+<div id="box">
+
 <p>Welcome!</p>
 {% if confirm %}
 <p>Please follow <a href="{{ confirm_url }}">this link</a> to activate your account.</p>
@@ -35,11 +33,13 @@
 <p>If you did not generate this email, you can safely ignore it.</p>
 <br>
 
-<div id=sig>
+<div id="sig">
 <p>Thanks,</p>
 <p>201p & iamlemec</p>
 </div>
 
 </div>
-  </body>
+
+</body>
+
 </html>

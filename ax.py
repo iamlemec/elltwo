@@ -112,13 +112,13 @@ def inject_dict_for_all_templates():
 @app.route('/')
 @app.route('/home')
 def Home():
-    theme=request.cookies.get('theme') or args.theme
-    return render_template('home.html', theme=theme)
+    style = getStyle(request)
+    return render_template('home.html', **style)
 
 @app.route('/create', methods=['POST'])
 @login_decor
 def Create():
-    art_name =request.form['new_art']
+    art_name = request.form['new_art']
     art = adb.get_art_short(art_name)
     if art:
         return  redirect(url_for('RenderArticle', title=art_name))
@@ -145,8 +145,8 @@ def Demo():
 
 @app.route('/signup')
 def Signup():
-    theme=request.cookies.get('theme') or args.theme
-    return render_template('signup.html', theme=theme)
+    style = getStyle(request)
+    return render_template('signup.html', **style)
 
 @app.route('/login',  methods=['GET', 'POST'])
 def Login():
@@ -154,8 +154,8 @@ def Login():
         next = request.referrer.replace('/r/', '/a/', 1)
     else:
         next = url_for('Home')
-    theme=request.cookies.get('theme') or args.theme
-    return render_template('login.html', next=next, theme=theme)
+    style = getStyle(request)
+    return render_template('login.html', next=next, **style)
 
 @app.route('/create_user', methods=['POST'])
 def CreateUser():
@@ -207,8 +207,8 @@ def Resend(email):
 
 @app.route('/forgot',  methods=['GET', 'POST'])
 def Forgot():
-    theme=request.cookies.get('theme') or args.theme
-    return render_template('forgot.html', theme=theme)
+    style = getStyle(request)
+    return render_template('forgot.html', **style)
 
 @app.route('/reset_email', methods=['POST'])
 def ResetEmail():
@@ -227,8 +227,8 @@ def ResetEmail():
 
 @app.route('/reset/<email>/<token>', methods=['GET'])
 def Reset(email, token):
-    theme=request.cookies.get('theme') or args.theme
-    return render_template('reset.html', email=email, token=token, theme=theme)
+    style = getStyle(request)
+    return render_template('reset.html', email=email, token=token, **style)
 
 @app.route('/reset_with_token/<token>', methods=['POST'])
 def ResetWithToken(token):
@@ -357,8 +357,8 @@ def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
         return redirect(url_for('Home'))
 
 def ErrorPage(title='Error', message=''):
-    theme = request.cookies.get('theme') or args.theme
-    return render_template('error.html', title=title, message=message, theme=theme)
+    style = getStyle(request)
+    return render_template('error.html', title=title, message=message, **style)
 
 def getStyle(req):
     return {
@@ -432,8 +432,8 @@ def export_tex():
 
 @app.route('/b', methods=['GET'])
 def RenderBib():
-    theme = request.cookies.get('theme') or args.theme
-    return render_template('bib.html', theme=theme)
+    style = getStyle(request)
+    return render_template('bib.html', **style)
 
 @app.route('/img', methods=['GET','POST'])
 def Img():

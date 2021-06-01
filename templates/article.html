@@ -1,8 +1,11 @@
 {% extends "axiom.html" %}
 
 {% block head %}
-    {{ super() }}
-    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
+
+{{ super() }}
+
+<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
+
 {% endblock %}
 
 {% block title %}{{title}}{% endblock %}

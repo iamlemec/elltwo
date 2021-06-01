@@ -1,8 +1,80 @@
 /* home page and search */
 
+export { initHome }
+
+import { state, initState } from './state.js'
 import { ensureVisible } from './utils.js'
 import { connect, sendCommand } from './client.js'
 import { renderKatex } from './math.js'
+
+let default_state = {
+    timeout: null,
+}
+
+function initHome() {
+    initState(default_state);
+    connectHome();
+    eventHome();
+    renderKatex();
+}
+
+function connectHome() {
+    let url = `http://${document.domain}:${location.port}`;
+    connect(url, () => {
+        sendCommand('join_room', {'room': '__home'}, (response) => {
+            // console.log(response);
+        });
+    });
+}
+
+function eventHome() {
+    $(document).on('change', '#full_text_check', function() {
+        $('#query').focus();
+        runQuery();
+    });
+
+    $(document).on('click', '#full_text_label', function() {
+        $('#full_text_check').click();
+    });
+
+    $(document).on('click', '#submit', function() {
+        createArt();
+    });
+
+    $(document).on('keydown', function(e) {
+        let key = e.key.toLowerCase();
+        let real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
+        let andriod_is_fucking_stupid = e.keyCode == 229;
+
+        let active = getActive();
+
+        if (e.ctrlKey && (key == 'enter')) {
+            createArt();
+        } else if (e.ctrlKey && (key == '`')) {
+            $('#full_text_check').click();
+        } else if (key == 'enter') {
+            if (active.length > 0) {
+                let url = active.attr('href');
+                window.location = url;
+            }
+        } else if (real || (key == 'backspace') || (key == 'delete') || andriod_is_fucking_stupid) {
+            clearTimeout(state.timeout);
+            state.timeout = setTimeout(runQuery, 200);
+        } else if (key == 'arrowdown') {
+            let next = active.next('.result');
+            if (next.length > 0) {
+                setActive(next);
+            }
+            return false;
+        } else if (key == 'arrowup') {
+            let prev = active.prev('.result');
+            if (prev.length > 0) {
+                setActive(prev);
+            }
+            return false;
+        }
+    });
+}
 
 function searchTitle(query, last_url) {
     sendCommand('search_title', query, function(response) {
@@ -110,62 +182,3 @@ function setActive(res) {
     res.addClass('selected');
     ensureVisible(res);
 }
-
-$(document).on('change', '#full_text_check', function() {
-    $('#query').focus();
-    runQuery();
-});
-
-$(document).on('click', '#full_text_label', function() {
-    $('#full_text_check').click();
-});
-
-$(document).on('click', '#submit', function() {
-    createArt();
-});
-
-let timeout = null;
-
-$(document).on('keydown', function(e) {
-    let key = e.key.toLowerCase();
-    let real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
-    let andriod_is_fucking_stupid = e.keyCode == 229;
-
-    let active = getActive();
-
-    if (e.ctrlKey && (key == 'enter')) {
-        createArt();
-    } else if (e.ctrlKey && (key == '`')) {
-        $('#full_text_check').click();
-    } else if (key == 'enter') {
-        if (active.length > 0) {
-            let url = active.attr('href');
-            window.location = url;
-        }
-    } else if (real || (key == 'backspace') || (key == 'delete') || andriod_is_fucking_stupid) {
-        clearTimeout(timeout);
-        timeout = setTimeout(runQuery, 200);
-    } else if (key == 'arrowdown') {
-        let next = active.next('.result');
-        if (next.length > 0) {
-            setActive(next);
-        }
-        return false;
-    } else if (key == 'arrowup') {
-        let prev = active.prev('.result');
-        if (prev.length > 0) {
-            setActive(prev);
-        }
-        return false;
-    }
-});
-
-$(document).ready(function() {
-    let url = `http://${document.domain}:${location.port}`;
-    connect(url, () => {
-        sendCommand('join_room', {'room': '__home'}, (response) => {
-            console.log(response);
-        });
-    });
-    renderKatex();
-});

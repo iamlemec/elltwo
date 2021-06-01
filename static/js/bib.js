@@ -1,15 +1,74 @@
 /* bibtex library browswer */
 
-export { createBibEntry }
+export { initBib, createBibEntry }
 
 import { connect, addHandler, sendCommand } from './client.js'
 import { getCiteData } from './bib_search.js'
 
-$(document).ready(function() {
+function initBib() {
+    connectBib();
+    eventBib();
+}
+
+function eventBib() {
+    $(document).on('click', '#create', function() {
+        let src = $('#bib_input').val();
+        let json = generateJson(src);
+        if (json) {
+            json.entryTags.raw = src;
+            sendCommand('create_cite', json);
+        }
+    });
+
+    $(document).on('click', '#search', function() {
+        let q = $('#bib_input').val();
+        $('#search_results').find('.cite').remove();
+        $('.nr').remove();""
+        $('#search_results').show();
+        getCiteData(q);
+    });
+
+    $(document).on('click', '#xsr', function() {
+        $('#search_results').find('.cite').remove();
+        $('.nr').remove()
+        $('#search_results').hide();
+    });
+
+    $(document).on('click', '.cite', function() {
+        $('.editable').removeClass('editable');
+        copyCitekey(this);
+        $(this).addClass('editable');
+    });
+
+    $(document).click(function(e) {
+        if ($(e.target).closest('.cite').length == 0) {
+            $('.editable').removeClass('editable');
+        }
+    });
+
+    $(document).on('click', '#search_results > .cite', function() {
+        editcite(this);
+    });
+
+    $(document).on('click', '.update', function(e) {
+        editcite(this);
+        $('.editable').removeClass('editable');
+        e.stopPropagation();
+    });
+
+    $(document).on('click', '.delete', function() {
+        let key = $(this).closest('.cite').attr('id');
+        let data = {'key': key};
+        sendCommand('delete_cite', data);
+        $('.editable').removeClass('editable');
+    });
+}
+
+function connectBib() {
     let url = `http://${document.domain}:${location.port}`;
     connect(url, () => {
         sendCommand('join_room', {'room': '__bib'}, (response) => {
-            console.log(response);
+            // console.log(response);
         });
         sendCommand('get_bib', {});
     });
@@ -21,7 +80,7 @@ $(document).ready(function() {
     addHandler('deleteCite', function(key) {
         deleteCite(key);
     });
-});
+}
 
 function generateJson(src) {
     let json = bibtexParse.toJSON(src);
@@ -38,35 +97,12 @@ function generateJson(src) {
             console.log('Err: Year Required');
             return false;
         } else {
-         return json[0];
+            return json[0];
         }
     }
 }
 
 /// editing
-
-$(document).on('click', '#create', function() {
-    let src = $('#bib_input').val();
-    let json = generateJson(src);
-    if (json) {
-        json.entryTags.raw = src;
-        sendCommand('create_cite', json);
-    }
-});
-
-$(document).on('click', '#search', function() {
-    let q = $('#bib_input').val();
-    $('#search_results').find('.cite').remove();
-    $('.nr').remove();""
-    $('#search_results').show();
-    getCiteData(q);
-});
-
-$(document).on('click', '#xsr', function() {
-    $('#search_results').find('.cite').remove();
-    $('.nr').remove()
-    $('#search_results').hide();
-});
 
 function renderBib(data) {
     //data.map(createBibEntry);
@@ -81,7 +117,7 @@ function renderBib(data) {
 }
 
 function deleteCite(key) {
-    $('#'+key).remove();
+    $(`#${key}`).remove();
 }
 
 function createBibEntry(cite, target, results=false) {
@@ -136,9 +172,9 @@ function createBibEntry(cite, target, results=false) {
     );
 }
 
-//editing and nav
+// editing and nav
 
-function copy_citekey(cite) {
+function copyCitekey(cite) {
     let textArea = document.createElement("textarea");
     textArea.value = $(cite).attr('id');
     document.body.appendChild(textArea);
@@ -146,22 +182,6 @@ function copy_citekey(cite) {
     document.execCommand("Copy");
     textArea.remove();
 }
-
-$(document).on('click', '.cite', function() {
-    $('.editable').removeClass('editable');
-    copy_citekey(this);
-    $(this).addClass('editable');
-});
-
-$(document).click(function(e) {
-    if ($(e.target).closest('.cite').length == 0) {
-        $('.editable').removeClass('editable');
-    }
-});
-
-$(document).on('click', '#search_results > .cite', function() {
-    editcite(this);
-});
 
 function sortCite(id) {
     let divs = $(".cite");
@@ -178,16 +198,3 @@ function editcite(el) {
     $('.nr').remove()
     $('#search_results').hide();
 }
-
-$(document).on('click', '.update', function(e) {
-    editcite(this);
-    $('.editable').removeClass('editable');
-    e.stopPropagation();
-});
-
-$(document).on('click', '.delete', function() {
-    let key = $(this).closest('.cite').attr('id');
-    let data = {'key': key};
-    sendCommand('delete_cite', data);
-    $('.editable').removeClass('editable');
-});

@@ -1,59 +1,64 @@
 {% extends "axiom.html" %}
-{% block title %}Sign Up{% endblock %}
+
+{% block title %}Reset{% endblock %}
 
 {% block head %}
-    {{ super() }}
-    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
-    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='katex/dist/katex.min.css') }} />
-    <script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
-    <script src={{ url_for('static', filename='js/home.js') }} type="module"></script>
+
+{{ super() }}
+
+<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
+<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='katex/dist/katex.min.css') }} />
+
 {% endblock %}
 
 {% block header %}{% endblock %}
 
 {% block content %}
-    {% if not current_user.is_authenticated %}
-    <div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
-        <br>
-        Simple Beautiful Collabrative
+{% if not current_user.is_authenticated %}
+<div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
+<br>
+Simple Beautiful Collabrative
 
-        <br><br><br><br>
+<br><br><br><br>
 
-        Reset password for {{email}}
-     </div>
-        <div class="box">
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="notification">
-                {{ messages[0] }}
-            </div>
-        {% endif %}
-        {% endwith %}
-        <form method="POST" action={{ url_for('ResetWithToken', token=token) }}>
-                <div class="login_field">
-                    <input class="input" type="password" name="password" placeholder="New Password" autofocus="">
-                </div>
-            <button class="login-button">Reset Password</button>
-        </form>
+Reset password for {{email}}
+</div>
+<div class="box">
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="notification">{{ messages[0] }}</div>
+{% endif %}
+{% endwith %}
+<form method="POST" action={{ url_for('ResetWithToken', token=token) }}>
+    <div class="login_field">
+    <input class="input" type="password" name="password" placeholder="New Password" autofocus="">
     </div>
-    {% endif %}
-    {% if current_user.is_authenticated %}
-        <div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
-        <br>
-        Simple Beautiful Collabrative
-     </div>
-            <div class="box">
-            <div class="notification">
-                You are logged in as {{ current_user.name }}, log out?
-            </div>
-        <form method="POST" action="/logout_user">
+    <button class="login-button">Reset Password</button>
+</form>
+</div>
+{% endif %}
 
-            <input type="hidden" name="next" value="{{next}}"/>
+{% if current_user.is_authenticated %}
+<div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
+<br>
+Simple Beautiful Collabrative
+</div>
+<div class="box">
+<div class="notification">
+You are logged in as {{ current_user.name }}, log out?
+</div>
+<form method="POST" action="/logout_user">
+    <input type="hidden" name="next" value="{{next}}"/>
+    <button class="login-button">Log Out</button>
+</form>
+</div>
+{% endif %}
 
-            <button class="login-button">Log Out</button>
-        </form>
-        </div>
-    {% endif %}
+<script type="module">
+import { renderKatex } from '{{ url_for('static', filename='js/math.js') }}'
+renderKatex();
+</script>
+
 {% endblock %}
 
 {% block foot_login %}{% endblock %}

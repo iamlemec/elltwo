@@ -3,47 +3,54 @@
 {% block title %}Axiom l2{% endblock %}
 
 {% block head %}
-    {{ super() }}
-    <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
-    <script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
-    <script src={{ url_for('static', filename='js/home.js') }} type="module"></script>
+
+{{ super() }}
+
+<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
+
 {% endblock %}
 
 {% block header %}{% endblock %}
 
 {% block content %}
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="notification">
-            {{ messages[0] }}
-            </div>
-        {% endif %}
-    {% endwith %}
 
-    <input type="text" autocomplete="off" autofocus="autofocus" name="query" id="query" placeholder="Search existing articles or create a new one" />
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="notification">{{ messages[0] }}</div>
+{% endif %}
+{% endwith %}
 
-    <div id="prompt">
-    <span id="title">Axiom <span class="latex">\ell^2</span></span>
-    <br>
-    Simple Beautiful Collabrative
-    </div>
+<input type="text" autocomplete="off" autofocus="autofocus" name="query" id="query" placeholder="Search existing articles or create a new one" />
 
-    <label class="toggle" for="full_text_check" id="full_text">
-            <input type="checkbox" class="toggle__input" name="full_text" id="full_text_check"/>
-            Full Text Search
-            <span class="toggle-track">
-                <span class="toggle-indicator">
-                    <!--    This check mark is optional  -->
-                    <span class="checkMark">
-                        <svg viewBox="0 0 24 24" id="ghq-svg-check" role="presentation" aria-hidden="true">
-                            <path d="M9.86 18a1 1 0 01-.73-.32l-4.86-5.17a1.001 1.001 0 011.46-1.37l4.12 4.39 8.41-9.2a1 1 0 111.48 1.34l-9.14 10a1 1 0 01-.73.33h-.01z"></path>
-                        </svg>
-                    </span>
-                </span>
-            </span>
-    </label>
+<div id="prompt">
+<span id="title">Axiom <span class="latex">\ell^2</span></span>
+<br>
+Simple Beautiful Collabrative
+</div>
 
-    <button class="create" id="submit">Create</button>
+<label class="toggle" for="full_text_check" id="full_text">
+<input type="checkbox" class="toggle__input" name="full_text" id="full_text_check"/>
+Full Text Search
+<span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
+    <svg viewBox="0 0 24 24" id="ghq-svg-check" role="presentation" aria-hidden="true">
+    <path d="M9.86 18a1 1 0 01-.73-.32l-4.86-5.17a1.001 1.001 0 011.46-1.37l4.12 4.39 8.41-9.2a1 1 0 111.48 1.34l-9.14 10a1 1 0 01-.73.33h-.01z"></path>
+    </svg>
+</span></span></span>
+</label>
 
-    <div id="results_outer"><div id="results"></div></div>
+<button class="create" id="submit">Create</button>
+
+<div id="results_outer"><div id="results"></div></div>
+
+<script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
+
+<script type="module">
+import { initHome } from '{{ url_for('static', filename='js/home.js') }}'
+initHome({{
+{
+
+} | tojson
+}});
+</script>
+
 {% endblock %}
