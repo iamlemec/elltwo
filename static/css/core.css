@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'CM';
-    src: url(/static/fonts/lmroman10-regular.otf);
+    src: url('fonts/lmroman10-regular.otf');
 }
 
 body {

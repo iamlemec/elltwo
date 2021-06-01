@@ -111,7 +111,6 @@ function initMarkdown(args) {
 }
 
 function setWriteable(wr) {
-    console.log('setWriteable', wr);
     state.writeable = wr;
     $('#bg').toggleClass('writeable', wr);
 }

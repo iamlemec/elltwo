@@ -1,4 +1,6 @@
-#content.sb_content{
+@import 'core.css';
+
+#content.sb_content {
     position: absolute;
     left: 20%;
 }

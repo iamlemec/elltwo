@@ -45,7 +45,9 @@
             <a id="axell" href="/">
             <img src="{{ url_for('static', filename='favicon/elltwo.svg') }}" width="16" height="16"/>
             </a>
+
             <span id="hoot">[201p // iamlemec]</span>
+
             {% block foot_login %}
             {% if login %}
             {% if current_user.is_authenticated %}
@@ -73,6 +75,7 @@
             {% endif %}
             {% endif %}
             {% endblock %}
+
             {% block foot %}
             {% endblock %}
 
