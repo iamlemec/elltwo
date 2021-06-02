@@ -51,7 +51,8 @@ args = parser.parse_args()
 # get base configuration
 config = toml.load(args.conf)
 if 'themes' not in config:
-    config['themes'] = [os.path.splitext(t)[0] for t in os.listdir('static/themes')]
+    theme_css = [os.path.splitext(t) for t in os.listdir('static/themes')]
+    config['themes'] = [t for t, e in theme_css if e == '.css']
 
 # login decorator (or not)
 login_decor = login_required if args.login else (lambda f: f)
@@ -349,6 +350,7 @@ def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
             readonly=not edit,
             ref_list=ref_list,
             bib_list=bib_list,
+            themes=config['themes'],
             timeout=config['timeout'],
             max_size=config['max_size'],
         )
