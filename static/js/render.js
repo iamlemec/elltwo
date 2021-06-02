@@ -15,6 +15,7 @@ import { sendCommand, schedTimeout } from './client.js'
 import { renderKatex } from './math.js'
 
 // main rendering entry point (for all cases)
+
 function stateRender() {
     config.macros = {}; // external katex macros
     state.macros = {}; // internal katex macros
@@ -52,15 +53,17 @@ function eventRender() {
 
 /// for external readonly viewing
 
-function loadMarkdown(args) {
-    let md = args.md ?? '';
+function initMarkdown(md) {
     let content = $('#content');
     md.split(/\n{2,}/).forEach((raw, pid) => {
         let para = $('<div>', {class: 'para', pid: pid, raw: raw, fold_level: 0});
         content.append(para);
     });
+}
 
+function loadMarkdown(args) {
     stateRender();
+    initMarkdown(args.md ?? '');
     initRender();
     eventRender();
 }

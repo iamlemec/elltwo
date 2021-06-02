@@ -1,7 +1,7 @@
 /* main article entry point */
 
 export {
-    loadArticle, insertPara, updatePara, updateParas, deletePara,
+    loadArticle, loadMarkdown, insertPara, updatePara, updateParas, deletePara,
     updateRefHTML, toggleHistMap, ccNext, ccMake, ccRefs
 }
 
