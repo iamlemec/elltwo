@@ -6,8 +6,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link type="text/css" rel="stylesheet" href="/local/axiom/static/css/article.css" />
-<link type="text/css" rel="stylesheet" href="/local/axiom/static/themes/simpsons.css" id="theme" />
+<link type="text/css" rel="stylesheet" href="/local/axiom/static/themes/white.css" />
 <link type="text/css" rel="stylesheet" href="/local/axiom/static/katex/dist/katex.min.css" />
+
+<title>External</title>
 
 </head>
 
@@ -26,8 +28,8 @@ const mobile = window.matchMedia('(max-width: 815px)').matches;
 <script src="/local/axiom/static/js/marked3.js" type="text/javascript"></script>
 
 <script type="module">
-import { initMarkdown } from '/local/axiom/static/js/render.js'
-initMarkdown({
+import { loadMarkdown } from '/local/axiom/static/js/render.js'
+loadMarkdown({
 md: `
 #! External Test
 

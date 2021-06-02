@@ -1,7 +1,7 @@
 /// core renderer (includes readonly)
 
 export {
-    initRender, initMarkdown, renderMarkdown, innerPara, renderKatex,
+    stateRender, initRender, eventRender, loadMarkdown, innerPara, renderKatex,
     rawToRender, rawToTextarea, envClasses, createRefs, createTOC, troFromKey,
     popText, syntaxHL, renderBib, s_env_spec, getFoldLevel, renderFold,
     braceMatch
@@ -9,10 +9,63 @@ export {
 
 import { cooks, getPara } from './utils.js'
 import {
-    config, cache, state, initConfig, initCache, initState
+    config, cache, state, updateConfig, updateCache, updateState
 } from './state.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { renderKatex } from './math.js'
+
+// main rendering entry point (for all cases)
+function stateRender() {
+    config.macros = {}; // external katex macros
+    state.macros = {}; // internal katex macros
+}
+
+function initRender() {
+    // core renderer
+    renderParas();
+
+    // environ pass + refs
+    envClasses();
+    createRefs();
+
+    // sort out folding
+    initFold();
+}
+
+function eventRender() {
+    if (!mobile) {
+        $(document).on({
+            mouseenter: function() {
+                let ref = $(this);
+                ref.data('show_pop', true);
+                let html = getTro(ref, renderPop);
+            },
+            mouseleave: function() {
+                let ref = $(this);
+                ref.data('show_pop', false);
+                $('#pop').remove();
+                $(window).unbind('mousemove')
+            },
+        }, '.pop_anchor');
+    }
+}
+
+/// for external readonly viewing
+
+function loadMarkdown(args) {
+    let md = args.md ?? '';
+    let content = $('#content');
+    md.split(/\n{2,}/).forEach((raw, pid) => {
+        let para = $('<div>', {class: 'para', pid: pid, raw: raw, fold_level: 0});
+        content.append(para);
+    });
+
+    stateRender();
+    initRender();
+    eventRender();
+}
+
+/// high level rendering
 
 // inner HTML for para structure. Included here for updating paras
 const innerPara = `
@@ -43,69 +96,7 @@ function renderParas() {
     });
 }
 
-// main rendering entry point (for all cases)
-function initRender() {
-    // core renderer
-    renderParas();
-
-    // environ pass + refs
-    envClasses();
-    createRefs();
-
-    // sort out folding
-    initFold();
-
-    // connect event handlers
-    eventRender();
-}
-
-function eventRender() {
-    if (!mobile) {
-        $(document).on({
-            mouseenter: function() {
-                let ref = $(this);
-                ref.data('show_pop', true);
-                let html = getTro(ref, renderPop);
-            },
-            mouseleave: function() {
-                let ref = $(this);
-                ref.data('show_pop', false);
-                $('#pop').remove();
-                $(window).unbind('mousemove')
-            },
-        }, '.pop_anchor');
-    }
-}
-
-/// for external readonly viewing
-
-let markdown_config = {
-    'macros': {},
-};
-
-let markdown_state = {
-    'macros': {},
-};
-
-let markdown_cache = {};
-
-function initMarkdown(args) {
-    initConfig(markdown_config, args.config ?? {});
-    initCache(markdown_cache, args.cache ?? {});
-    initState(markdown_state);
-    renderMarkdown(args.md ?? '');
-}
-
-function renderMarkdown(md) {
-    let content = $('#content');
-    md.split(/\n{2,}/).forEach((raw, pid) => {
-        let para = $('<div>', {class: 'para', pid: pid, raw: raw, fold_level: 0});
-        content.append(para);
-    });
-    initRender();
-}
-
-/////////////////// EDITING /////////
+/// low level rendering
 
 // get raw text from data-raw attribute, parse, render
 function rawToRender(para, defer, raw=null) {

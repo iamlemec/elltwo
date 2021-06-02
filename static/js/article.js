@@ -1,18 +1,18 @@
 /* main article entry point */
 
 export {
-    initArticle, initMarkdown, insertPara, updatePara, updateParas, deletePara,
+    loadArticle, insertPara, updatePara, updateParas, deletePara,
     updateRefHTML, toggleHistMap, ccNext, ccMake, ccRefs
 }
 
 import { setCookie, cooks, getPara } from './utils.js'
 import {
-    config, state, cache, initConfig, initState, initCache
+    config, state, cache, updateConfig, updateState, updateCache
 } from './state.js'
 import { connect, addHandler, sendCommand, schedTimeout } from './client.js'
 import { initUser } from './user.js'
 import {
-    initRender, renderMarkdown, innerPara, rawToRender, rawToTextarea,
+    stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
     envClasses, createRefs, createTOC, troFromKey, popText, syntaxHL, renderBib,
     braceMatch
 } from './render.js'
@@ -34,7 +34,6 @@ let default_config = {
     timeout: 180, // para lock timeout
     max_size: 1024, // max image size
     readonly: true, // is session readonly
-    macros: {}, // external katex macros
     title: null, // default article title
     aid: null, // article identifier
 };
@@ -54,38 +53,56 @@ let default_state = {
     writeable: false, // can we actually modify contents
     active_para: null, // current active para
     last_active: null, // to keep track of where cursor was
-    macros: {}, // internal katex macros
     cc: false, // is there a command completion window open
     cb: [], // clipboard for cell copy
 };
 
-function initArticle(args) {
-    // load in server side config/cache
-    initConfig(default_config, args.config ?? {});
-    initCache(default_cache, args.cache ?? {});
+function stateArticle() {
+    stateRender();
 
-    // set current state
-    initState(default_state);
+    updateState(default_state);
     setWriteable(!config.readonly);
+}
 
-    // connect and join room
-    connectServer();
-
-    // full render pass
+function initArticle() {
     initRender();
-
-    // update blurbs and refs
-    syncServer(args.update_refs ?? false);
-
-    // create full UI
     initUser();
     initSidebar();
     initHistory();
     initExport();
     initEditor();
+}
 
-    // connect event handlers
-    eventArticle();
+function loadArticle(args) {
+    // load in server side config/cache
+    updateConfig(default_config, args.config ?? {});
+    updateCache(default_cache, args.cache ?? {});
+
+    // initialize full state
+    stateArticle();
+
+    // connect and join room
+    connectServer();
+
+    // core init
+    initArticle();
+
+    // set external reference for import_markdown arts
+    if (args.update_refs ?? false) {
+        console.log('init global refs');
+        $('.para:not(.folder)').each(function() {
+            let para = $(this);
+            updateRefHTML(para);
+        });
+        sendCommand('update_g_ref', {'aid': config.aid, 'g_ref': false}, function(response) {
+            console.log(`g_ref set to '${response}'`);
+        });
+    };
+
+    // send blurb back to server
+    if (!config.readonly) {
+        setBlurb();
+    }
 
     // jump to pid if specified
     let pid = args.pid ?? null;
@@ -93,21 +110,9 @@ function initArticle(args) {
         let para = getPara(pid);
         makeActive(para);
     }
-}
 
-function initMarkdown(args) {
-    initConfig(default_config, args.config ?? {});
-    initCache(default_cache, args.cache ?? {});
-
-    // set current state
-    initState(default_state);
-    setWriteable(!config.readonly);
-
-    // deploy and render
-    renderMarkdown(args.md ?? '');
-
-    // limited UI
-    initEditor();
+    // connect events
+    eventArticle();
 }
 
 function setWriteable(wr) {
@@ -164,26 +169,10 @@ function connectServer() {
     });
 }
 
-function syncServer(update_refs) {
-    // set external reference for import_markdown arts
-    if (update_refs) {
-        console.log('init global refs');
-        $('.para:not(.folder)').each(function() {
-            let para = $(this);
-            updateRefHTML(para);
-        });
-        sendCommand('update_g_ref', {'aid': config.aid, 'g_ref': false}, function(response) {
-            console.log(`g_ref set to '${response}'`);
-        });
-    };
-
-    // send blurb back to server
-    if (!config.readonly) {
-        setBlurb();
-    }
-}
-
 function eventArticle() {
+    // core render events
+    eventRender();
+
     // statusbar
     $(document).on('click', '#logo', toggleSidebar);
     $(document).on('click', '#show_hist', toggleHistMap);

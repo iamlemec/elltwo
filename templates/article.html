@@ -90,8 +90,8 @@ Font
 <script src="{{ url_for('static', filename='js/marked3.js') }}" type="text/javascript"></script>
 
 <script type="module">
-import { initArticle } from '{{ url_for('static', filename='js/article.js') }}';
-initArticle({{
+import { loadArticle } from '{{ url_for('static', filename='js/article.js') }}';
+loadArticle({{
 {
     'config': {
         'theme': theme,

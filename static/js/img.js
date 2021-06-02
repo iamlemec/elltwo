@@ -2,7 +2,9 @@
 
 export { initImage }
 
-import { config, state, cache, initConfig, initState, initCache } from './state.js'
+import {
+    config, state, cache, updateConfig, updateState, updateCache
+} from './state.js'
 import { connect, sendCommand } from './client.js'
 import { renderKatex } from './math.js'
 import { connectDrops, renderImage } from './drop.js'
@@ -15,20 +17,20 @@ let default_config = {
     max_imgs: 50,
 };
 
-let default_state = {
-    timeout: null,
-};
-
 let default_cache = {
     img: {},
+};
+
+let default_state = {
+    timeout: null,
 };
 
 // initialize
 
 function initImage(args) {
-    initConfig(default_config, args.config || {});
-    initCache(default_cache, args.cache || {});
-    initState(default_state);
+    updateConfig(default_config, args.config || {});
+    updateCache(default_cache, args.cache || {});
+    updateState(default_state);
 
     connectImage();
     eventImage();

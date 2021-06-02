@@ -2,7 +2,7 @@
 
 export { initHome }
 
-import { state, initState } from './state.js'
+import { state, updateState } from './state.js'
 import { ensureVisible } from './utils.js'
 import { connect, sendCommand } from './client.js'
 import { renderKatex } from './math.js'
@@ -12,7 +12,7 @@ let default_state = {
 }
 
 function initHome() {
-    initState(default_state);
+    updateState(default_state);
     connectHome();
     eventHome();
     renderKatex();

@@ -1,8 +1,8 @@
 ////// UI ///////
 
 export {
-    initEditor, resize, makeActive, lockParas, unlockParas,
-    sendMakeEditable, sendUpdatePara
+    initEditor, resize, makeActive, lockParas, unlockParas, sendMakeEditable,
+    sendUpdatePara
 }
 
 import { config, state } from './state.js'
@@ -14,13 +14,16 @@ import { updateRefHTML, toggleHistMap, ccNext, ccMake } from './article.js'
 /// initialization
 
 function initEditor() {
+    eventEditor();
+}
+
+function eventEditor() {
     // resize text area on input (eliminate scroll)
     $(document).on('input focus', 'textarea', function() {
         resize(this);
     });
 
     // keyboard interface
-
     $(document).keydown(function(e) {
         let key = e.key.toLowerCase();
         let ctrl = e.ctrlKey;
@@ -146,7 +149,7 @@ function initEditor() {
             if (alt) {
                 makeActive(null);
             } else {
-                $('.para').removeClass('copy_sel')
+                $('.para').removeClass('copy_sel');
             }
         }
     });

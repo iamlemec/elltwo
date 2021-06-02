@@ -1,6 +1,6 @@
 /* global state and config */
 
-export { config, cache, state, initConfig, initCache, initState }
+export { config, cache, state, updateConfig, updateCache, updateState }
 
 import { merge } from './utils.js'
 
@@ -14,18 +14,18 @@ let state = {};
 
 // config
 
-function initConfig(cf) {
-    config = merge(...arguments);
+function updateConfig(cf) {
+    config = merge(config, ...arguments);
 }
 
 // cache
 
-function initCache(ch) {
-    cache = merge(...arguments);
+function updateCache(ch) {
+    cache = merge(cache, ...arguments);
 }
 
 // state
 
-function initState(st) {
-    state = merge(...arguments);
+function updateState(st) {
+    state = merge(state, ...arguments);
 }
