@@ -89,14 +89,7 @@ function loadArticle(args) {
 
     // set external reference for import_markdown arts
     if (args.update_refs ?? false) {
-        console.log('init global refs');
-        $('.para:not(.folder)').each(function() {
-            let para = $(this);
-            updateRefHTML(para);
-        });
-        sendCommand('update_g_ref', {'aid': config.aid, 'g_ref': false}, function(response) {
-            console.log(`g_ref set to '${response}'`);
-        });
+        syncRefs();
     };
 
     // send blurb back to server
@@ -166,6 +159,17 @@ function connectServer() {
 
     addHandler('deleteCite', function(key) {
         deleteCite(key);
+    });
+}
+
+function syncRefs() {
+    console.log('init global refs');
+    $('.para:not(.folder)').each(function() {
+        let para = $(this);
+        updateRefHTML(para);
+    });
+    sendCommand('update_g_ref', {'aid': config.aid, 'g_ref': false}, function(response) {
+        console.log(`g_ref set to '${response}'`);
     });
 }
 
