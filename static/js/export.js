@@ -3,7 +3,8 @@
 export { initExport }
 
 import { toggleBox } from './utils.js'
-import { state } from './state.js'
+import { config, state } from './state.js'
+import { markthree } from './marked3.js'
 import { s_env_spec } from './render.js'
 
 let title;
@@ -14,7 +15,7 @@ function createTex() {
     let output = [];
     $('.para:not(.folder)').each(function() {
         let raw = $(this).attr('raw');
-        let markout = markthree(raw, {renderer: new markthree.texRenderer});
+        let markout = markthree(raw, 'latex');
         let tex;
         if (markout.env) {
             tex = texEnv(markout);
@@ -163,14 +164,14 @@ function sEnv(s_env_spec) {
 /// export methods
 
 function exportMarkdown() {
-    window.location.replace(`/em/${title}`);
+    window.location.replace(`/em/${config.title}`);
 }
 
 function exportTex() {
     let dict = createTex();
     let data = JSON.stringify(dict);
     exportDownload('/et', 'data', data);
-    //console.log(data)
+    // console.log(data);
 }
 
 function exportDownload(url, key, data) {

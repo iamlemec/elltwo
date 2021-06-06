@@ -12,6 +12,7 @@ import {
 } from './state.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { renderKatex } from './math.js'
+import { markthree, replace, divInlineLexer } from './marked3.js'
 
 // main rendering entry point (for all cases)
 
@@ -106,8 +107,8 @@ function rawToRender(para, defer, raw=null) {
     // render with markthree
     let mark_in = (raw === null) ? para.attr('raw') : raw;
     let mark_out = markthree(mark_in);
-    let html_text = mark_out['src'];
-    let env_info = mark_out['env'];
+    let html_text = mark_out.src;
+    let env_info = mark_out.env;
 
     // store old id/env info
     let old_id = para.attr('id');
@@ -436,7 +437,7 @@ function figEnv(ptxt, args) {
         var num = (args.number) ? makeCounter('figure') : '';
         var space = (num) ? ' ' : '';
         var caption = args.caption || '';
-        caption = markthree.inlineLexer(caption)
+        caption = divInlineLexer.output(caption);
         var div = $('<div>', {class: 'env_add fig_cap'});
         var span = $('<span>', {class: 'strong'});
         span.append(['Figure', space, num, '. ']);
@@ -1014,7 +1015,7 @@ function syntaxParseInline(raw) {
     );
 
     html = html.replace(inline.ref, (a, b) =>
-        s('@', 'delimit') + s(fArgs(b, set=false), 'ref')
+        s('@', 'delimit') + s(fArgs(b, false), 'ref')
     );
 
     html = html.replace(inline.ilink, (a, b) =>
@@ -1084,22 +1085,22 @@ let block = {
 
 block._refargs = /(?:(\[(?:[^\]]|(?<=\\)\])*\]?))/;
 
-block.title = markthree.replace(block.title)
+block.title = replace(block.title)
   ('refargs', block._refargs)
   ();
-block.heading = markthree.replace(block.heading)
+block.heading = replace(block.heading)
   ('refargs', block._refargs)
   ();
-block.equation = markthree.replace(block.equation)
+block.equation = replace(block.equation)
   ('refargs', block._refargs)
   ();
-block.image = markthree.replace(block.image)
+block.image = replace(block.image)
   ('refargs', block._refargs)
   ();
-block.svg = markthree.replace(block.svg)
+block.svg = replace(block.svg)
   ('refargs', block._refargs)
   ();
-block.envbeg = markthree.replace(block.envbeg)
+block.envbeg = replace(block.envbeg)
   ('refargs', block._refargs)
   ();
 
