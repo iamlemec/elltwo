@@ -1,10 +1,9 @@
 /// core renderer (includes readonly)
 
 export {
-    stateRender, initRender, eventRender, loadMarkdown, innerPara, renderKatex,
-    rawToRender, rawToTextarea, envClasses, createRefs, createTOC, troFromKey,
-    popText, syntaxHL, renderBib, s_env_spec, getFoldLevel, renderFold,
-    braceMatch
+    stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
+    rawToTextarea, envClasses, createRefs, createTOC, troFromKey, popText,
+    syntaxHL, renderBib, s_env_spec, getFoldLevel, renderFold, braceMatch
 }
 
 import { cooks, getPara } from './utils.js'
@@ -19,6 +18,7 @@ import { renderKatex } from './math.js'
 function stateRender() {
     config.macros = {}; // external katex macros
     state.macros = {}; // internal katex macros
+    cache.folded = []; // current folded pids
 }
 
 function initRender() {

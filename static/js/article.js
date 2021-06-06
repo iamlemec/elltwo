@@ -43,7 +43,6 @@ let default_cache = {
     bib: [], // bibliography entries
     img: {}, // local image cache
     ext_ref: {}, // external ref info
-    folded: [], // current folded pids
 };
 
 let default_state = {
