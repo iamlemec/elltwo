@@ -119,7 +119,7 @@ def ces(v, σ=2):
 ##
 
 class AxiomDB:
-    def __init__(self, db=None, path='axiom.db', uri=None, create=False, reindex=True):
+    def __init__(self, db=None, path='axiom.db', uri=None, create=False, reindex=False):
         if db is None:
             if uri is None:
                 uri = f'sqlite:///{path}'
@@ -777,11 +777,30 @@ class AxiomDB:
     def get_user(self, email):
         return self.session.query(User).filter_by(email=email).one_or_none()
 
-    def add_user(self, email, name, password):
+    def get_all_users(self):
+        return self.session.query(User).all()
+
+    def add_user(self, email, name, password, confirm=False):
+        time = datetime.now()
+
         phash = generate_password_hash(password, method='sha256')
-        new_user = User(email=email, name=name, password=phash)
-        self.session.add(new_user)
+        user = User(email=email, name=name, password=phash, registered_on=time)
+
+        if confirm:
+            user.confirmed = True
+            user.confirmed_on = time
+
+        self.session.add(user)
         self.session.commit()
+
+    def del_user(self, email):
+        user = self.get_user(email)
+        if user is None:
+            return False
+        else:
+            self.session.delete(user)
+            self.session.commit()
+            return True
 
     def confirm_user(self, user):
         user.confirmed = True

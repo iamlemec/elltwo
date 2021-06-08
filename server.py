@@ -42,6 +42,7 @@ parser.add_argument('--ip', type=str, default='127.0.0.1', help='IP address to s
 parser.add_argument('--port', type=int, default=5000, help='Main port to serve on')
 parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 parser.add_argument('--login', action='store_true', help='Require login for editing')
+parser.add_argument('--private', action='store_true', help='Require login for viewing/editing')
 parser.add_argument('--conf', type=str, default='conf.toml', help='path to configuation file')
 parser.add_argument('--auth', type=str, default='auth.toml', help='user authorization config')
 parser.add_argument('--mail', type=str, default=None, help='mail authorization config')
@@ -55,7 +56,8 @@ if 'themes' not in config:
     config['themes'] = [t for t, e in theme_css if e == '.css']
 
 # login decorator (or not)
-login_decor = login_required if args.login else (lambda f: f)
+edit_decor = login_required if (args.login or args.private) else (lambda f: f)
+view_decor = login_required if args.private else (lambda f: f)
 
 # create flask app
 app = Flask(__name__)
@@ -105,19 +107,15 @@ def inject_dict_for_all_templates():
 ### Home Page
 ###
 
-# @app.route('/favicon.ico')
-# def favicon():
-#     return send_from_directory(os.path.join(app.root_path, 'static'),
-#                           'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
 @app.route('/')
 @app.route('/home')
+@view_decor
 def Home():
     style = getStyle(request)
     return render_template('home.html', **style)
 
 @app.route('/create', methods=['POST'])
-@login_decor
+@edit_decor
 def Create():
     art_name = request.form['new_art']
     art = adb.get_art_short(art_name)
@@ -132,6 +130,7 @@ demo_path = 'testing/howto.md'
 rand_hex = lambda s: hex(getrandbits(4*s))[2:].zfill(s)
 
 @app.route('/demo')
+@view_decor
 def Demo():
     hash_tag = rand_hex(8)
     art_name = f'demo_{hash_tag}'
@@ -158,7 +157,6 @@ def Login():
     style = getStyle(request)
     return render_template('login.html', next=next, **style)
 
-@app.route('/create_user', methods=['POST'])
 def CreateUser():
     email = request.form.get('email')
     name = request.form.get('name')
@@ -178,6 +176,9 @@ def CreateUser():
     msg = Markup(f'Check your email to activate your account. <br> <a href={rs} class="alert-link">Resend.</a>')
     flash(msg)
     return redirect(url_for('Login'))
+
+if not args.private:
+    app.add_url_rule('/create_user', CreateUser, methods=['POST'])
 
 @app.route('/confirm/<token>')
 def confirm_email(token):
@@ -206,7 +207,7 @@ def Resend(email):
     flash(msg)
     return redirect(url_for('Home'))
 
-@app.route('/forgot',  methods=['GET', 'POST'])
+@app.route('/forgot', methods=['GET', 'POST'])
 def Forgot():
     style = getStyle(request)
     return render_template('forgot.html', **style)
@@ -272,7 +273,7 @@ def LoginUser():
     return redirect(next)
 
 @app.route('/logout_user', methods=['POST'])
-@login_decor
+@edit_decor
 def LogoutUser():
     logout_user()
     return redirect(request.referrer)
@@ -369,6 +370,7 @@ def getStyle(req):
     }
 
 @app.route('/a/<title>', methods=['GET'])
+@view_decor
 def RenderArticle(title):
     style = getStyle(request)
     pid = request.args.get('pid')
@@ -378,11 +380,13 @@ def RenderArticle(title):
         return redirect(url_for('RenderArticleRO', title=title))
 
 @app.route('/r/<title>', methods=['GET'])
+@view_decor
 def RenderArticleRO(title):
     style = getStyle(request)
     return GetArtData(title, edit=False, **style)
 
 @app.route('/i/<key>', methods=['GET'])
+@view_decor
 def GetImage(key):
     if (img := adb.get_image(key)) is not None:
         buf = BytesIO(img.data)
@@ -394,6 +398,7 @@ def GetImage(key):
 ### exporting
 
 @app.route('/em/<title>', methods=['GET'])
+@view_decor
 def ExportMarkdown(title):
     art = adb.get_art_short(title)
     md = adb.get_art_text(art.aid)
@@ -406,6 +411,7 @@ def ExportMarkdown(title):
     return resp
 
 @app.route('/et', methods=['GET', 'POST'])
+@view_decor
 def export_tex():
     data = request.form['data']
     data = json.loads(data)
@@ -433,11 +439,13 @@ def export_tex():
     return resp
 
 @app.route('/b', methods=['GET'])
+@view_decor
 def RenderBib():
     style = getStyle(request)
     return render_template('bib.html', **style)
 
 @app.route('/img', methods=['GET','POST'])
+@view_decor
 def Img():
     edit = current_user.is_authenticated or not args.login
     style = getStyle(request)
@@ -486,7 +494,7 @@ def room(data):
 ###
 
 @socketio.on('update_para')
-@login_decor
+@edit_decor
 def update_para(data):
     aid, pid, text = data['aid'], data['pid'], data['text']
     adb.update_para(pid, text)
@@ -495,7 +503,7 @@ def update_para(data):
     return True
 
 @socketio.on('insert_after')
-@login_decor
+@edit_decor
 def insert_after(data):
     aid, pid = data['aid'], data['pid']
     text = data.get('text', '')
@@ -504,7 +512,7 @@ def insert_after(data):
     return True
 
 @socketio.on('insert_before')
-@login_decor
+@edit_decor
 def insert_before(data):
     aid, pid = data['aid'], data['pid']
     text = data.get('text', '')
@@ -513,7 +521,7 @@ def insert_before(data):
     return True
 
 @socketio.on('paste_cells')
-@login_decor
+@edit_decor
 def paste_cells(data):
     aid, pid, cb = data['aid'], data['pid'], data['cb']
     if len(cb) == 0:
@@ -523,7 +531,7 @@ def paste_cells(data):
     return True
 
 @socketio.on('delete_para')
-@login_decor
+@edit_decor
 def delete_para(data):
     aid, pid = data['aid'], data['pid']
     adb.delete_para(pid)
@@ -531,12 +539,14 @@ def delete_para(data):
     return True
 
 @socketio.on('get_commits')
+@view_decor
 def get_commits(data):
     aid = data['aid']
     dates = adb.get_commits(aid=aid)
     return [d.isoformat().replace('T', ' ') for d in dates]
 
 @socketio.on('get_history')
+@view_decor
 def get_history(data):
     aid, date = data['aid'], data['date']
     paras = adb.get_paras(aid=aid, time=date)
@@ -548,7 +558,7 @@ def get_history(data):
 
 
 @socketio.on('revert_history')
-@login_decor
+@edit_decor
 def revert_history(data):
     aid, date = data['aid'], data['date']
     diff = adb.diff_article(aid, date)
@@ -568,7 +578,7 @@ def revert_history(data):
 ###
 
 @socketio.on('create_art')
-@login_decor
+@edit_decor
 def create_art(title):
     art = adb.get_art_short(title)
     if art:
@@ -578,6 +588,7 @@ def create_art(title):
         return url_for('RenderArticle', title=title)
 
 @socketio.on('search_title')
+@view_decor
 def search_title(data):
     results = adb.search_title(data)
     return [{
@@ -587,6 +598,7 @@ def search_title(data):
     } for art in results]
 
 @socketio.on('search_text')
+@view_decor
 def search_text(data):
     results = adb.search_text(data)
 
@@ -601,7 +613,7 @@ def search_text(data):
     } for par in results]
 
 @socketio.on('set_blurb')
-@login_decor
+@edit_decor
 def set_blurb(data):
     aid = data['aid']
     blurb = data['blurb']
@@ -621,25 +633,27 @@ def get_blurb(title):
 ###
 
 @socketio.on('create_cite')
-@login_decor
+@edit_decor
 def create_cite(data):
     adb.create_cite(data['citationKey'], data['entryType'], **data['entryTags'])
     bib = adb.get_bib_dict(keys=[data['citationKey']])
     socketio.emit('renderBib', bib, broadcast=True)
 
 @socketio.on('delete_cite')
-@login_decor
+@edit_decor
 def delete_cite(data):
     adb.delete_cite(data['key'])
     socketio.emit('deleteCite', data['key'], broadcast=True)
 
 @socketio.on('get_bib')
+@view_decor
 def get_bib(data):
     keys = data.get('keys', None)
     bib = adb.get_bib_dict(keys=keys)
     socketio.emit('renderBib', bib)
 
 @socketio.on('get_cite')
+@view_decor
 def get_cite(data):
     bib = adb.get_bib_dict(keys=data['keys'])
     return bib
@@ -649,6 +663,7 @@ def get_cite(data):
 ###
 
 @socketio.on('get_ref')
+@view_decor
 def get_ref(data):
     art = adb.get_art_short(data['title'])
     if art:
@@ -668,6 +683,7 @@ def get_ref(data):
         return {'text': "art not found", 'cite_type': 'err'}
 
 @socketio.on('get_refs')
+@view_decor
 def get_refs(data):
     title = data['title']
     art = adb.get_art_short(title)
@@ -678,21 +694,23 @@ def get_refs(data):
         return {'refs': [], 'title': ''}
 
 @socketio.on('get_arts')
+@view_decor
 def get_arts(data):
     return {art: [] for art in adb.get_art_titles()}
 
 @socketio.on('update_ref')
-@login_decor
+@edit_decor
 def update_ref(data):
     adb.create_ref(**data)
 
 @socketio.on('update_g_ref')
+@edit_decor
 def update_g_ref(data):
     adb.update_g_ref(data['aid'], data['g_ref'])
     return data['g_ref']
 
 @socketio.on('delete_ref')
-@login_decor
+@edit_decor
 def delete_ref(data):
     adb.delete_ref(data['key'],data['aid'])
     # socketio.emit('deleteRef', data['key'], broadcast=True)
@@ -714,7 +732,7 @@ def trueUnlock(aid, pids):
         socketio.emit('unlock', rpid, room=aid)
 
 @socketio.on('lock')
-@login_decor
+@edit_decor
 def lock(data):
     sid = request.sid # unique client id
     aid, pid = data['aid'], data['pid']
@@ -725,12 +743,13 @@ def lock(data):
     return True
 
 @socketio.on('unlock')
-@login_decor
+@edit_decor
 def unlock(data):
     aid, pids = data['aid'], data['pids']
     trueUnlock(aid, pids)
 
 @socketio.on('timeout')
+@view_decor
 def timeout(data):
     sid = request.sid
     app.logger.debug(f'timeout: {sid}')
@@ -743,6 +762,7 @@ def timeout(data):
 ###
 
 @app.route('/uploadImg', methods=['POST'])
+@edit_decor
 def UploadImg():
     file = request.files['file']
     img_key = request.form.get('key')
@@ -757,6 +777,7 @@ def UploadImg():
     return {'mime': img_mime, 'key': img_key}
 
 @socketio.on('get_image')
+@view_decor
 def get_image(data):
     key = data['key']
     if (img := adb.get_image(key)) is not None:
@@ -765,6 +786,7 @@ def get_image(data):
         return {'found': False}
 
 @socketio.on('update_image_key')
+@edit_decor
 def update_img_key(data):
     key = data['key']
     new_key = data['new_key']
