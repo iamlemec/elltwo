@@ -13,13 +13,11 @@
     <link rel="icon" type="image/svg+xml" href="/static/favicon/elltwo.svg">
     <link rel="manifest" href={{ url_for('static', filename='favicon/site.webmanifest') }}>
 
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/core.css') }}" />
     {% if theme %}
     <link id="theme" type="text/css" rel="stylesheet" href="{{ url_for('static', filename='themes/'+theme+'.css') }}" />
     {% endif %}
     <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='katex/dist/katex.min.css') }}" />
 
-    <script type="text/javascript">const mobile = window.matchMedia('(max-width: 815px)').matches</script>
     <script src="{{ url_for('static', filename='libs/jquery-3.5.0.min.js') }}"> </script>
     <script src="{{ url_for('static', filename='katex/dist/katex.min.js') }}"></script>
 
@@ -30,6 +28,7 @@
 </head>
 
 <body>
+
     <div id="bg">
 
         {% block header %}{% endblock %}
@@ -82,5 +81,10 @@
         </div>
 
     </div>
+
+    {% block init %}
+    {% endblock %}
+
 </body>
+
 </html>

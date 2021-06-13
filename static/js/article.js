@@ -220,7 +220,7 @@ function eventArticle() {
     });
 
     // mobile hover eqiv
-    if (mobile) {
+    if (config.mobile) {
         $(document).on('click', '.pop_anchor', function(e) {
             e.preventDefault();
             $('#pop').remove();
@@ -666,12 +666,12 @@ function renderPreview(hist) {
 
 function initHistory(data) {
     // fixed params // different for mobile
-    let hpadding = mobile ? 20 : 50;
-    let radius = mobile ? 6 : 4;
+    let hpadding = config.mobile ? 20 : 50;
+    let radius = config.mobile ? 6 : 4;
 
     // these should be dynamic
     let width = window.innerWidth;
-    let height = mobile ? 150 : 100;
+    let height = config.mobile ? 150 : 100;
 
     // clean house
     let hist = d3.select('#hist');
@@ -894,7 +894,7 @@ function revertHistory() {
 
 function responsivefy(svg) {
     let width = window.innerWidth;
-    let height = svg.attr('height'); //mobile ? 150 : 100;
+    let height = svg.attr('height'); // config.mobile ? 150 : 100;
     let aspect = width / height;
 
     // add viewBox and preserveAspectRatio properties,

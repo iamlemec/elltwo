@@ -2,11 +2,13 @@
 
 export { config, cache, state, updateConfig, updateCache, updateState }
 
-import { merge } from './utils.js'
+import { merge, isMobile } from './utils.js'
 
 // defaults
 
-let config = {};
+let config = {
+    mobile: isMobile()
+};
 
 let cache = {};
 

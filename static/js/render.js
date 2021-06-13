@@ -35,7 +35,7 @@ function initRender() {
 }
 
 function eventRender() {
-    if (!mobile) {
+    if (!config.mobile) {
         $(document).on({
             mouseenter: function() {
                 let ref = $(this);
@@ -842,7 +842,7 @@ function createPop(ref, html='', link=false) {
     let h = pop.height();
     let w = pop.width();
 
-    if (!mobile) { // no mouse binding with mobile popups
+    if (!config.mobile) { // no mouse binding with mobile popups
         ref.mousemove(function(event) {
             let mid = window.innerHeight / 2;
             let x = event.pageX - 0.5*w - 10;
@@ -889,7 +889,7 @@ function renderPop(ref, tro, text, ext) {
     } else {
         pop = popText(tro);
     };
-    let link = mobile ? ref.attr('href'): false;
+    let link = config.mobile ? ref.attr('href'): false;
     createPop(ref, pop, link);
 }
 

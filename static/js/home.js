@@ -11,7 +11,7 @@ let default_state = {
     timeout: null,
 }
 
-function initHome() {
+function initHome(args) {
     updateState(default_state);
     connectHome();
     eventHome();

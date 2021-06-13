@@ -126,7 +126,7 @@ function eventEditor() {
     /// mouse interface
 
     $(document).on('click', '.para', function(e) {
-        let alt = e.altKey || mobile;
+        let alt = e.altKey || config.mobile;
         let cmd = e.metaKey;
         if (alt) {
             let para = $(this);
@@ -144,7 +144,7 @@ function eventEditor() {
 
     $(document).on('click', '#bg', function(e) {
         let targ = event.target.id;
-        let alt = e.altKey || mobile;
+        let alt = e.altKey || config.mobile;
         if (targ == 'bg' || targ == 'content') {
             if (alt) {
                 makeActive(null);
@@ -318,7 +318,7 @@ function trueMakeEditable(rw=true, cursor='end') {
     if (rw) {
         text.prop('readonly', false);
         placeCursor(cursor);
-        if (mobile) {
+        if (config.mobile) {
             $('#foot').hide();
         };
     }
@@ -366,7 +366,7 @@ function makeUnEditable(send=true) {
         if (state.writeable) {
             localChange(state.active_para, send);
         }
-        if (mobile) {
+        if (config.mobile) {
             $('#foot').show();
         };
     }

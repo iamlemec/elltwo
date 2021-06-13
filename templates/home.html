@@ -8,6 +8,8 @@
 
 <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
 
+<script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
+
 {% endblock %}
 
 {% block header %}{% endblock %}
@@ -42,14 +44,14 @@ Full Text Search
 
 <div id="results_outer"><div id="results"></div></div>
 
-<script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
+{% endblock %}
+
+{% block init %}
 
 <script type="module">
 import { initHome } from '{{ url_for('static', filename='js/home.js') }}'
 initHome({{
-{
-
-} | tojson
+{} | tojson
 }});
 </script>
 

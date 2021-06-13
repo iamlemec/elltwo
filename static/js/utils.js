@@ -1,6 +1,6 @@
 /* random utilities */
 
-export { merge, toggleBox, ensureVisible, setCookie, cooks, getPara }
+export { merge, toggleBox, ensureVisible, setCookie, cooks, getPara, isMobile }
 
 // js tricks
 
@@ -77,3 +77,9 @@ function cooks(name) {
         return JSON.parse(f);
     }
 };
+
+// detect mobiel
+
+function isMobile() {
+    return window.matchMedia('(max-width: 815px)').matches;
+}
