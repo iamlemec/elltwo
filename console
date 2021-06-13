@@ -1,0 +1,62 @@
+#! /usr/bin/env python
+
+# axiom admin console
+
+import getpass
+import fire
+
+from db_query import AxiomDB
+
+default_db = 'axiom.db'
+
+def confirm(question):
+    prompt = '[y/N]'
+    response = input(f'{question} [y/N]: ').lower()
+    return response == 'y'
+
+class User:
+    def list(self, db=default_db):
+        adb = AxiomDB(path=db)
+        for u in adb.get_all_users():
+            print(u)
+
+    def create(self, email, name=None, password=None, confirm=True, db=default_db):
+        if name is None:
+            name, _ = email.split('@')
+        if password is None:
+            password = getpass.getpass()
+        adb = AxiomDB(path=db)
+        adb.add_user(email, name, password, confirm=confirm)
+
+    def delete(self, email, db=default_db):
+        if confirm('delete user?'):
+            adb = AxiomDB(path=db)
+            if adb.del_user(email):
+                print(f'{email} deleted')
+            else:
+                print(f'{email} not found')
+
+class Index:
+    def regen(self, db=default_db):
+        adb = AxiomDB(path=db)
+        adb.reindex_articles()
+
+    def title(self, query, db=default_db):
+        adb = AxiomDB(path=db)
+        arts = adb.search_title(query)
+        for a in arts:
+            print(a)
+
+    def paras(self, query, db=default_db):
+        adb = AxiomDB(path=db)
+        paras = adb.search_text(query)
+        for p in paras:
+            print(p)
+
+class Main:
+    def __init__(self):
+        self.user = User()
+        self.index = Index()
+
+if __name__ == '__main__':
+    fire.Fire(Main)
