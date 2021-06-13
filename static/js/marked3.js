@@ -1467,7 +1467,7 @@ let divRenderer = new DivRenderer();
 let divInlineLexer = new InlineLexer(divRenderer);
 let divParser = new Parser(divRenderer, divInlineLexer);
 
-let texRenderer = new DivRenderer();
+let texRenderer = new TexRenderer();
 let texInlineLexer = new InlineLexer(texRenderer);
 let texParser = new Parser(texRenderer, texInlineLexer);
 

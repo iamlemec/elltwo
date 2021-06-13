@@ -410,27 +410,11 @@ def ExportMarkdown(title):
 
     return resp
 
-@app.route('/et', methods=['GET', 'POST'])
+@app.route('/et/<title>', methods=['GET'])
 @view_decor
-def export_tex():
-    data = request.form['data']
-    data = json.loads(data)
-
-    title = data['title']
-    paras = data['paras']
-    bib = adb.get_bib_dict(keys=data['keys'])
-    macros = data['macros']
-    s_envs = data['s_envs']
-
+def export_tex(title):
+    tex = export_cache[(title, 'latex')]
     fname = f'{title}.tex'
-
-    tex = render_template('template.tex',
-        title=title,
-        paras=paras, bib=bib,
-        macros=macros,
-        s_envs=s_envs,
-        date=datetime.now(),
-    )
 
     resp = Response(tex)
     resp.headers['Content-Type'] = 'text/tex'
@@ -714,6 +698,33 @@ def update_g_ref(data):
 def delete_ref(data):
     adb.delete_ref(data['key'],data['aid'])
     # socketio.emit('deleteRef', data['key'], broadcast=True)
+
+###
+### export
+###
+
+extension = {
+    'markdown': 'md',
+    'latex': 'tex',
+}
+
+export_cache = {}
+
+@socketio.on('export')
+@view_decor
+def export(data):
+    data = data.copy()
+
+    fbase = data.pop('filename')
+    format = data.pop('format')
+
+    date = datetime.now()
+    bib = adb.get_bib_dict(keys=data.pop('keys'))
+    tex = render_template('template.tex', bib=bib, date=date, **data)
+
+    export_cache[(fbase, format)] = tex
+
+    return True
 
 ###
 ### locking

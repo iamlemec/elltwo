@@ -4,15 +4,16 @@ export { initExport }
 
 import { toggleBox } from './utils.js'
 import { config, state } from './state.js'
+import { sendCommand } from './client.js'
 import { markthree } from './marked3.js'
 import { s_env_spec } from './render.js'
 
 let title;
 
 function createTex() {
-    title = state.title;
+    title = config.title;
     let keys = getBibRefs();
-    let output = [];
+    let paras = [];
     $('.para:not(.folder)').each(function() {
         let raw = $(this).attr('raw');
         let markout = markthree(raw, 'latex');
@@ -23,14 +24,16 @@ function createTex() {
             tex = markout.src;
         }
         tex = replaceCites(keys, tex);
-        output.push(tex);
+        paras.push(tex);
     });
 
     let tex_macros = texMacros(state.macros);
     let s_envs = sEnv(s_env_spec);
 
     let dict = {
-        'paras': output,
+        'format': 'latex',
+        'filename': config.title,
+        'paras': paras,
         'keys': keys,
         'title': title,
         'macros': tex_macros,
@@ -168,19 +171,12 @@ function exportMarkdown() {
 }
 
 function exportTex() {
-    let dict = createTex();
-    let data = JSON.stringify(dict);
-    exportDownload('/et', 'data', data);
-    // console.log(data);
-}
-
-function exportDownload(url, key, data) {
-    // build a form
-    let form = $('<form></form>').attr('action', url).attr('method', 'post');
-    // add the one key/value
-    form.append($('<input></input>').attr('type', 'hidden').attr('name', key).attr('value', data));
-    // send request
-    form.appendTo('body').submit().remove();
+    let data = createTex();
+    sendCommand('export', data, function(response) {
+        if (response) {
+            window.location.replace(`/et/${config.title}`);
+        }
+    });
 }
 
 // box
