@@ -395,34 +395,11 @@ def GetImage(key):
         flash(f'Image "{key}" does not exist.')
         return redirect(url_for('Home'))
 
-### exporting
+##
+## Libraries
+##
 
-@app.route('/em/<title>', methods=['GET'])
-@view_decor
-def ExportMarkdown(title):
-    art = adb.get_art_short(title)
-    md = adb.get_art_text(art.aid)
-    fname = f'{title}.md'
-
-    resp = Response(md)
-    resp.headers['Content-Type'] = 'text/markdown'
-    resp.headers['Content-Disposition'] = f'attachment; filename={fname}'
-
-    return resp
-
-@app.route('/et/<title>', methods=['GET'])
-@view_decor
-def export_tex(title):
-    tex = export_cache[(title, 'latex')]
-    fname = f'{title}.tex'
-
-    resp = Response(tex)
-    resp.headers['Content-Type'] = 'text/tex'
-    resp.headers['Content-Disposition'] = f'attachment; filename={fname}'
-
-    return resp
-
-@app.route('/b', methods=['GET'])
+@app.route('/bib', methods=['GET'])
 @view_decor
 def RenderBib():
     style = getStyle(request)
@@ -539,7 +516,6 @@ def get_history(data):
         'paras': [(p.pid, p.text) for p in paras],
         'diff': list(diff['para_upd'] | diff['para_add']),
     }
-
 
 @socketio.on('revert_history')
 @edit_decor
@@ -660,7 +636,7 @@ def get_ref(data):
                 'cite_env': ref.cite_env,
                 'ref_text': ref.ref_text,
                 'title': title
-                }
+            }
         else:
             return {'text': "ref not found", 'cite_type': 'err'}
     else:
@@ -698,33 +674,6 @@ def update_g_ref(data):
 def delete_ref(data):
     adb.delete_ref(data['key'],data['aid'])
     # socketio.emit('deleteRef', data['key'], broadcast=True)
-
-###
-### export
-###
-
-extension = {
-    'markdown': 'md',
-    'latex': 'tex',
-}
-
-export_cache = {}
-
-@socketio.on('export')
-@view_decor
-def export(data):
-    data = data.copy()
-
-    fbase = data.pop('filename')
-    format = data.pop('format')
-
-    date = datetime.now()
-    bib = adb.get_bib_dict(keys=data.pop('keys'))
-    tex = render_template('template.tex', bib=bib, date=date, **data)
-
-    export_cache[(fbase, format)] = tex
-
-    return True
 
 ###
 ### locking

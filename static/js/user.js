@@ -2,8 +2,8 @@
 
 export { initUser }
 
-import { toggleBox } from './utils.js'
+import { initToggleBox } from './utils.js'
 
 function initUser() {
-    toggleBox(false, '#toggle_ll', '#locallogin');
+    initToggleBox('#toggle_ll', '#locallogin');
 }

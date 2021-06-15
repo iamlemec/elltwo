@@ -1,6 +1,9 @@
 /* random utilities */
 
-export { merge, toggleBox, ensureVisible, setCookie, cooks, getPara, isMobile }
+export {
+    merge, initToggleBox, toggleBox, ensureVisible, setCookie, cooks, getPara,
+    isMobile
+}
 
 // js tricks
 
@@ -16,25 +19,33 @@ function getPara(pid) {
 
 // toggle boxen
 
-function toggleBox(bool, button, box) {
-    $(button).click(function() {
-        if (bool) {
-            $(box).hide();
-            bool = false;
-        } else {
-            $(box).show();
-            bool = true;
-        };
+function isVisible(elem) {
+    return elem.is(':visible');
+}
+
+function toggleBox(box) {
+    if (isVisible(box)) {
+        box.hide();
+    } else {
+        box.show();
+    }
+}
+
+function initToggleBox(button, box) {
+    button = $(button);
+    box = $(box);
+
+    button.click(function() {
+        toggleBox(box);
     });
 
     $(document).click(function(e) {
-        if (bool) {
+        if (isVisible(box)) {
             let targ = $(e.target);
             let close_butt = targ.closest(button);
             let close_box = targ.closest(box);
             if ((close_butt.length == 0) && (close_box.length == 0)) {
-                $(box).hide();
-                bool = false;
+                box.hide();
             }
         }
     });
@@ -78,7 +89,7 @@ function cooks(name) {
     }
 };
 
-// detect mobiel
+// detect mobile
 
 function isMobile() {
     return window.matchMedia('(max-width: 815px)').matches;

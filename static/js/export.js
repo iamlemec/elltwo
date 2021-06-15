@@ -2,11 +2,31 @@
 
 export { initExport }
 
-import { toggleBox } from './utils.js'
+import { initToggleBox } from './utils.js'
 import { config, state } from './state.js'
 import { sendCommand } from './client.js'
 import { markthree } from './marked3.js'
 import { s_env_spec } from './render.js'
+import { latexTemplate } from './template.js'
+
+// markdown export
+
+function createMd() {
+    let paras = [];
+    $('.para:not(.folder)').each(function() {
+        let raw = $(this).attr('raw');
+        paras.push(raw);
+    });
+
+    let dict = {
+        'format': 'text/markdown',
+        'filename': `${config.title}.md`,
+        'text': paras.join('\n\n'),
+    };
+    return dict;
+}
+
+// latex export
 
 let title;
 
@@ -27,18 +47,20 @@ function createTex() {
         paras.push(tex);
     });
 
-    let tex_macros = texMacros(state.macros);
-    let s_envs = sEnv(s_env_spec);
+    let tVars = {
+        'title': title,
+        'macros': texMacros(state.macros),
+        'envs': sEnv(s_env_spec),
+        'bib': keys.join('\n'),
+        'body': paras.join('\n\n'),
+    };
+    let text = latexTemplate(tVars);
 
     let dict = {
-        'format': 'latex',
-        'filename': config.title,
-        'paras': paras,
-        'keys': keys,
-        'title': title,
-        'macros': tex_macros,
-        's_envs': s_envs,
-    };
+        'mimetype': 'text/tex',
+        'filename': `${config.title}.tex`,
+        'text': text,
+    }
     return dict;
 }
 
@@ -164,25 +186,42 @@ function sEnv(s_env_spec) {
     return envout;
 }
 
-/// export methods
+// export methods
+
+function downloadFile(mime, fname, text) {
+    let element = document.createElement('a');
+    let data = encodeURIComponent(text);
+    element.setAttribute('href', `data:${mime};charset=utf-8,${data}`);
+    element.setAttribute('download', fname);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
 
 function exportMarkdown() {
-    window.location.replace(`/em/${config.title}`);
+    let data = createMd();
+    downloadFile(data['mimetype'], data['filename'], data['text']);
 }
 
 function exportTex() {
     let data = createTex();
-    sendCommand('export', data, function(response) {
-        if (response) {
-            window.location.replace(`/et/${config.title}`);
-        }
-    });
+    downloadFile(data['mimetype'], data['filename'], data['text']);
 }
 
-// box
+// toggle box
 
 function initExport() {
-    toggleBox(false, '#export', '#export_options');
-    $('#export_tex').click(exportTex);
-    $('#export_md').click(exportMarkdown);
+    let ebox = $('#export_options');
+    initToggleBox('#export', ebox);
+
+    $('#export_tex').click(function() {
+        ebox.hide();
+        exportTex();
+    });
+
+    $('#export_md').click(function() {
+        ebox.hide();
+        exportMarkdown()
+    });
 }
