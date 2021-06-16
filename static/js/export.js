@@ -1,4 +1,4 @@
-/* exporting functionality */
+    /* exporting functionality */
 
 export { initExport, exportMarkdown, exportLatex }
 
@@ -31,7 +31,7 @@ let title;
 
 function createTex() {
     title = config.title;
-    let keys = getBibRefs();
+    let bib = getBibRefs();
     let paras = [];
     $('.para:not(.folder)').each(function() {
         let raw = $(this).attr('raw');
@@ -42,15 +42,16 @@ function createTex() {
         } else {
             tex = markout.src;
         }
-        tex = replaceCites(keys, tex);
+        tex = replaceCites(Object.keys(bib), tex);
         paras.push(tex);
     });
+
 
     let tVars = {
         'title': title,
         'macros': texMacros(state.macros),
         'envs': sEnv(s_env_spec),
-        'bib': keys.join('\n'),
+        'bib': Object.values(bib).join('\n'),
         'body': paras.join('\n\n'),
     };
     let text = latexTemplate(tVars);
@@ -64,11 +65,11 @@ function createTex() {
 }
 
 function getBibRefs() {
-    let citeKeys = [];
-    $('.cite').each(function() {
-        citeKeys.push($(this).attr('id'));
-    });
-    return citeKeys;
+    var bib = Object.fromEntries(
+        //non-null cache entries
+        Object.entries(cache.bib).filter(([k,v]) => v)
+        );
+    return bib;
 }
 
 function replaceCites(keys, text) {
@@ -167,8 +168,12 @@ function texMacros(macros_dict) {
     let macout = '';
     for (const [key, value] of Object.entries(macros_dict)) {
         const num = (value.match(/(?<!\\)\#[0-9]+/g)||[]).length;
-        const box = num ? `[${num}]` : "";
-        macout += `\\newcommand{${key}}${box}{${value}} \n`;
+        //const box = num ? `[${num}]` : "";
+        let argnum = ""
+        for (const x of Array(num).keys()) {
+            argnum += `#${x+1}`;
+        }
+        macout += `\\def${key}${argnum}{${value}} \n`;
     }
     return macout;
 }

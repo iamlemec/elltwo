@@ -13,7 +13,7 @@ import { connect, addHandler, sendCommand, schedTimeout } from './client.js'
 import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, createRefs, createTOC, troFromKey, popText, syntaxHL, renderBib,
+    envClasses, createRefs, createTOC, troFromKey, popText, syntaxHL, cacheBib, deleteCite,
     braceMatch
 } from './render.js'
 import {
@@ -40,7 +40,7 @@ let default_config = {
 
 let default_cache = {
     ref: [], // internal references
-    bib: [], // bibliography entries
+    bib: {}, // bibliography entries
     img: {}, // local image cache
     ext_ref: {}, // external ref info
 };
@@ -76,6 +76,9 @@ function loadArticle(args) {
     // load in server side config/cache
     updateConfig(default_config, args.config ?? {});
     updateCache(default_cache, args.cache ?? {});
+
+    window.cache = cache
+
 
     // initialize full state
     stateArticle();
@@ -153,7 +156,7 @@ function connectServer() {
     });
 
     addHandler('renderBib', function(refs) {
-        renderBib(refs);
+        cacheBib(refs);
     });
 
     addHandler('deleteCite', function(key) {
@@ -1011,7 +1014,7 @@ function ccRefs(view, raw, cur) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             if (cap[1]=='@') { //bib search
                 let search = cap[2] || '';
-                ccSearch(cache.bib, search, p);
+                ccSearch(Object.keys(cache.bib), search, p);
             } else if (cap[3] && !cap[2]) { // searching for ext page
                 let ex_keys = Object.keys(cache.ext_ref);
                 if (ex_keys.length == 0) { // if we have not made request

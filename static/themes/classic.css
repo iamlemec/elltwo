@@ -104,6 +104,27 @@ button:hover {
 
 /* text elements */
 
+.eqnum::before, .eqn_cite::before{
+       content: "(";
+}
+
+.eqnum::after, .eqn_cite::after{
+       content: ")";
+}
+
+.eqnum {
+    font-family: cm;
+    color: var(--font-col);
+    border: none;
+}
+
+.eqn_cite {
+    font-family: cm;
+    border: none;
+    color: var(--hl-col);
+    padding: 0;
+}
+
 .footnote {
     color: var(--hl2-col);
     font-size: 80%;

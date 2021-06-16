@@ -335,9 +335,9 @@ def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
     if art:
         paras = adb.get_paras(art.aid)
         ref_list = []
-        bib_list = []
+        bib_list = {}
         if edit:
-            bib_list = [cite.citekey for cite in adb.get_bib()]
+            bib_list = {cite.citekey: None for cite in adb.get_bib()}
             ref_list = adb.get_refs(art.aid)
         return render_template(
             'article.html',

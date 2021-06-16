@@ -3,7 +3,7 @@
 export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
     rawToTextarea, envClasses, createRefs, createTOC, troFromKey, popText,
-    syntaxHL, renderBib, s_env_spec, getFoldLevel, renderFold, braceMatch
+    syntaxHL, cacheBib, deleteCite, s_env_spec, getFoldLevel, renderFold, braceMatch
 }
 
 import { cooks, getPara } from './utils.js'
@@ -773,22 +773,16 @@ let ref_spec = {
     'text': refText,
 };
 
-/// THIS IS REPEATED FROM THE BIB.JS, we should make it more efficent
 
-// this does not render anything, it adds the cite keys
-// to the comand completion list, the name is a hold over
-// and becuase it is used for other pages (/b)
-function renderBib(data) {
+function cacheBib(data) {
     data.forEach(cite => {
-        cache.bib.push(cite.citekey);
+        cache.bib[cite.citekey] = cache.bib[cite.citekey] ? cite.raw : null;
+        console.log(cache)
     });
 }
 
 function deleteCite(data) {
-    let i = cache.bib.indexOf(data);
-    if (i !== -1) {
-        cache.bib.splice(i, 1);
-    }
+    delete cache.bib[data]
 }
 
 function renderBibLocal(data) {
@@ -798,6 +792,9 @@ function renderBibLocal(data) {
 }
 
 function createBibEntry(cite) {
+
+    cache.bib[cite.citekey] = cite.raw;
+
     $('#'+cite['citekey']).remove();
 
     let yr = cite['year'] ? ` ${cite['year']}. ` : '';
