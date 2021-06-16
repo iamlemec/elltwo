@@ -62,9 +62,9 @@ function initMarkdown(md) {
     });
 }
 
-function loadMarkdown(args) {
+function loadMarkdown(md) {
     stateRender();
-    initMarkdown(args.md ?? '');
+    initMarkdown(md);
     initRender();
     eventRender();
 }

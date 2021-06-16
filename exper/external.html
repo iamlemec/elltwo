@@ -26,19 +26,17 @@
 
 <script type="module">
 import { loadMarkdown } from '/local/axiom/static/js/render.js'
-loadMarkdown({
-md: `
+loadMarkdown(String.raw`
 #! External Test
 
 Hello world $x^2$
 
-$$ [test] \\int_0^{\\infty} \\exp(-x^2) dx
+$$ [test] \int_0^{\infty} \exp(-x^2) dx
 
 See @[test] for more info
 
 I am the MEC
-`.trim()
-});
+`.trim());
 </script>
 
 </body>

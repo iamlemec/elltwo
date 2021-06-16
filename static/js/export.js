@@ -1,10 +1,9 @@
 /* exporting functionality */
 
-export { initExport }
+export { initExport, exportMarkdown, exportLatex }
 
 import { initToggleBox } from './utils.js'
 import { config, state } from './state.js'
-import { sendCommand } from './client.js'
 import { markthree } from './marked3.js'
 import { s_env_spec } from './render.js'
 import { latexTemplate } from './template.js'
@@ -204,7 +203,7 @@ function exportMarkdown() {
     downloadFile(data['mimetype'], data['filename'], data['text']);
 }
 
-function exportTex() {
+function exportLatex() {
     let data = createTex();
     downloadFile(data['mimetype'], data['filename'], data['text']);
 }
@@ -217,7 +216,7 @@ function initExport() {
 
     $('#export_tex').click(function() {
         ebox.hide();
-        exportTex();
+        exportLatex();
     });
 
     $('#export_md').click(function() {
