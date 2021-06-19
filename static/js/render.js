@@ -79,7 +79,6 @@ const innerPara = `
 <div class="control">
 <div class="controlDots">&#9776;</div>
 <div class="controlButs">
-<button class="update">Commit</button>
 <button class="before">Before</button>
 <button class="after">After</button>
 <button class="delete">Delete</button>

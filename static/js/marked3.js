@@ -1450,7 +1450,6 @@ let defaults = {
     sanitize: false,
     sanitizer: null,
     mangle: true,
-    smartLists: false,
     highlight: null,
     langPrefix: 'lang-',
     smartypants: false,

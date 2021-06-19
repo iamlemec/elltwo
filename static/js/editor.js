@@ -9,7 +9,7 @@ import { config, state } from './state.js'
 import { ensureVisible, cooks, getPara } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { rawToRender, syntaxHL, getFoldLevel, renderFold } from './render.js'
-import { updateRefHTML, toggleHistMap, ccNext, ccMake } from './article.js'
+import { updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake } from './article.js'
 
 /// initialization
 
@@ -38,7 +38,7 @@ function eventEditor() {
         } else if (ctrl && key == 's') {
             return false;
         }
-        if (key == '§') {
+        if ((key == '§') || (ctrl && key == '`')) {
             toggleSidebar();
         }
         if (!state.active_para) { // if we are inactive
@@ -154,11 +154,6 @@ function eventEditor() {
         }
     });
 
-    $(document).on('click', '.update', function() {
-        let para = $(this).parents('.para');
-        sendUpdatePara(para);
-    });
-
     $(document).on('click', '.before', function() {
         let para = $(this).parents('.para');
         sendInsertBefore(para);
@@ -189,13 +184,13 @@ function resize(textarea) {
 
 /// rendering and storage
 
-// store a change locally, if no change also unlock server side
-function localChange(para, send=true) {
+// store a change locally or server side, if no change also unlock server side
+function storeChange(para, send=true) {
     let text = para.children('.p_input').val();
     let raw = para.attr('raw');
     if (text != raw) {
         $(para).addClass('changed');
-        sendUpdatePara(para);
+        sendUpdatePara(para, text);
     } else {
         if (send) {
             let pid = para.attr('pid');
@@ -205,8 +200,8 @@ function localChange(para, send=true) {
     rawToRender(para, false, text); // local changes only
 }
 
-// store change server side if any local changes
-function storeChange(para, raw) {
+// apply change locally (from server side)
+function applyChange(para, raw) {
     para.attr('raw', raw);
     updateRefHTML(para);
     $(para).removeClass('changed')
@@ -223,16 +218,11 @@ function on_success(func) {
     };
 }
 
-function sendUpdatePara(para, force=false) {
-    let text = para.children('.p_input').val();
-    let raw = para.attr('raw');
-    if (text == raw && !force) {
-        return;
-    }
+function sendUpdatePara(para, text) {
     let pid = para.attr('pid');
     let data = {aid: config.aid, pid: pid, text: text};
     sendCommand('update_para', data, on_success(() => {
-        storeChange(para, text);
+        applyChange(para, text);
     }));
 }
 
@@ -364,7 +354,7 @@ function makeUnEditable(send=true) {
     if (state.active_para && state.editable) {
         state.editable = false;
         if (state.writeable) {
-            localChange(state.active_para, send);
+            storeChange(state.active_para, send);
         }
         if (config.mobile) {
             $('#foot').show();

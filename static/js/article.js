@@ -2,7 +2,7 @@
 
 export {
     loadArticle, insertPara, updatePara, updateParas, deletePara, updateRefHTML,
-    toggleHistMap, ccNext, ccMake, ccRefs
+    toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs
 }
 
 import { setCookie, cooks, getPara } from './utils.js'
@@ -249,9 +249,10 @@ function eventArticle() {
         let key = data.key;
         let raw = `! [id=${key}|caption=none]`;
         para.attr('raw', raw);
+        para.addClass('changed');
         rawToRender(para, false);
         rawToTextarea(para);
-        sendUpdatePara(para, true);
+        sendUpdatePara(para, raw);
     });
 
     $(document).on('input', '.p_input', function(e) {
