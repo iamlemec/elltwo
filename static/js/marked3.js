@@ -21,7 +21,7 @@ let block = {
     lheading: /^([^\n]+)\n *(=|-){2,}\s*$/,
     blockquote: /^q*> ?\n?/,
     code: /^``(?: |\n)?/,
-    equation: /^\$\$(\*)? *(?:refargs)?\s*/,
+    equation: /^\$\$(\*&|&\*|\*|&)? *(?:refargs)?\s*/,
     title: /^#! *(?:refargs)?\s*([^\n]*)\s*/,
     upload: /^!! *(?:refargs)?\s*$/,
     svg: /^\!svg(\*)? *(?:refargs)?\s*/,
@@ -243,6 +243,8 @@ class Lexer {
         src = src.replace(/^ +$/gm, '');
         let cap
           , number
+          , multi
+          , vargs
           , argsraw
           , args
           , text
@@ -258,9 +260,12 @@ class Lexer {
 
           // equation
           if (cap = this.rules.equation.exec(src)) {
-              number = cap[1] == undefined;
+              vargs = cap[1] || '';
               argsraw = cap[2] || '';
+              number = !vargs.includes('*');
+              multi = vargs.includes('&');
               args = parseArgs(argsraw, number);
+              args.multiline = multi;
               text = src.slice(cap[0].length);
               return {
                   type: 'equation',
@@ -913,7 +918,10 @@ class DivRenderer {
         return `<span class="latex">${tex}</span>`;
     }
 
-    equation(tex) {
+    equation(tex, multi) {
+        if (multi) {
+            tex = `\\begin{aligned}\n${tex}\n\\end{aligned}`;
+        }
         return `<div class="latex">\n${tex}\n</div>\n\n`;
     }
 
@@ -1124,7 +1132,7 @@ class TexRenderer {
         return `$${tex}$`;
     }
 
-    equation(tex) {
+    equation(tex, multi) {
         return `${tex}`;
     }
 
@@ -1297,7 +1305,7 @@ class Parser {
                     env: 'equation',
                     args: this.token.args
                 }
-                return this.renderer.equation(this.token.tex);
+                return this.renderer.equation(this.token.tex, this.token.args.multiline);
             }
             case 'comment': {
                 return this.renderer.comment(this.token.text);

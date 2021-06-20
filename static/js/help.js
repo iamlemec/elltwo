@@ -19,7 +19,7 @@ let spec = [
     ['key', 'Ctrl + Shift + f', 'Unfold all cells'],
     ['key', 'Ctrl + `', 'Toggle sidebar options'],
     ['key', 'Ctrl + Enter', 'Toggle history explorer'],
-    ['empty'],
+    ['key', 'F1', 'Toggle help overlay'],
     ['empty'],
     ['empty'],
     ['empty'],
