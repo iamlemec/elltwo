@@ -224,7 +224,7 @@ class Lexer {
         let list = {
             type: 'list',
             ordered: true,
-            items: items.split('\n')
+            items: items.split('\n').filter(x => x.length > 0)
         };
 
         let i, text, ret;

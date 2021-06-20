@@ -10,6 +10,7 @@ import { ensureVisible, cooks, getPara } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { rawToRender, syntaxHL, getFoldLevel, renderFold } from './render.js'
 import { updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake } from './article.js'
+import { toggleHelp } from './help.js'
 
 /// initialization
 
@@ -40,6 +41,8 @@ function eventEditor() {
         }
         if ((key == '§') || (ctrl && key == '`')) {
             toggleSidebar();
+        } else if (key == 'f1') {
+            toggleHelp();
         }
         if (!state.active_para) { // if we are inactive
             if (key == 'enter') {
@@ -51,18 +54,18 @@ function eventEditor() {
                 sendMakeEditable();
                 return false;
             }else if (key == 'arrowup') {
-                if(shift){
-                    state.active_para.addClass('copy_sel')
+                if (shift) {
+                    state.active_para.addClass('copy_sel');
                 } else {
-                    $('.para').removeClass('copy_sel')
+                    $('.para').removeClass('copy_sel');
                 }
                 activePrevPara();
                 return false;
             } else if (key == 'arrowdown') {
-                if(shift){
-                    state.active_para.addClass('copy_sel')
+                if (shift) {
+                    state.active_para.addClass('copy_sel');
                 } else {
-                    $('.para').removeClass('copy_sel')
+                    $('.para').removeClass('copy_sel');
                 }
                 activeNextPara();
                 return false;
@@ -247,7 +250,7 @@ function sendInsertAfter(para) {
     let pid;
     if (fold_pid) {
         let env = $(`[env_pid=${fold_pid}]`);
-        pid = env.last().attr('pid')
+        pid = env.last().attr('pid');
     } else {
         pid = para.attr('pid');
     };

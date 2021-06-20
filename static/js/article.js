@@ -22,6 +22,7 @@ import {
 } from './editor.js'
 import { connectDrops } from './drop.js'
 import { initExport } from './export.js'
+import { initHelp } from './help.js'
 
 // history
 let updateHistMap;
@@ -69,6 +70,7 @@ function initArticle() {
     initSidebar();
     initHistory();
     initExport();
+    initHelp();
     initEditor();
 }
 

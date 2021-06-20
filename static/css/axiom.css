@@ -681,7 +681,7 @@ circle.commit.active {
     fill: var(--hl-col);
 }
 
-#prog_bar{
+#prog_bar {
         position: absolute;
         top:-1px;
         left:-1px;
@@ -690,7 +690,7 @@ circle.commit.active {
         background-color: var(--font-col-int);
 }
 
-#prog_bar:after{
+#prog_bar:after {
   content: "";
   position: absolute;
   right: 0px;
@@ -735,8 +735,7 @@ circle.commit.active {
 
 /*  MOBILE CSS */
 
-
- @media only screen and (max-width: 815px) {
+@media only screen and (max-width: 815px) {
 
 .para {
     left: 12%;
@@ -818,9 +817,9 @@ circle.commit.active {
     border-radius: 0;
 }
 
-     #export_options{
-         right: 30px;
-     }
+#export_options {
+    right: 30px;
+}
 
 }
 
@@ -850,4 +849,68 @@ circle.commit.active {
 .table-cell {
     display: table-cell;
     padding: 3px 10px;
+}
+
+/* help overlay */
+
+#help {
+    position: fixed;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.4);
+    z-index: 50;
+    display: none;
+}
+
+#help_inner {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+    top: 15%;
+    left: 20%;
+    width: 60%;
+    height: 70%;
+    background-color: var(--bg-col);
+    border: 1px solid var(--font-col);
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.help_row {
+    width: 48%;
+    margin: 5px;
+    height: 35px;
+}
+
+.help_empty {
+}
+
+.help_key {
+    display: flex;
+    border: 1px solid var(--font-col);
+    border-radius: 5px;
+}
+
+.key_cell {
+    padding: 5px;
+}
+
+.key_combo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 35%;
+    text-align: center;
+    background-color: var(--bg-hl2-col);
+    border-right: 1px solid var(--font-col);
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.key_desc {
+    width: 65%;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
 }
