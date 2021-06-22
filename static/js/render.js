@@ -525,10 +525,10 @@ function createTOC(outer) {
     let toc = $('#toc');
     toc.find('.toc_entry').remove();
     outer.find('.env__heading').not('.folder .env__heading').each(function() {
-        let head = $(this);
+        let head = $(this).children('.p_text');
         let level = head.attr('head_level');
         let text = head.text();
-        let id = head.parent('.para').attr('id');
+        let id = $(this).attr('id');
         let sec = id
             ? $('<a>', {class: `toc_entry head_level${level}`, href: '#'+id, text: text})
             : $('<span>', {class: `toc_entry head_level${level}`, text: text});
