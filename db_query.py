@@ -144,7 +144,7 @@ class AxiomDB:
     ## diagnostic tools
     ##
 
-    def getall(self, klass, disp=True, **kwargs):
+    def getall(self, klass, disp=False, **kwargs):
         ret = self.session.query(klass).filter_by(**kwargs).all()
         if disp:
             print('\n'.join([str(x) for x in ret]))

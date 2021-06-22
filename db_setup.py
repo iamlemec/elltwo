@@ -114,7 +114,8 @@ class User(UserMixin, Base):
     confirmed_on = Column(DateTime, nullable=True)
 
     def __repr__(self):
-        return f'{self.email} [{self.confirmed}]: {self.name}'
+        conf = 'confirmed' if self.confirmed else 'unconfirmed'
+        return f'{self.email} [{conf}]: {self.name}'
 
 class TextShard(Base):
     __tablename__ = 'textshard'

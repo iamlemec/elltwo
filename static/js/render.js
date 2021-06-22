@@ -389,7 +389,6 @@ function titleEnv(ptxt, args) {
 
 function headingEnv(ptxt, args) {
     ptxt.addClass(`env__heading_h${args.level}`);
-    ptxt.attr('head_level', args.level);
     let pre_fold = ptxt.clone();
     let num = $('<span>', {class: 'env_add'});
     let pre_num = num.clone()
@@ -526,7 +525,7 @@ function createTOC(outer) {
     toc.find('.toc_entry').remove();
     outer.find('.env__heading').not('.folder .env__heading').each(function() {
         let head = $(this).children('.p_text');
-        let level = head.attr('head_level');
+        let level = outer.attr('head_level');
         let text = head.text();
         let id = $(this).attr('id');
         let sec = id
@@ -984,7 +983,7 @@ let inline = {
     em: /\*((?:\*\*|[\s\S])+?)\*(?!\*)/g,
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
 };
-    
+
 function syntaxParseInline(raw) {
     let html = esc_html(raw);
 

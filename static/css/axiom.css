@@ -168,7 +168,7 @@ button {
     content: '—';
 }
 
-.env__equation > .p_text .latex{
+.env__equation > .p_text .latex {
     flex: 1;
     text-align: center;
 }
@@ -190,6 +190,9 @@ button {
 .title {
     font-size: 35px;
     text-align: center;
+}
+
+.env__title {
     margin-bottom: 30px;
 }
 

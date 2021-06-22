@@ -8,9 +8,8 @@ import fire
 import toml
 
 from tools import gen_auth
-from db_query import AxiomDB
-
-default_db = 'axiom.db'
+import db_query as dbq
+import db_setup as dbs
 
 def confirm_request(question):
     prompt = '[y/N]'
@@ -25,49 +24,104 @@ class Config:
                 toml.dump(auth, fid)
 
 class User:
-    def list(self, db=default_db):
-        adb = AxiomDB(path=db)
+    def __init__(self, db):
+        self.db = db
+
+    def list(self):
+        adb = dbq.AxiomDB(path=self.db)
         for u in adb.get_all_users():
             print(u)
 
-    def create(self, email, name=None, password=None, confirm=True, db=default_db):
+    def create(self, email, name=None, password=None, confirm=True):
         if name is None:
             name, _ = email.split('@')
         if password is None:
             password = getpass.getpass()
-        adb = AxiomDB(path=db)
+        adb = dbq.AxiomDB(path=self.db)
         adb.add_user(email, name, password, confirm=confirm)
 
-    def delete(self, email, db=default_db):
+    def delete(self, email):
         if confirm_request('delete user?'):
-            adb = AxiomDB(path=db)
+            adb = dbq.AxiomDB(path=self.db)
             if adb.del_user(email):
                 print(f'{email} deleted')
             else:
                 print(f'{email} not found')
 
+class Article:
+    def __init__(self, db):
+        self.db = db
+
+    def list(self, all=False):
+        adb = dbq.AxiomDB(path=self.db)
+        if all:
+            arts = adb.getall(dbs.Article)
+            print('\n'.join([str(a) for a in arts]))
+        else:
+            arts = adb.get_arts()
+            print('\n'.join([f'{a.aid}: {a.title} ({a.short_title})' for a in arts]))
+
+    def create(self, title):
+        short = urlify(title)
+        adb = dbq.AxiomDB(path=self.db)
+        if (art := adb.get_art_short(short)) is not None:
+            print(f'Article {short} already exists')
+        else:
+            adb.create_article(title)
+
+    def ingest(self, path, title=None):
+        if title is None:
+            _, fname = os.path.split(path)
+            title, _ = os.path.splitext(fname)
+        short = dbq.urlify(title)
+        adb = dbq.AxiomDB(path=self.db)
+        if (art := adb.get_art_short(short)) is not None:
+            print(f'Article {short} already exists')
+        else:
+            with open(path) as fid:
+                mark = fid.read()
+            adb.import_markdown(title, mark)
+
+    def delete(self, title):
+        adb = dbq.AxiomDB(path=self.db)
+        if (art := adb.get_art_short(title)) is None:
+            print(f'Article "{title}" not found')
+        elif confirm_request(f'delete article "{title}"?'):
+            adb.delete_article(art.aid)
+
+    def purge(self, title):
+        adb = dbq.AxiomDB(path=self.db)
+        if (art := adb.get_art_short(title)) is None:
+            print(f'Article "{title}" not found')
+        elif confirm_request(f'purge article "{title}"?'):
+            adb.expunge_article(art.aid)
+
 class Index:
-    def regen(self, db=default_db):
-        adb = AxiomDB(path=db)
+    def __init__(self, db):
+        self.db = db
+
+    def regen(self):
+        adb = dbq.AxiomDB(path=self.db)
         adb.reindex_articles()
 
-    def title(self, query, db=default_db):
-        adb = AxiomDB(path=db)
+    def title(self, query):
+        adb = dbq.AxiomDB(path=self.db)
         arts = adb.search_title(query)
         for a in arts:
             print(a)
 
-    def paras(self, query, db=default_db):
-        adb = AxiomDB(path=db)
+    def paras(self, query):
+        adb = dbq.AxiomDB(path=self.db)
         paras = adb.search_text(query)
         for p in paras:
             print(p)
 
 class Main:
-    def __init__(self):
+    def __init__(self, db='axiom.db'):
         self.config = Config()
-        self.user = User()
-        self.index = Index()
+        self.user = User(db=db)
+        self.article = Article(db=db)
+        self.index = Index(db=db)
 
 if __name__ == '__main__':
     fire.Fire(Main)

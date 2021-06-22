@@ -1,6 +1,6 @@
 @import 'core.css';
 
-#prompt{
+#prompt {
   position: relative;
   width: 100%;
   min-height: 50px;
@@ -8,7 +8,7 @@
   text-align: center;
 }
 
-#title{
+#title {
    font-size: 250%;
 }
 
@@ -21,7 +21,7 @@
     height: 20%;
 }
 
-#search_button_wrap{
+#search_button_wrap {
     position: fixed;
     width: 50%;
     right: 25%;
@@ -176,7 +176,7 @@ button {
     align-items: center;
 }
 
-#search_button_wrap{
+#search_button_wrap {
     position: fixed;
     width: 60%;
     left: 40%;
@@ -207,7 +207,7 @@ button {
     justify-content: space-between;
 }
 
-.controlButs > button{
+.controlButs > button {
     display: inline-block;
     width: unset;
     height: 100%;

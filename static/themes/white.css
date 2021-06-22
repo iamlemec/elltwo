@@ -94,12 +94,12 @@ button:hover {
 
 /* paras */
 
-.title {
+.env__title > .p_text {
     text-align: center;
     border-bottom: 2px solid black;
 }
 
-.env__heading {
+.env__heading > .p_text {
     text-align: center;
     border-bottom: 1px solid black;
 }

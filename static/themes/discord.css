@@ -140,7 +140,7 @@ button:hover {
 
 /* text elements */
 
-.title, .env__heading {
+.env__title > .p_text, .env__heading > .p_text {
     border-bottom: 1px solid var(--dc-blue-col);
 }
 
