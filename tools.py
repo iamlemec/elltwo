@@ -1,5 +1,5 @@
 from collections import defaultdict
-#from flask_msearch.whoosh_backend import WhooshSearch, DEFAULT_ANALYZER
+from secrets import token_hex
 
 class Multimap:
     def __init__(self):
@@ -30,3 +30,9 @@ class Multimap:
 
     def loc(self, item):
         return self._locs.get(item, None)
+
+def gen_auth():
+    return {
+        'SECRET_KEY': token_hex(16),
+        'SECURITY_PASSWORD_SALT': token_hex(16),
+    }

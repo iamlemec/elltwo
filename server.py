@@ -7,7 +7,7 @@ from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy, BaseQuery
 from flask_mail import Mail, Message
 
-import os, re, json, argparse, toml
+import os, sys, re, json, argparse, toml, secrets
 from io import BytesIO
 from datetime import datetime
 from collections import namedtuple
@@ -24,16 +24,17 @@ from db_setup import Article, Paragraph, Paralink, Bib, User
 from db_query import AxiomDB, order_links
 
 # other tools
-from tools import Multimap
+from tools import Multimap, gen_auth
 from pathlib import Path
 
-###
-### initialize flask and friends
-###
+# necessary hack
+if sys.platform == 'darwin':
+    from engineio.payload import Payload
+    Payload.max_decode_packets = 50
 
-# from engineio.payload import Payload
-
-# Payload.max_decode_packets = 50
+###
+### parse command line args
+###
 
 parser = argparse.ArgumentParser(description='Axiom2 server.')
 parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
@@ -43,21 +44,38 @@ parser.add_argument('--port', type=int, default=5000, help='Main port to serve o
 parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 parser.add_argument('--login', action='store_true', help='Require login for editing')
 parser.add_argument('--private', action='store_true', help='Require login for viewing/editing')
-parser.add_argument('--conf', type=str, default='conf.toml', help='path to configuation file')
-parser.add_argument('--auth', type=str, default='auth.toml', help='user authorization config')
-parser.add_argument('--mail', type=str, default=None, help='mail authorization config')
 parser.add_argument('--reindex', action='store_true', help='reindex search database on load')
+parser.add_argument('--conf', type=str, default=None, help='path to configuation file')
+parser.add_argument('--auth', type=str, default=None, help='user authorization config')
+parser.add_argument('--mail', type=str, default=None, help='mail authorization config')
 args = parser.parse_args()
 
+###
+### general config
+###
+
+# enumerate available themes
+theme_css = [os.path.splitext(t) for t in os.listdir('static/themes')]
+themes = [t for t, e in theme_css if e == '.css']
+
 # get base configuration
-config = toml.load(args.conf)
-if 'themes' not in config:
-    theme_css = [os.path.splitext(t) for t in os.listdir('static/themes')]
-    config['themes'] = [t for t, e in theme_css if e == '.css']
+config = {
+    'timeout': 180, # paragraph lock timeout in seconds
+    'max_size': 1024, # max image size in kilobytes
+    'max_imgs': 50, # max number of images returned in search
+    'themes': themes, # all themes by default
+    'demo_path': 'testing/howto.md', # path to demo content
+}
+if args.conf is not None:
+    config |= toml.load(args.conf)
 
 # login decorator (or not)
 edit_decor = login_required if (args.login or args.private) else (lambda f: f)
 view_decor = login_required if args.private else (lambda f: f)
+
+###
+### initialize flask and friends
+###
 
 # create flask app
 app = Flask(__name__)
@@ -66,9 +84,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 # load user security config
-if args.auth is not None:
+if args.auth is None:
+    auth = gen_auth()
+else:
     auth = toml.load(args.auth)
-    app.config.update(auth)
+app.config.update(auth)
 
 # load mail security config
 if args.mail is not None:
@@ -125,16 +145,12 @@ def Create():
         adb.create_article(art_name)
         return redirect(url_for('RenderArticle', title=art_name))
 
-# demo setup
-demo_path = 'testing/howto.md'
-rand_hex = lambda s: hex(getrandbits(4*s))[2:].zfill(s)
-
 @app.route('/demo')
 @view_decor
 def Demo():
-    hash_tag = rand_hex(8)
+    hash_tag = secrets.token_urlsafe(16)
     art_name = f'demo_{hash_tag}'
-    with open(demo_path) as fid:
+    with open(config['demo_path']) as fid:
         demo_mark = fid.read()
     adb.import_markdown(art_name, demo_mark)
     return redirect(url_for('RenderArticle', title=art_name))
@@ -363,7 +379,7 @@ def ErrorPage(title='Error', message=''):
     style = getStyle(request)
     return render_template('error.html', title=title, message=message, **style)
 
-def getStyle(req):
+def getStyle(request):
     return {
         'theme': request.cookies.get('theme') or args.theme,
         'font': request.cookies.get('font') or 'default',

@@ -2,17 +2,27 @@
 
 # axiom admin console
 
+import os
 import getpass
 import fire
+import toml
 
+from tools import gen_auth
 from db_query import AxiomDB
 
 default_db = 'axiom.db'
 
-def confirm(question):
+def confirm_request(question):
     prompt = '[y/N]'
     response = input(f'{question} [y/N]: ').lower()
     return response == 'y'
+
+class Config:
+    def auth(self, path, overwrite=False):
+        if overwrite or not os.path.exists(path) or confirm_request(f'overwrite {path}?'):
+            with open(path, 'w+') as fid:
+                auth = gen_auth()
+                toml.dump(auth, fid)
 
 class User:
     def list(self, db=default_db):
@@ -29,7 +39,7 @@ class User:
         adb.add_user(email, name, password, confirm=confirm)
 
     def delete(self, email, db=default_db):
-        if confirm('delete user?'):
+        if confirm_request('delete user?'):
             adb = AxiomDB(path=db)
             if adb.del_user(email):
                 print(f'{email} deleted')
@@ -55,6 +65,7 @@ class Index:
 
 class Main:
     def __init__(self):
+        self.config = Config()
         self.user = User()
         self.index = Index()
 
