@@ -38,12 +38,20 @@ function eventEditor() {
             unfold();
         } else if (ctrl && key == 's') {
             return false;
-        }
-        if ((key == '§') || (ctrl && key == '`')) {
+        } else if (key == '§' || (ctrl && key == '`')) {
             toggleSidebar();
         } else if (key == 'f1') {
             toggleHelp();
+        } else if (key == 'escape') {
+            if (state.help_show) {
+                toggleHelp();
+                return;
+            } else if (state.hist_show) {
+                toggleHistMap();
+                return;
+            }
         }
+
         if (!state.active_para) { // if we are inactive
             if (key == 'enter') {
                 let foc_para = state.last_active || $('.para').first();
@@ -53,7 +61,7 @@ function eventEditor() {
             if (key == 'enter' || key == 'w') {
                 sendMakeEditable();
                 return false;
-            }else if (key == 'arrowup') {
+            } else if (key == 'arrowup') {
                 if (shift) {
                     state.active_para.addClass('copy_sel');
                 } else {

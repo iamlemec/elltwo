@@ -48,7 +48,8 @@ let default_cache = {
 
 let default_state = {
     sidebar_show: false, // is sidebar shown
-    hist_vis: false, // is history mode on
+    help_show: false, // is help overlay on
+    hist_show: false, // is history mode on
     editable: false, // are we focused on the active para
     writeable: false, // can we actually modify contents
     active_para: null, // current active para
@@ -879,15 +880,15 @@ function hideHistPreview() {
 
 function toggleHistMap() {
     $('#hist').toggle();
-    if (state.hist_vis) {
+    if (state.hist_show) {
         hideHistPreview();
         $('#prog_bar').show();
     } else {
         launchHistMap();
         $('#prog_bar').hide();
     }
-    state.hist_vis = !state.hist_vis;
-    setWriteable(!config.readonly && !state.hist_vis);
+    state.hist_show = !state.hist_show;
+    setWriteable(!config.readonly && !state.hist_show);
 }
 
 function revertHistory() {
