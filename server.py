@@ -150,7 +150,7 @@ def Create():
 def Demo():
     hash_tag = secrets.token_urlsafe(16)
     art_name = f'demo_{hash_tag}'
-    with open(demo_path) as fid:
+    with open(config['demo_path']) as fid:
         demo_mark = fid.read()
     adb.import_markdown(art_name, demo_mark)
     return redirect(url_for('RenderArticle', title=art_name))
