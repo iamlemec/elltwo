@@ -361,7 +361,7 @@ a.result {
     background-color: var(--pop-bg-col);
 }
 
-@media only screen and (max-width: 815px) {
+@media only screen and (max-width: 1000px) {
 
 button {
     background-color: var(--bg-col);

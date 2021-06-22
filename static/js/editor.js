@@ -191,6 +191,7 @@ function resize(textarea) {
 function storeChange(para, send=true) {
     let text = para.children('.p_input').val();
     let raw = para.attr('raw');
+    rawToRender(para, false, text); // local changes only
     if (text != raw) {
         $(para).addClass('changed');
         sendUpdatePara(para, text);
@@ -200,7 +201,6 @@ function storeChange(para, send=true) {
             sendUnlockPara([pid]);
         }
     }
-    rawToRender(para, false, text); // local changes only
 }
 
 // apply change locally (from server side)

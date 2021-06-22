@@ -13,8 +13,8 @@ import { connect, addHandler, sendCommand, schedTimeout } from './client.js'
 import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, createRefs, createTOC, troFromKey, popText, syntaxHL, cacheBib, deleteCite,
-    braceMatch
+    envClasses, createRefs, createTOC, getTro, troFromKey, popText, syntaxHL, cacheBib, deleteCite,
+    braceMatch, renderPop,
 } from './render.js'
 import {
     initEditor, resize, makeActive, lockParas, unlockParas, sendMakeEditable,
@@ -404,7 +404,9 @@ function updateRefHTML(para) {
 
     // for this specific para
     if (new_id) {
-        cache.ref.push(new_id);
+        if(cache.ref.indexOf(new_id) == -1){
+            cache.ref.push(new_id);
+        };
         let ref = createExtRef(new_id);
         sendCommand('update_ref', ref, function(success) {
             console.log('success: updated ref');
@@ -1053,11 +1055,11 @@ function ccRefs(view, raw, cur) {
             if (ex_keys.length == 0) { // if we have not made request
                 sendCommand('get_arts', '', function(arts) {
                     cache.ext_ref = arts;
-                    search = '';
+                    let search = '';
                     ccSearch(Object.keys(arts), search, p);
                 });
             } else {
-                search = cap[1] || '';
+                let search = cap[1] || '';
                 ccSearch(ex_keys, search, p);
             }
         }

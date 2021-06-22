@@ -92,5 +92,5 @@ function cooks(name) {
 // detect mobile
 
 function isMobile() {
-    return window.matchMedia('(max-width: 815px)').matches;
+    return window.matchMedia('(max-width: 1000px)').matches;
 }

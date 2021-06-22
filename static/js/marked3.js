@@ -478,7 +478,7 @@ let inline = {
     del: noop,
     text: /^[\s\S]+?(?=[\/\\<!\[_*`\$\^@%]| {2,}\n|$)/,
     math: /^\$((?:\\\$|[\s\S])+?)\$/,
-    ref: /^@\[([\w-\|\=\:]+)\]/,
+    ref: /^@\[([^\]]+)\]/,
     footnote: /^\^\[(inside)\]/,
 };
 
@@ -897,9 +897,9 @@ class DivRenderer {
         }
 
         title = title ? `title="${title}"` : '';
-        text = escape(text);
-
+        //text = escape(text);
         return `<a href="${href}" ${title}>${text}</a>`;
+
     }
 
     ilink(href, text) {

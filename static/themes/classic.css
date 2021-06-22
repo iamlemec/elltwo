@@ -104,6 +104,19 @@ button:hover {
 
 /* text elements */
 
+.env__proof, .env__theorem, .env__axiom, .env__definition{
+    padding-left: 22px;
+    margin-bottom: 10px;
+}
+
+.env__proof.env_beg,.env__theorem.env_beg,.env__axiom.env_beg,.env__definition.env_beg{
+        text-indent: -17px;
+}
+
+.env__proof.env_end,.env__theorem.env_end,.env__axiom.env_end,.env__definition.env_end{
+        margin-bottom: 20px;
+}
+
 .eqnum::before, .eqn_cite::before{
        content: "(";
 }

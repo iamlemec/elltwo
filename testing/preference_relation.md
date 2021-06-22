@@ -1,7 +1,8 @@
 #! Preference Relations
 \R:\mathbb{R}
 \s:\succcurlyeq
-\l: \ell
+\f:\frac{#1}{#2}
+\l:\downarrow\!
 
 A *preference relation* is a binary relation symbolizing the preference of a decision maker (DM) over a set of alternatives, the typical notation for which is $\succcurlyeq$. If $x$ and $y$ are alternatives considered by the decision maker, then $x \succcurlyeq y$ is interpreted as the statement that the DM considers $x$ to at least as good as $y$. Formally, $\succcurlyeq$ is a subset of $X \times X$, but it is common practice to use infix notation, as above.
 
@@ -19,7 +20,7 @@ A weak preference relation also defines an *indifference relation* via $x \sim y
 
 # Representation
 
-Another way of formalizing a DM's preferences is via a *utility function*, a function $U: X \to \R$. Under this interpretation, the DM considers $x$ to at least as good as $y$ if and only if $U(x) \geq U(y)$.
+Another way of formalizing a DM's preferences is via a [[utility_function|utility function]], a function $U: X \to \R$. Under this interpretation, the DM considers $x$ to at least as good as $y$ if and only if $U(x) \geq U(y)$.
 
 >> definition [def_rep] A utility function $U: X \to \R$ *represents* a preference relation $\s$ over $X$ (equivalently, $\s$ is *represented by* $U$, or $U$ is a *representation* of $\s$) if,
 
@@ -41,12 +42,12 @@ First, notice that @[transitivity:transitivity] ensures that if $x\s y$ then $\l
 
 When $X$ is countable, @[thm_rep] still holds, although the proof must be altered slightly. Instead of associating the cardinality of the lower contour set, we must first order the elements of $X$ by the natural numbers $o: X \to \mathbb{N}$, and then take some convergent series as our utilities. For instance
 
-$$ U: x \mapsto \sum_{y \in \l(x)} \frac{1}{2^{o(y)}}
+$$[id=order] U: x \mapsto \sum_{y \in \downarrow(x)} \frac{1}{2^{o(y)}}
 
 ## Ordinality 
 
 The magnitude of the utilities in a representation are irrelevant (and indeed at times misleading), since $\s$ embodies only ordinal preference. Without additional assumptions on the interpretation of $\s$ (for example expected utility), there is no sense in which $x \s y$ measures how much *more preferred* $x$ is than $y$, only that it is preferred.
 
-This fact is made formal through the following theorem
+This fact is made formal through the following theorem:
 
 >>! theorem [mon_trans] If $U: X \to \R$ represents $\s$ and $h: \R \to \R$ is strictly increasing then $V = h \circ U$ also represents $\s$.

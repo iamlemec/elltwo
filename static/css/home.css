@@ -203,7 +203,7 @@
 	transition: opacity 200ms ease-in-out;
 }
 
-@media only screen and (max-width: 815px) {
+@media only screen and (max-width: 1000px) {
 
 #prompt {
     position: absolute;

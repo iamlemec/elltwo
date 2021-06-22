@@ -135,7 +135,7 @@ button {
     white-space: pre;
 }
 
-.env__equation {
+.env__equation > .p_text {
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -168,7 +168,7 @@ button {
     content: '—';
 }
 
-.env__equation .latex{
+.env__equation > .p_text .latex{
     flex: 1;
     text-align: center;
 }
@@ -183,7 +183,7 @@ button {
 
 .qed {
     position: absolute;
-    right: 0;
+    right: 5px;
     bottom:0%;
 }
 
@@ -239,7 +239,7 @@ button {
     font-weight: bold;
 }
 
-.theorem_header, .axiom_header {
+.theorem_header, .axiom_header, .definition_header {
     font-weight: bold;
 }
 
@@ -735,7 +735,7 @@ circle.commit.active {
 
 /*  MOBILE CSS */
 
-@media only screen and (max-width: 815px) {
+@media only screen and (max-width: 1000px) {
 
 .para {
     left: 12%;

@@ -131,7 +131,7 @@ button {
     cursor: pointer;
 }
 
-@media only screen and (max-width: 815px) {
+@media only screen and (max-width: 1000px) {
 
 #para_holder {
     position: fixed;

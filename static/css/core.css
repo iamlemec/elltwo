@@ -181,7 +181,7 @@ a.reference {
 
 /*  MOBILE CSS */
 
-@media only screen and (max-width: 815px) {
+@media only screen and (max-width: 1000px) {
 
  #foot {
     align-items: center;

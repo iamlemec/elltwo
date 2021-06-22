@@ -2,7 +2,7 @@
 
 export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
-    rawToTextarea, envClasses, createRefs, createTOC, troFromKey, popText,
+    rawToTextarea, envClasses, createRefs, createTOC, getTro, troFromKey, popText, renderPop,
     syntaxHL, cacheBib, deleteCite, s_env_spec, getFoldLevel, renderFold, braceMatch
 }
 
@@ -222,7 +222,7 @@ function envClasses(outer) {
             var one_env = para.attr('env');
             var one_args = para.data('args');
             para.addClass('env');
-            ptxt.addClass(`env__${one_env}`);
+            para.addClass(`env__${one_env}`);
             if (one_id != undefined) {
                 para.attr('env_sel', `#${one_id}`);
             }
@@ -270,7 +270,7 @@ function envClasses(outer) {
             var txt_all = env_all.children('.p_text');
             env_all.addClass('env');
             env_all.attr('env_pid', env_pid);
-            txt_all.addClass(`env__${env_name}`);
+            env_all.addClass(`env__${env_name}`);
             if (cache.folded.includes(env_pid)) {
                 env_all.addClass('folded');
             };
@@ -383,6 +383,7 @@ function errorEnv(ptxt, args) {
 }
 
 function titleEnv(ptxt, args) {
+    document.title = ptxt.text();
     return ptxt;
 }
 
@@ -598,6 +599,7 @@ function getTro(ref, callback) {
     } else if (ref.data('extern')) {
         let [extern, citekey] = key.split(':');
         sendCommand('get_ref', {'title': extern, 'key': citekey}, function(data) {
+            //console.log(data.text)
             tro.tro = $($.parseHTML(data.text));
             tro.cite_type = data.cite_type;
             tro.cite_env = data.cite_env;
@@ -776,7 +778,6 @@ let ref_spec = {
 function cacheBib(data) {
     data.forEach(cite => {
         cache.bib[cite.citekey] = cache.bib[cite.citekey] ? cite.raw : null;
-        console.log(cache)
     });
 }
 
@@ -956,6 +957,7 @@ function esc_md(raw) {
               .replace(/\$/g, '&#36;')
               .replace(/\@/g, '&#36;')
               .replace(/\^/g, '&#94;')
+              .replace(/\`/g, '&#96;')
               .replace(/\!/g, '&#33;');
 }
 
@@ -974,15 +976,15 @@ let inline = {
     escape: /\\([\\/`*{}\[\]()#+\-.!_>\$])/g,
     url: /(https?):\/\/([^\s<]+[^<.,:;"')\]\s])/g,
     comment: /\/\/([^\n]*?)(\n|$)/g,
-    code: /(`+)([\s\S]*?[^`])\1(?!`)/g,
+    code: /(`+)\s*([\s\S\$]*?[^`])\s*\1(?!`)/g,
     ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/g,
     math: /\$((?:\\\$|[\s\S])+?)\$/g,
-    ref: /@(\[[\w-\|\=\:]+\])/g,
+    ref: /@(\[([^\]]+)\])/g,
     ilink: /\[\[([^\]]+)\]\]/g,
     em: /\*((?:\*\*|[\s\S])+?)\*(?!\*)/g,
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
 };
-
+    
 function syntaxParseInline(raw) {
     let html = esc_html(raw);
 
