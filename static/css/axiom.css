@@ -135,7 +135,7 @@ button {
     white-space: pre;
 }
 
-.env__equation > .p_text {
+.env__equation:not(.editable) > .p_text {
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -382,7 +382,7 @@ button {
     max-width: 400px;
 }
 
-.cc_row{
+.cc_row {
     display: none;
 }
 .cc_row:nth-child(-n+5) {
@@ -502,7 +502,7 @@ button {
     border-top: 2px solid var(--font-col-int);
 }
 
-#sb_links > a{
+#sb_links > a {
     display: block;
     padding-left: 20px;
     margin-top: 7px;
@@ -514,11 +514,11 @@ button {
     padding-left: 20px;
 }
 
-.toc_entry.head_level2{
+.toc_entry.head_level2 {
     padding-left: 30px;
 }
 
-.toc_entry.head_level3{
+.toc_entry.head_level3 {
     padding-left: 40px;
 }
 

@@ -59,7 +59,6 @@ let spec = [
     ['empty'],
 ];
 
-
 function initHelp() {
     let help = $('#help_inner');
     for (let i in spec) {
