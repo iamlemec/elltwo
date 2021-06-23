@@ -585,7 +585,7 @@ button {
 }
 
 #logo:after {
-    transform: translateY(120%) translateX(-30%) rotate(-45deg);
+    transform: translateY(120%) translateX(-100%) rotate(-45deg);
     width: 20px;
     height: 20px;
     border-bottom: 3px solid;
@@ -594,7 +594,7 @@ button {
 }
 
 #logo.opened:after {
-    transform: translateY(120%) translateX(70%) rotate(45deg);
+    transform: translateY(120%) translateX(0%) rotate(45deg);
 }
 
 .custom-select.opened .custom-select-trigger:after {
