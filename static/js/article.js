@@ -1,11 +1,11 @@
 /* main article entry point */
 
 export {
-    loadArticle, insertPara, updatePara, updateParas, deletePara, updateRefHTML,
-    toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs
+    loadArticle, insertPara, updatePara, updateParas, deletePara, envClasses,
+    createRefs, updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs
 }
 
-import { setCookie, cooks, getPara } from './utils.js'
+import { setCookie, cooks, getPara, on_success } from './utils.js'
 import {
     config, state, cache, updateConfig, updateState, updateCache
 } from './state.js'
@@ -313,30 +313,28 @@ function deletePara(pid) {
     createRefs(); // we may be able to scope this more
 };
 
-function insertParaRaw(pid, new_pid, raw='', before=true) {
-    console.log('insertPara:', pid, new_pid, raw, before);
+function insertParaRaw(pid, new_pid, raw='', after=true) {
     let para = getPara(pid);
     let new_para = $('<div>', {class: 'para', pid: new_pid, raw: raw});
-    if (before) {
+    if (after) {
+        para.after(new_para);
+    } else {
         let prev = para.prev();
         if (prev.hasClass('folder')) {
             prev.before(new_para);
         } else {
             para.before(new_para);
         }
-    } else {
-        para.after(new_para);
     }
     new_para.html(innerPara);
     return new_para;
 }
 
-function insertPara(pid, new_pid, raw='', before=true) {
-    let new_para = insertParaRaw(pid, new_pid, raw, before);
+function insertPara(pid, new_pid, raw='', after=true) {
+    let new_para = insertParaRaw(pid, new_pid, raw, after);
     rawToRender(new_para);
     rawToTextarea(new_para);
-    makeActive(new_para);
-    sendMakeEditable();
+    return new_para;
 }
 
 function pasteCB(pid, paste) {
@@ -370,7 +368,7 @@ function applyDiff(edits) {
         let [pid, pre] = pos;
         if (pid in adds) {
             let raw = adds[pid];
-            insertPara(pre, pid, raw=raw, before=false);
+            insertPara(pre, pid, raw, true);
         } else {
             let para = getPara(pid);
             let base = getPara(pre);
@@ -666,11 +664,13 @@ function renderPreview(hist) {
     content.hide();
 
     // make active and ensure same relative position
-    makeActive(new_active, false);
-    if (ppos !== null) {
-        cpos = preview.scrollTop() + state.active_para.position().top - ppos;
+    if (new_active !== null) {
+        makeActive(new_active, false);
+        if (ppos !== null) {
+            cpos = preview.scrollTop() + state.active_para.position().top - ppos;
+        }
+        preview.scrollTop(cpos);
     }
-    preview.scrollTop(cpos);
 }
 
 function initHistory(data) {

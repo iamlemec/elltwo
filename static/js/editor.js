@@ -6,10 +6,13 @@ export {
 }
 
 import { config, state } from './state.js'
-import { ensureVisible, cooks, getPara } from './utils.js'
+import { ensureVisible, cooks, getPara, noop, on_success } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import { rawToRender, syntaxHL, getFoldLevel, renderFold } from './render.js'
-import { updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake } from './article.js'
+import {
+    insertPara, deletePara, envClasses, createRefs, updateRefHTML, toggleHistMap,
+    toggleSidebar, ccNext, ccMake
+} from './article.js'
 import { toggleHelp } from './help.js'
 
 /// initialization
@@ -92,9 +95,9 @@ function eventEditor() {
             }
             if (state.writeable) { // if we are active but not in edit mode
                 if (key == 'a') {
-                    sendInsertBefore(state.active_para);
+                    sendInsertPara(state.active_para, false);
                 } else if (key == 'b') {
-                    sendInsertAfter(state.active_para);
+                    sendInsertPara(state.active_para, true);
                 } else if (shift && key == 'd') {
                     sendDeletePara(state.active_para);
                 }
@@ -128,7 +131,7 @@ function eventEditor() {
                 }
             } else if (shift && key == 'enter') {
                 makeUnEditable();
-                sendInsertAfter(state.active_para);
+                sendInsertPara(state.active_para, true);
                 return false;
             }
         }
@@ -167,12 +170,12 @@ function eventEditor() {
 
     $(document).on('click', '.before', function() {
         let para = $(this).parents('.para');
-        sendInsertBefore(para);
+        sendInsertPara(para, false);
     });
 
     $(document).on('click', '.after', function() {
         let para = $(this).parents('.para');
-        sendInsertAfter(para);
+        sendInsertPara(para, true);
     });
 
     $(document).on('click', '.delete', function() {
@@ -196,10 +199,10 @@ function resize(textarea) {
 /// rendering and storage
 
 // store a change locally or server side, if no change also unlock server side
-function storeChange(para, send=true) {
+function storeChange(para, send=true, defer=false) {
     let text = para.children('.p_input').val();
     let raw = para.attr('raw');
-    rawToRender(para, false, text); // local changes only
+    rawToRender(para, defer, text); // local changes only
     if (text != raw) {
         $(para).addClass('changed');
         sendUpdatePara(para, text);
@@ -221,14 +224,6 @@ function applyChange(para, raw) {
 
 /// server comms and callbacks
 
-function on_success(func) {
-    return function(success) {
-        if (success) {
-            func();
-        }
-    };
-}
-
 function sendUpdatePara(para, text) {
     let pid = para.attr('pid');
     let data = {aid: config.aid, pid: pid, text: text};
@@ -237,37 +232,30 @@ function sendUpdatePara(para, text) {
     }));
 }
 
-function sendInsertBefore(para) {
+function sendInsertPara(para, after=true, edit=true, raw='') {
     let fold_pid = para.attr('fold_pid');
-    let pid;
+    let head;
     if (fold_pid) {
         let env = $(`[env_pid=${fold_pid}]`);
-        pid = env.first().attr('pid');
+        head = after ? env.last() : env.first();
     } else {
-        pid = para.attr('pid');
-    };
-    let data = {aid: config.aid, pid: pid};
-    sendCommand('insert_before', data, on_success(() => {
-        // activePrevPara();
-        // sendMakeEditable();
-    }));
-}
-
-function sendInsertAfter(para) {
-    let fold_pid = para.attr('fold_pid');
-    let pid;
-    if (fold_pid) {
-        let env = $(`[env_pid=${fold_pid}]`);
-        pid = env.last().attr('pid');
-    } else {
-        pid = para.attr('pid');
-    };
-    let data = {aid: config.aid, pid: pid};
-    sendCommand('insert_after', data, on_success(() => {
-        // console.log(state.active_para);
-        // activeNextPara();
-        // sendMakeEditable();
-    }));
+        head = para;
+    }
+    let pid = head.attr('pid');
+    let data = {aid: config.aid, pid: pid, after: after, edit: edit, text: raw};
+    sendCommand('insert_para', data, (new_pid) => {
+        if (new_pid !== undefined) {
+            let new_para = insertPara(pid, new_pid, raw, after);
+            if (raw.length > 0) {
+                envClasses();
+                createRefs();
+            }
+            if (edit) {
+                makeActive(new_para);
+                sendMakeEditable();
+            }
+        }
+    });
 }
 
 function sendDeletePara(para) {
@@ -281,6 +269,7 @@ function sendDeletePara(para) {
         if (next) {
             makeActive(next);
         }
+        deletePara(pid);
     }));
 }
 
@@ -363,10 +352,24 @@ function makeUnEditable(send=true) {
     $('#cc_pop').remove();
 
     if (state.active_para && state.editable) {
+        let para = state.active_para;
         state.editable = false;
+
         if (state.writeable) {
-            storeChange(state.active_para, send);
+            // store and track env changes
+            let was_env = para.hasClass('env_beg');
+            storeChange(state.active_para, send, true);
+            let now_env = para.hasClass('env_beg');
+
+            // auto close new environments
+            if (!was_env && now_env) {
+                sendInsertPara(para, true, false, '<<'); // defer env pass
+            } else {
+                envClasses();
+                createRefs();
+            }
         }
+
         if (config.mobile) {
             $('#foot').show();
         };

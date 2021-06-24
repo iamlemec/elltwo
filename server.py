@@ -475,27 +475,19 @@ def room(data):
 def update_para(data):
     aid, pid, text = data['aid'], data['pid'], data['text']
     adb.update_para(pid, text)
-    emit('updatePara', [pid, text], include_self=False, room=aid)
+    emit('updatePara', [pid, text], room=aid, include_self=False)
     trueUnlock(aid, [pid])
     return True
 
-@socketio.on('insert_after')
+@socketio.on('insert_para')
 @edit_decor
 def insert_after(data):
-    aid, pid = data['aid'], data['pid']
+    aid, pid, after = data['aid'], data['pid'], data['after']
     text = data.get('text', '')
-    par1 = adb.insert_after(pid, text)
-    emit('insertPara', [pid, par1.pid, text, False], room=aid)
-    return True
-
-@socketio.on('insert_before')
-@edit_decor
-def insert_before(data):
-    aid, pid = data['aid'], data['pid']
-    text = data.get('text', '')
-    par1 = adb.insert_before(pid, text)
-    emit('insertPara', [pid, par1.pid, text, True], room=aid)
-    return True
+    insert_func = adb.insert_after if after else adb.insert_before
+    par1 = insert_func(pid, text)
+    emit('insertPara', [pid, par1.pid, text, after], room=aid, include_self=False)
+    return par1.pid
 
 @socketio.on('paste_cells')
 @edit_decor
@@ -512,7 +504,7 @@ def paste_cells(data):
 def delete_para(data):
     aid, pid = data['aid'], data['pid']
     adb.delete_para(pid)
-    emit('deletePara', [pid], room=aid)
+    emit('deletePara', [pid], room=aid, include_self=False)
     return True
 
 @socketio.on('get_commits')

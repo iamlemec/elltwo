@@ -2,13 +2,24 @@
 
 export {
     merge, initToggleBox, toggleBox, ensureVisible, setCookie, cooks, getPara,
-    isMobile
+    isMobile, noop, on_success
 }
 
 // js tricks
 
 function merge() {
     return Object.assign({}, ...arguments);
+}
+
+function noop() {
+}
+
+function on_success(func) {
+    return function(success) {
+        if (success) {
+            func();
+        }
+    };
 }
 
 // para tools
