@@ -359,7 +359,7 @@ function makeUnEditable(send=true) {
             // store and track env changes
             let was_env = para.hasClass('env_beg');
             storeChange(state.active_para, send, true);
-            let now_env = para.hasClass('env_beg');
+            let now_env = para.hasClass('env_beg') && !para.hasClass('env_end');
 
             // auto close new environments
             if (!was_env && now_env) {

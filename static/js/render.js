@@ -193,7 +193,7 @@ function envClasses(outer) {
     var paras = outer.children('.para');
 
     // remove old env classes
-    paras.children('.p_text').removeClass(function(index, css) {
+    paras.removeClass(function(index, css) {
         return (css.match(/(^|\s)env__\S+/g) || []).join(' ');
     });
 
