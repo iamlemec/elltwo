@@ -2,8 +2,9 @@
 
 export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
-    rawToTextarea, envClasses, createRefs, createTOC, getTro, troFromKey, popText, renderPop,
-    syntaxHL, cacheBib, deleteCite, s_env_spec, getFoldLevel, renderFold, braceMatch
+    rawToTextarea, envClasses, createRefs, createTOC, getTro, troFromKey,
+    popText, renderPop, syntaxHL, cacheBib, deleteCite, s_env_spec,
+    getFoldLevel, renderFold, braceMatch
 }
 
 import { cooks, getPara } from './utils.js'
@@ -102,7 +103,7 @@ function renderParas() {
 /// low level rendering
 
 // get raw text from data-raw attribute, parse, render
-function rawToRender(para, defer, raw=null) {
+function rawToRender(para, defer=false, raw=null) {
     // render with markthree
     let mark_in = (raw === null) ? para.attr('raw') : raw;
     let mark_out = markthree(mark_in);
@@ -1141,7 +1142,7 @@ function syntaxParseBlock(raw) {
         let star = cap[1] ? s(cap[1], 'hl') : '';
         let id = cap[3] ? s(fArgs(cap[3]), 'ref') : '';
         let rest = raw.slice(cap[0].length);
-        return s('$$', 'delimit') + star + cap[2] + id + cap[4] + rest;
+        return s('$$', 'delimit') + star + cap[2] + id + cap[4] + esc_html(rest);
     }
 
     if (cap = block.image.exec(raw)) {

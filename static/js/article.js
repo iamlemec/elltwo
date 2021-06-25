@@ -1,8 +1,9 @@
 /* main article entry point */
 
 export {
-    loadArticle, insertPara, updatePara, updateParas, deletePara, envClasses,
-    createRefs, updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs
+    loadArticle, insertParaRaw, insertPara, updatePara, updateParas, deletePara,
+    envClasses, createRefs, updateRefHTML, toggleHistMap, toggleSidebar, ccNext,
+    ccMake, ccRefs
 }
 
 import { setCookie, cooks, getPara, on_success } from './utils.js'

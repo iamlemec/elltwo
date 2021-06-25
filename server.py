@@ -346,7 +346,7 @@ def confirm_token(token, expiration=3600):
 ###
 
 def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
-    print(f'article [{pid}]: {title}')
+    app.logger.debug(f'article [{pid}]: {title}')
     art = adb.get_art_short(title)
     if art:
         paras = adb.get_paras(art.aid)
@@ -481,13 +481,17 @@ def update_para(data):
 
 @socketio.on('insert_para')
 @edit_decor
-def insert_after(data):
-    aid, pid, after = data['aid'], data['pid'], data['after']
+def insert_para(data):
+    sid = request.sid
+    aid, pid, after, edit = data['aid'], data['pid'], data['after'], data['edit']
     text = data.get('text', '')
     insert_func = adb.insert_after if after else adb.insert_before
     par1 = insert_func(pid, text)
-    emit('insertPara', [pid, par1.pid, text, after], room=aid, include_self=False)
-    return par1.pid
+    new_pid = par1.pid
+    emit('insertPara', [pid, new_pid, text, after], room=aid, include_self=False)
+    if edit:
+        trueLock(aid, new_pid, sid)
+    return new_pid
 
 @socketio.on('paste_cells')
 @edit_decor
@@ -681,13 +685,14 @@ def update_g_ref(data):
 @socketio.on('delete_ref')
 @edit_decor
 def delete_ref(data):
-    adb.delete_ref(data['key'],data['aid'])
+    adb.delete_ref(data['key'], data['aid'])
     # socketio.emit('deleteRef', data['key'], broadcast=True)
 
 ###
 ### locking
 ###
 
+# store as strings to avoid confusion
 roomed = Multimap()
 locked = Multimap()
 
@@ -695,21 +700,25 @@ def locked_by_sid(sid):
     return roomed.loc(sid), locked.get(sid)
 
 def trueUnlock(aid, pids):
-    app.logger.debug(f'trueUnlock: {aid} → {pids}')
-    rpid = [p for p in pids if locked.pop(p) is not None]
-    if len(rpid) > 0:
-        socketio.emit('unlock', rpid, room=aid)
+    said, spids = str(aid), [str(p) for p in pids]
+    rpids = [p for p in spids if locked.pop(p) is not None]
+    if len(rpids) > 0:
+        socketio.emit('unlock', rpids, room=aid)
+
+def trueLock(aid, pid, sid):
+    said, spid = str(aid), str(pid)
+    if (own := locked.loc(spid)) is not None:
+        return own == sid
+    locked.add(sid, spid)
+    emit('lock', [spid], room=aid, include_self=False)
+    return True
 
 @socketio.on('lock')
 @edit_decor
 def lock(data):
     sid = request.sid # unique client id
     aid, pid = data['aid'], data['pid']
-    if (own := locked.loc(pid)) is not None:
-        return own == sid
-    locked.add(sid, pid)
-    emit('lock', [pid], room=aid, include_self=False)
-    return True
+    return trueLock(aid, pid, sid)
 
 @socketio.on('unlock')
 @edit_decor

@@ -8,10 +8,12 @@ export {
 import { config, state } from './state.js'
 import { ensureVisible, cooks, getPara, noop, on_success } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
-import { rawToRender, syntaxHL, getFoldLevel, renderFold } from './render.js'
 import {
-    insertPara, deletePara, envClasses, createRefs, updateRefHTML, toggleHistMap,
-    toggleSidebar, ccNext, ccMake
+    rawToRender, rawToTextarea, syntaxHL, getFoldLevel, renderFold
+} from './render.js'
+import {
+    insertParaRaw, insertPara, deletePara, envClasses, createRefs,
+    updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake
 } from './article.js'
 import { toggleHelp } from './help.js'
 
@@ -242,14 +244,15 @@ function sendInsertPara(para, after=true, edit=true, raw='') {
     let data = {aid: config.aid, pid: pid, after: after, edit: edit, text: raw};
     sendCommand('insert_para', data, (new_pid) => {
         if (new_pid !== undefined) {
-            let new_para = insertPara(pid, new_pid, raw, after);
-            if (raw.length > 0) {
-                envClasses();
-                createRefs();
-            }
+            let new_para = insertParaRaw(pid, new_pid, raw, after);
+            rawToTextarea(new_para);
+            makeActive(new_para);
             if (edit) {
-                makeActive(new_para);
-                sendMakeEditable();
+                trueMakeEditable();
+            } else {
+                if (raw.length > 0) {
+                    rawToRender(new_para);
+                }
             }
         }
     });

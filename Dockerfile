@@ -2,7 +2,7 @@
 FROM python:3.9-alpine
 
 # Set the working directory
-WORKDIR /opt/axiom
+WORKDIR /opt/elltwo
 
 # Install base packages
 RUN apk --update add bash git make gcc g++ musl-dev
@@ -16,6 +16,7 @@ EXPOSE 80
 
 # Copy application code
 COPY *.py .
+COPY console .
 COPY static/css static/css
 COPY static/favicon static/favicon
 COPY static/fonts static/fonts
@@ -34,4 +35,4 @@ COPY testing testing
 RUN ["python", "db_populate.py"]
 
 # Run when the container launches
-CMD ["python", "-u", "ax.py", "--ip=0.0.0.0", "--port=80", "--reindex", "--debug"]
+CMD ["python", "-u", "server.py", "--ip=0.0.0.0", "--port=80", "--reindex"]
