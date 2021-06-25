@@ -1040,7 +1040,8 @@ function fArgs(argsraw, set=true) {
         illegal = /[^a-zA-Z\d\_\-\:]/;
     }
 
-    let args = argsraw.replace(argmatch, function(a,b,c) {
+    // match and parse inside args
+    let args = argsraw.replace(argmatch, function(a, b, c) {
         c = c.split(/(?<!\\)\=/);
         if (c.length > 1) {
             let val = c.pop();
@@ -1065,7 +1066,10 @@ function fArgs(argsraw, set=true) {
             return b + arg_key;
         }
     });
-    return args;
+
+    // swap out leading/trailing bracket highlight
+    return args.replace(/^&!L&/, '<span class="brace">')
+               .replace(/&!R&$/, '</span>');
 }
 
 let block = {
@@ -1080,7 +1084,7 @@ let block = {
     envend: /^\<\<( ?)/,
 };
 
-block._refargs = /(?:(\[(?:[^\]]|(?<=\\)\])*\]?))/;
+block._refargs = /((?:&!L&)?\[(?:[^\]]|(?<=\\)\])*\]?(?:&!R&)?)/;
 
 block.title = replace(block.title)
   ('refargs', block._refargs)
@@ -1137,8 +1141,7 @@ function syntaxParseBlock(raw) {
         let star = cap[1] ? s(cap[1], 'hl') : '';
         let id = cap[3] ? s(fArgs(cap[3]), 'ref') : '';
         let rest = raw.slice(cap[0].length);
-        let text = syntaxParseInline(rest);
-        return s('$$', 'delimit') + star + cap[2] + id + cap[4] + text;
+        return s('$$', 'delimit') + star + cap[2] + id + cap[4] + rest;
     }
 
     if (cap = block.image.exec(raw)) {
