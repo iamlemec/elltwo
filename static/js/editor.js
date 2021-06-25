@@ -49,9 +49,6 @@ function eventEditor() {
             if (state.help_show) {
                 toggleHelp();
                 return;
-            } else if (state.hist_show) {
-                toggleHistMap();
-                return;
             }
         }
 

@@ -529,6 +529,7 @@ def get_history(data):
 @edit_decor
 def revert_history(data):
     aid, date = data['aid'], data['date']
+    app.logger.debug(f'revert_history: {aid} {date}')
     diff = adb.diff_article(aid, date)
     adb.revert_article(aid, diff=diff)
     order = order_links(diff['link_add'])

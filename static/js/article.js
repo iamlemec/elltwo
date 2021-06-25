@@ -655,6 +655,7 @@ function renderPreview(hist) {
     });
 
     envClasses(preview);
+    createRefs(preview);
 
     $.each(hist.diff, (i, pid) => {
         $(`#preview > .para[pid="${pid}"`).addClass('hl_change');
@@ -898,7 +899,11 @@ function revertHistory() {
     }
     let data = act.datum();
     let args = {aid: config.aid, date: data.commit};
-    sendCommand('revert_history', args, on_success(launchHistMap));
+    sendCommand('revert_history', args, on_success(() => {
+        hideHistPreview();
+        launchHistMap();
+        $('#content').focus();
+    }));
 }
 
 function responsivefy(svg) {

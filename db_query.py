@@ -744,8 +744,10 @@ class AxiomDB:
             par = Paragraph(aid=aid, pid=pid, text=text, create_time=time)
             self.session.add(par)
 
-        # update existing paras
+        # update existing paras (delete old revision, add new revision)
         for pid, text in diff['para_upd'].items():
+            rev = self.get_para(pid, time=time)
+            rev.delete_time = time
             par = Paragraph(aid=aid, pid=pid, text=text, create_time=time)
             self.session.add(par)
 
