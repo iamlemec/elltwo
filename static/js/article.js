@@ -789,27 +789,17 @@ function initHistory(data) {
     }
 
     function updateCommits(data) {
-        // round to hour/day/week
-        let xmax = new Date(Date.now());
-        xmax.setHours(xmax.getHours()+1);
+        // get date range
+        let dates = data.map(d => d.date);
+        let xmin0 = d3.min(dates);
+        let xmax0 = d3.max(dates);
+        let xlim0 = (xmax0-xmin0)/1000; // seconds
 
-        // get date min
-        let xmin0 = d3.min(data.map(d => d.date));
-
-        // round date range
-        let xrange = (xmax - xmin0)/(1000*60*60); // hours
-        let xdel;
-        if (xrange <= 1) {
-            xdel = 1;
-        } else if (xrange <= 24) {
-            xdel = 24;
-        } else {
-            xdel = xrange;
-        }
-
-        // set rounded min
-        let xmin = new Date(xmax);
-        xmin.setHours(xmin.getHours()-xdel-1);
+        // get padded range
+        let xmin = new Date(xmin0);
+        let xmax = new Date(xmax0);
+        xmin.setSeconds(xmin.getSeconds()-0.1*xlim0);
+        xmax.setSeconds(xmax.getSeconds()+0.1*xlim0);
 
         // rescale axis
         x.domain([xmin, xmax]);
@@ -872,9 +862,9 @@ function hideHistPreview() {
         if (ppos !== null) {
             cpos = content.scrollTop() + state.active_para.position().top - ppos;
         }
+        content.scrollTop(cpos);
     }
 
-    content.scrollTop(cpos);
     preview.empty();
     createTOC(content);
 }

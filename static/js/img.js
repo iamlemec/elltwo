@@ -78,8 +78,16 @@ function eventImage() {
     });
 
     $(document).on('click', '#bg', function(e) {
-        if ($(e.target).closest('.img_cont').length == 0 && $(e.target).closest('#display').length == 0){
-            $('#display').hide();
+        let targ = $(e.target);
+        if (targ.closest('.img_cont').length == 0 && targ.closest('#display').length == 0) {
+            hideDisplay();
+        }
+    });
+
+    $(document).on('keyup', function(e) {
+        let key = e.key.toLowerCase();
+        if (key == 'escape') {
+            hideDisplay();
         }
     });
 
@@ -152,6 +160,13 @@ function copyKey(keyspan) {
     document.execCommand("Copy");
     textArea.remove();
 };
+
+function hideDisplay() {
+    let disp = $('#display');
+    if (disp.is(':visible')) {
+        disp.hide();
+    }
+}
 
 // search mechanism
 

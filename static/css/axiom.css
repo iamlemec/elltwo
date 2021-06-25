@@ -307,6 +307,7 @@ button {
     text-align: center;
     padding: 20px;
     font-family: fira;
+    cursor: default;
 }
 
 .dropzone.dragover {
