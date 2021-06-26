@@ -245,14 +245,11 @@ function sendInsertPara(para, after=true, edit=true, raw='') {
     sendCommand('insert_para', data, (new_pid) => {
         if (new_pid !== undefined) {
             let new_para = insertParaRaw(pid, new_pid, raw, after);
-            rawToTextarea(new_para);
             makeActive(new_para);
             if (edit) {
                 trueMakeEditable();
             } else {
-                if (raw.length > 0) {
-                    rawToRender(new_para);
-                }
+                rawToRender(new_para);
             }
         }
     });
@@ -408,8 +405,8 @@ function unlockParas(pids) {
 function makeActive(para, scroll=true) {
     if (!para) {
         $('.para').removeClass('copy_sel');
+        makeUnEditable();
     }
-    makeUnEditable();
     $('.para').removeClass('active');
     if (state.active_para) {
         state.last_active = state.active_para;

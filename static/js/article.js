@@ -254,8 +254,8 @@ function eventArticle() {
         let raw = `! [id=${key}|caption=none]`;
         para.attr('raw', raw);
         para.addClass('changed');
-        rawToRender(para, false);
         rawToTextarea(para);
+        rawToRender(para, false);
         sendUpdatePara(para, raw);
     });
 
@@ -328,13 +328,13 @@ function insertParaRaw(pid, new_pid, raw='', after=true) {
         }
     }
     new_para.html(innerPara);
+    rawToTextarea(new_para);
     return new_para;
 }
 
 function insertPara(pid, new_pid, raw='', after=true) {
     let new_para = insertParaRaw(pid, new_pid, raw, after);
     rawToRender(new_para);
-    rawToTextarea(new_para);
     return new_para;
 }
 
@@ -344,7 +344,6 @@ function pasteCB(pid, paste) {
         const [new_pid, text] = d;
         para_act = insertParaRaw(pid, new_pid, text, false);
         rawToRender(para_act, true); // defer
-        rawToTextarea(para_act);
         pid = new_pid;
     })
     envClasses();

@@ -89,8 +89,8 @@ const innerPara = `
 
 function makePara(para, defer=true) {
     para.html(innerPara);
-    rawToRender(para, defer); // postpone formatting
     rawToTextarea(para);
+    rawToRender(para, defer); // postpone formatting
 }
 
 function renderParas() {

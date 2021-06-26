@@ -483,8 +483,9 @@ def update_para(data):
 @edit_decor
 def insert_para(data):
     sid = request.sid
-    aid, pid, after, edit = data['aid'], data['pid'], data['after'], data['edit']
-    text = data.get('text', '')
+    aid, pid, after, edit, text = (
+        data['aid'], data['pid'], data['after'], data['edit'], data['text']
+    )
     insert_func = adb.insert_after if after else adb.insert_before
     par1 = insert_func(pid, text)
     new_pid = par1.pid
