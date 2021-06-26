@@ -29,7 +29,6 @@ function initRender() {
 
     // environ pass + refs
     envClasses();
-    createRefs();
 
     // sort out folding
     initFold();
@@ -104,16 +103,14 @@ function renderParas() {
 
 // get raw text from data-raw attribute, parse, render
 function rawToRender(para, defer=false, raw=null) {
+    // existing features
+    let old_id = para.attr('id');
+
     // render with markthree
     let mark_in = (raw === null) ? para.attr('raw') : raw;
     let mark_out = markthree(mark_in);
     let html_text = mark_out.src;
     let env_info = mark_out.env;
-
-    // store old id/env info
-    let old_id = para.attr('id');
-    let old_env = para.attr('env');
-    let old_ref_text = para.attr('ref_text');
 
     // display rendered html
     para.children('.p_text').html(html_text);
@@ -156,25 +153,16 @@ function rawToRender(para, defer=false, raw=null) {
         }
     }
 
-    // has id/env info changed?
+    // if id changed, and old has not already been assigned
     let new_id = para.attr('id');
-    let new_env = para.attr('env');
-    let new_ref_text = para.attr('ref_text');
-    let changeRef = (new_env != old_env) || (new_id != old_id) || (new_ref_text != old_ref_text);
+    if (old_id && (old_id != new_id)) {
+        old_id = para.attr('old_id') || old_id;
+        para.attr('old_id', old_id);
+    }
 
     // call environment formatters and reference updates
     if (!defer) {
         envClasses();
-        if (changeRef) {
-            createRefs(); // we may be able to scope this more
-        } else {
-            createRefs(para);
-        }
-
-        if (old_id && (old_id != new_id)) { // if id changed, and old has not already been assigned
-            old_id = para.attr('old_id') || old_id;
-            para.attr('old_id', old_id);
-        }
     }
 }
 
@@ -293,6 +281,7 @@ function envClasses(outer) {
 
     // add in numbers with auto-increment
     createNumbers(outer);
+    createRefs(outer);
     createTOC(outer);
     renderFold();
 }
@@ -556,8 +545,8 @@ function createRefs(para) {
             let key = ref.attr('citekey');
             if (($(`#${key}`).length == 0) && (key != '_self_')) {
                 citeKeys.add(key);
-            };
-        };
+            }
+        }
     });
 
     if (citeKeys.size > 0) {

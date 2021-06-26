@@ -9,11 +9,11 @@ import { config, state } from './state.js'
 import { ensureVisible, cooks, getPara, noop, on_success } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import {
-    rawToRender, rawToTextarea, syntaxHL, getFoldLevel, renderFold
+    rawToRender, rawToTextarea, envClasses, syntaxHL, getFoldLevel, renderFold
 } from './render.js'
 import {
-    insertParaRaw, insertPara, deletePara, envClasses, createRefs,
-    updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake
+    insertParaRaw, insertPara, deletePara, updateRefHTML, toggleHistMap,
+    toggleSidebar, ccNext, ccMake
 } from './article.js'
 import { toggleHelp } from './help.js'
 
@@ -50,7 +50,7 @@ function eventEditor() {
         } else if (key == 'escape') {
             if (state.help_show) {
                 toggleHelp();
-                return;
+                return false;
             }
         }
 
@@ -198,18 +198,33 @@ function resize(textarea) {
 /// rendering and storage
 
 // store a change locally or server side, if no change also unlock server side
-function storeChange(para, send=true, defer=false) {
+function storeChange(para, unlock=true) {
+    // get old and new text
     let text = para.children('.p_input').val();
     let raw = para.attr('raw');
-    rawToRender(para, defer, text); // local changes only
+
+    // store old env and render
+    let was_env = para.hasClass('env_beg');
+    rawToRender(para, true, text); // local changes only
+
+    // update server as needed
     if (text != raw) {
         $(para).addClass('changed');
         sendUpdatePara(para, text);
     } else {
-        if (send) {
+        // false in case of timeout (unlocked on server)
+        if (unlock) {
             let pid = para.attr('pid');
             sendUnlockPara([pid]);
         }
+    }
+
+    // auto close new environments
+    let now_env = para.hasClass('env_beg') && !para.hasClass('env_end');
+    if (!was_env && now_env) {
+        sendInsertPara(para, true, false, '<<'); // defer env pass
+    } else {
+        envClasses();
     }
 }
 
@@ -217,8 +232,7 @@ function storeChange(para, send=true, defer=false) {
 function applyChange(para, raw) {
     para.attr('raw', raw);
     updateRefHTML(para);
-    $(para).removeClass('changed')
-           .removeAttr('old_id');
+    para.removeClass('changed');
 }
 
 /// server comms and callbacks
@@ -336,7 +350,7 @@ function sendMakeEditable(cursor='end') {
     }
 }
 
-function makeUnEditable(send=true) {
+function makeUnEditable(unlock=true) {
     $('.para.editable')
         .removeClass('editable')
         .css('min-height', '30px')
@@ -349,24 +363,10 @@ function makeUnEditable(send=true) {
     $('#cc_pop').remove();
 
     if (state.active_para && state.editable) {
-        let para = state.active_para;
         state.editable = false;
-
         if (state.writeable) {
-            // store and track env changes
-            let was_env = para.hasClass('env_beg');
-            storeChange(state.active_para, send, true);
-            let now_env = para.hasClass('env_beg') && !para.hasClass('env_end');
-
-            // auto close new environments
-            if (!was_env && now_env) {
-                sendInsertPara(para, true, false, '<<'); // defer env pass
-            } else {
-                envClasses();
-                createRefs();
-            }
+            storeChange(state.active_para, unlock, true);
         }
-
         if (config.mobile) {
             $('#foot').show();
         };

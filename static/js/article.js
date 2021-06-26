@@ -2,8 +2,7 @@
 
 export {
     loadArticle, insertParaRaw, insertPara, updatePara, updateParas, deletePara,
-    envClasses, createRefs, updateRefHTML, toggleHistMap, toggleSidebar, ccNext,
-    ccMake, ccRefs
+    updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs
 }
 
 import { setCookie, cooks, getPara, on_success } from './utils.js'
@@ -14,7 +13,7 @@ import { connect, addHandler, sendCommand, schedTimeout } from './client.js'
 import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, createRefs, createTOC, getTro, troFromKey, popText, syntaxHL, cacheBib, deleteCite,
+    envClasses, createTOC, getTro, troFromKey, popText, syntaxHL, cacheBib, deleteCite,
     braceMatch, renderPop,
 } from './render.js'
 import {
@@ -311,7 +310,6 @@ function deletePara(pid) {
 
     para.remove();
     envClasses();
-    createRefs(); // we may be able to scope this more
 };
 
 function insertParaRaw(pid, new_pid, raw='', after=true) {
@@ -347,7 +345,6 @@ function pasteCB(pid, paste) {
         pid = new_pid;
     })
     envClasses();
-    createRefs();
     $('.para').removeClass('copy_sel');
     makeActive(para_act);
 }
@@ -426,6 +423,7 @@ function updateRefHTML(para) {
 
     // check if this was obscuring another same-id para? otherwise delete
     if (old_id) {
+        para.removeAttr('old_id');
         let old_para = $(`#${old_id}`);
         if (old_para.length > 0) {
             let ref = createExtRef(old_id);
@@ -655,7 +653,6 @@ function renderPreview(hist) {
     });
 
     envClasses(preview);
-    createRefs(preview);
 
     $.each(hist.diff, (i, pid) => {
         $(`#preview > .para[pid="${pid}"`).addClass('hl_change');
