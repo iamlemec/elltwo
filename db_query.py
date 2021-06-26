@@ -53,23 +53,29 @@ def splice_link(lin, time, **kwargs):
 def urlify(s):
     return re.sub(r'\W', '_', s).lower()
 
+# aggregate new links into contiguous placing instructions
+# (a, b) → put a after b
 def order_links(links, single=True):
     groups = []
     for lin in links.values():
         pi, pr, nx = lin
-        found = False
+        glo, ghi = None, None
         for gr in groups:
             _, lo, _ = gr[0]
             _, _, hi = gr[-1]
             if lo == pi and lo is not None:
-                gr.insert(0, lin)
-                found = True
-                break
+                ghi = gr
             if hi == pi and hi is not None:
-                gr.append(lin)
-                found = True
-                break
-        if not found:
+                glo = gr
+        if glo is not None and ghi is None:
+            glo.append(lin)
+        elif ghi is not None and glo is None:
+            ghi.insert(0, lin)
+        elif glo is not None and ghi is not None:
+            groups.remove(ghi)
+            glo.append(lin)
+            glo.extend(ghi)
+        else:
             groups.append([lin])
     if single:
         groups = [[(pi, pr) for pi, pr, _ in gr[:-1]] for gr in groups]
