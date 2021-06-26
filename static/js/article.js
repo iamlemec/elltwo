@@ -340,7 +340,7 @@ function pasteCB(pid, paste) {
     let para_act = null;
     paste.forEach(d => {
         const [new_pid, text] = d;
-        para_act = insertParaRaw(pid, new_pid, text, false);
+        para_act = insertParaRaw(pid, new_pid, text, true);
         rawToRender(para_act, true); // defer
         pid = new_pid;
     })

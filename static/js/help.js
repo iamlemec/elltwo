@@ -6,6 +6,7 @@ let spec = [
     ['header', 'Keyboard Shortcuts'],
     ['key', 'Enter', 'Enter editing / navigation'],
     ['key', 'Escape', 'Exit editing / navigation'],
+    ['key', 'Alt + Click', 'Activate / edit specific cell'],
     ['key', '&#8657;', 'Move one cell up'],
     ['key', '&#8659;', 'Move one cell down'],
     ['key', 'Ctrl + Home', 'Move to first cell'],
