@@ -28,9 +28,8 @@ from tools import Multimap, gen_auth
 from pathlib import Path
 
 # necessary hack
-if sys.platform == 'darwin':
-    from engineio.payload import Payload
-    Payload.max_decode_packets = 50
+from engineio.payload import Payload
+Payload.max_decode_packets = 50
 
 ###
 ### parse command line args
@@ -460,7 +459,7 @@ def socket_disconnect():
 def room(data):
     sid = request.sid
     app.logger.debug(f'join_room: {sid}')
-    room = data['room']
+    room = str(data['room'])
     join_room(room)
     roomed.add(room, sid)
     if data.get('get_locked', False):
@@ -475,7 +474,7 @@ def room(data):
 def update_para(data):
     aid, pid, text = data['aid'], data['pid'], data['text']
     adb.update_para(pid, text)
-    emit('updatePara', [pid, text], room=aid, include_self=False)
+    emit('updatePara', [pid, text], room=str(aid), include_self=False)
     trueUnlock(aid, [pid])
     return True
 
@@ -489,7 +488,7 @@ def insert_para(data):
     insert_func = adb.insert_after if after else adb.insert_before
     par1 = insert_func(pid, text)
     new_pid = par1.pid
-    emit('insertPara', [pid, new_pid, text, after], room=aid, include_self=False)
+    emit('insertPara', [pid, new_pid, text, after], room=str(aid), include_self=False)
     if edit:
         trueLock(aid, new_pid, sid)
     return new_pid
@@ -501,7 +500,7 @@ def paste_cells(data):
     if len(cb) == 0:
         return False
     pid_map = adb.paste_after(pid, cb)
-    emit('pasteCB', [pid, pid_map], room=aid)
+    emit('pasteCB', [pid, pid_map], room=str(aid))
     return True
 
 @socketio.on('delete_para')
@@ -509,7 +508,7 @@ def paste_cells(data):
 def delete_para(data):
     aid, pid = data['aid'], data['pid']
     adb.delete_para(pid)
-    emit('deletePara', [pid], room=aid, include_self=False)
+    emit('deletePara', [pid], room=str(aid), include_self=False)
     return True
 
 @socketio.on('get_commits')
@@ -544,7 +543,7 @@ def revert_history(data):
         'para_upd': diff['para_upd'],
         'position': order,
     }
-    emit('applyDiff', edits, room=aid)
+    emit('applyDiff', edits, room=str(aid))
     return True
 
 ###
@@ -704,14 +703,14 @@ def trueUnlock(aid, pids):
     said, spids = str(aid), [str(p) for p in pids]
     rpids = [p for p in spids if locked.pop(p) is not None]
     if len(rpids) > 0:
-        socketio.emit('unlock', rpids, room=aid)
+        socketio.emit('unlock', rpids, room=said)
 
 def trueLock(aid, pid, sid):
     said, spid = str(aid), str(pid)
     if (own := locked.loc(spid)) is not None:
         return own == sid
     locked.add(sid, spid)
-    emit('lock', [spid], room=aid, include_self=False)
+    emit('lock', [spid], room=said, include_self=False)
     return True
 
 @socketio.on('lock')

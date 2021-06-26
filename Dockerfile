@@ -19,7 +19,6 @@ COPY *.py .
 COPY console .
 COPY static/css static/css
 COPY static/favicon static/favicon
-COPY static/fonts static/fonts
 COPY static/img static/img
 COPY static/js static/js
 COPY static/katex/dist static/katex/dist
@@ -35,4 +34,4 @@ COPY testing testing
 RUN ["python", "db_populate.py"]
 
 # Run when the container launches
-CMD ["python", "-u", "server.py", "--ip=0.0.0.0", "--port=80", "--reindex"]
+CMD ["python", "-u", "server.py", "--ip=0.0.0.0", "--port=80", "--auth=auth.toml", "--theme=white", "--reindex"]
