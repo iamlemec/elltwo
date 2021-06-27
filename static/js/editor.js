@@ -261,6 +261,7 @@ function sendInsertPara(para, after=true, edit=true, raw='') {
             let new_para = insertParaRaw(pid, new_pid, raw, after);
             makeActive(new_para);
             if (edit) {
+                envClasses();
                 trueMakeEditable();
             } else {
                 rawToRender(new_para);
