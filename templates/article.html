@@ -1,10 +1,10 @@
-{% extends "axiom.html" %}
+{% extends "elltwo.html" %}
 
 {% block head %}
 
 {{ super() }}
 
-<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/axiom.css') }} />
+<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
 
 <script src="{{ url_for('static', filename='libs/socket.io.min.js') }}" type="text/javascript"></script>
 <script src="{{ url_for('static', filename='libs/d3.v5.min.js') }}" type="text/javascript"></script>

@@ -1,4 +1,4 @@
-{% extends "axiom.html" %}
+{% extends "elltwo.html" %}
 
 {% block title %}Login{% endblock %}
 
@@ -15,13 +15,15 @@
 
 {% block content %}
 
-{% if not current_user.is_authenticated %}
-<div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
+<div id=prompt>
+<span id=title>
+<span class=latex>\ell^2</span>
+</span>
 <br>
-Simple Beautiful Collabrative
-
+Simple Beautiful Collaborative
 <br><br><br><br>
 
+{% if not current_user.is_authenticated %}
 Log in to enable editing or <a href="{{ url_for('Signup') }}">create an account</a>.
 <br>
 Forgot your password? <a href="{{ url_for('Forgot') }}">Click here to reset it</a>.

@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-# axiom admin console
+# elltwo admin console
 
 import os
 import getpass
@@ -24,12 +24,11 @@ class Config:
                 toml.dump(auth, fid)
 
 class User:
-    def __init__(self, db):
-        self.db = db
+    def __init__(self, edb):
+        self.edb = edb
 
     def list(self):
-        adb = dbq.AxiomDB(path=self.db)
-        for u in adb.get_all_users():
+        for u in self.edb.get_all_users():
             print(u)
 
     def create(self, email, name=None, password=None, confirm=True):
@@ -37,13 +36,11 @@ class User:
             name, _ = email.split('@')
         if password is None:
             password = getpass.getpass()
-        adb = dbq.AxiomDB(path=self.db)
-        adb.add_user(email, name, password, confirm=confirm)
+        self.edb.add_user(email, name, password, confirm=confirm)
 
     def delete(self, email):
         if confirm_request('delete user?'):
-            adb = dbq.AxiomDB(path=self.db)
-            if adb.del_user(email):
+            if self.edb.del_user(email):
                 print(f'{email} deleted')
             else:
                 print(f'{email} not found')
@@ -59,40 +56,38 @@ def para_summary(para, time=False):
     else:
         return f'{para.pid}: {para.text}'
 
-def art_find(adb, aid=None, title=None):
+def art_find(edb, aid=None, title=None):
     if aid is not None:
-        art = adb.get_art(aid)
+        art = edb.get_art(aid)
     elif title is not None:
         short = urlify(title)
-        art = adb.get_art_short(short)
+        art = edb.get_art_short(short)
     else:
         art = None
     return art
 
 class Article:
-    def __init__(self, db):
-        self.db = db
+    def __init__(self, edb):
+        self.edb = edb
 
     def list(self, all=False):
-        adb = dbq.AxiomDB(path=self.db)
         if all:
-            arts = adb.getall(dbs.Article)
+            arts = self.edb.getall(dbs.Article)
             print('\n'.join([art_summary(a, time=True) for a in arts]))
         else:
-            arts = adb.get_arts()
+            arts = self.edb.get_arts()
             print('\n'.join([art_summary(a) for a in arts]))
 
     def show(self, aid=None, title=None, all=False):
-        adb = dbq.AxiomDB(path=self.db)
-        art = art_find(adb, aid=aid, title=title)
+        art = art_find(self.edb, aid=aid, title=title)
         head = art_summary(art)
         if all:
-            paras = adb.getall(dbs.Paragraph, aid=art.aid)
+            paras = self.edb.getall(dbs.Paragraph, aid=art.aid)
             body = [p for p in paras if p.delete_time is None]
             tail = [p for p in paras if p.delete_time is not None]
             tail = sorted(tail, key=lambda p: p.create_time)
         else:
-            body = adb.get_paras(art.aid)
+            body = self.edb.get_paras(art.aid)
             tail = []
         print(head)
         print('='*len(head))
@@ -101,91 +96,82 @@ class Article:
         print('\n'.join([para_summary(p, time=all) for p in tail]))
 
     def text(self, aid=None, title=None):
-        adb = dbq.AxiomDB(path=self.db)
-        art = art_find(adb, aid=aid, title=title)
-        paras = adb.get_paras(art.aid)
+        art = art_find(self.edb, aid=aid, title=title)
+        paras = self.edb.get_paras(art.aid)
         print('\n\n'.join([p.text for p in paras]))
 
     def create(self, title):
         short = urlify(title)
-        adb = dbq.AxiomDB(path=self.db)
-        if (art := adb.get_art_short(short)) is not None:
+        if (art := self.edb.get_art_short(short)) is not None:
             print(f'Article {short} already exists')
         else:
-            adb.create_article(title)
+            self.edb.create_article(title)
 
     def ingest(self, path, title=None):
         if title is None:
             _, fname = os.path.split(path)
             title, _ = os.path.splitext(fname)
         short = dbq.urlify(title)
-        adb = dbq.AxiomDB(path=self.db)
-        if (art := adb.get_art_short(short)) is not None:
+        if (art := self.edb.get_art_short(short)) is not None:
             print(f'Article {short} already exists')
         else:
             with open(path) as fid:
                 mark = fid.read()
-            adb.import_markdown(title, mark)
+            self.edb.import_markdown(title, mark)
 
     def delete(self, title):
-        adb = dbq.AxiomDB(path=self.db)
-        if (art := adb.get_art_short(title)) is None:
+        if (art := self.edb.get_art_short(title)) is None:
             print(f'Article "{title}" not found')
         elif confirm_request(f'delete article "{title}"?'):
-            adb.delete_article(art.aid)
+            self.edb.delete_article(art.aid)
 
     def purge(self, title):
-        adb = dbq.AxiomDB(path=self.db)
-        if (art := adb.get_art_short(title)) is None:
+        if (art := self.edb.get_art_short(title)) is None:
             print(f'Article "{title}" not found')
         elif confirm_request(f'purge article "{title}"?'):
-            adb.expunge_article(art.aid)
+            self.edb.expunge_article(art.aid)
 
 class Paragraph:
-    def __init__(self, db):
-        self.db = db
+    def __init__(self, edb):
+        self.edb = edb
 
     def show(self, pid):
-        adb = dbq.AxiomDB(path=self.db)
-        para = adb.get_para(pid)
+        para = self.edb.get_para(pid)
         if para is None:
             print(f'paragraph {pid} not found (try "hist")')
         else:
             print(para_summary(para))
 
     def hist(self, pid):
-        adb = dbq.AxiomDB(path=self.db)
-        coms = adb.getall(dbs.Paragraph, pid=pid)
+        coms = self.edb.getall(dbs.Paragraph, pid=pid)
         coms = sorted(coms, key=lambda c: c.create_time)
         print('\n'.join([para_summary(p, time=True) for p in coms]))
 
 class Index:
-    def __init__(self, db):
-        self.db = db
+    def __init__(self, edb):
+        self.edb = edb
 
     def regen(self):
-        adb = dbq.AxiomDB(path=self.db)
-        adb.reindex_articles()
+        self.edb.reindex_articles()
 
     def title(self, query):
-        adb = dbq.AxiomDB(path=self.db)
-        arts = adb.search_title(query)
+        arts = self.edb.search_title(query)
         for a in arts:
             print(a)
 
     def paras(self, query):
-        adb = dbq.AxiomDB(path=self.db)
-        paras = adb.search_text(query)
+        paras = self.edb.search_text(query)
         for p in paras:
             print(p)
 
 class Main:
-    def __init__(self, db='axiom.db'):
+    def __init__(self, db='elltwo.db'):
+        edb = dbq.ElltwoDB(path=db)
         self.config = Config()
-        self.user = User(db=db)
-        self.article = self.art = Article(db=db)
-        self.paragraph = self.par = Paragraph(db=db)
-        self.index = Index(db=db)
+        self.user = User(edb=edb)
+        self.article = self.art = Article(edb=edb)
+        self.paragraph = self.par = Paragraph(edb=edb)
+        self.index = Index(edb=edb)
 
 if __name__ == '__main__':
     fire.Fire(Main)

@@ -3,7 +3,7 @@ export { latexTemplate }
 function latexTemplate(d) {
     return String.raw`
 %
-% This .tex file was created with Axiom \ell^2
+% This .tex file was created with elltwo ($\ell^2$)
 % [201p // iamlemec]
 %
 
@@ -76,7 +76,7 @@ ${d.bib}
 
 \begin{document}
 
-\title{ ${d.title}\thanks{This .tex file was created via Axiom $\ell^2$ on ${d.date}.} }
+\title{ ${d.title}\thanks{This .tex file was created via elltwo ($\ell^2$) on ${d.date}.} }
 
 \maketitle
 

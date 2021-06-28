@@ -124,8 +124,8 @@ def ces(v, σ=2):
 ## db interface
 ##
 
-class AxiomDB:
-    def __init__(self, db=None, path='axiom.db', uri=None, create=False, reindex=False):
+class ElltwoDB:
+    def __init__(self, db=None, path='elltwo.db', uri=None, create=False, reindex=False):
         if db is None:
             if uri is None:
                 uri = f'sqlite:///{path}'

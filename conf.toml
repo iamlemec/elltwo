@@ -1,4 +1,4 @@
-# axiom config
+# elltwo config
 
 timeout = 180 # paragraph lock timeout in seconds
 max_size = 1024 # max image size in kilobytes

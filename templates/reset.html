@@ -1,4 +1,4 @@
-{% extends "axiom.html" %}
+{% extends "elltwo.html" %}
 
 {% block title %}Reset{% endblock %}
 
@@ -14,13 +14,16 @@
 {% block header %}{% endblock %}
 
 {% block content %}
-{% if not current_user.is_authenticated %}
-<div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
-<br>
-Simple Beautiful Collabrative
 
+<div id=prompt>
+<span id=title>
+<span class=latex>\ell^2</span>
+</span>
+<br>
+Simple Beautiful Collaborative
 <br><br><br><br>
 
+{% if not current_user.is_authenticated %}
 Reset password for {{email}}
 </div>
 <div class="box">
@@ -39,9 +42,6 @@ Reset password for {{email}}
 {% endif %}
 
 {% if current_user.is_authenticated %}
-<div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
-<br>
-Simple Beautiful Collabrative
 </div>
 <div class="box">
 <div class="notification">

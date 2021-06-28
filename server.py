@@ -21,7 +21,7 @@ from itsdangerous import URLSafeTimedSerializer
 
 # import db tools
 from db_setup import Article, Paragraph, Paralink, Bib, User
-from db_query import AxiomDB, order_links
+from db_query import ElltwoDB, order_links
 
 # other tools
 from tools import Multimap, gen_auth
@@ -35,9 +35,9 @@ Payload.max_decode_packets = 50
 ### parse command line args
 ###
 
-parser = argparse.ArgumentParser(description='Axiom2 server.')
+parser = argparse.ArgumentParser(description='Elltwo server.')
 parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
-parser.add_argument('--path', type=str, default='axiom.db', help='Path to sqlite database file')
+parser.add_argument('--path', type=str, default='elltwo.db', help='Path to sqlite database file')
 parser.add_argument('--ip', type=str, default='127.0.0.1', help='IP address to serve on')
 parser.add_argument('--port', type=int, default=5000, help='Main port to serve on')
 parser.add_argument('--debug', action='store_true', help='Run in debug mode')
@@ -100,7 +100,7 @@ else:
 
 # load sqlalchemy
 db = SQLAlchemy(app)
-adb = AxiomDB(db=db, reindex=args.reindex)
+edb = ElltwoDB(db=db, reindex=args.reindex)
 
 # login manager
 login = LoginManager(app)
@@ -111,8 +111,8 @@ socketio = SocketIO(app)
 # initialize tables
 @app.before_first_request
 def db_setup():
-    adb.create()
-    login.user_loader(adb.load_user)
+    edb.create()
+    login.user_loader(edb.load_user)
 
 ###
 ### Create global variables for all templets
@@ -137,11 +137,11 @@ def Home():
 @edit_decor
 def Create():
     art_name = request.form['new_art']
-    art = adb.get_art_short(art_name)
+    art = edb.get_art_short(art_name)
     if art:
         return  redirect(url_for('RenderArticle', title=art_name))
     else:
-        adb.create_article(art_name)
+        edb.create_article(art_name)
         return redirect(url_for('RenderArticle', title=art_name))
 
 @app.route('/demo')
@@ -151,7 +151,7 @@ def Demo():
     art_name = f'demo_{hash_tag}'
     with open(config['demo_path']) as fid:
         demo_mark = fid.read()
-    adb.import_markdown(art_name, demo_mark)
+    edb.import_markdown(art_name, demo_mark)
     return redirect(url_for('RenderArticle', title=art_name))
 
 ###
@@ -177,7 +177,7 @@ def CreateUser():
     name = request.form.get('name')
     password = request.form.get('password')
 
-    user = adb.get_user(email) # if this returns a user, then the email already exists in database
+    user = edb.get_user(email) # if this returns a user, then the email already exists in database
 
     if user is not None: # if a user is found, we want to redirect back to signup page so user can try again
         lg = url_for('Login')
@@ -185,7 +185,7 @@ def CreateUser():
         flash(msg)
         return redirect(url_for('Signup'))
 
-    adb.add_user(email, name, password)
+    edb.add_user(email, name, password)
     send_confirmation_email(email)
     rs = url_for('Resend', email=email)
     msg = Markup(f'Check your email to activate your account. <br> <a href={rs} class="alert-link">Resend.</a>')
@@ -199,7 +199,7 @@ if not args.private:
 def confirm_email(token):
     try:
         email = confirm_token(token)
-        user = adb.get_user(email)
+        user = edb.get_user(email)
     except:
         flash('The confirmation link is invalid or has expired.')
         return redirect(url_for('Signup'))
@@ -209,7 +209,7 @@ def confirm_email(token):
         flash(msg)
         return redirect(url_for('Login'))
     else:
-        adb.confirm_user(user)
+        edb.confirm_user(user)
         login_user(user, remember=True) #currently we always store cookies, could make it option
         flash('You have confirmed your account. Thanks!')
     return redirect(url_for('Home'))
@@ -230,7 +230,7 @@ def Forgot():
 @app.route('/reset_email', methods=['POST'])
 def ResetEmail():
     email = request.form.get('email')
-    user = adb.get_user(email)
+    user = edb.get_user(email)
 
     if user is not None:
         send_reset_email(email)
@@ -252,11 +252,11 @@ def ResetWithToken(token):
     password = request.form.get('password')
     try:
         email = confirm_token(token)
-        user = adb.get_user(email)
+        user = edb.get_user(email)
     except:
         flash('The reset link is invalid or has expired.')
         return redirect(url_for('Forgot'))
-    adb.update_password(user, password)
+    edb.update_password(user, password)
     login_user(user, remember=True) #currently we always store cookies, could make it option
     flash('You have reset your password and are logged in.')
     return redirect(url_for('Home'))
@@ -270,7 +270,7 @@ def LoginUser():
     if next == 'this':
         next = request.referrer.replace('/r/', '/a/', 1)
 
-    user = adb.get_user(email)
+    user = edb.get_user(email)
 
     # check if the user actually exists
     # take the user-supplied password, hash it, and compare it to the hashed password in the database
@@ -294,7 +294,7 @@ def LogoutUser():
     return redirect(request.referrer)
 
 def send_confirmation_email(email):
-    subject = "Confirm your Axiom L2 account"
+    subject = "Confirm your elltwo account"
     token = create_token(email)
     confirm_url = url_for('confirm_email', token=token, _external=True)
     html = render_template('email_conf.html', confirm_url=confirm_url, confirm=True)
@@ -302,7 +302,7 @@ def send_confirmation_email(email):
     # return redirect(url_for('Home'))
 
 def send_reset_email(email):
-    subject = "Password Reset: Axiom L2 account"
+    subject = "Password reset: elltwo account"
     token = create_token(email)
     confirm_url = url_for('Reset', email=email, token=token, _external=True)
     html = render_template('email_conf.html', confirm_url=confirm_url, confirm=False)
@@ -346,14 +346,14 @@ def confirm_token(token, expiration=3600):
 
 def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
     app.logger.debug(f'article [{pid}]: {title}')
-    art = adb.get_art_short(title)
+    art = edb.get_art_short(title)
     if art:
-        paras = adb.get_paras(art.aid)
+        paras = edb.get_paras(art.aid)
         ref_list = []
         bib_list = {}
         if edit:
-            bib_list = {cite.citekey: None for cite in adb.get_bib()}
-            ref_list = adb.get_refs(art.aid)
+            bib_list = {cite.citekey: None for cite in edb.get_bib()}
+            ref_list = edb.get_refs(art.aid)
         return render_template(
             'article.html',
             title=art.title,
@@ -403,7 +403,7 @@ def RenderArticleRO(title):
 @app.route('/i/<key>', methods=['GET'])
 @view_decor
 def GetImage(key):
-    if (img := adb.get_image(key)) is not None:
+    if (img := edb.get_image(key)) is not None:
         buf = BytesIO(img.data)
         return send_file(buf, mimetype=img.mime)
     else:
@@ -425,7 +425,7 @@ def RenderBib():
 def Img():
     edit = current_user.is_authenticated or not args.login
     style = getStyle(request)
-    img = [(i.key, i.keywords) for i in adb.get_images()]
+    img = [(i.key, i.keywords) for i in edb.get_images()]
     img.reverse()
     return render_template('img.html',
         img=img,
@@ -473,7 +473,7 @@ def room(data):
 @edit_decor
 def update_para(data):
     aid, pid, text = data['aid'], data['pid'], data['text']
-    adb.update_para(pid, text)
+    edb.update_para(pid, text)
     emit('updatePara', [pid, text], room=str(aid), include_self=False)
     trueUnlock(aid, [pid])
     return True
@@ -485,7 +485,7 @@ def insert_para(data):
     aid, pid, after, edit, text = (
         data['aid'], data['pid'], data['after'], data['edit'], data['text']
     )
-    insert_func = adb.insert_after if after else adb.insert_before
+    insert_func = edb.insert_after if after else edb.insert_before
     par1 = insert_func(pid, text)
     new_pid = par1.pid
     emit('insertPara', [pid, new_pid, text, after], room=str(aid), include_self=False)
@@ -499,7 +499,7 @@ def paste_cells(data):
     aid, pid, cb = data['aid'], data['pid'], data['cb']
     if len(cb) == 0:
         return False
-    pid_map = adb.paste_after(pid, cb)
+    pid_map = edb.paste_after(pid, cb)
     emit('pasteCB', [pid, pid_map], room=str(aid))
     return True
 
@@ -507,7 +507,7 @@ def paste_cells(data):
 @edit_decor
 def delete_para(data):
     aid, pid = data['aid'], data['pid']
-    adb.delete_para(pid)
+    edb.delete_para(pid)
     emit('deletePara', [pid], room=str(aid), include_self=False)
     return True
 
@@ -515,15 +515,15 @@ def delete_para(data):
 @view_decor
 def get_commits(data):
     aid = data['aid']
-    dates = adb.get_commits(aid=aid)
+    dates = edb.get_commits(aid=aid)
     return [d.isoformat().replace('T', ' ') for d in dates]
 
 @socketio.on('get_history')
 @view_decor
 def get_history(data):
     aid, date = data['aid'], data['date']
-    paras = adb.get_paras(aid=aid, time=date)
-    diff = adb.diff_article(aid, date)
+    paras = edb.get_paras(aid=aid, time=date)
+    diff = edb.diff_article(aid, date)
     return {
         'paras': [(p.pid, p.text) for p in paras],
         'diff': list(diff['para_upd'] | diff['para_add']),
@@ -534,8 +534,8 @@ def get_history(data):
 def revert_history(data):
     aid, date = data['aid'], data['date']
     app.logger.debug(f'revert_history: {aid} {date}')
-    diff = adb.diff_article(aid, date)
-    adb.revert_article(aid, diff=diff)
+    diff = edb.diff_article(aid, date)
+    edb.revert_article(aid, diff=diff)
     order = order_links(diff['link_add'])
     edits = {
         'para_add': diff['para_add'],
@@ -553,17 +553,17 @@ def revert_history(data):
 @socketio.on('create_art')
 @edit_decor
 def create_art(title):
-    art = adb.get_art_short(title)
+    art = edb.get_art_short(title)
     if art:
         return url_for('RenderArticle', title=title)
     else:
-        adb.create_article(title)
+        edb.create_article(title)
         return url_for('RenderArticle', title=title)
 
 @socketio.on('search_title')
 @view_decor
 def search_title(data):
-    results = adb.search_title(data)
+    results = edb.search_title(data)
     return [{
         'url': art.short_title,
         'title': art.title,
@@ -573,10 +573,10 @@ def search_title(data):
 @socketio.on('search_text')
 @view_decor
 def search_text(data):
-    results = adb.search_text(data)
+    results = edb.search_text(data)
 
     aids = set(par.aid for par in results)
-    titles = adb.get_art_titles(aids)
+    titles = edb.get_art_titles(aids)
 
     return [{
         'pid': par.pid,
@@ -590,12 +590,12 @@ def search_text(data):
 def set_blurb(data):
     aid = data['aid']
     blurb = data['blurb']
-    adb.set_blurb(aid, blurb)
+    edb.set_blurb(aid, blurb)
     return True
 
 @socketio.on('get_blurb')
 def get_blurb(title):
-    art = adb.get_art_short(title)
+    art = edb.get_art_short(title)
     if art:
         return art.blurb
     else:
@@ -608,27 +608,27 @@ def get_blurb(title):
 @socketio.on('create_cite')
 @edit_decor
 def create_cite(data):
-    adb.create_cite(data['citationKey'], data['entryType'], **data['entryTags'])
-    bib = adb.get_bib_dict(keys=[data['citationKey']])
+    edb.create_cite(data['citationKey'], data['entryType'], **data['entryTags'])
+    bib = edb.get_bib_dict(keys=[data['citationKey']])
     socketio.emit('renderBib', bib, broadcast=True)
 
 @socketio.on('delete_cite')
 @edit_decor
 def delete_cite(data):
-    adb.delete_cite(data['key'])
+    edb.delete_cite(data['key'])
     socketio.emit('deleteCite', data['key'], broadcast=True)
 
 @socketio.on('get_bib')
 @view_decor
 def get_bib(data):
     keys = data.get('keys', None)
-    bib = adb.get_bib_dict(keys=keys)
+    bib = edb.get_bib_dict(keys=keys)
     socketio.emit('renderBib', bib)
 
 @socketio.on('get_cite')
 @view_decor
 def get_cite(data):
-    bib = adb.get_bib_dict(keys=data['keys'])
+    bib = edb.get_bib_dict(keys=data['keys'])
     return bib
 
 ###
@@ -638,9 +638,9 @@ def get_cite(data):
 @socketio.on('get_ref')
 @view_decor
 def get_ref(data):
-    art = adb.get_art_short(data['title'])
+    art = edb.get_art_short(data['title'])
     if art:
-        ref = adb.get_ref(data['key'], art.aid)
+        ref = edb.get_ref(data['key'], art.aid)
         title = art.title
         if ref:
             return {
@@ -659,9 +659,9 @@ def get_ref(data):
 @view_decor
 def get_refs(data):
     title = data['title']
-    art = adb.get_art_short(title)
+    art = edb.get_art_short(title)
     if art:
-        refs = adb.get_refs(art.aid)
+        refs = edb.get_refs(art.aid)
         return {'refs' : refs, 'title': title }
     else:
         return {'refs': [], 'title': ''}
@@ -669,23 +669,23 @@ def get_refs(data):
 @socketio.on('get_arts')
 @view_decor
 def get_arts(data):
-    return {art: [] for art in adb.get_art_titles()}
+    return {art: [] for art in edb.get_art_titles()}
 
 @socketio.on('update_ref')
 @edit_decor
 def update_ref(data):
-    adb.create_ref(**data)
+    edb.create_ref(**data)
 
 @socketio.on('update_g_ref')
 @edit_decor
 def update_g_ref(data):
-    adb.update_g_ref(data['aid'], data['g_ref'])
+    edb.update_g_ref(data['aid'], data['g_ref'])
     return data['g_ref']
 
 @socketio.on('delete_ref')
 @edit_decor
 def delete_ref(data):
-    adb.delete_ref(data['key'], data['aid'])
+    edb.delete_ref(data['key'], data['aid'])
     # socketio.emit('deleteRef', data['key'], broadcast=True)
 
 ###
@@ -750,7 +750,7 @@ def UploadImg():
     file.save(buf)
     val = buf.getvalue()
 
-    adb.create_image(img_key, img_mime, val)
+    edb.create_image(img_key, img_mime, val)
 
     return {'mime': img_mime, 'key': img_key}
 
@@ -758,7 +758,7 @@ def UploadImg():
 @view_decor
 def get_image(data):
     key = data['key']
-    if (img := adb.get_image(key)) is not None:
+    if (img := edb.get_image(key)) is not None:
         return {'found': True, 'mime': img.mime, 'data': img.data, 'kw': img.keywords}
     else:
         return {'found': False}
@@ -769,7 +769,7 @@ def update_img_key(data):
     key = data['key']
     new_key = data['new_key']
     new_kw = data['new_kw']
-    adb.update_image_key(key=key, new_key=new_key, new_kw=new_kw)
+    edb.update_image_key(key=key, new_key=new_key, new_kw=new_kw)
     return {'found': True}
 
 ##
