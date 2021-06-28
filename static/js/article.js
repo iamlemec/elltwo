@@ -18,7 +18,7 @@ import {
 } from './render.js'
 import {
     initEditor, resize, makeActive, lockParas, unlockParas, sendMakeEditable,
-    sendUpdatePara
+    sendUpdatePara, placeCursor
 } from './editor.js'
 import { connectDrops } from './drop.js'
 import { initExport } from './export.js'
@@ -62,7 +62,7 @@ function stateArticle() {
     stateRender();
 
     updateState(default_state);
-    setWriteable(!config.readonly);
+    setReadonly(config.readonly);
 }
 
 function initArticle() {
@@ -79,9 +79,6 @@ function loadArticle(args) {
     // load in server side config/cache
     updateConfig(default_config, args.config ?? {});
     updateCache(default_cache, args.cache ?? {});
-
-    window.cache = cache
-
 
     // initialize full state
     stateArticle();
@@ -113,9 +110,26 @@ function loadArticle(args) {
     eventArticle();
 }
 
+function setReadonly(ro) {
+    state.readonly = ro;
+    setWriteable();
+}
+
 function setWriteable(wr) {
+    if (wr === undefined) {
+        wr = !state.readonly && !state.hist_show;
+    }
+
     state.writeable = wr;
     $('#bg').toggleClass('writeable', wr);
+
+    if (state.active_para) {
+        let text = state.active_para.children('.p_input');
+        text.prop('readonly', !wr);
+        if (wr) {
+            placeCursor('end');
+        }
+    }
 }
 
 function connectServer() {
@@ -204,17 +218,6 @@ function eventArticle() {
         }
     });
 
-    /*
-    $(document).click(function(e) {
-        if (state.sidebar_show) {
-            if ($(e.target).closest('#sidebar').length == 0
-              && $(e.target).closest('#logo').length == 0) {
-               toggleSidebar();
-            }
-        }
-    });
-    */
-
     // progress bar
     $('#content').scroll(function() {
         let elem = $('#content');
@@ -224,27 +227,6 @@ function eventArticle() {
         let spct = 100 * spos / (shgt - hout);
         $('#prog_bar').css('width', `${spct}%`);
     });
-
-    // mobile hover eqiv
-    if (config.mobile) {
-        $(document).on('click', '.pop_anchor', function(e) {
-            e.preventDefault();
-            $('#pop').remove();
-            let ref = $(this);
-            ref.data('show_pop', true);
-            let html = getTro(ref, renderPop);
-            return false;
-        });
-
-        $(document).click(function(e) {
-            if ($(e.target).closest('#pop').length == 0) {
-                $('#pop').remove();
-            } else {
-                window.location = $('#pop').attr('href');
-                $('#pop').remove();
-            }
-        });
-    }
 
     // drop to upload
     connectDrops(function(box, data) {
@@ -258,6 +240,7 @@ function eventArticle() {
         sendUpdatePara(para, raw);
     });
 
+    // syntax highlighting and brace matching
     $(document).on('input', '.p_input', function(e) {
         let para = $(this).parent('.para');
         let text = para.children('.p_input');
@@ -275,6 +258,14 @@ function eventArticle() {
             var para = $(this).parent('.para');
             braceMatch(this, para);
         }
+    });
+
+    $(document).on('change', '#editable_check', function() {
+        let check = $(this);
+        let val = check.is(':checked');
+        let text = val ? 'Editable' : 'Readonly';
+        $('#editable_text').text(text);
+        setReadonly(!val);
     });
 }
 
@@ -871,12 +862,16 @@ function toggleHistMap() {
     if (state.hist_show) {
         hideHistPreview();
         $('#prog_bar').show();
+        $('#editable_text').show();
+        $('#editable_label').show();
     } else {
         launchHistMap();
         $('#prog_bar').hide();
+        $('#editable_text').hide();
+        $('#editable_label').hide();
     }
     state.hist_show = !state.hist_show;
-    setWriteable(!config.readonly && !state.hist_show);
+    setWriteable();
 }
 
 function revertHistory() {

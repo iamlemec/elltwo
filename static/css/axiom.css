@@ -726,7 +726,6 @@ circle.commit.active {
     font-size: 90%;
 }
 
-
 #export_options:after {
     content: "";
     position: absolute;
@@ -735,6 +734,21 @@ circle.commit.active {
     border-color: var(--bg-hl2-col) transparent transparent transparent;
     bottom: -20px;
     left: 40%;
+}
+
+#editable_text {
+    min-width: 50px;
+    text-align: right;
+}
+
+.toggle-track {
+    height: 25px;
+    width: 50px;
+}
+
+.toggle-indicator {
+    height: 19px;
+    width: 19px;
 }
 
 /*  MOBILE CSS */
@@ -780,7 +794,7 @@ circle.commit.active {
     display: none;
 }
 
-#bg.writeable .para.editable > .control {
+#bg.writeable .para.active > .control {
     display: block;
 }
 

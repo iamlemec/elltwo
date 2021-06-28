@@ -2,7 +2,7 @@
 
 export {
     initEditor, resize, makeActive, lockParas, unlockParas, sendMakeEditable,
-    sendUpdatePara
+    sendUpdatePara, placeCursor
 }
 
 import { config, state } from './state.js'
@@ -313,6 +313,7 @@ function unPlaceCursor() {
 function trueMakeEditable(rw=true, cursor='end') {
     state.editable = true;
     state.active_para.addClass('editable');
+    $('#bg').addClass('editable');
 
     let text = state.active_para.children('.p_input');
     resize(text[0]);
@@ -320,9 +321,6 @@ function trueMakeEditable(rw=true, cursor='end') {
     if (rw) {
         text.prop('readonly', false);
         placeCursor(cursor);
-        if (config.mobile) {
-            $('#foot').hide();
-        };
     }
 
     syntaxHL(state.active_para);
@@ -358,6 +356,7 @@ function makeUnEditable(unlock=true) {
         .children('.p_input')
         .prop('readonly', true);
 
+    $('#bg').removeClass('editable');
     $('#content').focus();
 
     state.cc = false;
@@ -368,9 +367,6 @@ function makeUnEditable(unlock=true) {
         if (state.writeable) {
             storeChange(state.active_para, unlock, true);
         }
-        if (config.mobile) {
-            $('#foot').show();
-        };
     }
 }
 
@@ -404,17 +400,19 @@ function unlockParas(pids) {
 /// active para tracking
 
 function makeActive(para, scroll=true) {
+    makeUnEditable();
     if (!para) {
+        $('#bg').removeClass('active');
         $('.para').removeClass('copy_sel');
-        makeUnEditable();
     }
-    $('.para').removeClass('active');
+    $('.para.active').removeClass('active');
     if (state.active_para) {
         state.last_active = state.active_para;
     }
     state.active_para = para;
     if (state.active_para) {
         para.addClass('active');
+        $('#bg').addClass('active');
         if (scroll) {
             ensureVisible(state.active_para);
         }

@@ -35,7 +35,26 @@ function initRender() {
 }
 
 function eventRender() {
-    if (!config.mobile) {
+    // popup previews split by mobile status
+    if (config.mobile) {
+        $(document).on('click', '.pop_anchor', function(e) {
+            e.preventDefault();
+            $('#pop').remove();
+            let ref = $(this);
+            ref.data('show_pop', true);
+            let html = getTro(ref, renderPop);
+            return false;
+        });
+
+        $(document).click(function(e) {
+            if ($(e.target).closest('#pop').length == 0) {
+                $('#pop').remove();
+            } else {
+                window.location = $('#pop').attr('href');
+                $('#pop').remove();
+            }
+        });
+    } else {
         $(document).on({
             mouseenter: function() {
                 let ref = $(this);
@@ -46,7 +65,7 @@ function eventRender() {
                 let ref = $(this);
                 ref.data('show_pop', false);
                 $('#pop').remove();
-                $(window).unbind('mousemove')
+                $(window).unbind('mousemove');
             },
         }, '.pop_anchor');
     }

@@ -135,72 +135,13 @@
     border-left: 2px solid var(--hl-col);
 }
 
-.hl{
+.hl {
     color: var(--hl2-col);
     font-weight: bold;
 }
 
-/* check mark */
-
 .toggle {
-	align-items: center;
-	display: flex;
     font-size: 70%;
-}
-
-.toggle__input {
-    display: none;
-}
-
-.toggle-track {
-	background: var(--bg-col);
-	border: 1px solid black;
-	border-radius: 100px;
-	cursor: pointer;
-	display: flex;
-	height: 30px;
-	margin-right: 10px;
-    margin-left: 10px;
-	position: relative;
-	width: 56px;
-}
-
-.toggle-indicator {
-	align-items: center;
-	background: var(--bg-hl2-col);
-	border-radius: 24px;
-	bottom: 2px;
-	display: flex;
-	height: 24px;
-	justify-content: center;
-	left: 2px;
-	position: absolute;
-	transition: 200ms;
-	width: 24px;
-}
-
-
-.toggle__input:checked + .toggle-track .toggle-indicator {
-	background: var(--bg-hl2-col);
-	transform: translateX(25px);
-
-}
-
-.toggle__input:checked + .toggle-track {
-    border: 1px solid var(--font-col-int);
-}
-
-.toggle__input:checked + .toggle-track .checkMark {
-		opacity: 1;
-		transition: opacity 200ms ease-in-out;
-	}
-
-.checkMark {
-	fill: var(--bg-hl-col);
-	height: 20px;
-	width: 20px;
-	opacity: 0;
-	transition: opacity 200ms ease-in-out;
 }
 
 @media only screen and (max-width: 1000px) {
