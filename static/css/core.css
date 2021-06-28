@@ -281,7 +281,7 @@ a.reference {
     background-color: var(--bg-col);
 }
 
-#content {
+#content, #preview {
     overflow-y: scroll;
     scrollbar-width: none;
     height: 100%;
