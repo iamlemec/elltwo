@@ -643,6 +643,9 @@ class ElltwoDB:
                 img.keywords = new_kw
             self.session.add(img)
             self.session.commit()
+            return True
+        else:
+            return False
 
     def get_images(self, time=None):
         if time is None:
