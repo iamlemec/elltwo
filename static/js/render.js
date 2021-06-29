@@ -193,13 +193,7 @@ function rawToTextarea(para) {
 
 ///////////////// ENVS /////////
 
-//creates classes for environs
-function envClasses(outer) {
-    if (outer === undefined) {
-        outer = $('#content');
-    }
-    var paras = outer.children('.para');
-
+function stripEnvs(paras) {
     // remove old env classes
     paras.removeClass(function(index, css) {
         return (css.match(/(^|\s)env__\S+/g) || []).join(' ');
@@ -211,24 +205,57 @@ function envClasses(outer) {
          .removeAttr('env_sel');
 
     // remove formatting addins
-    outer.find('.env_add').remove();
-    outer.find('.folder').remove();
+    paras.find('.env_add').remove();
+    paras.find('.folder').remove();
+}
+
+//creates classes for environs
+function envClasses(outer) {
+    console.log('envClasses', outer);
+
+    if (outer === undefined) {
+        outer = $('#content');
+    }
+    let paras = outer.children('.para');
+    stripEnvs(paras);
 
     // env state
-    var env_name = null;
-    var env_pid = null;
-    var env_args = null;
-    var env_paras = [];
+    let env_name = null;
+    let env_pid = null;
+    let env_idx = null;
+    let env_args = null;
+    let env_paras = [];
+
+    function reset_state() {
+        env_name = null;
+        env_pid = null;
+        env_idx = null;
+        env_args = null;
+        env_paras = [];
+    }
+
+    function abort_env(last, data) {
+        env_paras.push(last[0]);
+        let env_all = $(env_paras);
+        let env_beg = env_all.first();
+        let new_idx = env_idx + 1;
+        stripEnvs(env_all);
+        env_beg.addClass('env_err');
+        envFormat(env_beg, 'error', data);
+        reset_state();
+        return new_idx;
+    }
 
     // forward env pass
-    paras.each(function() {
-        var para = $(this);
+    for (let i = 0; i < paras.length; i++) {
+        let para = $(paras[i]);
 
+        // render: singleton env (can be inside full env)
         if (para.hasClass('env_one')) {
-            var ptxt = para.children('.p_text');
-            var one_id = para.attr('id');
-            var one_env = para.attr('env');
-            var one_args = para.data('args');
+            let ptxt = para.children('.p_text');
+            let one_id = para.attr('id');
+            let one_env = para.attr('env');
+            let one_args = para.data('args');
             para.addClass('env');
             para.addClass(`env__${one_env}`);
             if (one_id != undefined) {
@@ -237,45 +264,45 @@ function envClasses(outer) {
             envFormat(ptxt, one_env, one_args);
         }
 
+        // error: ending env while not in one
         if (!env_name && para.hasClass('env_end') && !para.hasClass('env_beg')) {
             para.addClass('env_err');
             envFormat(para, 'error', {code: 'ending'});
         }
 
-        if (env_name && para.hasClass('env_beg')) { // error on nested environs
-            var env_all = $(env_paras);
-            var new_env = para.attr('env');
-            env_all.addClass('env_err');
-            envFormat(env_all, 'error', {code: 'open', env: env_name, new_env: new_env});
+        // error: starting env while already in one
+        if (env_name && para.hasClass('env_beg')) {
+            let new_env = para.attr('env');
+            i = abort_env(para, {code: 'open', env: env_name, new_env: new_env});
+            continue;
         }
 
-        if (env_name && (para.attr('one') == 'heading')) { // sections or headings break envs
-            var env_all = $(env_paras);
-            env_all.addClass('env_err');
-            envFormat(env_all, 'error', {code: 'heading', env: env_name});
-
-            env_name = null;
-            env_pid = null;
-            env_args = null;
-            env_paras = [];
+        // error: section heading inside env
+        if (env_name && (para.attr('env') == 'heading')) {
+            i = abort_env(para, {code: 'heading', env: env_name})
+            continue;
         }
 
-        if (!env_name && para.hasClass('env_beg')) { // cannot open an env if one is already open
+        // state: start new env
+        if (!env_name && para.hasClass('env_beg')) {
             env_name = para.attr('env');
             env_pid = para.attr('pid'); // changed to use PID so all envs have this
+            env_idx = i;
             env_args = para.data('args');
             if (env_pid != undefined) {
                 para.attr('env_sel', `[env_pid="${env_pid}"]`);
             }
         }
 
+        // state: add to list of current env
         if (env_name) {
             env_paras.push(para[0]);
         }
 
-        if (para.hasClass('env_end')) { // closing tag = current open tag
-            var env_all = $(env_paras);
-            var txt_all = env_all.children('.p_text');
+        // render: completed non-singleton env
+        if (para.hasClass('env_end')) {
+            let env_all = $(env_paras);
+            let txt_all = env_all.children('.p_text');
             env_all.addClass('env');
             env_all.attr('env_pid', env_pid);
             env_all.addClass(`env__${env_name}`);
@@ -283,17 +310,13 @@ function envClasses(outer) {
                 env_all.addClass('folded');
             };
             envFormat(txt_all, env_name, env_args);
-
-            env_name = null;
-            env_pid = null;
-            env_args = null;
-            env_paras = [];
+            reset_state();
         }
-    });
+    }
 
     // add error for open envs left at the end
     if (env_name !== null) {
-        var env_all = $(env_paras);
+        let env_all = $(env_paras);
         env_all.addClass('env_err');
         envFormat(env_all, 'error', {code: 'eof', env: env_name});
     }
@@ -371,16 +394,16 @@ function errorEnv(ptxt, args) {
     var targ;
 
     if (args.code == 'undef') {
-        mesg = `Error: envrionment ${args.env} is not defined.`;
+        mesg = `Error: environment "${args.env}" is not defined.`;
         targ = ptxt.first();
     } else if (args.code == 'open') {
-        mesg = `Error: envrionment ${args.env} not closed at new environment ${args.new_env}.`;
+        mesg = `Error: environment "${args.env}" not closed at new environment "${args.new_env}".`;
         targ = ptxt.first();
     } else if (args.code == 'heading') {
-        mesg = `Error: envrionment ${args.env} not closed at end of section.`;
+        mesg = `Error: environment "${args.env}" not closed at end of section.`;
         targ = ptxt.first();
     } else if (args.code == 'eof') {
-        mesg = `Error: envrionment ${args.env} not closed at end of document.`;
+        mesg = `Error: environment "${args.env}" not closed at end of document.`;
         targ = ptxt.last();
     } else if (args.code == 'ending') {
         mesg = `Error: environment ending when not in environment.`;
