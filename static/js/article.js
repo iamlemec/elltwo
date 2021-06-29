@@ -2,7 +2,7 @@
 
 export {
     loadArticle, insertParaRaw, insertPara, updatePara, updateParas, deletePara,
-    updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs
+    updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs, textWrap
 }
 
 import { setCookie, cooks, getPara, on_success } from './utils.js'
@@ -907,6 +907,23 @@ function responsivefy(svg) {
         svg.attr("height", Math.round(targetWidth / aspect));
     }
 }
+
+/// hotkesys
+
+function textWrap(para,cur,d) {
+    let input = para.children('.p_input');
+    let raw = para.attr('raw')
+    let b = raw.slice(0, cur[0])
+    let m = raw.slice(cur[0], cur[1])
+    let e = raw.slice(cur[1], raw.length)
+    raw = b + d[0] + m + d[1] + e;
+    input.val(raw);
+    resize(input[0]);
+    syntaxHL(state.active_para);
+    let c = (cur[0]==cur[1]) ? cur[0]+d[0].length : cur[1]+d[0].length + d[1].length
+    input[0].setSelectionRange(c,c);
+}
+
 
 /// reference completion
 

@@ -13,7 +13,7 @@ import {
 } from './render.js'
 import {
     insertParaRaw, insertPara, deletePara, updateRefHTML, toggleHistMap,
-    toggleSidebar, ccNext, ccMake
+    toggleSidebar, ccNext, ccMake, textWrap
 } from './article.js'
 import { toggleHelp } from './help.js'
 
@@ -34,7 +34,14 @@ function eventEditor() {
         let key = e.key.toLowerCase();
         let ctrl = e.ctrlKey;
         let alt = e.altKey;
+        let meta = e.metaKey;
         let shift = e.shiftKey;
+
+        let wraps = {'i': ['*','*'],
+                     'b': ['**','**'],
+                     'm': ['$','$'],
+                     '`': ['`','`'],
+                     'n': ['^[', ']']}
 
         if (ctrl && key == 'enter') {
             toggleHistMap();
@@ -43,7 +50,7 @@ function eventEditor() {
             unfold();
         } else if (ctrl && key == 's') {
             return false;
-        } else if (key == '§' || (ctrl && key == '`')) {
+        } else if (key == '§' || (ctrl && key == '/')) {
             toggleSidebar();
         } else if (key == 'f1') {
             toggleHelp();
@@ -131,6 +138,10 @@ function eventEditor() {
             } else if (shift && key == 'enter') {
                 makeUnEditable();
                 sendInsertPara(state.active_para, true);
+                return false;
+            } else if ((ctrl || meta) && key in wraps) {
+                let cur = [e.target.selectionStart,e.target.selectionEnd];
+                textWrap(state.active_para,cur,wraps[key])
                 return false;
             }
         }
@@ -369,6 +380,7 @@ function makeUnEditable(unlock=true) {
         }
     }
 }
+
 
 /// para locking
 

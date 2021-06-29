@@ -1,0 +1,19 @@
+#! Expected Utility
+\R:\mathbb{R}
+\s:\succcurlyeq 
+
+The *expected utility model* (EU) is a model of decision making over risky choice objects, i.e., the choice objects are probability distributions over final consumption outcomes. The defining characteristic of the expected utility model is that the utility of such risky objects is equal to the expectation of the utility of the final consumption outcomes. Due to its simplicity, both in terms of the mathematical representation and also its implications for choice behavior, the EU model is ubiquitous in economics, game theory, and other applications of decision theory. 
+
+#[model] The Model
+
+Let $X$ denote a set of final consumption outcomes. Then the objects of choice are finitely supported probability distributions over $X$, referred to as *lotteries*. Let $\Pi$ collect the set of lotteries. For $\pi \in \Pi$ and $x \in X$, let $\pi(x)$ denote the probability the lottery $\pi$ assigns to the outcome $x$.
+
+>> definition [def_eu] A [[utility_function|utility function]] $U: \Pi \to \R$ is an *expected utility* functional if there exists a function $u: X \to \R$ such that 
+
+$$ U(\pi) = \sum_{supp(\pi)} u(x)\pi(x)
+
+<< where $supp(\pi) = \{x \in X \mid \pi(x) > 0\}$ is the support if $\pi$.
+
+The function $u$ is generally referred to as a utility index, a Bernoulli utility index, or a vNM utility index.
+
+The interpretation is that the value of a lottery is derived from the expected value of the possible outcomes, the later being represented by $u$. As such, the value of a lottery varies linearly in the probabilities of outcomes: the marginal value of increasing shifting probability from one outcome $x$ to the outcome $y$ is constant.  
