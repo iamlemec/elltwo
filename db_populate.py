@@ -3,22 +3,22 @@ import argparse
 from datetime import datetime
 
 from db_setup import Article, Paragraph, Paralink, Bib, ExtRef, User, TextShard
-from db_query import AxiomDB
+from db_query import ElltwoDB
 
-parser = argparse.ArgumentParser(description='Axiom2 server.')
-parser.add_argument('--path', type=str, default='axiom.db', help='Path to sqlite database file')
+parser = argparse.ArgumentParser(description='Populate elltwo database.')
+parser.add_argument('--path', type=str, default='elltwo.db', help='Path to sqlite database file')
 args = parser.parse_args()
 
-adb = AxiomDB(path=args.path, create=True, reindex=False)
+edb = ElltwoDB(path=args.path, create=True, reindex=False)
 
-adb.session.query(ExtRef).delete()
-adb.session.query(Bib).delete()
-adb.session.query(Paralink).delete()
-adb.session.query(Paragraph).delete()
-adb.session.query(Article).delete()
-adb.session.query(User).delete()
-adb.session.query(TextShard).delete()
-adb.session.commit()
+edb.session.query(ExtRef).delete()
+edb.session.query(Bib).delete()
+edb.session.query(Paralink).delete()
+edb.session.query(Paragraph).delete()
+edb.session.query(Article).delete()
+edb.session.query(User).delete()
+edb.session.query(TextShard).delete()
+edb.session.commit()
 
 now = datetime.utcnow()
 
@@ -26,4 +26,4 @@ for fname in os.listdir('testing'):
     if fname.endswith(".md"):
         title, _ = os.path.splitext(fname)
         mark = open(f'testing/{fname}').read()
-        adb.import_markdown(title, mark, time=now)
+        edb.import_markdown(title, mark, time=now)

@@ -3,7 +3,7 @@
  * Copyright (c) 2011-2014, Christopher Jeffrey. (MIT Licensed)
  * https://github.com/chjj/marked
  *
- * heavily modified for axiom (2020)
+ * heavily modified for elltwo (2020)
  *
  */
 

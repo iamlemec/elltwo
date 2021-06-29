@@ -92,7 +92,7 @@ function renderImage(img, key) {
         img.attr('src', url);
     } else {
         sendCommand('get_image', {'key': key}, (ret) => {
-            if (ret.found) {
+            if (ret) {
                 const blob = new Blob([ret.data], {type: ret.mime});
                 let url = URL.createObjectURL(blob);
                 cache.img[key] = url;

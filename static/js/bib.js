@@ -4,10 +4,12 @@ export { initBib, createBibEntry }
 
 import { connect, addHandler, sendCommand } from './client.js'
 import { getCiteData } from './bib_search.js'
+import { renderKatex } from './math.js'
 
 function initBib() {
     connectBib();
     eventBib();
+    renderKatex();
 }
 
 function eventBib() {

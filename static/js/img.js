@@ -51,10 +51,11 @@ function connectImage() {
 function eventImage() {
     connectDrops(function(box, data) {
         let key = data.key;
+        let kws = '';
         let div = $('<div>', {class: 'img_cont img_src', id: key});
         $('#dropzone').after(div);
-        cache.img.push([key, '']);
-        renderBox(div, key);
+        cache.img.push([key, kws]);
+        renderBox(div, key, kws);
     });
 
     $(document).on('click', '.img_src', function(e) {
@@ -99,7 +100,7 @@ function eventImage() {
         if (key != new_key || kw != new_kw) {
             let data = {'key': key, 'new_key': new_key, 'new_kw': new_kw};
             sendCommand('update_image_key', data, (ret) => {
-                if (ret.found) {
+                if (ret) {
                     let img = $(`#${key}`);
                     img.attr('id', new_key);
                     img.attr('kw', new_kw);
@@ -128,8 +129,8 @@ function eventImage() {
 
 // rendering
 
-function renderBox(elem, key) {
-    let img = $('<img>', {id: key});
+function renderBox(elem, key, kws) {
+    let img = $('<img>', {id: key, kw: kws});
     elem.append(img);
 
     let keyspan = $('<div>', {class: 'keyspan', text: key});
@@ -148,7 +149,7 @@ function renderImgs(img_list) {
         let [key, kws] = img;
         let img_cont = $('<div>', {class: 'img_cont img_src'});
         $('#img_results').append(img_cont);
-        renderBox(img_cont, key);
+        renderBox(img_cont, key, kws);
     });
 };
 
