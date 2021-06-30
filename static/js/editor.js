@@ -215,7 +215,6 @@ function storeChange(para, unlock=true) {
     let raw = para.attr('raw');
 
     // store old env and render
-    let was_env = para.hasClass('env_beg');
     rawToRender(para, true, text); // local changes only
     envClasses();
 
@@ -230,16 +229,6 @@ function storeChange(para, unlock=true) {
             sendUnlockPara([pid]);
         }
     }
-
-    /*
-    // auto close new environments
-    let now_env = para.hasClass('env_beg') && !para.hasClass('env_end');
-    if (!was_env && now_env) {
-        sendInsertPara(para, true, false, '<<'); // defer env pass
-    } else {
-        envClasses();
-    }
-    */
 }
 
 // apply change locally (from server side)

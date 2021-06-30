@@ -211,8 +211,6 @@ function stripEnvs(paras) {
 
 //creates classes for environs
 function envClasses(outer) {
-    console.log('envClasses', outer);
-
     if (outer === undefined) {
         outer = $('#content');
     }
@@ -238,7 +236,7 @@ function envClasses(outer) {
         env_paras.push(last[0]);
         let env_all = $(env_paras);
         let env_beg = env_all.first();
-        let new_idx = env_idx + 1;
+        let new_idx = env_idx;
         stripEnvs(env_all);
         env_beg.addClass('env_err');
         envFormat(env_beg, 'error', data);
@@ -316,9 +314,9 @@ function envClasses(outer) {
 
     // add error for open envs left at the end
     if (env_name !== null) {
-        let env_all = $(env_paras);
-        env_all.addClass('env_err');
-        envFormat(env_all, 'error', {code: 'eof', env: env_name});
+        let env_beg = $(env_paras).first();
+        env_beg.addClass('env_err');
+        envFormat(env_beg, 'error', {code: 'eof', env: env_name});
     }
 
     // add in numbers with auto-increment
