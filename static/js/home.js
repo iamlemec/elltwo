@@ -6,6 +6,8 @@ import { state, updateState } from './state.js'
 import { ensureVisible } from './utils.js'
 import { connect, sendCommand } from './client.js'
 import { renderKatex } from './math.js'
+import { initUser } from './user.js'
+
 
 let default_state = {
     timeout: null,
@@ -16,6 +18,7 @@ function initHome(args) {
     connectHome();
     eventHome();
     renderKatex();
+    initUser();
 }
 
 function connectHome() {

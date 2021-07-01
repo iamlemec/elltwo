@@ -305,6 +305,10 @@ button:hover {
 
 /* home page */
 
+#query {
+  background-color: var(--bg-hl2-col);
+}
+
 #new_art_id {
   background-color: var(--bg-hl-col);
   color: var(--font-col);
@@ -419,6 +423,10 @@ a.result {
   background-color:  var(--font-col-int);
 }
 
+#locallogin > a, .notification > a{
+    color: var(--hl-col)
+}
+
 .export_butt{
     background-color: var(--font-col-int) !important;
     border-radius: 10px;
@@ -427,4 +435,8 @@ a.result {
 
 .export_butt:hover{
     background-color: darkgray !important;
+}
+
+.box{
+   color: var(--bg-col);
 }

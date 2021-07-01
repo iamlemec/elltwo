@@ -912,7 +912,7 @@ function responsivefy(svg) {
 
 function textWrap(para,cur,d) {
     let input = para.children('.p_input');
-    let raw = para.attr('raw')
+    let raw = input.val();
     let b = raw.slice(0, cur[0])
     let m = raw.slice(cur[0], cur[1])
     let e = raw.slice(cur[1], raw.length)

@@ -1,5 +1,12 @@
 # elltwo config
 
+[config]
 timeout = 180 # paragraph lock timeout in seconds
 max_size = 1024 # max image size in kilobytes
 max_imgs = 50 # max number of images returned in search
+
+
+# html
+[HTML_config]
+name = '<span class=latex>\ell^2</span>' # global name,
+tag = 'Simple Beautiful Collaborative'

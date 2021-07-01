@@ -16,4 +16,16 @@ $$ U(\pi) = \sum_{supp(\pi)} u(x)\pi(x)
 
 The function $u$ is generally referred to as a utility index, a Bernoulli utility index, or a vNM utility index.
 
-The interpretation is that the value of a lottery is derived from the expected value of the possible outcomes, the later being represented by $u$. As such, the value of a lottery varies linearly in the probabilities of outcomes: the marginal value of increasing shifting probability from one outcome $x$ to the outcome $y$ is constant.  
+The interpretation is that the value of a lottery is derived from the expected value of the possible outcomes, the later being represented by $u$. As such, the value of a lottery varies linearly in the probabilities of outcomes: the marginal value of increasing shifting probability from one outcome $x$ to the outcome $y$ is constant.
+
+#[ax] Axiomatic Characterization 
+
+The expected utility model was first axiomatized by @[morgenstern1953theory]. The primitive of the behavioral model is a [[preference_relation|preference relation]] over $\Pi$. The standard model has four axioms: 
+
+>>! axiom (@[completeness:completeness|text=Completeness]) For all $\pi,\rho \in \Pi$, either $\pi \succcurlyeq \rho$ or $\rho \succcurlyeq \pi$.
+
+>>! axiom (@[transitivity:transitivity|text=Transitivity]) For all $\pi,\rho,\sigma \in \Pi$, if $\pi \s \rho$ and $\rho \s \sigma$ then $\pi \s \sigma$.
+
+>>! axiom (Archimedean)  For all $\pi,\rho,\sigma \in X$,   if  $\pi \succ \rho$ and $\rho \succ \sigma$  then  there  exist  $\alpha,\beta\in(0,1)$ such that $\alpha\pi + (1-\alpha)\sigma \succ \rho$ and $\rho \succ \beta\pi + (1-\beta)\sigma$.
+
+>>! axiom (Independence) For all $\pi,\rho,\sigma \in X$, and $\alpha \in (0,1)$, $\pi \s \rho$ if and only if $\alpha\pi + (1-\alpha)\sigma \s \alpha\rho + (1-\alpha)\sigma$.

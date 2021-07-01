@@ -15,21 +15,22 @@
 
 {% block content %}
 
-<div id=prompt>
-<span id=title>
-<span class=latex>\ell^2</span>
+<div id="prompt">
+<span id="title">
+{{name|safe}}
 </span>
 <br>
-Simple Beautiful Collaborative
-<br><br><br><br>
+{{tag|safe}}
+</div>
+
 
 {% if not current_user.is_authenticated %}
-Log in to enable editing or <a href="{{ url_for('Signup') }}">create an account</a>.
+<div class="box">
+
+<div class="notification">Log in to enable editing or <a href="{{ url_for('Signup') }}">create an account</a>.
 <br>
 Forgot your password? <a href="{{ url_for('Forgot') }}">Click here to reset it</a>.
 </div>
-
-<div class="box">
 {% with messages = get_flashed_messages() %}
 {% if messages %}
 <div class="notification">{{ messages[0] }}</div>

@@ -65,8 +65,19 @@ config = {
     'themes': themes, # all themes by default
     'demo_path': 'testing/howto.md', # path to demo content
 }
+
+#config to pass to templets
+HTML_config = {
+    'name': '<span class=latex>\\ell^2</span>',
+    'tag': 'Simple Beautiful Collaborative',
+}
+
 if args.conf is not None:
-    config |= toml.load(args.conf)
+    conf = toml.load(args.conf)
+    if conf['config']:
+        config |= conf['config']
+    if conf['HTML_config']:
+        HTML_config |= conf['HTML_config']
 
 # login decorator (or not)
 edit_decor = login_required if (args.login or args.private) else (lambda f: f)
@@ -131,7 +142,7 @@ def inject_dict_for_all_templates():
 @view_decor
 def Home():
     style = getStyle(request)
-    return render_template('home.html', **style)
+    return render_template('home.html', **style, **HTML_config)
 
 @app.route('/create', methods=['POST'])
 @edit_decor
@@ -161,7 +172,7 @@ def Demo():
 @app.route('/signup')
 def Signup():
     style = getStyle(request)
-    return render_template('signup.html', **style)
+    return render_template('signup.html', **style, **HTML_config)
 
 @app.route('/login',  methods=['GET', 'POST'])
 def Login():
@@ -170,7 +181,7 @@ def Login():
     else:
         next = url_for('Home')
     style = getStyle(request)
-    return render_template('login.html', next=next, **style)
+    return render_template('login.html', next=next, **style, **HTML_config)
 
 def CreateUser():
     email = request.form.get('email')
@@ -193,7 +204,7 @@ def CreateUser():
     return redirect(url_for('Login'))
 
 if not args.private:
-    app.add_url_rule('/create_user', CreateUser, methods=['POST'])
+    app.add_url_rule('/create_user', 'create_user', CreateUser, methods=['POST'])
 
 @app.route('/confirm/<token>')
 def confirm_email(token):
@@ -225,7 +236,7 @@ def Resend(email):
 @app.route('/forgot', methods=['GET', 'POST'])
 def Forgot():
     style = getStyle(request)
-    return render_template('forgot.html', **style)
+    return render_template('forgot.html', **style, **HTML_config)
 
 @app.route('/reset_email', methods=['POST'])
 def ResetEmail():
@@ -245,7 +256,7 @@ def ResetEmail():
 @app.route('/reset/<email>/<token>', methods=['GET'])
 def Reset(email, token):
     style = getStyle(request)
-    return render_template('reset.html', email=email, token=token, **style)
+    return render_template('reset.html', email=email, token=token, **style, **HTML_config)
 
 @app.route('/reset_with_token/<token>', methods=['POST'])
 def ResetWithToken(token):
@@ -380,8 +391,8 @@ def ErrorPage(title='Error', message=''):
 
 def getStyle(request):
     return {
-        'theme': request.cookies.get('theme') or args.theme,
-        'font': request.cookies.get('font') or 'default',
+        'theme': request.args.get('theme') or request.cookies.get('theme') or args.theme,
+        'font': request.args.get('theme') or request.cookies.get('font') or 'default',
     }
 
 @app.route('/a/<title>', methods=['GET'])
@@ -418,7 +429,7 @@ def GetImage(key):
 @view_decor
 def RenderBib():
     style = getStyle(request)
-    return render_template('bib.html', **style)
+    return render_template('bib.html', **style, **HTML_config)
 
 @app.route('/img', methods=['GET','POST'])
 @view_decor
@@ -433,6 +444,7 @@ def Img():
         max_size=config['max_size'],
         max_imgs=config['max_imgs'],
         **style,
+        **HTML_config,
     )
 
 ###

@@ -15,12 +15,12 @@
 
 {% block content %}
 
-<div id=prompt>
-<span id=title>
-<span class=latex>\ell^2</span>
+<div id="prompt">
+<span id="title">
+{{name|safe}}
 </span>
 <br>
-Simple Beautiful Collaborative
+{{tag|safe}}
 <br><br><br><br>
 
 {% if not current_user.is_authenticated %}

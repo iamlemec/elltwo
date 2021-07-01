@@ -171,7 +171,7 @@ a.reference {
     border-style: solid;
     border-color: var(--bg-hl2-col) transparent transparent transparent;
     bottom: -25px;
-    left: 35%;
+    left: 180px;
 }
 
 .inline_form {
@@ -291,6 +291,10 @@ a.reference {
     padding-left: 0%;
     padding-right: 0%;
     font-size: 80%;
+}
+    
+ #locallogin:after {
+    left: 60px;
 }
 
 }

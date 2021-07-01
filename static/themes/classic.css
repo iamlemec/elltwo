@@ -272,6 +272,10 @@ button:hover {
 
 /* home page */
 
+#query {
+  background-color: var(--bg-hl-col);
+}
+
 #new_art_id {
     background-color: var(--bg-hl-col);
     color: var(--font-col);

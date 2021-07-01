@@ -15,18 +15,19 @@
 
 {% block content %}
 
-<div id=prompt>
-<span id=title>
-<span class=latex>\ell^2</span>
+<div id="prompt">
+<span id="title">
+{{name|safe}}
 </span>
 <br>
-Simple Beautiful Collaborative
-<br><br><br><br>
+{{tag|safe}}
+</div>
+
 
 {% if not current_user.is_authenticated %}
-Reset password for {{email}}
-</div>
 <div class="box">
+Reset password for {{email}}
+<br><br>
 {% with messages = get_flashed_messages() %}
 {% if messages %}
 <div class="notification">{{ messages[0] }}</div>
@@ -42,9 +43,6 @@ Reset password for {{email}}
 {% endif %}
 
 {% if current_user.is_authenticated %}
-<div id=prompt><span id=title>Axiom <span class=latex>\ell^2</span></span>
-<br>
-</div>
 <div class="box">
 <div class="notification">
 You are logged in as {{ current_user.name }}, log out?
