@@ -409,17 +409,38 @@ class ElltwoDB:
 
         if short_title is None:
             short_title = urlify(title)
+        if self.get_art_short(short_title) is not None:
+            return None
 
         art = Article(title=title, short_title=short_title, create_time=time, g_ref=g_ref)
         self.session.add(art)
-        self.session.commit()
 
         if init:
             self.init_article(art.aid, text=f'#! {title}', time=time)
 
-        self.index_document('title', art.aid, title)
+        self.index_document('title', art.aid, title, commit=False)
+
+        self.session.commit()
 
         return art
+
+    def rename_short(self, aid, short_title):
+        short = urlify(short_title)
+        if (art := self.get_art(aid)) is None:
+            return False
+        if self.get_art_short(short) is not None:
+            return False
+        art.short_title = short
+        self.session.commit()
+        return True
+
+    def rename_article(self, aid, title):
+        if (art := self.get_art(aid)) is None:
+            return False
+        art.title = title
+        self.index_document('title', aid, title, clear=True, commit=False)
+        self.session.commit()
+        return True
 
     def delete_article(self, aid, time=None):
         if time is None:
@@ -836,7 +857,9 @@ class ElltwoDB:
     ## index interface
     ##
 
-    def index_document(self, dtype, ident, text, commit=True):
+    def index_document(self, dtype, ident, text, clear=False, commit=True):
+        if clear:
+            self.unindex_document(dtype, ident, commit=False)
         for wid, shards in shardify_document(text).items():
             for tok, pos in shards:
                 ent = TextShard(

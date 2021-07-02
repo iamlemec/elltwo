@@ -361,7 +361,7 @@ class Lexer {
               return {
                   type: 'title',
                   args: args,
-                  text: cap[2],
+                  title: cap[2],
                   preamble: text
               };
           }
@@ -1257,9 +1257,10 @@ class Parser {
                     type: 'env_one',
                     env: 'title',
                     args: this.token.args,
+                    title: this.token.title,
                     preamble: this.token.preamble,
                 }
-                return this.renderer.title(this.inline.output(this.token.text));
+                return this.renderer.title(this.inline.output(this.token.title));
             }
             case 'svg': {
                 this.env = {

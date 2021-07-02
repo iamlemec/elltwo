@@ -67,7 +67,7 @@ def art_find(edb, aid=None, title=None):
     if aid is not None:
         art = edb.get_art(aid)
     elif title is not None:
-        short = urlify(title)
+        short = dbq.urlify(title)
         art = edb.get_art_short(short)
     else:
         art = None
@@ -86,7 +86,10 @@ class Article:
             print('\n'.join([art_summary(a) for a in arts]))
 
     def show(self, aid=None, title=None, all=False):
-        art = art_find(self.edb, aid=aid, title=title)
+        if (art := art_find(self.edb, aid=aid, title=title)) is None:
+            print(f'Article "{title}" not found')
+            return
+
         head = art_summary(art)
         if all:
             paras = self.edb.getall(dbs.Paragraph, aid=art.aid)
@@ -96,6 +99,7 @@ class Article:
         else:
             body = self.edb.get_paras(art.aid)
             tail = []
+
         print(head)
         print('='*len(head))
         print('\n'.join([para_summary(p, time=all) for p in body]))
@@ -108,11 +112,23 @@ class Article:
         print('\n\n'.join([p.text for p in paras]))
 
     def create(self, title):
-        short = urlify(title)
+        short = dbq.urlify(title)
         if (art := self.edb.get_art_short(short)) is not None:
-            print(f'Article {short} already exists')
+            print(f'Article "{short}" already exists')
         else:
             self.edb.create_article(title)
+
+    def rekey(self, new_short, aid=None, title=None):
+        if (art := art_find(self.edb, aid=aid, title=title)) is None:
+            print(f'Article "{title}" not found')
+            return
+        self.edb.rename_short(art.aid, new_short)
+
+    def rename(self, new_title, aid=None, title=None):
+        if (art := art_find(self.edb, aid=aid, title=title)) is None:
+            print(f'Article "{title}" not found')
+            return
+        self.edb.rename_article(art.aid, new_title)
 
     def ingest(self, path, title=None):
         if title is None:

@@ -20,6 +20,7 @@ import { markthree, replace, divInlineLexer } from './marked3.js'
 function stateRender() {
     config.macros = {}; // external katex macros
     state.macros = {}; // internal katex macros
+    state.title = null; // document title
     cache.folded = []; // current folded pids
 }
 
@@ -148,9 +149,12 @@ function rawToRender(para, defer=false, raw=null) {
 
     // fill in env identifiers
     if (env_info != null) {
+        if ('title' in env_info) {
+            setTitle(env_info.title);
+        }
         if ('preamble' in env_info) {
             parsePreamble(env_info.preamble);
-        };
+        }
         if ('env' in env_info) {
             para.attr('env', env_info.env);
         }
@@ -415,8 +419,6 @@ function errorEnv(ptxt, args) {
 }
 
 function titleEnv(ptxt, args) {
-    document.title = ptxt.text();
-    return ptxt;
 }
 
 function headingEnv(ptxt, args) {
@@ -536,6 +538,14 @@ function parsePreamble(raw) {
         .map(macraw => macraw.split(':')) // split on :
         .forEach(el => int_macros[el[0]] = el[1]); // save internal macros
     state.macros = Object.assign({}, int_macros, config.macros); // merge internal and ext macros, overwrites internal
+}
+
+function setTitle(title) {
+    if (state.title !== null && state.title != title) {
+        document.title = title;
+        sendCommand('set_title', {aid: config.aid, title: title});
+    }
+    state.title = title;
 }
 
 /// Numbering and TOC

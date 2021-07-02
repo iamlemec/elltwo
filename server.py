@@ -600,8 +600,7 @@ def search_text(data):
 @socketio.on('set_blurb')
 @edit_decor
 def set_blurb(data):
-    aid = data['aid']
-    blurb = data['blurb']
+    aid, blurb = data['aid'], data['blurb']
     edb.set_blurb(aid, blurb)
     return True
 
@@ -612,6 +611,11 @@ def get_blurb(title):
         return art.blurb
     else:
         return False
+
+@socketio.on('set_title')
+def set_title(data):
+    aid, title = data['aid'], data['title']
+    return edb.rename_article(aid, title)
 
 ###
 ### citations
