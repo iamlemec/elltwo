@@ -675,6 +675,13 @@ class ElltwoDB:
         self.session.add(img)
         self.session.commit()
 
+    def expunge_image(self, key):
+        if (img := self.get_image(key)) is None:
+            return
+
+        self.session.delete(img)
+        self.session.commit()
+
     ##
     ## getting differentials
     ##

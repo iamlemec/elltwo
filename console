@@ -46,7 +46,8 @@ class User:
                 print(f'{email} not found')
 
 def art_summary(art, time=False):
-    if time:f'{art.aid} [{para.create_time} → {para.delete_time}]: {art.title} ({art.short_title})'
+    if time:
+        f'{art.aid} [{para.create_time} → {para.delete_time}]: {art.title} ({art.short_title})'
     else:
         return f'{art.aid}: {art.title} ({art.short_title})'
 
@@ -55,6 +56,12 @@ def para_summary(para, time=False):
         return f'{para.pid}/{para.rid} [{para.create_time} → {para.delete_time}]: {para.text}'
     else:
         return f'{para.pid}: {para.text}'
+
+def img_summary(img, time=False):
+    if time:
+        return f'{img.key} ({img.mime}) [{img.create_time} → {img.delete_time}]'
+    else:
+        return f'{img.key} ({img.mime})'
 
 def art_find(edb, aid=None, title=None):
     if aid is not None:
@@ -147,6 +154,30 @@ class Paragraph:
         coms = sorted(coms, key=lambda c: c.create_time)
         print('\n'.join([para_summary(p, time=True) for p in coms]))
 
+class Image:
+    def __init__(self, edb):
+        self.edb = edb
+
+    def list(self, all=False):
+        if all:
+            imgs = self.edb.getall(dbs.Image)
+            print('\n'.join([img_summary(i, time=True) for i in imgs]))
+        else:
+            imgs = self.edb.get_images()
+            print('\n'.join([img_summary(i) for i in imgs]))
+
+    def delete(self, key):
+        if (img := self.edb.get_image(key)) is None:
+            print(f'Image "{key}" not found')
+        elif confirm_request(f'delete image "{key}"?'):
+            self.edb.delete_image(key)
+
+    def purge(self, key):
+        if (img := self.edb.get_image(key)) is None:
+            print(f'Image "{key}" not found')
+        elif confirm_request(f'purge image "{key}"?'):
+            self.edb.expunge_image(key)
+
 class Index:
     def __init__(self, edb):
         self.edb = edb
@@ -171,6 +202,7 @@ class Main:
         self.user = User(edb=edb)
         self.article = self.art = Article(edb=edb)
         self.paragraph = self.par = Paragraph(edb=edb)
+        self.image = Image(edb=edb)
         self.index = Index(edb=edb)
 
 if __name__ == '__main__':
