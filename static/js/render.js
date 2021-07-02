@@ -206,7 +206,9 @@ function stripEnvs(paras) {
 
     // remove formatting addins
     paras.find('.env_add').remove();
-    paras.find('.folder').remove();
+
+    // remove folder addins
+    paras.prev().filter('.folder').remove();
 }
 
 //creates classes for environs
@@ -214,7 +216,7 @@ function envClasses(outer) {
     if (outer === undefined) {
         outer = $('#content');
     }
-    let paras = outer.children('.para');
+    let paras = outer.children('.para:not(.folder)');
     stripEnvs(paras);
 
     // env state
@@ -350,7 +352,7 @@ function simpleEnv(ptxt, env, head='', tail='', number=true, args={}) {
     let ref_text = args.ref_text || args.rt || '';
     let first = ptxt.first();
     let pre = $('<span>', {class: `env_add ${env}_header`, html: head});
-    let pre_fold = pre.clone()
+    let pre_fold = pre.clone();
     if (num) {
         const span = makeCounter(env, 0);
         const span_fold = makeCounter(env, 1);
