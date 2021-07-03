@@ -626,6 +626,7 @@ function getTro(ref, callback) {
         callback(ref, tro, text);
     } else if (key == '_ilink_') {
         sendCommand('get_blurb', ref.attr('href'), function(response) {
+            console.log(response);
             if (response) {
                 tro.tro = response;
                 tro.cite_type = 'ilink';

@@ -1,4 +1,3 @@
-import argparse
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean, LargeBinary
 from sqlalchemy.ext.declarative import declarative_base

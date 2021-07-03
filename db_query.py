@@ -1,9 +1,11 @@
 import re
+import os
 from math import ceil
 from datetime import datetime
 from functools import partial
 from operator import itemgetter
 from collections import defaultdict
+from pathlib import Path
 
 from sqlalchemy import create_engine, or_, and_, distinct, event
 from sqlalchemy.sql import func
@@ -181,6 +183,55 @@ class ElltwoDB:
             self.session.commit()
 
     ##
+    ## bulk save/load
+    ##
+
+    def save_articles(self, dir, all=False):
+        base = Path(dir)
+        if not os.path.isdir(base):
+            if os.path.exists(base):
+                return False
+            else:
+                os.mkdir(base)
+
+        for art in self.get_arts(all=all):
+            path = base / f'{art.short_title}.md'
+            text = self.get_art_text(art.aid)
+            with open(path, 'w+') as fid:
+                fid.write(text)
+
+        return True
+
+    def load_articles(self, dir, time=None):
+        if time is None:
+            time = datetime.utcnow()
+
+        base = Path(dir)
+        if not os.path.isdir(base):
+            return False
+
+        for name in os.listdir(base):
+            path = base / name
+            short, ext = os.path.splitext(name)
+
+            with open(path) as fid:
+                mark = fid.read()
+
+            if (ret := re.match('#! +([^\n]+)', mark)) is not None:
+                title, = ret.groups()
+            else:
+                title = name.replace('_', ' ').title()
+
+            self.import_markdown(
+                title, mark, short_title=short,
+                time=time, index=False, commit=False
+            )
+
+        self.session.commit()
+        self.reindex_articles()
+        return True
+
+    ##
     ## query methods
     ##
 
@@ -227,10 +278,13 @@ class ElltwoDB:
             query = self.session.query(Article).filter(Article.aid.in_(aids)).filter(arttime(time))
             return {art.aid: {'title': art.title, 'url': art.short_title} for art in query.all()}
 
-    def get_arts(self, time=None):
+    def get_arts(self, time=None, all=False):
         if time is None:
             time = datetime.utcnow()
-        return self.session.query(Article).filter(arttime(time)).all()
+        query = self.session.query(Article)
+        if not all:
+            query = query.filter(arttime(time))
+        return query.all()
 
     def get_art(self, aid, time=None, all=False):
         if time is None:
@@ -423,7 +477,7 @@ class ElltwoDB:
     def last_para(self, aid):
         return self.session.query(Paralink).filter_by(aid=aid).filter_by(next=None).one_or_none()
 
-    def create_article(self, title, short_title=None, init=True, time=None, g_ref=False):
+    def create_article(self, title, short_title=None, init=True, time=None, g_ref=False, index=True):
         if time is None:
             time = datetime.utcnow()
 
@@ -434,13 +488,13 @@ class ElltwoDB:
 
         art = Article(title=title, short_title=short_title, create_time=time, g_ref=g_ref)
         self.session.add(art)
+        self.session.commit()
 
         if init:
             self.init_article(art.aid, text=f'#! {title}', time=time)
 
-        self.index_document('title', art.aid, title, commit=False)
-
-        self.session.commit()
+        if index:
+            self.index_document('title', art.aid, title)
 
         return art
 
@@ -514,11 +568,11 @@ class ElltwoDB:
             self.session.add(art)
             self.session.commit()
 
-    def import_markdown(self, title, mark, time=None):
+    def import_markdown(self, title, mark, short_title=None, time=None, index=True, commit=True):
         if time is None:
             time = datetime.utcnow()
 
-        art = self.create_article(title, init=False, time=time, g_ref=True)
+        art = self.create_article(title, short_title=short_title, init=False, time=time, g_ref=True, index=index)
         aid = art.aid
 
         paras = re.sub(r'\n{3,}', '\n\n', mark).strip().split('\n\n')
@@ -532,7 +586,11 @@ class ElltwoDB:
             lin = Paralink(aid=aid, pid=pid, prev=prev, next=next, create_time=time)
             self.session.add_all([par, lin])
 
-        self.session.commit()
+        if commit or index:
+            self.session.commit()
+
+        if index:
+            self.index_article(art.aid)
 
     ##
     ## citation methods
@@ -886,6 +944,16 @@ class ElltwoDB:
             query = query.filter_by(source_type=dtype)
         query.delete()
         self.session.commit()
+
+    def index_article(aid, commit=True):
+        self.clear_index()
+        if (art := self.get_art(aid)) is None:
+            return
+        self.index_document('title', art.aid, art.title, commit=False)
+        for par in self.get_paras(art.aid):
+            self.index_document('para', par.pid, par.text, commit=False)
+        if commit:
+            self.session.commit()
 
     def reindex_articles(self):
         self.clear_index()

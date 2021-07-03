@@ -776,6 +776,8 @@ def get_image(data):
     key = data['key']
     if (img := edb.get_image(key)) is not None:
         return {'found': True, 'mime': img.mime, 'data': img.data, 'kw': img.keywords}
+    else:
+        return {'found': False}
 
 @socketio.on('update_image_key')
 @edit_decor

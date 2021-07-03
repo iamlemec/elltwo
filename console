@@ -217,15 +217,33 @@ class Index:
         for p in paras:
             print(p)
 
+class Backup:
+    def __init__(self, edb):
+        self.edb = edb
+
+    def save(self, dir, all=False):
+        self.edb.save_articles(dir, all=all)
+
+    def load(self, dir):
+        if (
+            not os.path.exists(self.edb.path) or
+            confirm_request(f'database "{self.edb.path}" exists, load anyway?')
+        ):
+            self.edb.create()
+            self.edb.load_articles(dir)
+
 class Main:
     def __init__(self, db='elltwo.db'):
         edb = dbq.ElltwoDB(path=db)
+        edb.path = db
+
         self.config = Config()
         self.user = User(edb=edb)
         self.article = self.art = Article(edb=edb)
         self.paragraph = self.par = Paragraph(edb=edb)
         self.image = Image(edb=edb)
         self.index = Index(edb=edb)
+        self.backup = Backup(edb=edb)
 
 if __name__ == '__main__':
     fire.Fire(Main)
