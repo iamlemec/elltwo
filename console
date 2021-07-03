@@ -47,7 +47,7 @@ class User:
 
 def art_summary(art, time=False):
     if time:
-        f'{art.aid} [{para.create_time} → {para.delete_time}]: {art.title} ({art.short_title})'
+        return f'{art.aid} [{art.create_time} → {art.delete_time}]: {art.title} ({art.short_title})'
     else:
         return f'{art.aid}: {art.title} ({art.short_title})'
 
@@ -63,12 +63,11 @@ def img_summary(img, time=False):
     else:
         return f'{img.key} ({img.mime})'
 
-def art_find(edb, aid=None, title=None):
+def art_find(edb, aid=None, title=None, all=False):
     if aid is not None:
-        art = edb.get_art(aid)
+        art = edb.get_art(aid, all=all)
     elif title is not None:
-        short = dbq.urlify(title)
-        art = edb.get_art_short(short)
+        art = edb.get_art_short(title, all=all)
     else:
         art = None
     return art
@@ -86,7 +85,7 @@ class Article:
             print('\n'.join([art_summary(a) for a in arts]))
 
     def show(self, aid=None, title=None, all=False):
-        if (art := art_find(self.edb, aid=aid, title=title)) is None:
+        if (art := art_find(self.edb, aid=aid, title=title, all=all)) is None:
             print(f'Article "{title}" not found')
             return
 
@@ -106,8 +105,8 @@ class Article:
         print('='*len(head))
         print('\n'.join([para_summary(p, time=all) for p in tail]))
 
-    def text(self, aid=None, title=None):
-        art = art_find(self.edb, aid=aid, title=title)
+    def text(self, aid=None, title=None, all=False):
+        art = art_find(self.edb, aid=aid, title=title, all=all)
         paras = self.edb.get_paras(art.aid)
         print('\n\n'.join([p.text for p in paras]))
 
@@ -118,14 +117,14 @@ class Article:
         else:
             self.edb.create_article(title)
 
-    def rekey(self, new_short, aid=None, title=None):
-        if (art := art_find(self.edb, aid=aid, title=title)) is None:
+    def rekey(self, new_short, aid=None, title=None, all=False):
+        if (art := art_find(self.edb, aid=aid, title=title, all=all)) is None:
             print(f'Article "{title}" not found')
             return
         self.edb.rename_short(art.aid, new_short)
 
-    def rename(self, new_title, aid=None, title=None):
-        if (art := art_find(self.edb, aid=aid, title=title)) is None:
+    def rename(self, new_title, aid=None, title=None, all=False):
+        if (art := art_find(self.edb, aid=aid, title=title, all=all)) is None:
             print(f'Article "{title}" not found')
             return
         self.edb.rename_article(art.aid, new_title)
@@ -134,22 +133,29 @@ class Article:
         if title is None:
             _, fname = os.path.split(path)
             title, _ = os.path.splitext(fname)
-        short = dbq.urlify(title)
-        if (art := self.edb.get_art_short(short)) is not None:
-            print(f'Article {short} already exists')
+        if (art := self.edb.get_art_short(title)) is not None:
+            print(f'Article "{title}" already exists')
         else:
             with open(path) as fid:
                 mark = fid.read()
             self.edb.import_markdown(title, mark)
 
-    def delete(self, title):
-        if (art := self.edb.get_art_short(title)) is None:
+    def delete(self, aid=None, title=None):
+        if (art := art_find(self.edb, aid=aid, title=title, all=False)) is None:
             print(f'Article "{title}" not found')
+            return
         elif confirm_request(f'delete article "{title}"?'):
             self.edb.delete_article(art.aid)
 
-    def purge(self, title):
-        if (art := self.edb.get_art_short(title)) is None:
+    def undelete(self, aid=None, title=None):
+        if (art := art_find(self.edb, aid=aid, title=title, all=True)) is None:
+            print(f'Article "{title}" not found')
+            return
+        elif confirm_request(f'undelete article "{title}"?'):
+            self.edb.undelete_article(art.aid)
+
+    def purge(self, aid=None, title=None):
+        if (art := art_find(self.edb, aid=aid, title=title, all=True)) is None:
             print(f'Article "{title}" not found')
         elif confirm_request(f'purge article "{title}"?'):
             self.edb.expunge_article(art.aid)

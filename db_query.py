@@ -232,18 +232,26 @@ class ElltwoDB:
             time = datetime.utcnow()
         return self.session.query(Article).filter(arttime(time)).all()
 
-    def get_art(self, aid, time=None):
+    def get_art(self, aid, time=None, all=False):
         if time is None:
             time = datetime.utcnow()
+        query = self.session.query(Article).filter_by(aid=aid)
+        if not all:
+            query = query.filter(arttime(time))
+        return query.one_or_none()
 
-        return (self.session
-            .query(Article)
-            .filter_by(aid=aid)
-            .filter(arttime(time))
-            .one_or_none()
-        )
+    def get_art_short(self, short, time=None, all=False):
+        if time is None:
+            time = datetime.utcnow()
+        short_match = urlify(short)
+        query = self.session.query(Article).filter_by(short_title=short_match)
+        if not all:
+            query = query.filter(arttime(time))
+        return query.one_or_none()
 
     def get_art_text(self, aid, time=None):
+        if time is None:
+            time = datetime.utcnow()
         paras = self.get_paras(aid, time=time)
         return '\n\n'.join([p.text for p in paras])
 
@@ -259,6 +267,18 @@ class ElltwoDB:
 
     def get_lid(self, lid):
         return self.session.query(Paralink).filter_by(lid=lid).one_or_none()
+
+    def search_title(self, words, thresh=0.25):
+        now = datetime.utcnow()
+        match = [i for i, s in self.search_index(words, dtype='title') if s > thresh]
+        arts = self.session.query(Article).filter(Article.aid.in_(match)).filter(arttime(now)).all()
+        return sorted(arts, key=lambda a: match.index(a.aid))
+
+    def search_text(self, words, thresh=0.25):
+        now = datetime.utcnow()
+        match = [i for i, s in self.search_index(words, dtype='para') if s > thresh]
+        paras = self.session.query(Paragraph).filter(Paragraph.pid.in_(match)).filter(partime(now)).all()
+        return sorted(paras, key=lambda a: match.index(a.pid))
 
     ##
     ## editing methods
@@ -450,6 +470,14 @@ class ElltwoDB:
             self.unindex_document('title', art.aid, commit=False)
             self.session.commit()
 
+    def undelete_article(self, aid, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        if (art := self.get_art(aid, all=True)) is not None:
+            art.delete_time = None
+            self.index_document('title', art.aid, art.title, commit=False)
+            self.session.commit()
+
     def init_article(self, aid, text, time=None):
         if time is None:
             time = datetime.utcnow()
@@ -505,32 +533,6 @@ class ElltwoDB:
             self.session.add_all([par, lin])
 
         self.session.commit()
-
-    ##
-    ## query methods
-    ##
-
-    def get_art_short(self, short):
-        short_match = urlify(short)
-        art = self.session.query(Article).filter_by(short_title=short_match).one_or_none()
-        return art
-
-    def get_short(self, short):
-        short_match = urlify(short)
-        art = self.session.query(Article).filter_by(short_title=short_match).one_or_none()
-        return [p.text for p in self.get_paras(art.aid)]
-
-    def search_title(self, words, thresh=0.25):
-        now = datetime.utcnow()
-        match = [i for i, s in self.search_index(words, dtype='title') if s > thresh]
-        arts = self.session.query(Article).filter(Article.aid.in_(match)).filter(arttime(now)).all()
-        return sorted(arts, key=lambda a: match.index(a.aid))
-
-    def search_text(self, words, thresh=0.25):
-        now = datetime.utcnow()
-        match = [i for i, s in self.search_index(words, dtype='para') if s > thresh]
-        paras = self.session.query(Paragraph).filter(Paragraph.pid.in_(match)).filter(partime(now)).all()
-        return sorted(paras, key=lambda a: match.index(a.pid))
 
     ##
     ## citation methods
