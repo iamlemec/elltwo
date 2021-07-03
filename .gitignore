@@ -9,9 +9,6 @@ __pycache__/
 # Mac bullshit
 .DS_Store
 
-# Search Folders
-/msearch/**
-
 # Distribution / packaging
 bin/
 build/
@@ -37,6 +34,7 @@ pip-delete-this-directory.txt
 
 # Databases
 *.db
+backup/
 
 # External logs
 screenlog.*
