@@ -5,7 +5,7 @@ export {
     sendUpdatePara, placeCursor
 }
 
-import { config, state } from './state.js'
+import { config, state, cache } from './state.js'
 import { ensureVisible, cooks, getPara, noop, on_success } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import {
@@ -549,7 +549,6 @@ function getFoldParas(pid) {
 }
 
 function fold(para, init=false) {
-    console.log('fold', para);
     let env_pid = para.attr('env_pid');
     let fold_pid = para.attr('fold_pid');
     if (env_pid) {
