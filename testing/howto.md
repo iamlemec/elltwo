@@ -76,17 +76,25 @@ A partial list of helpful arguments:
 
 # [sec_fig] Figures
 
-Cells can also contain figure and images. Images environments begin with an exclamation point `!` and can direct to external images via a URL or internal images using an image ID.
+Cells can also contain figure and images. Image environments begin with an exclamation point `!` and can display internally stored images by referencing their unique ID
 
-``! [id=img_torus] (https://mathworld.wolfram.com/images/eps-gif/torus_1000.gif)
+`` ! [id=gamma_function|width=80]
 
-to render the following figure.
+We have preloaded the `gamma_function` image and the above displays as
+
+! [gamma_function|width=80|caption=From *Tables of Higher Functions* (1909) by Eugene Jahnke and Fritz Emde]
+
+External images can be included via a URL
+
+`` ! [id=img_torus|w=40] (https://mathworld.wolfram.com/images/eps-gif/torus_1000.gif)
+
+to render the following figure
 
 ! [id=torus|w=40|caption=An externally hosted image of a torus] (https://www.torus.co.uk/wp-content/themes/torus/images/torus_swoosh.png)
 
 The size of the image can be controlled by passing a `width` or `w` argument, corresponding to percentage of the text width. The caption can be set with the `caption` argument and can be suppressed by setting `caption=none`.
 
-Images can be stored locally, and assessed via an ID. To upload an image render a cell with two exclamation points `!!`. This will create a drag-and-drop image uploader (clicking the upload box will open a file browser).
+Images can be stored locally, and referenced via an ID. To upload an image, render a cell with two exclamation points `!!`. This will create a drag-and-drop image uploader (clicking the upload box will open a file browser).
 
 Cells can also contain figure and images, including HTML5 SVG images. The `&SVG` prefix creates a 100x100 HTML canvas, rendering directly and HTML SVG elements the follow.
 
