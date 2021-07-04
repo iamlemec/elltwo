@@ -1,5 +1,4 @@
-import re
-import os
+import re, os, toml
 from math import ceil
 from datetime import datetime
 from functools import partial
@@ -24,6 +23,16 @@ img_mime = Multimap({
     'image/png': ['png'],
     'image/svg+xml': ['svg'],
 })
+
+bib_meta = ('bid', 'create_time', 'delete_time', 'citekey', 'raw')
+bib_cols = [
+    col.name for col in Bib.__table__.columns if col.name not in bib_meta
+]
+
+usr_meta = ['id']
+usr_cols = [
+    col.name for col in User.__table__.columns if col.name not in usr_meta
+]
 
 ##
 ## utility methods
@@ -197,7 +206,7 @@ class ElltwoDB:
     ## bulk save/load
     ##
 
-    def save_articles(self, dir, all=False):
+    def save_articles(self, dir, image=True, cite=True, user=True, all=False):
         base = Path(dir)
         if not os.path.isdir(base):
             if os.path.exists(base):
@@ -211,13 +220,32 @@ class ElltwoDB:
             with open(path, 'w+') as fid:
                 fid.write(text)
 
-        for img in self.get_images(all=all):
-            if not img_mime.has(img.mime):
-                continue
-            ext, *_ = img_mime.get(img.mime)
-            path = base / f'{img.key}.{ext}'
-            with open(path, 'wb+') as fid:
-                fid.write(img.data)
+        if image:
+            for img in self.get_images(all=all):
+                if not img_mime.has(img.mime):
+                    continue
+                ext, *_ = img_mime.get(img.mime)
+                path = base / f'{img.key}.{ext}'
+                with open(path, 'wb+') as fid:
+                    fid.write(img.data)
+
+        if cite:
+            path = base / 'cite.toml'
+            dic = {
+                bib.citekey: {col: getattr(bib, col) for col in bib_cols}
+                for bib in self.get_bib(all=all)
+            }
+            with open(path, 'w+') as fid:
+                toml.dump(dic, fid)
+
+        if user:
+            path = base / 'user.toml'
+            dic = {
+                usr.email: {col: getattr(usr, col) for col in usr_cols}
+                for usr in self.get_all_users()
+            }
+            with open(path, 'w+') as fid:
+                toml.dump(dic, fid)
 
         return True
 
@@ -244,6 +272,19 @@ class ElltwoDB:
                 with open(path, 'rb') as fid:
                     data = fid.read()
                 self.create_image(short, mime, data)
+            elif name == 'cite.toml':
+                with open(path) as fid:
+                    biblio = toml.load(fid)
+                for key, cite in biblio.items():
+                    self.create_cite(key, raw='', **cite)
+            elif name == 'user.toml':
+                with open(path) as fid:
+                    users = toml.load(fid)
+                for email, info in users.items():
+                    self.add_user(
+                        email, info['name'], phash=info['password'],
+                        confirm=info['confirmed']
+                    )
 
         self.session.commit()
         self.reindex_articles()
@@ -652,25 +693,17 @@ class ElltwoDB:
         self.session.add(bib)
         self.session.commit()
 
-    def get_bib(self, keys=None, time=None):
+    def get_bib(self, keys=None, time=None, all=False):
         if time is None:
             time = datetime.utcnow()
 
-        if keys is None:
-            query = (self.session
-                .query(Bib)
-                .filter(bibtime(time))
-            )
-        else:
-            query = (self.session
-                .query(Bib)
-                .filter(bibtime(time))
-                .filter(Bib.citekey.in_(keys))
-            )
+        query = self.session.query(Bib)
+        if not all:
+            query = query.filter(bibtime(time))
+        if keys is not None:
+            query = query.filter(Bib.citekey.in_(keys))
 
-        bib = query.all()
-
-        return bib
+        return query.all()
 
     def get_bib_dict(self, keys=None, time=None):
         if time is None:
@@ -910,10 +943,11 @@ class ElltwoDB:
     def get_all_users(self):
         return self.session.query(User).all()
 
-    def add_user(self, email, name, password, confirm=False):
+    def add_user(self, email, name, password=None, phash=None, confirm=False):
         time = datetime.now()
 
-        phash = generate_password_hash(password, method='sha256')
+        if phash is None:
+            phash = generate_password_hash(password, method='sha256')
         user = User(email=email, name=name, password=phash, registered_on=time)
 
         if confirm:

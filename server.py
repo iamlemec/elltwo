@@ -1,5 +1,5 @@
 from flask import (
-    Flask, Response, Markup,
+    Flask, Markup, make_response,
     request, redirect, url_for, render_template,
     jsonify, flash, send_from_directory, send_file
 )
@@ -429,7 +429,9 @@ def GetImage(key):
 @view_decor
 def RenderBib():
     style = getStyle(request)
-    return render_template('bib.html', **style, **HTML_config)
+    resp = make_response(render_template('bib.html', **style, **HTML_config))
+    resp.headers.set('Access-Control-Allow-Origin', '*')
+    return resp
 
 @app.route('/img', methods=['GET','POST'])
 @view_decor

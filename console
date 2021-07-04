@@ -16,6 +16,44 @@ def confirm_request(question):
     response = input(f'{question} [y/N]: ').lower()
     return response == 'y'
 
+def art_summary(art, time=False):
+    if time:
+        return f'{art.aid} [{art.create_time} → {art.delete_time}]: {art.title} ({art.short_title})'
+    else:
+        return f'{art.aid}: {art.title} ({art.short_title})'
+
+def para_summary(para, time=False):
+    if time:
+        return f'{para.pid}/{para.rid} [{para.create_time} → {para.delete_time}]: {para.text}'
+    else:
+        return f'{para.pid}: {para.text}'
+
+def img_summary(img, time=False):
+    if time:
+        return f'{img.key} ({img.mime}) [{img.create_time} → {img.delete_time}]'
+    else:
+        return f'{img.key} ({img.mime})'
+
+def bib_summary(bib, full=False, time=False):
+    if time:
+        time_text = f' [{bib.create_time} → {bib.delete_time}]'
+    else:
+        time_text = ''
+    if full:
+        summ_text = '\n' + '\n'.join([f'{col} = {getattr(bib, col)}' for col in dbq.bib_cols])
+    else:
+        summ_text = f' {bib.author} ({bib.year})'
+    return f'{bib.citekey}{time_text}:{summ_text}'
+
+def art_find(edb, aid=None, title=None, all=False):
+    if aid is not None:
+        art = edb.get_art(aid, all=all)
+    elif title is not None:
+        art = edb.get_art_short(title, all=all)
+    else:
+        art = None
+    return art
+
 class Config:
     def auth(self, path, overwrite=False):
         if overwrite or not os.path.exists(path) or confirm_request(f'overwrite {path}?'):
@@ -44,33 +82,6 @@ class User:
                 print(f'{email} deleted')
             else:
                 print(f'{email} not found')
-
-def art_summary(art, time=False):
-    if time:
-        return f'{art.aid} [{art.create_time} → {art.delete_time}]: {art.title} ({art.short_title})'
-    else:
-        return f'{art.aid}: {art.title} ({art.short_title})'
-
-def para_summary(para, time=False):
-    if time:
-        return f'{para.pid}/{para.rid} [{para.create_time} → {para.delete_time}]: {para.text}'
-    else:
-        return f'{para.pid}: {para.text}'
-
-def img_summary(img, time=False):
-    if time:
-        return f'{img.key} ({img.mime}) [{img.create_time} → {img.delete_time}]'
-    else:
-        return f'{img.key} ({img.mime})'
-
-def art_find(edb, aid=None, title=None, all=False):
-    if aid is not None:
-        art = edb.get_art(aid, all=all)
-    elif title is not None:
-        art = edb.get_art_short(title, all=all)
-    else:
-        art = None
-    return art
 
 class Article:
     def __init__(self, edb):
@@ -217,6 +228,18 @@ class Index:
         for p in paras:
             print(p)
 
+class Biblio:
+    def __init__(self, edb, all=False):
+        self.edb = edb
+
+    def list(self, all=False):
+        for b in self.edb.get_bib(all=all):
+            print(bib_summary(b, time=all))
+
+    def show(self, key, all=False):
+        bib, = self.edb.get_bib([key], all=all)
+        print(bib_summary(bib, full=True, time=all))
+
 class Backup:
     def __init__(self, edb):
         self.edb = edb
@@ -241,8 +264,9 @@ class Main:
         self.user = User(edb=edb)
         self.article = self.art = Article(edb=edb)
         self.paragraph = self.par = Paragraph(edb=edb)
-        self.image = Image(edb=edb)
-        self.index = Index(edb=edb)
+        self.image = self.img = Image(edb=edb)
+        self.index = self.idx = Index(edb=edb)
+        self.biblio = self.bib = Biblio(edb=edb)
         self.backup = Backup(edb=edb)
 
 if __name__ == '__main__':

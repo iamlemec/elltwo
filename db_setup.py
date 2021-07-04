@@ -68,7 +68,7 @@ class Bib(Base):
     delete_time = Column(DateTime)
 
     def __repr__(self):
-        return f'{self.bid} [{self.create_time} → {self.delete_time}]:\n{self.author} ({self.year})'
+        return f'{self.bid} [{self.create_time} → {self.delete_time}]: {self.author} ({self.year})'
 
 class ExtRef(Base):
     __tablename__ = 'ext_ref'

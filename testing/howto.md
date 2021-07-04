@@ -59,7 +59,7 @@ $$ \mu\left(\bigcap_{n=1}^{\infty }\bigcup_{k\geq n}^{\infty }E_{k}\right) = 0
 
 << that is, the probability that infinitely many of them occur is $0$.
 
-Prebuilt envrioments include **theorem**, **lemma**, **proof**, and **example**; others can be constructed by augmenting the render.js file.
+Prebuilt environments include **theorem**, **lemma**, **proof**, and **example**; others can be constructed by augmenting the `render.js` file.
 
 ## [id=args] Passing Arguments
 
