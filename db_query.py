@@ -13,6 +13,17 @@ from sqlalchemy.orm import sessionmaker, Query
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from db_setup import Base, Article, Paragraph, Paralink, Bib, ExtRef, Image, User, TextShard
+from tools import Multimap
+
+##
+## image mime data
+##
+
+img_mime = Multimap({
+    'image/jpeg': ['jpg', 'jpeg'],
+    'image/png': ['png'],
+    'image/svg+xml': ['svg'],
+})
 
 ##
 ## utility methods
@@ -200,6 +211,14 @@ class ElltwoDB:
             with open(path, 'w+') as fid:
                 fid.write(text)
 
+        for img in self.get_images(all=all):
+            if not img_mime.has(img.mime):
+                continue
+            ext, *_ = img_mime.get(img.mime)
+            path = base / f'{img.key}.{ext}'
+            with open(path, 'wb+') as fid:
+                fid.write(img.data)
+
         return True
 
     def load_articles(self, dir, time=None):
@@ -213,19 +232,18 @@ class ElltwoDB:
         for name in os.listdir(base):
             path = base / name
             short, ext = os.path.splitext(name)
+            ext = ext[1:]
 
-            with open(path) as fid:
-                mark = fid.read()
-
-            if (ret := re.match('#! +([^\n]+)', mark)) is not None:
-                title, = ret.groups()
-            else:
-                title = name.replace('_', ' ').title()
-
-            self.import_markdown(
-                title, mark, short_title=short,
-                time=time, index=False, commit=False
-            )
+            if ext == 'md':
+                with open(path) as fid:
+                    mark = fid.read()
+                self.import_markdown(
+                    short, mark, time=time, index=False, commit=False
+                )
+            elif (mime := img_mime.loc(ext)) is not None:
+                with open(path, 'rb') as fid:
+                    data = fid.read()
+                self.create_image(short, mime, data)
 
         self.session.commit()
         self.reindex_articles()
@@ -482,7 +500,9 @@ class ElltwoDB:
             time = datetime.utcnow()
 
         if short_title is None:
-            short_title = urlify(title)
+            short_title = title
+        short_title = urlify(short_title)
+
         if self.get_art_short(short_title) is not None:
             return None
 
@@ -568,9 +588,15 @@ class ElltwoDB:
             self.session.add(art)
             self.session.commit()
 
-    def import_markdown(self, title, mark, short_title=None, time=None, index=True, commit=True):
+    def import_markdown(self, short_title, mark, title=None, time=None, index=True, commit=True):
         if time is None:
             time = datetime.utcnow()
+
+        if title is None:
+            if (ret := re.match('#! +([^\n]+)', mark)) is not None:
+                title, = ret.groups()
+            else:
+                title = short_title.replace('_', ' ').title()
 
         art = self.create_article(title, short_title=short_title, init=False, time=time, g_ref=True, index=index)
         aid = art.aid
@@ -728,14 +754,19 @@ class ElltwoDB:
         else:
             return False
 
-    def get_images(self, time=None):
+    def get_images(self, time=None, all=False):
         if time is None:
             time = datetime.utcnow()
-        return self.session.query(Image).filter(imgtime(time)).all()
+        query = self.session.query(Image)
+        if not all:
+            query = query.filter(imgtime(time))
+        return query.all()
 
     def create_image(self, key, mime, data, time=None):
         if time is None:
             time = datetime.utcnow()
+
+        key = urlify(key)
 
         if (img0 := self.get_image(key, time=time)) is not None:
             img0.delete_time = time
@@ -945,13 +976,12 @@ class ElltwoDB:
         query.delete()
         self.session.commit()
 
-    def index_article(aid, commit=True):
-        self.clear_index()
+    def reindex_article(aid, commit=True):
         if (art := self.get_art(aid)) is None:
             return
-        self.index_document('title', art.aid, art.title, commit=False)
+        self.index_document('title', art.aid, art.title, clear=True, commit=False)
         for par in self.get_paras(art.aid):
-            self.index_document('para', par.pid, par.text, commit=False)
+            self.index_document('para', par.pid, par.text, clear=True, commit=False)
         if commit:
             self.session.commit()
 

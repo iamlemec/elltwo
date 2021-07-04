@@ -2,9 +2,11 @@ from collections import defaultdict
 from secrets import token_hex
 
 class Multimap:
-    def __init__(self):
+    def __init__(self, init=None):
         self._sets = defaultdict(set)
         self._locs = {}
+        if init is not None:
+            self.upd(init)
 
     def __repr__(self):
         return '\n'.join([f'{loc}: {val}' for loc, val in self._sets.items()])
@@ -16,6 +18,14 @@ class Multimap:
             return
         self._sets[loc].add(item)
         self._locs[item] = loc
+
+    def has(self, loc):
+        return len(self._sets[loc]) > 0
+
+    def upd(self, dic):
+        for k, s in dic.items():
+            for v in s:
+                self.add(k, v)
 
     def pop(self, item):
         loc = self._locs.pop(item, None)
