@@ -150,7 +150,7 @@ def Create():
     art_name = request.form['new_art']
     art = edb.get_art_short(art_name)
     if art:
-        return  redirect(url_for('RenderArticle', title=art_name))
+        return redirect(url_for('RenderArticle', title=art_name))
     else:
         edb.create_article(art_name)
         return redirect(url_for('RenderArticle', title=art_name))
@@ -174,7 +174,7 @@ def Signup():
     style = getStyle(request)
     return render_template('signup.html', **style, **HTML_config)
 
-@app.route('/login',  methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def Login():
     if request.referrer:
         next = request.referrer.replace('/r/', '/a/', 1)
@@ -568,11 +568,11 @@ def revert_history(data):
 @edit_decor
 def create_art(title):
     art = edb.get_art_short(title)
-    if art:
-        return url_for('RenderArticle', title=title)
+    if art is not None:
+        return url_for('RenderArticle', title=art.short_title)
     else:
-        edb.create_article(title)
-        return url_for('RenderArticle', title=title)
+        art = edb.create_article(title)
+        return url_for('RenderArticle', title=art.short_title)
 
 @socketio.on('search_title')
 @view_decor

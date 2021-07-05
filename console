@@ -168,7 +168,7 @@ class Article:
     def purge(self, aid=None, title=None):
         if (art := art_find(self.edb, aid=aid, title=title, all=True)) is None:
             print(f'Article "{title}" not found')
-        elif confirm_request(f'purge article "{title}"?'):
+        elif confirm_request(f'purge article "{art.short_title}"?'):
             self.edb.expunge_article(art.aid)
 
 class Paragraph:
