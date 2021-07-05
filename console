@@ -244,16 +244,20 @@ class Backup:
     def __init__(self, edb):
         self.edb = edb
 
-    def save(self, dir, all=False, zip=False):
-        self.edb.save_articles(dir, all=all, zip=zip)
+    def save(self, out, all=False, zip=False):
+        if (
+            not os.path.exists(out) or
+            confirm_request(f'file "{out}" exists, overwrite?')
+        ):
+            self.edb.save_articles(out, all=all, zip=zip)
 
-    def load(self, dir, zip=False):
+    def load(self, inp, zip=False):
         if (
             not os.path.exists(self.edb.path) or
             confirm_request(f'database "{self.edb.path}" exists, load anyway?')
         ):
             self.edb.create()
-            self.edb.load_articles(dir, zip=zip)
+            self.edb.load_articles(inp, zip=zip)
 
 class Main:
     def __init__(self, db='elltwo.db'):
