@@ -5,6 +5,7 @@ from functools import partial
 from operator import itemgetter
 from collections import defaultdict
 from pathlib import Path
+from zipfile import ZipFile
 
 from sqlalchemy import create_engine, or_, and_, distinct, event
 from sqlalchemy.sql import func
@@ -24,15 +25,30 @@ img_mime = Multimap({
     'image/svg+xml': ['svg'],
 })
 
-bib_meta = ('bid', 'create_time', 'delete_time', 'citekey', 'raw')
+##
+## table export
+##
+
+bib_meta = ['bid', 'create_time', 'delete_time', 'citekey', 'raw']
 bib_cols = [
     col.name for col in Bib.__table__.columns if col.name not in bib_meta
 ]
 
-usr_meta = ['id']
+usr_meta = ['id', 'registered_on', 'confirmed_on']
 usr_cols = [
     col.name for col in User.__table__.columns if col.name not in usr_meta
 ]
+
+def table_dump(rows, index, cols, string=False):
+    data = {
+        getattr(row, index): {
+            col: getattr(row, col) for col in cols
+        } for row in rows
+    }
+    if string:
+        return toml.dumps(data)
+    else:
+        return data
 
 ##
 ## utility methods
@@ -206,85 +222,97 @@ class ElltwoDB:
     ## bulk save/load
     ##
 
-    def save_articles(self, dir, image=True, cite=True, user=True, all=False):
-        base = Path(dir)
-        if not os.path.isdir(base):
+    def save_articles(self, out, image=True, cite=True, user=True, all=False, zip=False):
+        base = Path(out)
+        if not zip and not os.path.isdir(base):
             if os.path.exists(base):
                 return False
             else:
                 os.mkdir(base)
 
+        if zip:
+            zf = ZipFile(out, 'w')
+            def writer(n, d):
+                zf.writestr(n, d)
+        else:
+            def writer(n, d):
+                mode = 'wb' if type(d) is bytes else 'w'
+                with open(base / n, mode) as fid:
+                    fid.write(d)
+
         for art in self.get_arts(all=all):
-            path = base / f'{art.short_title}.md'
+            name = f'{art.short_title}.md'
             text = self.get_art_text(art.aid)
-            with open(path, 'w+') as fid:
-                fid.write(text)
+            writer(name, text)
 
         if image:
             for img in self.get_images(all=all):
                 if not img_mime.has(img.mime):
                     continue
                 ext, *_ = img_mime.get(img.mime)
-                path = base / f'{img.key}.{ext}'
-                with open(path, 'wb+') as fid:
-                    fid.write(img.data)
+                name = f'{img.key}.{ext}'
+                writer(name, img.data)
 
         if cite:
-            path = base / 'cite.toml'
-            dic = {
-                bib.citekey: {col: getattr(bib, col) for col in bib_cols}
-                for bib in self.get_bib(all=all)
-            }
-            with open(path, 'w+') as fid:
-                toml.dump(dic, fid)
+            rows = self.get_bib(all=all)
+            text = table_dump(rows, 'citekey', bib_cols, string=True)
+            writer('cite.toml', text)
 
         if user:
-            path = base / 'user.toml'
-            dic = {
-                usr.email: {col: getattr(usr, col) for col in usr_cols}
-                for usr in self.get_all_users()
-            }
-            with open(path, 'w+') as fid:
-                toml.dump(dic, fid)
+            rows = self.get_all_users()
+            text = table_dump(rows, 'email', usr_cols, string=True)
+            writer('user.toml', text)
+
+        if zip:
+            zf.close()
 
         return True
 
-    def load_articles(self, dir, time=None):
-        if time is None:
-            time = datetime.utcnow()
-
-        base = Path(dir)
-        if not os.path.isdir(base):
+    def load_articles(self, inp, zip=False):
+        base = Path(inp)
+        if not zip and not os.path.isdir(base):
             return False
 
-        for name in os.listdir(base):
-            path = base / name
+        if zip:
+            zf = ZipFile(inp)
+            files = zf.namelist()
+            def reader(n, m='t'):
+                d = zf.read(n)
+                return d.decode() if m == 't' else d
+        else:
+            files = os.listdir(base)
+            def reader(n, m='t'):
+                with open(base / n, f'r{m}') as fid:
+                    return fid.read()
+
+        for name in files:
             short, ext = os.path.splitext(name)
             ext = ext[1:]
 
             if ext == 'md':
-                with open(path) as fid:
-                    mark = fid.read()
+                mark = reader(name)
                 self.import_markdown(
-                    short, mark, time=time, index=False, commit=False
+                    short, mark, index=False, commit=False
                 )
             elif (mime := img_mime.loc(ext)) is not None:
-                with open(path, 'rb') as fid:
-                    data = fid.read()
+                data = reader(name, 'b')
                 self.create_image(short, mime, data)
             elif name == 'cite.toml':
-                with open(path) as fid:
-                    biblio = toml.load(fid)
+                data = reader(name)
+                biblio = toml.loads(data)
                 for key, cite in biblio.items():
                     self.create_cite(key, raw='', **cite)
             elif name == 'user.toml':
-                with open(path) as fid:
-                    users = toml.load(fid)
+                data = reader(name)
+                users = toml.loads(data)
                 for email, info in users.items():
                     self.add_user(
                         email, info['name'], phash=info['password'],
                         confirm=info['confirmed']
                     )
+
+        if zip:
+            zf.close()
 
         self.session.commit()
         self.reindex_articles()
