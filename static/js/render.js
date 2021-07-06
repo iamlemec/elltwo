@@ -604,7 +604,7 @@ function createNumbers(outer) {
             for (let l = level+1; l < 7; l++) {
                 let lvl = 'heading'+l
                 nums[lvl] = 0;
-            } 
+            }
         }
     });
 }
@@ -661,9 +661,7 @@ function createRefs(para) {
 }
 
 function getTro(ref, callback) {
-    //var ref = $(this); // the reference (actually an 'a' tag)
-    let text = ref.attr('text') || '';
-    text = divInlineLexer.output(text)
+    let text = ref.html() || '';
 
     let tro = {};
     let key = ref.attr('citekey');
@@ -678,6 +676,7 @@ function getTro(ref, callback) {
             if (ret.found) {
                 tro.cite_type = 'ilink';
                 tro.blurb_text = ret.blurb;
+                tro.art_title = ret.title;
             } else {
                 tro.cite_type = 'err';
                 tro.cite_err = 'art_not_found';
@@ -755,7 +754,7 @@ function renderCiteText(para) {
 // routing is split due to aysc of sever commands
 function renderRef(ref, tro, text, ext) {
     if (text.length > 0) {
-        ref_spec.text(ref, tro.tro, text);
+        ref_spec.text(ref, text);
     } else if (tro.cite_type == 'self') {
         ref_spec.self(ref);
     } else if (tro.cite_type == 'env') {
@@ -768,6 +767,8 @@ function renderRef(ref, tro, text, ext) {
         };
     } else if (tro.cite_type == 'cite') {
         ref_spec.cite(ref, tro.tro);
+    } else if (tro.cite_type == 'ilink') {
+        ref_spec.text(ref, tro.art_title);
     } else if (tro.cite_type == 'err') {
         ref_spec.error(ref);
     }
@@ -828,8 +829,8 @@ function refEnv(ref, tro, env, ext) {
     ref.text(citeText);
 };
 
-function refText(ref, tro, text) {
-    ref.text(text);
+function refText(ref, text) {
+    ref.html(text);
 }
 
 function refError(ref) {

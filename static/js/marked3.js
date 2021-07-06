@@ -608,8 +608,8 @@ class InlineLexer {
             // internal link
             if (cap = this.rules.ilink.exec(src)) {
                 src = src.substring(cap[0].length);
-                href = cap[1].split('|')[0];
-                text = cap[1].split('|')[1] || href;
+                [href, text] = cap[1].split('|');
+                text = text || '';
                 out += this.renderer.ilink(href, this.output(text));
             }
 
@@ -903,7 +903,7 @@ class DivRenderer {
     }
 
     ilink(href, text) {
-        return `<a class="reference pop_anchor" citekey="_ilink_" href="${href}" data-extern='true'>${text}</a>`;
+        return `<a class="reference pop_anchor" citekey="_ilink_" href="${href}" data-extern="true">${text}</a>`;
     }
 
     escape(esc) {

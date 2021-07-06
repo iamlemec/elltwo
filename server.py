@@ -611,7 +611,7 @@ def get_blurb(data):
     title = data['title']
     art = edb.get_art_short(title)
     if art:
-        return {'found': True, 'blurb': art.blurb}
+        return {'found': True, 'title': art.title, 'blurb': art.blurb}
     else:
         return {'found': False}
 
@@ -658,7 +658,7 @@ def get_cite(data):
 @view_decor
 def get_ref(data):
     art = edb.get_art_short(data['title'])
-    if art:
+    if art is not None:
         ref = edb.get_ref(data['key'], art.aid)
         title = art.title
         if ref:
@@ -685,7 +685,7 @@ def get_ref(data):
 def get_refs(data):
     title = data['title']
     art = edb.get_art_short(title)
-    if art:
+    if art is not None:
         refs = edb.get_refs(art.aid)
         return {'refs' : refs, 'title': title }
     else:
@@ -699,12 +699,17 @@ def get_arts(data):
 @socketio.on('update_ref')
 @edit_decor
 def update_ref(data):
-    edb.create_ref(**data)
+    key, aid, cite_type, cite_env, text, ref_text = (
+        data['key'], data['aid'], data['cite_type'],
+        data['cite_env'], data['text'], data['ref_text']
+    )
+    edb.create_ref(key, aid, cite_type, cite_env, text, ref_text)
 
 @socketio.on('update_g_ref')
 @edit_decor
 def update_g_ref(data):
-    edb.update_g_ref(data['aid'], data['g_ref'])
+    aid, g_ref = data['aid'], data['g_ref']
+    edb.update_g_ref(aid, g_ref)
     return data['g_ref']
 
 @socketio.on('delete_ref')

@@ -794,7 +794,7 @@ circle.commit.active {
     background-color: rgba(255, 255, 255, 0.4);
     z-index: 50;
     display: none;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 #help_inner {
@@ -819,6 +819,13 @@ circle.commit.active {
     height: 30px;
 }
 
+.help_cell {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3px 3px 3px 5px;
+}
+
 .help_empty {
 }
 
@@ -834,14 +841,7 @@ circle.commit.active {
     border-radius: 5px;
 }
 
-.key_cell {
-    padding: 3px 3px 3px 5px;
-}
-
 .key_combo {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
     width: 35%;
     text-align: center;
     background-color: var(--bg-hl2-col);
@@ -860,10 +860,6 @@ circle.commit.active {
     display: flex;
     border: 1px solid var(--font-col);
     border-radius: 5px;
-}
-
-.syntax_cell {
-    padding: 3px 3px 3px 5px;
 }
 
 .syntax_code {
@@ -971,7 +967,7 @@ circle.commit.active {
 #export_options {
     right: 30px;
 }
-    
+
 #help {
     font-size: 11px;
 }
