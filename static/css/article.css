@@ -216,24 +216,24 @@ button {
     font-style: italic;
 }
 
-.list-item:before{
+.list-item:before {
     content: "\2022\ ";
 }
 
-.list-item{
+.list-item {
    text-indent: 15px;
 }
 
-.list{
+.list {
     margin-top: 5px;
     margin-bottom: 5px;
 }
 
-.list.ordered{
+.list.ordered {
    counter-reset: olist;
 }
 
-.list.ordered > .list-item:before{
+.list.ordered > .list-item:before {
     counter-increment: olist;
     content: counter(olist)". ";
 }
@@ -250,11 +250,11 @@ button {
     font-weight: normal;
 }
 
-.theorem_name:before, .axiom_name:before{
+.theorem_name:before, .axiom_name:before {
     content: "(";
 }
 
-.theorem_name:after, .axiom_name:after{
+.theorem_name:after, .axiom_name:after {
     content: ")";
 }
 
@@ -283,6 +283,11 @@ button {
     position: relative;
     left: 10%;
     width: 80%;
+}
+
+.fig_cont > .img_err {
+    color: var(--hl2-col);
+    margin-left: 20px;
 }
 
 #pop > img {

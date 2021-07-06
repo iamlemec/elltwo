@@ -7,11 +7,11 @@ export {
     getFoldLevel, renderFold, braceMatch
 }
 
-import { cooks, getPara } from './utils.js'
+import { merge, cooks, getPara } from './utils.js'
 import {
     config, cache, state, updateConfig, updateCache, updateState
 } from './state.js'
-import { sendCommand, schedTimeout } from './client.js'
+import { sendCommand, schedTimeout, addDummy } from './client.js'
 import { renderKatex } from './math.js'
 import { markthree, replace, divInlineLexer } from './marked3.js'
 
@@ -74,18 +74,53 @@ function eventRender() {
 
 /// for external readonly viewing
 
-function initMarkdown(md) {
+let default_callbacks = {
+    'get_image': (data, ack) => {
+        console.log('dummy get_image:', data.key);
+        ack({found: false});
+    },
+    'get_blurb': (data, ack) => {
+        console.log('dummy get_blurb:', data.title);
+        ack({found: false});
+    },
+    'get_ref': (data, ack) => {
+        console.log('dummy get_ref:', data.title, data.key);
+        ack({cite_type: 'err', cite_err: 'art_not_found'});
+    },
+    'get_cite': (data, ack) => {
+        console.log('dummy get_cite:', data.keys);
+        ack([]);
+    },
+};
+
+function stateMarkdown() {
+    cache.img = {};
+}
+
+function initMarkdown(markdown) {
     let content = $('#content');
-    md.split(/\n{2,}/).forEach((raw, pid) => {
+    markdown.split(/\n{2,}/).forEach((raw, pid) => {
         let para = $('<div>', {class: 'para', pid: pid, raw: raw, fold_level: 0});
         content.append(para);
     });
 }
 
-function loadMarkdown(md) {
+function connectMarkdown(callbacks) {
+    for (const [cmd, cb] of Object.entries(callbacks)) {
+        addDummy(cmd, cb);
+    }
+}
+
+function loadMarkdown(data) {
     stateRender();
-    initMarkdown(md);
+    stateMarkdown();
+
+    let callbacks = merge(default_callbacks, data.callbacks ?? {});
+    connectMarkdown(callbacks);
+
+    initMarkdown(data.markdown ?? '');
     initRender();
+
     eventRender();
 }
 
@@ -487,21 +522,26 @@ function figEnv(ptxt, args) {
 function imgEnv(ptxt, args) {
     figEnv(ptxt, args);
 
-    var fig = ptxt.find('.fig_cont');
-    var img = $('<img>', {class: 'env_add'});
+    let fig = ptxt.find('.fig_cont');
+    let img = $('<img>', {class: 'env_add'});
     fig.append(img);
 
-    var key = ptxt.parent().attr('id');
+    let key = ptxt.parent().attr('id');
     if (key in cache.img) {
-        var url = cache.img[key];
+        let url = cache.img[key];
         img.attr('src', url);
     } else {
-        sendCommand('get_image', {'key': key}, (ret) => {
+        sendCommand('get_image', {key: key}, (ret) => {
             if (ret.found) {
                 const blob = new Blob([ret.data], {type: ret.mime});
-                var url = URL.createObjectURL(blob);
+                let url = URL.createObjectURL(blob);
                 cache.img[key] = url;
                 img.attr('src', url);
+            } else {
+                let msg = `Error: image "${key}" not found`;
+                let err = $('<span>', {class: 'img_err env_add', text: msg});
+                img.remove();
+                fig.append(err);
             }
         });
     }
@@ -609,8 +649,8 @@ function createRefs(para) {
     });
 
     if (citeKeys.size > 0) {
-        sendCommand('get_cite', {'keys': [...citeKeys]}, function(response) {
-            renderBibLocal(response);
+        sendCommand('get_cite', {'keys': [...citeKeys]}, function(ret) {
+            renderBibLocal(ret);
             renderCiteText(para);
         });
     } else {
@@ -633,25 +673,24 @@ function getTro(ref, callback) {
         tro.cite_type = 'self';
         callback(ref, tro, text);
     } else if (key == '_ilink_') {
-        sendCommand('get_blurb', ref.attr('href'), function(response) {
-            if (response) {
-                tro.tro = response;
+        let title = ref.attr('href');
+        sendCommand('get_blurb', {'title': title}, function(ret) {
+            if (ret.found) {
                 tro.cite_type = 'ilink';
+                tro.blurb_text = ret.blurb;
             } else {
-                tro.tro = '';
                 tro.cite_type = 'err';
-                tro.cite_err = 'not_found';
+                tro.cite_err = 'art_not_found';
             }
-            tro.cite_type = 'ilink';
             callback(ref, tro, text, true);
         });
     } else if (ref.data('extern')) {
         let [extern, citekey] = key.split(':');
         sendCommand('get_ref', {'title': extern, 'key': citekey}, function(data) {
-            //console.log(data.text)
             tro.tro = $($.parseHTML(data.text));
             tro.cite_type = data.cite_type;
             tro.cite_env = data.cite_env;
+            tro.cite_err = data.cite_err || '';
             text = text || data.ref_text || '';
             callback(ref, tro, text, data.title);
         });
@@ -665,7 +704,7 @@ function getTro(ref, callback) {
 function troFromKey(key, tro={}) {
     tro.id = key;
     tro.tro = $(`#${key}`); // the referenced object
-    if (tro.tro != undefined) {
+    if (tro.tro.length > 0) {
         if (tro.tro.hasClass('env_beg') || tro.tro.hasClass('env_one')) {
             if (tro.tro.hasClass('env_err')) {
                 tro.cite_type = 'err';
@@ -685,7 +724,7 @@ function troFromKey(key, tro={}) {
         }
     } else {
         tro.cite_type = 'err';
-        tro.cite_err = 'not_found';
+        tro.cite_err = 'ref_not_found';
     }
     return tro;
 }
@@ -725,7 +764,7 @@ function renderRef(ref, tro, text, ext) {
         } else if (tro.cite_env in s_env_spec) { //simple env
             refEnv(ref, tro.tro, s_env_spec[tro.cite_env].head, ext);
         } else {
-            ref_spec.error(ref);
+            ref_spec.error(ref, 'env');
         };
     } else if (tro.cite_type == 'cite') {
         ref_spec.cite(ref, tro.tro);
@@ -794,8 +833,15 @@ function refText(ref, tro, text) {
 }
 
 function refError(ref) {
-    let href = ref.attr('citekey') || '';
-    ref.html(`<span class="ref_error">@[${href}]</span>`);
+    let key = ref.attr('citekey');
+    let text;
+    if (key == '_ilink_') {
+        let href = ref.attr('href');
+        text = `[[${href}]]`;
+    } else {
+        text = `@[${key}]`;
+    }
+    ref.html(`<span class="ref_error">${text}</span>`);
 }
 
 function refSection(ref, tro, ext) {
@@ -916,10 +962,12 @@ function popText(tro) {
             let paras = $(tro.cite_sel);
             return popEnv(paras)
         } else {
-            return pop_spec.error('not_found');
+            return pop_spec.error('ref_not_found');
         }
     } else if (tro.cite_type == 'cite') {
         return pop_spec.cite(tro.tro);
+    } else if (tro.cite_type == 'ilink') {
+        return tro.blurb_text;
     } else if (tro.cite_type == 'err') {
         return pop_spec.error(tro.cite_err);
     }
@@ -929,23 +977,22 @@ function renderPop(ref, tro, text, ext) {
     if (!ref.data('show_pop')) { // we've since left with mouse
         return;
     }
-    let pop;
-    if (ext != undefined) {
-        pop = tro.tro;
-    } else {
-        pop = popText(tro);
-    };
-    let link = config.mobile ? ref.attr('href'): false;
+    let pop = popText(tro);
+    let link = config.mobile ? ref.attr('href') : false;
     createPop(ref, pop, link);
 }
 
-function popError(err='not_found') {
-    if (err == 'not_found') {
-        return "[Reference Not Found]";
-    } else if (err == 'env_err') {
-        return "[Referenced Environment Not Closed]";
+function popError(err) {
+    if (err == 'ref_not_found') {
+        return '[Reference Not Found]';
+    } else if (err == 'art_not_found') {
+        return '[Article Not Found]';
+    } else if (err == 'parse_error') {
+        return '[Referenced Environment Not Closed]';
+    } else if (err == 'unknown_type') {
+        return '[Unknown Reference Type]';
     } else {
-        return "[Error]";
+        return '[Error]';
     }
 }
 
