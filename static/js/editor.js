@@ -519,7 +519,7 @@ function pasteCells() {
     if (ccb && pid) {
         let data = {aid: config.aid, pid: pid, cb: ccb};
         sendCommand('paste_cells', data, function(response) {
-            console.log(response);
+            // console.log(response);
         });
     }
 }

@@ -14,7 +14,7 @@ import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
     envClasses, createTOC, getTro, troFromKey, popText, syntaxHL, cacheBib, deleteCite,
-    braceMatch, renderPop,
+    braceMatch,
 } from './render.js'
 import {
     initEditor, resize, makeActive, lockParas, unlockParas, sendMakeEditable,

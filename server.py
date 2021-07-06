@@ -607,12 +607,13 @@ def set_blurb(data):
     return True
 
 @socketio.on('get_blurb')
-def get_blurb(title):
+def get_blurb(data):
+    title = data['title']
     art = edb.get_art_short(title)
     if art:
-        return art.blurb
+        return {'found': True, 'blurb': art.blurb}
     else:
-        return False
+        return {'found': False}
 
 @socketio.on('set_title')
 def set_title(data):

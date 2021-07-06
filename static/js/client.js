@@ -1,9 +1,13 @@
-export { connect, addHandler, sendCommand, schedTimeout }
+export { connect, addHandler, addDummy, sendCommand, schedTimeout }
 
 import { config } from './state.js'
+import { noop } from './utils.js'
 
 // socketio connection
 let socket = null;
+
+// dummy callbacks
+let dummy = {};
 
 // timeout state
 let timeout_id = null;
@@ -42,6 +46,11 @@ function addHandler(signal, callback) {
     socket.on(signal, callback);
 }
 
+// for handling events in serverless mode
+function addDummy(cmd, callback) {
+    dummy[cmd] = callback;
+}
+
 function disconnect() {
     if (socket !== null) {
         socket.close();
@@ -49,12 +58,14 @@ function disconnect() {
     }
 }
 
-function sendCommand(cmd, data='', ack=function(){}) {
-    if (socket !== null) {
+function sendCommand(cmd, data='', ack=noop) {
+    if (cmd in dummy) {
+        dummy[cmd](data, ack);
+    } else if (socket !== null) {
         console.log(`sending: ${cmd}`);
         socket.emit(cmd, data, ack);
     } else {
-        console.log(`tried to send "${cmd}" without connection`);
+        console.log(`tried to send "${cmd}" without connection or dummy handler`);
     }
 }
 
