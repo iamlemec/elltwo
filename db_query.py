@@ -668,6 +668,7 @@ class ElltwoDB:
                 title = short_title.replace('_', ' ').title()
 
         art = self.create_article(title, short_title=short_title, init=False, time=time, g_ref=True, index=index)
+        print(art)
         aid = art.aid
 
         paras = re.sub(r'\n{3,}', '\n\n', mark).strip().split('\n\n')

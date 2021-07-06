@@ -120,7 +120,7 @@ a.reference {
 }
 
 #toggle_ll {
-   width: 100px;
+   width: 120px;
 }
 
 #title {
@@ -145,7 +145,7 @@ a.reference {
 #locallogin {
     display: none;
     position: absolute;
-    width: 30%;
+    width: 35%;
     bottom: 150%;
     left: 5%;
     background-color: var(--bg-hl2-col);
@@ -157,7 +157,7 @@ a.reference {
     width: 100%;
     min-height: 45px;
     margin-bottom: 10px;
-    font-size: 110%;
+    font-size: 100%;
 }
 
 .login-button {
@@ -291,6 +291,10 @@ a.reference {
     padding-left: 0%;
     padding-right: 0%;
     font-size: 80%;
+}
+    
+#locallogin {
+    width:90%;
 }
     
  #locallogin:after {

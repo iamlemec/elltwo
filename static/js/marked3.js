@@ -610,7 +610,7 @@ class InlineLexer {
                 src = src.substring(cap[0].length);
                 href = cap[1].split('|')[0];
                 text = cap[1].split('|')[1] || href;
-                out += this.renderer.ilink(href, text);
+                out += this.renderer.ilink(href, this.output(text));
             }
 
             // autolink
@@ -634,7 +634,7 @@ class InlineLexer {
                 src = src.substring(cap[0].length);
                 text = cap[1];
                 href = text;
-                out += this.renderer.link(href, null, text);
+                out += this.renderer.link(href, null, this.output(text));
                 continue;
             }
 

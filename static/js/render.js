@@ -559,6 +559,13 @@ function createNumbers(outer) {
         nums[counter] = nums[counter] || 0;
         nums[counter] += inc;
         num.text(nums[counter]);
+        if(counter.startsWith('heading') && inc){
+            let level = parseInt(counter.slice(7));
+            for (let l = level+1; l < 7; l++) {
+                let lvl = 'heading'+l
+                nums[lvl] = 0;
+            } 
+        }
     });
 }
 
@@ -567,7 +574,7 @@ function createTOC(outer) {
     toc.find('.toc_entry').remove();
     outer.find('.env__heading').not('.folder .env__heading').each(function() {
         let head = $(this).children('.p_text');
-        let level = outer.attr('head_level');
+        let level = $(this).attr('head_level');
         let text = head.text();
         let id = $(this).attr('id');
         let sec = id
@@ -616,6 +623,7 @@ function createRefs(para) {
 function getTro(ref, callback) {
     //var ref = $(this); // the reference (actually an 'a' tag)
     let text = ref.attr('text') || '';
+    text = divInlineLexer.output(text)
 
     let tro = {};
     let key = ref.attr('citekey');
@@ -626,7 +634,6 @@ function getTro(ref, callback) {
         callback(ref, tro, text);
     } else if (key == '_ilink_') {
         sendCommand('get_blurb', ref.attr('href'), function(response) {
-            console.log(response);
             if (response) {
                 tro.tro = response;
                 tro.cite_type = 'ilink';

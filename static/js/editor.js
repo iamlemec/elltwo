@@ -29,6 +29,13 @@ function eventEditor() {
         resize(this);
     });
 
+    window.onresize = () => {
+        if(state.editable){
+            let inp = state.active_para.children('.p_input');
+            resize(inp[0]);
+        }
+    };
+
     // keyboard interface
     $(document).keydown(function(e) {
         let key = e.key.toLowerCase();
@@ -293,7 +300,6 @@ function sendDeletePara(para) {
 /// para editable
 
 function placeCursor(loc) {
-    console.log('placeCursor:', loc);
     if (state.active_para && state.writeable) {
         let text = state.active_para.children('.p_input');
         text.focus();

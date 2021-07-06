@@ -212,13 +212,17 @@ button:hover {
   padding-left: 4px;
   padding-right: 4px;
   border-radius: 3px;
+}
 
+.para.active .code{
+   background-color: var(--brace-col);
 }
 
 .syn_code{
  background-color: var(--brace-col);
  border-radius: 3px;
 }
+
 
 .syn_err {
     background-color: var(--font-col);
@@ -400,6 +404,11 @@ a.result {
 
 button {
     background-color: var(--bg-col);
+}
+    
+.para {
+    left: 10% !important;
+    width: 80% !important;
 }
 
 }

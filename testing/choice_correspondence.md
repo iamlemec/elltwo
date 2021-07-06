@@ -17,7 +17,6 @@ There is a close connection between choice correspondences and [[preference_rela
 
 $$ [eq_rat] C(A) = \{ x \in A \mid x \s y, \forall y \in A \}
 
-
 << for all $A \in \C$.
 
 When $\s$ is represented by a [[utility_function|utility function]], $U: X\to\R$, then @[eq_rat] is equivalent to 

@@ -154,7 +154,7 @@
 }
 
 #title {
-    font-size: 300%;
+    font-size: 250%;
 }
 
 #query {
@@ -163,16 +163,16 @@
     left: 10%;
     top: 20%;
     width: 80%;
-    height: 7%;
+    height: 5%;
 }
 
 #submit {
     position: fixed;
     width: 20%;
     right: 10%;
-    height: 30px;
+    height: 25px;
     font-size: 110%;
-    top: 29%;
+    top: 27%;
     border-radius: 24px;
     border: 1px solid black;
     background-color: var(--bg-col);
@@ -182,8 +182,8 @@
 #full_text {
     position: fixed;
     right: 31%;
-    top: 29%;
-    height: 30px;
+    top: 27%;
+    height: 25px;
 }
 
 
@@ -196,10 +196,10 @@
 
 #results {
     position: fixed;
-    font-size: 110%;
+    font-size: 90%;
     width: 80%;
     left: 10%;
-    top: 35%;
+    top: 40%;
 }
 
 .blurb {
@@ -216,5 +216,34 @@
     padding: 15px;
     padding-top: 15px;
 }
+    
+   
+.toggle-track {
+	height: 25px;
+}
 
+.toggle-indicator {
+	border-radius: 21px;
+	bottom: 1px;
+	height: 21px;
+}
+
+}
+
+@media only screen and (max-width: 600px) and (max-device-width: 800px) {
+ #query:focus{
+  top: 20%;   
+}
+    
+#query:focus ~ #full_text, #query:focus ~ #submit  {
+    top: 30%
+}
+    
+#query:focus ~ #prompt  {
+    top:3%;
+}
+    
+#query:focus ~ #prompt > #title  {
+    font-size: 200%;
+}   
 }

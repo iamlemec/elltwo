@@ -481,7 +481,7 @@ button {
 
 #toc{
     height: auto;
-    padding-bottom: 25px;
+    padding-bottom: 45px;
     width: 100%;
 
 }
@@ -751,95 +751,6 @@ circle.commit.active {
     width: 19px;
 }
 
-/*  MOBILE CSS */
-
-@media only screen and (max-width: 1000px) {
-
-.para {
-    left: 12%;
-    width: 74%;
-    min-height: 30px;
-    margin-bottom: 20px;
-    padding-left: 5px;
-    padding-right: 5px;
-}
-
-#sidebar {
-    min-width: 250px;
-    width: 100%;
-    height: 100%;
-    padding: 5%;
-    z-index: 10;
-}
-
-.custom-select-wrapper {
-    right: 15%;
-}
-
-.control {
-    display: none;
-    position: fixed;
-    width: 100%;
-    height: 40px;
-    left: 0%;
-    top: unset;
-    bottom: 0;
-    text-align: right;
-    padding-right: 0;
-    z-index: 3;
-    background-color: var(--bg-hl2-col)
-}
-
-.control {
-    display: none;
-}
-
-#bg.writeable .para.active > .control {
-    display: block;
-}
-
-.controlButs {
-    padding-top: 5px;
-    display: flex;
-    width: 100%;
-    justify-content: center;
-}
-
-.controlButs > button {
-    display: inline-block;
-    width: unset;
-    height: 25px;
-    margin: 3px;
-    flex-basis: 10px;
-    flex-grow: 1;
-    border: 1px solid var(--delimit-col)
-}
-
-.control:hover .controlButs {
-    display: flex;
-}
-
-.controlDots {
-    display: none;
-}
-
-#pop {
-    padding: 10px;
-    position: absolute;
-    z-index: 20;
-    width:100%;
-    max-width: unset;
-    min-height: 60px;
-    left: 0;
-    bottom: 40px;
-    border-radius: 0;
-}
-
-#export_options {
-    right: 30px;
-}
-
-}
 
 /* tables */
 
@@ -878,7 +789,7 @@ circle.commit.active {
     background-color: rgba(255, 255, 255, 0.4);
     z-index: 50;
     display: none;
-    font-size: 16px;
+    font-size: 13px;
 }
 
 #help_inner {
@@ -966,4 +877,104 @@ circle.commit.active {
     width: 65%;
     border-top-right-radius: 5px;
     border-bottom-right-radius: 5px;
+}
+
+/*  MOBILE CSS */
+
+@media only screen and (max-width: 1000px) {
+
+.para {
+    left: 12%;
+    width: 74%;
+    min-height: 30px;
+    margin-bottom: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#sidebar {
+    min-width: 250px;
+    width: 100%;
+    height: 100%;
+    padding: 5%;
+    z-index: 10;
+}
+
+.custom-select-wrapper {
+    right: 15%;
+}
+
+.control {
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 40px;
+    left: 0%;
+    top: unset;
+    bottom: 0;
+    text-align: right;
+    padding-right: 0;
+    z-index: 3;
+    background-color: var(--bg-hl2-col)
+}
+
+.control {
+    display: none;
+}
+
+#bg.writeable .para.active > .control {
+    display: block;
+}
+
+.controlButs {
+    padding-top: 5px;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+
+.controlButs > button {
+    display: inline-block;
+    width: unset;
+    height: 25px;
+    margin: 3px;
+    flex-basis: 10px;
+    flex-grow: 1;
+    border: 1px solid var(--delimit-col)
+}
+
+.control:hover .controlButs {
+    display: flex;
+}
+
+.controlDots {
+    display: none;
+}
+
+#pop {
+    padding: 10px;
+    position: absolute;
+    z-index: 20;
+    width:100%;
+    max-width: unset;
+    min-height: 60px;
+    left: 0;
+    bottom: 40px;
+    border-radius: 0;
+}
+
+#export_options {
+    right: 30px;
+}
+    
+#help {
+    font-size: 11px;
+}
+
+.help_row {
+    width: 48%;
+    margin: 1px;
+    height: 22px;
+}
+
 }

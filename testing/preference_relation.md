@@ -38,7 +38,7 @@ The simplest representation theorem ensures the existence of a representation ov
 
 First, notice that @[transitivity:transitivity] ensures that if $x\s y$ then $\l(x) \supseteq \l(y)$. It follows immediately that if $x\s y$ then $\#(\l(x)) \geq \#(\l(y))$.
 
-<<  Towards the other direction, let $\#(\l(x)) \geq \#(\l(y))$. Now it cannot be that $y \succ x$, as this would imply $\l(y) \supsetneq \l(x)$, contradicting our assumption. Thus by @[completeness:completeness] we have that $x \s y$.
+<< Towards the other direction, let $\#(\l(x)) \geq \#(\l(y))$. Now it cannot be that $y \succ x$, as this would imply $\l(y) \supsetneq \l(x)$, contradicting our assumption. Thus by @[completeness:completeness] we have that $x \s y$.
 
 When $X$ is countable, @[thm_rep] still holds, although the proof must be altered slightly. Instead of associating the cardinality of the lower contour set, we must first order the elements of $X$ by the natural numbers $o: X \to \mathbb{N}$, and then take some convergent series as our utilities. For instance
 
