@@ -76,12 +76,20 @@ function eventRender() {
 
 let default_callbacks = {
     'get_image': (data, ack) => {
-        console.log('dummy image:', data.key);
+        console.log('dummy get_image:', data.key);
         ack({found: false});
     },
     'get_blurb': (data, ack) => {
-        console.log('dummy blurb:', data.title);
+        console.log('dummy get_blurb:', data.title);
         ack({found: false});
+    },
+    'get_ref': (data, ack) => {
+        console.log('dummy get_ref:', data.title, data.key);
+        ack({cite_type: 'err', cite_err: 'art_not_found'});
+    },
+    'get_cite': (data, ack) => {
+        console.log('dummy get_cite:', data.keys);
+        ack([]);
     },
 };
 
@@ -634,8 +642,8 @@ function createRefs(para) {
     });
 
     if (citeKeys.size > 0) {
-        sendCommand('get_cite', {'keys': [...citeKeys]}, function(response) {
-            renderBibLocal(response);
+        sendCommand('get_cite', {'keys': [...citeKeys]}, function(ret) {
+            renderBibLocal(ret);
             renderCiteText(para);
         });
     } else {
@@ -671,10 +679,10 @@ function getTro(ref, callback) {
     } else if (ref.data('extern')) {
         let [extern, citekey] = key.split(':');
         sendCommand('get_ref', {'title': extern, 'key': citekey}, function(data) {
-            //console.log(data.text)
             tro.tro = $($.parseHTML(data.text));
             tro.cite_type = data.cite_type;
             tro.cite_env = data.cite_env;
+            tro.cite_err = data.cite_err || '';
             text = text || data.ref_text || '';
             callback(ref, tro, text, data.title);
         });
@@ -753,7 +761,7 @@ function renderRef(ref, tro, text, ext) {
     } else if (tro.cite_type == 'cite') {
         ref_spec.cite(ref, tro.tro);
     } else if (tro.cite_type == 'err') {
-        ref_spec.error(ref, tro.cite_err);
+        ref_spec.error(ref);
     }
 }
 
@@ -816,14 +824,16 @@ function refText(ref, tro, text) {
     ref.text(text);
 }
 
-function refError(ref, err) {
-    if (err == 'art_not_found') {
-        let title = ref.attr('href') || '';
-        ref.html(`<span class="ref_error">[[${title}]]</span>`);
+function refError(ref) {
+    let key = ref.attr('citekey');
+    let text;
+    if (key == '_ilink_') {
+        let href = ref.attr('href');
+        text = `[[${href}]]`;
     } else {
-        let href = ref.attr('citekey') || '';
-        ref.html(`<span class="ref_error">@[${href}]</span>`);
+        text = `@[${key}]`;
     }
+    ref.html(`<span class="ref_error">${text}</span>`);
 }
 
 function refSection(ref, tro, ext) {

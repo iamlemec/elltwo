@@ -647,8 +647,8 @@ def get_bib(data):
 @socketio.on('get_cite')
 @view_decor
 def get_cite(data):
-    bib = edb.get_bib_dict(keys=data['keys'])
-    return bib
+    keys = data['keys']
+    return edb.get_bib_dict(keys=keys)
 
 ###
 ### external references
@@ -670,9 +670,15 @@ def get_ref(data):
                 'title': title
             }
         else:
-            return {'text': "ref not found", 'cite_type': 'err'}
+            return {
+                'cite_type': 'err',
+                'cite_err': 'ref_not_found'
+            }
     else:
-        return {'text': "art not found", 'cite_type': 'err'}
+        return {
+            'cite_type': 'err',
+            'cite_err': 'art_not_found'
+        }
 
 @socketio.on('get_refs')
 @view_decor

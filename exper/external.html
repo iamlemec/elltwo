@@ -41,19 +41,14 @@ See @[test] for more info
 !svg [id=box|caption=It's a box|width=100]
 <rect x="10" y="10" width="80" height="80" stroke="grey" stroke-width="0.5" fill="rgba(255,0,0,0.5)" />
 
-See the box at @[box]. Also [[other]].
+See the box at @[box1]. Also [[other]] and @[test:world].
 
 I am the MEC
 `.trim();
 
 loadMarkdown({
     markdown: md,
-    callbacks: {
-        get_image: (data, ack) => {
-            console.log('hi', data.key);
-            ack({found: false});
-        },
-    },
+    callbacks: {},
 });
 </script>
 
