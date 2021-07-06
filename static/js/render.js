@@ -753,7 +753,7 @@ function renderRef(ref, tro, text, ext) {
     } else if (tro.cite_type == 'env') {
         if (tro.cite_env in ref_spec) {
             ref_spec[tro.cite_env](ref, tro.tro, ext=ext);
-        } else if (tro.cite_env in s_env_spec) { //simple env
+        } else if (tro.cite_env in s_env_spec) { // simple env
             refEnv(ref, tro.tro, s_env_spec[tro.cite_env].head, ext);
         } else {
             ref_spec.error(ref, 'env');
@@ -943,16 +943,18 @@ function createPop(ref, html='', link=false) {
 }
 
 // generates pop text from tro (only for internal refs)
-function popText(tro) {
+function popText(tro, ext) {
     if (tro.cite_type == 'self') {
         return pop_spec.self(tro.tro);
     } else if (tro.cite_type == 'env') {
+        if (ext !== undefined) {
+            return tro.tro;
+        }
+        let paras = $(tro.cite_sel);
         if (tro.cite_env in pop_spec) {
-            let paras = $(tro.cite_sel);
             return pop_spec[tro.cite_env](paras);
-        } else if (tro.cite_env in s_env_spec) { //simple env
-            let paras = $(tro.cite_sel);
-            return popEnv(paras)
+        } else if (tro.cite_env in s_env_spec) { // simple env
+            return popEnv(paras);
         } else {
             return pop_spec.error('ref_not_found');
         }
@@ -969,7 +971,7 @@ function renderPop(ref, tro, text, ext) {
     if (!ref.data('show_pop')) { // we've since left with mouse
         return;
     }
-    let pop = popText(tro);
+    let pop = popText(tro, ext);
     let link = config.mobile ? ref.attr('href') : false;
     createPop(ref, pop, link);
 }
