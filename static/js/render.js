@@ -661,8 +661,6 @@ function createRefs(para) {
 }
 
 function getTro(ref, callback) {
-    let text = ref.html() || '';
-
     let tro = {};
     let key = ref.attr('citekey');
 
@@ -676,27 +674,27 @@ function getTro(ref, callback) {
             if (ret.found) {
                 tro.cite_type = 'ilink';
                 tro.blurb_text = ret.blurb;
-                tro.art_title = ret.title;
+                tro.ref_text = ret.title;
             } else {
                 tro.cite_type = 'err';
                 tro.cite_err = 'art_not_found';
+                tro.ref_text = `[[${title}]]`;
             }
-            callback(ref, tro, text, true);
+            callback(ref, tro, ret.title);
         });
     } else if (ref.data('extern')) {
         let [extern, citekey] = key.split(':');
-        sendCommand('get_ref', {'title': extern, 'key': citekey}, function(data) {
-            tro.tro = $($.parseHTML(data.text));
-            tro.cite_type = data.cite_type;
-            tro.cite_env = data.cite_env;
-            tro.cite_err = data.cite_err || '';
-            text = text || data.ref_text || '';
-            callback(ref, tro, text, data.title);
+        sendCommand('get_ref', {'title': extern, 'key': citekey}, function(ret) {
+            tro.tro = $($.parseHTML(ret.text));
+            tro.cite_type = ret.cite_type;
+            tro.cite_env = ret.cite_env;
+            tro.cite_err = ret.cite_err;
+            tro.ref_text = ret.ref_text;
+            callback(ref, tro, ret.title);
         });
     } else {
         tro = troFromKey(key, tro);
-        text = text || tro.ref_text || '';
-        callback(ref, tro, text);
+        callback(ref, tro);
     }
 }
 
@@ -752,96 +750,107 @@ function renderCiteText(para) {
 }
 
 // routing is split due to aysc of sever commands
-function renderRef(ref, tro, text, ext) {
-    if (text.length > 0) {
-        ref_spec.text(ref, text);
-    } else if (tro.cite_type == 'self') {
+function renderRef(ref, tro, ext) {
+    if (tro.cite_type == 'self') {
         ref_spec.self(ref);
     } else if (tro.cite_type == 'env') {
         if (tro.cite_env in ref_spec) {
-            ref_spec[tro.cite_env](ref, tro.tro, ext=ext);
+            ref_spec[tro.cite_env](ref, tro, ext);
         } else if (tro.cite_env in s_env_spec) { // simple env
-            refEnv(ref, tro.tro, s_env_spec[tro.cite_env].head, ext);
+            refEnv(ref, tro, s_env_spec[tro.cite_env].head, ext);
         } else {
             ref_spec.error(ref, 'env');
         };
     } else if (tro.cite_type == 'cite') {
-        ref_spec.cite(ref, tro.tro);
+        ref_spec.cite(ref, tro);
     } else if (tro.cite_type == 'ilink') {
-        ref_spec.text(ref, tro.art_title);
+        ref_spec.text(ref, tro);
     } else if (tro.cite_type == 'err') {
-        ref_spec.error(ref);
+        ref_spec.error(ref, tro);
     }
 }
 
 function refCite(ref, tro) {
-    let authors = tro.attr('authors').split(',');
-    let year = tro.attr('year');
-    let format = ref.attr('format') || '';
-    let href = '#' + tro.attr('id');
-
+    let text = ref.data('text');
     let citeText;
-    if (authors.length == 2) {
-        citeText = `${authors[0]} and ${authors[1]}`;
-    } else if (authors.length < 2) {
-        citeText = authors[0];
+
+    if (text) {
+        citeText = text;
     } else {
-        citeText = `${authors[0]} et al.`;
+        let format = ref.attr('format') || '';
+        let authors = tro.tro.attr('authors').split(',');
+        let year = tro.tro.attr('year');
+        let href = '#' + tro.tro.attr('id');
+
+        if (authors.length == 2) {
+            citeText = `${authors[0]} and ${authors[1]}`;
+        } else if (authors.length < 2) {
+            citeText = authors[0];
+        } else {
+            citeText = `${authors[0]} et al.`;
+        }
+
+        if (format == 'p') {
+            citeText = `(${citeText}, ${year})`;
+        } else {
+            citeText += ` (${year})`;
+        }
     }
 
-    if (format == 'p') {
-        citeText = `(${citeText}, ${year})`;
-    } else {
-        citeText += ` (${year})`;
-    }
-
-    ref.text(citeText);
+    ref.html(citeText);
     ref.attr('href', '');
 }
 
 function refEquation(ref, tro, ext) {
-    let num = tro.find('.num')[0];
-    let text = $(num).text();
-    let citebox = $('<span>', {class: 'eqn_cite', text: text});
-    ref.empty();
-    ref.append(citebox);
-    if (ext) {
-        let txt = $('<span>', {class: 'eqn_cite_ext', text: `[${ext}]`});
-        ref.append(txt);
-    }}
+    let num = tro.tro.find('.num').first().text();
+    let citebox = $('<span>', {class: 'eqn_cite', text: num});
+    let text = ref.data('text');
+
+    if (text) {
+        ref.html(text);
+    } else {
+        ref.empty();
+        ref.append(citebox);
+        if (ext) {
+            let txt = $('<span>', {class: 'eqn_cite_ext', text: `[${ext}]`});
+            ref.append(txt);
+        }
+    }
+}
 
 function refEnv(ref, tro, env, ext) {
     let format = ref.attr('format') || '';
-    let num = tro.find('.num')[0];
-    let text = $(num).text();
+    let num = tro.tro.find('.num').first().text();
+    let text = ref.data('text');
 
     let citeText;
-    if (format == 'plain') {
+    if (text) {
         citeText = text;
+    } else if (tro.ref_text) {
+        citeText = tro.ref_text;
+    } else if (format == 'plain') {
+        citeText = num;
     } else {
-        citeText = `${env} ${text}`;
+        citeText = `${env} ${num}`;
     }
 
-    if (ext) {
-        citeText += ` [${ext}]`
+    if (ext && !text) {
+        citeText += ` [${ext}]`;
     }
 
-    ref.text(citeText);
+    ref.html(citeText);
 };
 
-function refText(ref, text) {
+function refText(ref, tro) {
+    let text = ref.data('text') || tro.ref_text || '';
     ref.html(text);
 }
 
-function refError(ref) {
+function refError(ref, tro) {
     let key = ref.attr('citekey');
-    let text;
-    if (key == '_ilink_') {
-        let href = ref.attr('href');
-        text = `[[${href}]]`;
-    } else {
-        text = `@[${key}]`;
-    }
+    let href = ref.attr('href');
+    let targ = (key == '_ilink_') ? `[[${href}]]`: `@[${key}]`;
+    let text = ref.data('text') || tro.ref_text || targ;
     ref.html(`<span class="ref_error">${text}</span>`);
 }
 
@@ -854,8 +863,8 @@ function refFigure(ref, tro, ext) {
 }
 
 function refSelf(ref) {
-    let text = ref.attr('text');
-    ref.text(text);
+    let text = ref.data('text');
+    ref.html(text);
 }
 
 let ref_spec = {
@@ -976,7 +985,7 @@ function popText(tro, ext) {
     }
 }
 
-function renderPop(ref, tro, text, ext) {
+function renderPop(ref, tro, ext) {
     if (!ref.data('show_pop')) { // we've since left with mouse
         return;
     }

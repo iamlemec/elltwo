@@ -904,7 +904,8 @@ class DivRenderer {
     }
 
     ilink(href, text) {
-        return `<a class="reference pop_anchor" citekey="_ilink_" href="${href}" data-extern="true">${text}</a>`;
+        const dtext = text ? ` data-text="${escape(text)}"` : '';
+        return `<a class="reference pop_anchor" citekey="_ilink_" href="${href}" ${dtext} data-extern="true"></a>`;
     }
 
     escape(esc) {
@@ -932,8 +933,9 @@ class DivRenderer {
         const format = args['format'] || args['fmt'] || args['f'] || '';
         const pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
         const [art, key] = id.split(':');
-        const href = (ext) ? `${window.location.origin}/a/${art}\#${key}` : `\#${id}`;
-        return `<a href="${href}" class="reference ${pclass}" citekey="${id}" data-extern="${ext}" format="${format}">${text}</a>`;
+        const dtext = text ? ` data-text="${escape(text)}"` : '';
+        const href = ext ? `${window.location.origin}/a/${art}\#${key}` : `\#${id}`;
+        return `<a href="${href}" class="reference ${pclass}" citekey="${id}" data-extern="${ext}" format="${format}" ${dtext}></a>`;
     }
 
     footnote(text) {
