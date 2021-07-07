@@ -695,7 +695,7 @@ function getTro(ref, callback) {
         });
     } else {
         tro = troFromKey(key, tro);
-        text = text || tro.tro.attr('ref_text') || '';
+        text = text || tro.ref_text || '';
         callback(ref, tro, text);
     }
 }
