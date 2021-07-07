@@ -1089,9 +1089,11 @@ class TexRenderer {
         return `\\bigskip`;
     }
 
-    // del(text) {
-    //   return `<span class="del">${text}</span>`;
-    // }
+    /*
+    del(text) {
+      return `<span class="del">${text}</span>`;
+    }
+    */
 
     link(href, title, text) {
         if (this.options.sanitize) {
@@ -1161,15 +1163,17 @@ class TexRenderer {
         return `\\footnote{${text}}`;
     }
 
-    // image(href, alt) {
-    //   return `<img src="${href}" alt="${alt}">`;
-    // }
+    /*
+    image(href, alt) {
+      return `<img src="${href}" alt="${alt}">`;
+    }
 
-    // figure(ftype, tag, title, body) {
-    //   let tagtxt = (tag != undefined) ? `id="${tag}"`: '';
-    //   let captxt = (title != undefined) ? `<figcaption>${title}</figcaption>` : '';
-    //   return `<figure class="${ftype}" ${tagtxt}>\n${body}\n${captxt}\n</figure>\n\n`;
-    // }
+    figure(ftype, tag, title, body) {
+      let tagtxt = (tag != undefined) ? `id="${tag}"`: '';
+      let captxt = (title != undefined) ? `<figcaption>${title}</figcaption>` : '';
+      return `<figure class="${ftype}" ${tagtxt}>\n${body}\n${captxt}\n</figure>\n\n`;
+    }
+    */
 }
 
 /**

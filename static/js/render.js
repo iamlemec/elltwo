@@ -43,7 +43,7 @@ function eventRender() {
             $('#pop').remove();
             let ref = $(this);
             ref.data('show_pop', true);
-            let html = getTro(ref, renderPop);
+            let html = getTro(ref, renderPop, 'pop');
             return false;
         });
 
@@ -60,7 +60,7 @@ function eventRender() {
             mouseenter: function() {
                 let ref = $(this);
                 ref.data('show_pop', true);
-                let html = getTro(ref, renderPop);
+                let html = getTro(ref, renderPop, 'pop');
             },
             mouseleave: function() {
                 let ref = $(this);
@@ -79,8 +79,8 @@ let default_callbacks = {
         console.log('dummy get_image:', data.key);
         ack({found: false});
     },
-    get_blurb: (data, ack) => {
-        console.log('dummy get_blurb:', data.title);
+    get_link: (data, ack) => {
+        console.log('dummy get_link:', data.title, data.blurb);
         ack({found: false});
     },
     get_ref: (data, ack) => {
@@ -655,16 +655,16 @@ function createRefs(para) {
     if (citeKeys.size > 0) {
         sendCommand('get_cite', {'keys': [...citeKeys]}, function(ret) {
             renderBibLocal(ret);
-            renderCiteText(para);
+            renderRefText(para);
         });
     } else {
-        renderCiteText(para);
+        renderRefText(para);
     }
 
     // renderedCites = citeKeys;
 }
 
-function getTro(ref, callback) {
+function getTro(ref, callback, mode) {
     let tro = {};
     let key = ref.attr('citekey');
 
@@ -674,7 +674,9 @@ function getTro(ref, callback) {
         callback(ref, tro);
     } else if (key == '_ilink_') {
         let title = ref.attr('href');
-        sendCommand('get_blurb', {'title': title}, function(ret) {
+        let blurb = mode == 'pop';
+        let data = {title: title, blurb: blurb};
+        sendCommand('get_link', data, function(ret) {
             if (ret.found) {
                 tro.cite_type = 'ilink';
                 tro.pop_text = ret.blurb;
@@ -688,7 +690,8 @@ function getTro(ref, callback) {
         });
     } else if (ref.data('extern')) {
         let [extern, citekey] = key.split(':');
-        sendCommand('get_ref', {'title': extern, 'key': citekey}, function(ret) {
+        let data = {title: extern, key: citekey};
+        sendCommand('get_ref', data, function(ret) {
             tro.tro = $($.parseHTML(ret.text));
             tro.cite_type = ret.cite_type;
             tro.cite_env = ret.cite_env;
@@ -730,7 +733,7 @@ function troFromKey(key, tro={}) {
     return tro;
 }
 
-function renderCiteText(para) {
+function renderRefText(para) {
     let refs;
     if (para == undefined) {
         refs = $('.reference');
@@ -740,7 +743,7 @@ function renderCiteText(para) {
 
     refs.each(function() {
         var r = $(this);
-        getTro(r, renderRef);
+        getTro(r, renderRef, 'ref');
     });
 }
 

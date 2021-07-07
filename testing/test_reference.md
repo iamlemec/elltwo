@@ -13,9 +13,9 @@ Hello world named!
 
 # Article
 
-[[howto]]
+[[test_reference]]
 
-[[howto|The **Article**]]
+[[test_reference|The **Article**]]
 
 [[unknown]]
 
@@ -45,7 +45,7 @@ Hello world named!
 
 # External
 
-@[howto:eq_geo]
+@[test_reference:equation]
 
 @[test_reference:hello]
 
@@ -53,7 +53,7 @@ Hello world named!
 
 ## Renamed
 
-@[howto:eq_geo|text=The **Equation**]
+@[test_reference:eq_geo|text=The **Equation**]
 
 @[test_reference:hello|text=The **Theorem**]
 
@@ -61,7 +61,7 @@ Hello world named!
 
 ## Error
 
-@[howto:unknown]
+@[test_reference:unknown]
 
 @[known:unknown]
 

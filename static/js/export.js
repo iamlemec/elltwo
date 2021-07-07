@@ -124,7 +124,7 @@ function texEquation(src, env) {
     let label = (args.id) ? `\\label{${args.id}}` : '';
     let num = (args.number) ? '' : '*';
     let eqenv = args.multiline ? 'align' : 'equation';
-    let out = `\\begin{${eqenv}${num}}\n${src}\n${label}\n\\end{${eqenv}${num}}`;
+    let out = `\\begin{${eqenv}${num}}\n${src}\n${label}\\end{${eqenv}${num}}`;
     return out;
 }
 
