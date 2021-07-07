@@ -667,7 +667,7 @@ function getTro(ref, callback) {
     if (key == '_self_') {
         tro.tro = ref;
         tro.cite_type = 'self';
-        callback(ref, tro, text);
+        callback(ref, tro);
     } else if (key == '_ilink_') {
         let title = ref.attr('href');
         sendCommand('get_blurb', {'title': title}, function(ret) {

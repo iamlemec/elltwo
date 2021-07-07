@@ -76,3 +76,7 @@ Hello world named!
 @[somejoker2005]
 
 @[somejoker2005|text=The **Citation**]
+
+# Footnotes
+
+Yep ^[Hello **world**!]. Hello!
