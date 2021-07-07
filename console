@@ -45,6 +45,12 @@ def bib_summary(bib, full=False, time=False):
         summ_text = f' {bib.author} ({bib.year})'
     return f'{bib.citekey}{time_text}:{summ_text}'
 
+def ref_summary(ref, time=False):
+    if time:
+        return f'{ref.key}/{ref.cite_env} ({ref.aid}) [{ref.create_time} → {ref.delete_time}]: {ref.ref_text}'
+    else:
+        return f'{ref.key}/{ref.cite_env} ({ref.aid}): {ref.ref_text}'
+
 def art_find(edb, aid=None, title=None, all=False):
     if aid is not None:
         art = edb.get_art(aid, all=all)
@@ -240,6 +246,14 @@ class Biblio:
         bib, = self.edb.get_bib([key], all=all)
         print(bib_summary(bib, full=True, time=all))
 
+class Reference:
+    def __init__(self, edb, all=False):
+        self.edb = edb
+
+    def list(self, aid=None, all=False):
+        for r in self.edb.get_all_refs(aid=aid, all=all):
+            print(ref_summary(r, time=all))
+
 class Backup:
     def __init__(self, edb):
         self.edb = edb
@@ -271,6 +285,7 @@ class Main:
         self.image = self.img = Image(edb=edb)
         self.index = self.idx = Index(edb=edb)
         self.biblio = self.bib = Biblio(edb=edb)
+        self.reference = self.ref = Reference(edb=edb)
         self.backup = Backup(edb=edb)
 
 if __name__ == '__main__':

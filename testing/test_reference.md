@@ -8,7 +8,7 @@ $$ [equation] \exp(\alpha)
 >>! theorem [hello]
 Hello world!
 
->>! theorem [hello_named|name=ref_text=Hello Theorem]
+>>! theorem [hello_named|name=rt=Hello Theorem]
 Hello world named!
 
 # Article
@@ -49,7 +49,7 @@ Hello world named!
 
 @[test_reference:hello]
 
-@[howto:thm_BC]
+@[test_reference:hello_named]
 
 ## Renamed
 
@@ -57,7 +57,7 @@ Hello world named!
 
 @[test_reference:hello|text=The **Theorem**]
 
-@[howto:thm_BC|text=The **Theorem**]
+@[test_reference:hello_named|text=The **Theorem**]
 
 ## Error
 

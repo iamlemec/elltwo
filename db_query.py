@@ -752,12 +752,21 @@ class ElltwoDB:
     ## exteral references
     ##
 
+    def get_all_refs(self, aid=None, time=None, all=False):
+        if time is None:
+            time = datetime.utcnow()
+        query = self.session.query(ExtRef)
+        if aid is not None:
+            query = query.filter_by(aid=aid)
+        if not all:
+            query = query.filter(reftime(time))
+        return query.all()
+
     def get_refs(self, aid, time=None):
         if time is None:
             time = datetime.utcnow()
-        query = self.session.query(ExtRef).filter_by(aid=aid).filter(reftime(time)).all()
-        return [r.key for r in query]
-
+        query = self.session.query(ExtRef).filter_by(aid=aid).filter(reftime(time))
+        return [r.key for r in query.all()]
 
     def get_ref(self, key, aid, time=None):
         if time is None:
