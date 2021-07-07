@@ -31,7 +31,7 @@ Hello world named!
 
 ## Renamed
 
-@[equation|name=The **Equation**] — not working (should be renamed)
+@[equation|text=The **Equation**]
 
 @[svg_figure|text=The **Figure**]
 
@@ -49,13 +49,13 @@ Hello world named!
 
 @[test_reference:hello]
 
-@[howto:thm_BC] — should have source article?
+@[howto:thm_BC]
 
 ## Renamed
 
 @[howto:eq_geo|text=The **Equation**]
 
-@[test_reference:hello|name=The **Theorem**] — not working (should be renamed)
+@[test_reference:hello|text=The **Theorem**]
 
 @[howto:thm_BC|text=The **Theorem**]
 
@@ -65,7 +65,7 @@ Hello world named!
 
 @[known:unknown]
 
-@[known:unknown|name=The **Entity**] — not working (should be renamed)
+@[known:unknown|text=The **Entity**]
 
 # Citations
 
@@ -75,4 +75,4 @@ Hello world named!
 
 @[somejoker2005]
 
-@[somejoker2005|name=The **Citation**] — not working (should be renamed)
+@[somejoker2005|text=The **Citation**]
