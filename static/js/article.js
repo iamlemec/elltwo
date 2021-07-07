@@ -436,22 +436,27 @@ function updateRefHTML(para) {
     }
 }
 
-function getBlurb(len=200) {
+function getBlurb(len=200, max=5) {
     let blurb = '';
     let size = 0;
+    let npar = 0;
     $('.para').not('.folder').each(function() {
         let para = $(this);
         let ptxt = para.children('.p_text').clone();
         let core = ptxt.find('.katex-mathml, .eqnum, img, svg').remove().end()
                        .removeClass('p_text');
 
+        let text = core.text();
+        if (text.trim().length == 0) {
+            return true;
+        }
+
         let html = core[0].outerHTML;
         blurb += html + ' ';
-
-        let text = core.text();
         size += text.length;
+        npar += 1;
 
-        if (size > len) {
+        if (size > len || npar > max) {
             blurb += '...';
             return false;
         }

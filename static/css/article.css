@@ -408,7 +408,6 @@ button {
 
 /* popup overrides */
 
-
 #pop .eqnum {
     display: none;
 }
@@ -419,10 +418,29 @@ button {
     margin-bottom: 10px;
 }
 
+#pop.blurb_pop .title {
+    margin-bottom: 5px;
+}
+
+#pop.blurb_pop > div {
+    padding: 5px 0;
+}
+
+#pop.blurb_pop .fig_cont {
+    padding: 0;
+}
+
+#pop.blurb_pop .fig_cap {
+    padding: 0;
+}
+
+#pop.blurb_pop .katex-display {
+    margin: 0;
+}
+
 #pop .env__heading_h1 {
     font-size: 20px;
 }
-
 
 /* sidebar */
 
