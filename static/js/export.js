@@ -3,7 +3,7 @@
 export { initExport, exportMarkdown, exportLatex }
 
 import { initToggleBox } from './utils.js'
-import { config, state } from './state.js'
+import { config, state, cache } from './state.js'
 import { markthree } from './marked3.js'
 import { s_env_spec } from './render.js'
 import { latexTemplate } from './template.js'
@@ -18,9 +18,9 @@ function createMd() {
     });
 
     let dict = {
-        'format': 'text/markdown',
-        'filename': `${config.title}.md`,
-        'text': paras.join('\n\n'),
+        format: 'text/markdown',
+        filename: `${config.title}.md`,
+        text: paras.join('\n\n'),
     };
     return dict;
 }
@@ -46,29 +46,28 @@ function createTex() {
         paras.push(tex);
     });
 
-
     let tVars = {
-        'title': title,
-        'macros': texMacros(state.macros),
-        'envs': sEnv(s_env_spec),
-        'bib': Object.values(bib).join('\n'),
-        'body': paras.join('\n\n'),
+        title: title,
+        macros: texMacros(state.macros),
+        envs: sEnv(s_env_spec),
+        bib: Object.values(bib).join('\n'),
+        body: paras.join('\n\n'),
     };
     let text = latexTemplate(tVars);
 
     let dict = {
-        'mimetype': 'text/tex',
-        'filename': `${config.title}.tex`,
-        'text': text,
+        mimetype: 'text/tex',
+        filename: `${config.title}.tex`,
+        text: text,
     }
     return dict;
 }
 
 function getBibRefs() {
-    var bib = Object.fromEntries(
-        //non-null cache entries
+    // non-null cache entries
+    let bib = Object.fromEntries(
         Object.entries(cache.bib).filter(([k,v]) => v)
-        );
+    );
     return bib;
 }
 
@@ -81,6 +80,7 @@ function replaceCites(keys, text) {
             return m;
         };
     });
+
     let ex_ref = /\<\!\!\<([\w\-\_\:]+)\>\!\!\>/g;
     text = text.replaceAll(ex_ref, function(m, p1) {
         return $(`[citekey='${p1}']`).first().text();
@@ -148,33 +148,32 @@ function texEndEnv(src, env) {
     if (env !== null) {
         return `${src} \n \\end{${env}}`;
     } else {
-        return `\\hl{ERROR} no enviorment to end`;
+        return `\\hl{ERROR} no environment to end`;
     }
 }
 
 function texError(src, env) {
-    return `\\hl{ERROR} enviorment \`${env.env}' not defined`;
+    return `\\hl{ERROR} environment \`${env.env}' not defined`;
 }
 
 let tex_spec = {
-    'theorem': texTheorem,
-    'heading': texSection,
-    'equation': texEquation,
-    'error': texError,
-    'title': texTitle,
-    'end': texEndEnv,
+    theorem: texTheorem,
+    heading: texSection,
+    equation: texEquation,
+    error: texError,
+    title: texTitle,
+    end: texEndEnv,
 };
 
 function texMacros(macros_dict) {
     let macout = '';
     for (const [key, value] of Object.entries(macros_dict)) {
         const num = (value.match(/(?<!\\)\#[0-9]+/g)||[]).length;
-        //const box = num ? `[${num}]` : "";
-        let argnum = ""
+        let argnum = '';
         for (const x of Array(num).keys()) {
             argnum += `#${x+1}`;
         }
-        macout += `\\def${key}${argnum}{${value}} \n`;
+        macout += `\\def${key}${argnum}{${value}}\n`;
     }
     return macout;
 }
@@ -182,7 +181,7 @@ function texMacros(macros_dict) {
 function sEnv(s_env_spec) {
     let envout = '';
     for (const [key, value] of Object.entries(s_env_spec)) {
-        if (key!='proof') {
+        if (key != 'proof') {
             let nonum = `\\newtheorem{${key}}{${value.head}}`;
             let num = `\\newtheorem*{${key}*}{${value.head}}`;
             envout += `${num}\n${nonum}\n`;

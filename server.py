@@ -701,7 +701,7 @@ def get_arts(data):
 def update_ref(data):
     key, aid, cite_type, cite_env, text, ref_text = (
         data['key'], data['aid'], data['cite_type'],
-        data['cite_env'], data['text'], data['ref_text']
+        data['cite_env'], data['text'], data.get('ref_text')
     )
     edb.create_ref(key, aid, cite_type, cite_env, text, ref_text)
 
