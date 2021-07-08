@@ -4,7 +4,7 @@ export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
     rawToTextarea, envClasses, createRefs, createTOC, getTro, troFromKey,
     popText, renderPop, syntaxHL, cacheBib, deleteCite, s_env_spec,
-    getFoldLevel, renderFold, braceMatch
+    getFoldLevel, renderFold, braceMatch, makePara
 }
 
 import { merge, cooks, getPara } from './utils.js'

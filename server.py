@@ -165,6 +165,12 @@ def Demo():
     edb.import_markdown(art_name, demo_mark)
     return redirect(url_for('RenderArticle', title=art_name))
 
+@app.route('/index')
+@view_decor
+def Index():
+    style = getStyle(request)
+    return render_template('index.html', **style, **HTML_config)
+
 ###
 ### Auth Routes
 ###
