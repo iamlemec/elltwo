@@ -580,6 +580,15 @@ def create_art(title):
         art = edb.create_article(title)
         return url_for('RenderArticle', title=art.short_title)
 
+@socketio.on('set_title')
+def set_title(data):
+    aid, title = data['aid'], data['title']
+    return edb.rename_article(aid, title)
+
+##
+## text search
+##
+
 @socketio.on('search_title')
 @view_decor
 def search_title(data):
@@ -604,27 +613,6 @@ def search_text(data):
         'url': titles[par.aid]['url'],
         'raw': par.text
     } for par in results]
-
-@socketio.on('set_blurb')
-@edit_decor
-def set_blurb(data):
-    aid, blurb = data['aid'], data['blurb']
-    edb.set_blurb(aid, blurb)
-    return True
-
-@socketio.on('get_blurb')
-def get_blurb(data):
-    title = data['title']
-    art = edb.get_art_short(title)
-    if art:
-        return {'found': True, 'blurb': art.blurb}
-    else:
-        return {'found': False}
-
-@socketio.on('set_title')
-def set_title(data):
-    aid, title = data['aid'], data['title']
-    return edb.rename_article(aid, title)
 
 ###
 ### citations
@@ -664,26 +652,26 @@ def get_cite(data):
 @view_decor
 def get_ref(data):
     art = edb.get_art_short(data['title'])
-    if art:
+    if art is not None:
         ref = edb.get_ref(data['key'], art.aid)
         title = art.title
         if ref:
             return {
-                'text': ref.text,
                 'cite_type': ref.cite_type,
                 'cite_env': ref.cite_env,
                 'ref_text': ref.ref_text,
-                'title': title
+                'title': title,
+                'text': ref.text,
             }
         else:
             return {
                 'cite_type': 'err',
-                'cite_err': 'ref_not_found'
+                'cite_err': 'ref_not_found',
             }
     else:
         return {
             'cite_type': 'err',
-            'cite_err': 'art_not_found'
+            'cite_err': 'art_not_found',
         }
 
 @socketio.on('get_refs')
@@ -691,9 +679,9 @@ def get_ref(data):
 def get_refs(data):
     title = data['title']
     art = edb.get_art_short(title)
-    if art:
+    if art is not None:
         refs = edb.get_refs(art.aid)
-        return {'refs' : refs, 'title': title }
+        return {'refs' : refs, 'title': title}
     else:
         return {'refs': [], 'title': ''}
 
@@ -705,12 +693,17 @@ def get_arts(data):
 @socketio.on('update_ref')
 @edit_decor
 def update_ref(data):
-    edb.create_ref(**data)
+    key, aid, cite_type, cite_env, text, ref_text = (
+        data['key'], data['aid'], data['cite_type'],
+        data['cite_env'], data['text'], data.get('ref_text')
+    )
+    edb.create_ref(key, aid, cite_type, cite_env, text, ref_text)
 
 @socketio.on('update_g_ref')
 @edit_decor
 def update_g_ref(data):
-    edb.update_g_ref(data['aid'], data['g_ref'])
+    aid, g_ref = data['aid'], data['g_ref']
+    edb.update_g_ref(aid, g_ref)
     return data['g_ref']
 
 @socketio.on('delete_ref')
@@ -718,6 +711,25 @@ def update_g_ref(data):
 def delete_ref(data):
     edb.delete_ref(data['key'], data['aid'])
     # socketio.emit('deleteRef', data['key'], broadcast=True)
+
+@socketio.on('set_blurb')
+@edit_decor
+def set_blurb(data):
+    aid, blurb = data['aid'], data['blurb']
+    edb.set_blurb(aid, blurb)
+    return True
+
+@socketio.on('get_link')
+def get_link(data):
+    title, blurb = data['title'], data['blurb']
+    art = edb.get_art_short(title)
+    if art is not None:
+        if blurb:
+            return {'found': True, 'title': art.title, 'blurb': art.blurb}
+        else:
+            return {'found': True, 'title': art.title}
+    else:
+        return {'found': False}
 
 ###
 ### locking

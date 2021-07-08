@@ -595,7 +595,8 @@ class InlineLexer {
                 src = src.substring(cap[0].length);
                 let argsraw = cap[1];
                 let args = parseArgs(argsraw, false, false);
-                out += this.renderer.ref(args);
+                let text = args.text || args.txt || args.t || '';
+                out += this.renderer.ref(args, this.output(text));
             }
 
             // footnote
@@ -608,8 +609,8 @@ class InlineLexer {
             // internal link
             if (cap = this.rules.ilink.exec(src)) {
                 src = src.substring(cap[0].length);
-                href = cap[1].split('|')[0];
-                text = cap[1].split('|')[1] || href;
+                [href, text] = cap[1].split('|');
+                text = text || '';
                 out += this.renderer.ilink(href, this.output(text));
             }
 
@@ -903,7 +904,8 @@ class DivRenderer {
     }
 
     ilink(href, text) {
-        return `<a class="reference pop_anchor" citekey="_ilink_" href="${href}" data-extern='true'>${text}</a>`;
+        const dtext = text ? ` data-text="${escape(text)}"` : '';
+        return `<a class="reference pop_anchor" citekey="_ilink_" href="${href}" ${dtext} data-extern="true"></a>`;
     }
 
     escape(esc) {
@@ -925,16 +927,15 @@ class DivRenderer {
         return `<div class="latex">\n${tex}\n</div>\n\n`;
     }
 
-    ref(args) {
-        const id = args['id'] || "";
+    ref(args, text) {
+        const id = args['id'] || '';
         const ext = id.includes(':') || false;
         const format = args['format'] || args['fmt'] || args['f'] || '';
-        const text = args['text'] || args['txt'] || args['t'];
-        const htext =  (text != undefined) ? `text="${text}"`: '';
         const pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
-        const ptext = ('poptext' in args) ? `poptext="${args['poptext']}"`: '';
-        const href = (ext) ? `${window.location.origin}/a/${id.split(':')[0]}\#${id.split(':')[1]}` : `\#${id}`;
-        return `<a href="${href}" class="reference ${pclass}" citekey="${id}" data-extern="${ext}" format="${format}" ${htext} ${ptext}></a>`;
+        const [art, key] = id.split(':');
+        const dtext = text ? ` data-text="${escape(text)}"` : '';
+        const href = ext ? `${window.location.origin}/a/${art}\#${key}` : `\#${id}`;
+        return `<a href="${href}" class="reference ${pclass}" citekey="${id}" data-extern="${ext}" format="${format}" ${dtext}></a>`;
     }
 
     footnote(text) {
@@ -1052,17 +1053,19 @@ class TexRenderer {
         return `${text}`;
     }
 
-    // table(header, body) {
-    //   return `<div class="table">\n<div class="table-header">\n${header}</div>\n<div class="table-body">\n${body}</div>\n</div>\n\n`;
-    // }
+    /*
+    table(header, body) {
+      return `<div class="table">\n<div class="table-header">\n${header}</div>\n<div class="table-body">\n${body}</div>\n</div>\n\n`;
+    }
 
-    // tablerow(content) {
-    //   return `<div class="table-row">${content}</div>\n`;
-    // }
+    tablerow(content) {
+      return `<div class="table-row">${content}</div>\n`;
+    }
 
-    // tablecell(content, flags) {
-    //   return `<div class="table-cell">${content}</div>`;
-    // }
+    tablecell(content, flags) {
+      return `<div class="table-cell">${content}</div>`;
+    }
+    */
 
     // span level TexRenderer
     strong(text) {
@@ -1086,9 +1089,11 @@ class TexRenderer {
         return `\\bigskip`;
     }
 
-    // del(text) {
-    //   return `<span class="del">${text}</span>`;
-    // }
+    /*
+    del(text) {
+      return `<span class="del">${text}</span>`;
+    }
+    */
 
     link(href, title, text) {
         if (this.options.sanitize) {
@@ -1143,10 +1148,10 @@ class TexRenderer {
         let c = (format == 'plain') ? '': 'c';
         let text = args['text'] || args['txt'] || args['t'];
         let pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
-        // let ptext = ('poptext' in args) ? `poptext="${args['poptext']}"`: '';
         if(ext) {
             let inner = (text) ? text : `<!!<${id}>!!>`;
-            return `\\href{${window.location.origin}/r/${id.split(':')[0]}\\\#${id.split(':')[1]}}{${inner}}`;
+            let [art, key] = id.split(':');
+            return `\\href{${window.location.origin}/r/${art}\\\#${key}}{${inner}}`;
         } else if (text) {
             return `\\hyperref[${id}]{${text}}`;
         } else {
@@ -1158,15 +1163,17 @@ class TexRenderer {
         return `\\footnote{${text}}`;
     }
 
-    // image(href, alt) {
-    //   return `<img src="${href}" alt="${alt}">`;
-    // }
+    /*
+    image(href, alt) {
+      return `<img src="${href}" alt="${alt}">`;
+    }
 
-    // figure(ftype, tag, title, body) {
-    //   let tagtxt = (tag != undefined) ? `id="${tag}"`: '';
-    //   let captxt = (title != undefined) ? `<figcaption>${title}</figcaption>` : '';
-    //   return `<figure class="${ftype}" ${tagtxt}>\n${body}\n${captxt}\n</figure>\n\n`;
-    // }
+    figure(ftype, tag, title, body) {
+      let tagtxt = (tag != undefined) ? `id="${tag}"`: '';
+      let captxt = (title != undefined) ? `<figcaption>${title}</figcaption>` : '';
+      return `<figure class="${ftype}" ${tagtxt}>\n${body}\n${captxt}\n</figure>\n\n`;
+    }
+    */
 }
 
 /**

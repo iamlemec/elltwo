@@ -76,13 +76,13 @@ function initHelp() {
             let head = $('<span>', {html: item[1]});
             row.append(head);
         } else if (type == 'key') {
-            let combo = $('<span>', {class: 'key_cell key_combo', html: item[1]});
-            let desc = $('<span>', {class: 'key_cell key_desc', html: item[2]});
+            let combo = $('<span>', {class: 'help_cell key_combo', html: item[1]});
+            let desc = $('<span>', {class: 'help_cell key_desc', html: item[2]});
             row.addClass('help_key');
             row.append([combo, desc]);
         } else if (type == 'syntax') {
-            let code = $('<span>', {class: 'syntax_cell syntax_code code', html: item[1]});
-            let desc = $('<span>', {class: 'syntax_cell syntax_desc', html: item[2]});
+            let code = $('<span>', {class: 'help_cell syntax_code code', html: item[1]});
+            let desc = $('<span>', {class: 'help_cell syntax_desc', html: item[2]});
             row.addClass('help_syntax');
             row.append([code, desc]);
         }

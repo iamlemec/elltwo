@@ -156,11 +156,12 @@ button {
 
 .eqn_cite {
     font-family: monospace;
+    font-size: 90%;
     border: 1px solid var(--font-col);
     color: var(--font-col);
     border-radius: 4px;
-    padding: 0 5px 0 5px;
-    margin-right: 1px;
+    padding: 0 5px;
+    margin: 0 1px;
 }
 
 .eqn_cite_ext::before {
@@ -407,7 +408,6 @@ button {
 
 /* popup overrides */
 
-
 #pop .eqnum {
     display: none;
 }
@@ -418,10 +418,29 @@ button {
     margin-bottom: 10px;
 }
 
+#pop.blurb_pop .title {
+    margin-bottom: 5px;
+}
+
+#pop.blurb_pop > div {
+    padding: 5px 0;
+}
+
+#pop.blurb_pop .fig_cont {
+    padding: 0;
+}
+
+#pop.blurb_pop .fig_cap {
+    padding: 0;
+}
+
+#pop.blurb_pop .katex-display {
+    margin: 0;
+}
+
 #pop .env__heading_h1 {
     font-size: 20px;
 }
-
 
 /* sidebar */
 
@@ -794,7 +813,7 @@ circle.commit.active {
     background-color: rgba(255, 255, 255, 0.4);
     z-index: 50;
     display: none;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 #help_inner {
@@ -819,6 +838,13 @@ circle.commit.active {
     height: 30px;
 }
 
+.help_cell {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3px 3px 3px 5px;
+}
+
 .help_empty {
 }
 
@@ -834,14 +860,7 @@ circle.commit.active {
     border-radius: 5px;
 }
 
-.key_cell {
-    padding: 3px 3px 3px 5px;
-}
-
 .key_combo {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
     width: 35%;
     text-align: center;
     background-color: var(--bg-hl2-col);
@@ -860,10 +879,6 @@ circle.commit.active {
     display: flex;
     border: 1px solid var(--font-col);
     border-radius: 5px;
-}
-
-.syntax_cell {
-    padding: 3px 3px 3px 5px;
 }
 
 .syntax_code {
@@ -971,7 +986,7 @@ circle.commit.active {
 #export_options {
     right: 30px;
 }
-    
+
 #help {
     font-size: 11px;
 }

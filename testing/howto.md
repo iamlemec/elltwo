@@ -5,11 +5,11 @@
 
 Each article (denoted by a URL) is a collection of cells. Cells contain text which can be styled and referenced individually. For example, a cell could be a paragraph of text (like this one), an equation, an SVG figure, a custom environment, etc. Cells can be referenced from elsewhere, including across articles; references create dynamic links containing the current contents of the reference cell in a popup. For example, @[eq_geo] is a reference to an equation cell below.
 
-#[sec_editing] Structure & Editing
+# [sec_editing] Structure & Editing
 
 Cells can be selected by clicking while holding `alt` (`option`) or by pressing `enter` and then navigating with the arrow keys. When a cell is selected, an addition click or `enter` with enter "edit mode." When in edit mode, the raw input of the cell is shown in an editable text box. When edit mode is escaped, by clicking elsewhere or pressing `esc`, changes will be rendered and the formatted text will be displayed. Changes are automatically saved upon rendering, but in the event of a server error or disruption, uncommitted cells are demarcated by a right border.
 
-#[sec_formatting] Formatting
+# [sec_formatting] Formatting
 
 Inline text formatting follows Markdown syntax: single `*italic*` renders as *Italic*, `**bold**` for **bold**, etc. Verbatim text is delimited by left quotes `` `. Inline TeX typesetting is handled by [KaTeX](https://katex.org/) and delimited by single dollar signs: `$f: x \mapsto e^x$` renders as $f: x \mapsto e^x$.
 
@@ -114,7 +114,7 @@ References can be across articles. To reference a cell of an external article us
 
 Typing `@` will open a command completion window ranging over all extant references in the current article; `@:` will search over external article tiles and `@artTitle:` will search over references in the article *artTitle*.
 
-##[sec_citations] Citations
+## [sec_citations] Citations
 
 Bibliographic data is stored globally in the [$\ell^2$ Bibliography](/bib). New citations can be entered using the standard [bibTeX](https://en.wikipedia.org/wiki/BibTeX) formatting. Extant citations can be updated by clicking *update* on the relevant entry, changing the data, and clicking *create*. A (rudimentary) search function can find references and directly import the bibTex from Google Scholar.
 
@@ -124,13 +124,13 @@ Each reference has a *citekey*, which can be viewed by hovering over a bibliogra
 
 Prior versions of an article can be viewed by clicking the  `History` button on the footer of the article. This will open the history navigator, by which you can select to view the article at any prior state. Every commit creates a new instance of the article. The article can be reverted to a prior state by clicking on the particular version, and then clicking the `Revert` button. This will create a new instance of the article (that is, of course, identical to the historical version in question) at the current time. In this way, intermediate states between the current instance and the revision instance are not lost.
 
-Articles can be exported and saved locally in both the markdown (raw) format or as a .tex file. The file will include the necessary bibTeX and macros so that that can (usually) be compiled immediately. 
+Articles can be exported and saved locally in both the markdown (raw) format or as a .tex file. The file will include the necessary bibTeX and macros so that that can (usually) be compiled immediately.
 
-#[sec_syntax] Shortcuts and Syntax
+# [sec_syntax] Shortcuts and Syntax
 
 A help overlay with the following list of shortcuts and syntax can be viewed by pressing `F1`.
 
-##[sec_hotkeys] Keyboard shortcuts
+## [sec_hotkeys] Keyboard shortcuts
 
  - `Escape`: Exit editing / navigation
  - `Alt + Click`:  Activate / edit specific cell
@@ -152,7 +152,7 @@ A help overlay with the following list of shortcuts and syntax can be viewed by 
  - `Ctrl + Enter`: Toggle history explorer
  - `F1`: Toggle help overlay
 
-##[sec_prefixes] Cell prefixes
+## [sec_prefixes] Cell prefixes
 
 - `#!` : article title (and preamble)
 - `#` : section headings
@@ -165,7 +165,7 @@ A help overlay with the following list of shortcuts and syntax can be viewed by 
 - `>>!` LaTeX style environments (single-cell; no need for `<<`)
 - ` `` ` code (verbatim) blocks
 
-##[sec_inlineFormatting] Inline formatting
+## [sec_inlineFormatting] Inline formatting
 
 - `$...$` Inline math (ctrl + m)
 - `*...*` Italic text (ctrl + i)
@@ -175,6 +175,6 @@ A help overlay with the following list of shortcuts and syntax can be viewed by 
 - `[[...]]` Article link
 - `@[...]` Reference internal/external
 
-#[sec_about] About
+# [sec_about] About
 
 elltwo was a lockdown project of [Doug Hanley](https://doughanley.com/) and [Evan Piermont](https://evanpiermont.github.io/). It is named after [Ellsworth Avenue](https://en.wikipedia.org/wiki/Ellsworth_Avenue) in Pittsburgh.

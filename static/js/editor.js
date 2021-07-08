@@ -83,16 +83,14 @@ function eventEditor() {
                 } else {
                     $('.para').removeClass('copy_sel');
                 }
-                activePrevPara();
-                return false;
+                return !activePrevPara();
             } else if (key == 'arrowdown') {
                 if (shift) {
                     state.active_para.addClass('copy_sel');
                 } else {
                     $('.para').removeClass('copy_sel');
                 }
-                activeNextPara();
-                return false;
+                return !activeNextPara();
             } else if (ctrl && key == 'home') {
                 activeFirstPara();
             } else if (ctrl && key == 'end') {
