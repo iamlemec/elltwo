@@ -64,25 +64,37 @@ function initToggleBox(button, box) {
 
 // scrolling
 
-let scrollSpeed = 100;
-let scrollFudge = 100;
+let scrollSpeed = 0;
+let scrollFudge = 25;
+
+function scrollTo(elem, pos) {
+    if (scrollSpeed == 0) {
+        elem.scrollTop(pos);
+    } else {
+        elem.stop();
+        elem.animate({scrollTop: pos}, scrollSpeed);
+    }
+}
 
 function ensureVisible(elem) {
     let cont = elem.parent();
     let scroll = cont.scrollTop();
     let height = cont.height();
+
     let cell_top = scroll + elem.position().top;
     let cell_bot = cell_top + elem.height();
+
     let page_top = scroll;
     let page_bot = page_top + height;
 
+    let targ;
     if (cell_top < page_top + scrollFudge) {
-        cont.stop();
-        cont.animate({scrollTop: cell_top - scrollFudge}, scrollSpeed);
+        targ = cell_top - scrollFudge;
     } else if (cell_bot > page_bot - scrollFudge) {
-        cont.stop();
-        cont.animate({scrollTop: cell_bot - height + scrollFudge}, scrollSpeed);
+        targ = cell_bot - height + scrollFudge;
     }
+
+    scrollTo(cont, targ);
 };
 
 // get json cookies

@@ -29,6 +29,8 @@ Hello world named!
 
 @[hello]
 
+@[hello_named]
+
 ## Renamed
 
 @[equation|text=The **Equation**]
@@ -36,6 +38,8 @@ Hello world named!
 @[svg_figure|text=The **Figure**]
 
 @[hello|text=The **Theorem**]
+
+@[hello_named|text=The **Theorem**]
 
 ## Error
 
@@ -47,13 +51,17 @@ Hello world named!
 
 @[test_reference:equation]
 
+@[test_reference:svg_figure]
+
 @[test_reference:hello]
 
 @[test_reference:hello_named]
 
 ## Renamed
 
-@[test_reference:eq_geo|text=The **Equation**]
+@[test_reference:equation|text=The **Equation**]
+
+@[test_reference:svg_figure|text=The **Figure**]
 
 @[test_reference:hello|text=The **Theorem**]
 

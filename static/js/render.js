@@ -677,6 +677,7 @@ function getTro(ref, callback, mode) {
         let blurb = mode == 'pop';
         let data = {title: title, blurb: blurb};
         sendCommand('get_link', data, function(ret) {
+            console.log(ret);
             if (ret.found) {
                 tro.cite_type = 'ilink';
                 tro.pop_text = ret.blurb;
