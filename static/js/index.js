@@ -1,6 +1,5 @@
 /* main article entry point */
 
-
 export {
     initIndex
 }
@@ -93,56 +92,55 @@ let dummy_callbacks = {
 };
 
 let examples = {
-    'text': 
+    'text':
         ["**elltwo** ($\\ell^2$) is a browser based platform for decentralized and collaborative technical documents.",
          "It has a wiki like structure with an emphasis on typesetting and intelligent referencing.",
          "elltwo articles are written in a simple markup language borrowing elements of [Markdown](https://en.wikipedia.org/wiki/Markdown) and [LaTeX](https://www.latex-project.org/)."],
-    'equations': 
+    'equations':
         ["$$ [eq_geo] \\sum_{i=0}^{\\infty} \\frac1{2^n} = 1",
          "Equation @[eq_geo] states"],
-    'environments': 
+    'environments':
         [">> theorem [thm_BC|name=rt=Borel Cantelli] If the sum of the probabilities of the events $\\{E_n\\}_{n\\in \\mathbb{N}}$ is finite, then",
          "$$ \\mu\\left(\\bigcap_{n=1}^{\\infty }\\bigcup_{k\\geq n}^{\\infty }E_{k}\\right) = 0",
          "<< that is, the probability that infinitely many of them occur is $0$.",
-         "The @[thm_BC] theorem is an important result in easblishing ...",],
-    'images': 
-        [`!svg [svg_figure|caption=It's a box]<rect x="5" y="5" width="90" height="90" stroke="black" fill="coral" />`,
+         "The @[thm_BC] theorem is an important result in establishing ...",],
+    'images':
+        [`!svg [svg_figure|caption=It's a box]\n<rect x="5" y="5" width="90" height="90" stroke="black" fill="#5D9D68" />`,
          "Embed and reference images and SVG figures easily, as with @[svg_figure]."],
 }
 
 function initIndex() {
-
-    renderKatex()
+    renderKatex();
     updateState(default_state);
     updateCache(default_cache);
 
-    window.state = state
+    window.state = state; // debug
     state.writeable = true;
 
-    //init dummy server commandss
-    connectCallbacks(dummy_callbacks)
+    // init dummy server commandss
+    connectCallbacks(dummy_callbacks);
 
+    // make empty paras
     $('.para').each(function() {
         let para = $(this);
         makePara(para, false);
         syntaxHL(para);
     });
-    
+
     //make editor work
     initEditor();
 
     //constuct examples
-    initEx(examples)
-    genExample('text')
+    initExamples(examples);
+    genExample('text');
     setSSV(true);
 
+    // events
+    eventRender();
+    eventIndex();
+}
 
-
-    //events
-
-    eventRender()
-
-    //more events
+function eventIndex() {
     $(document).on('input', '.p_input', function(e) {
         let para = $(this).parent('.para');
         let text = para.children('.p_input');
@@ -170,12 +168,16 @@ function initIndex() {
     });
 
     $(document).on('click', '.para', function() {
-        let para = $(this)
-        if (!para.hasClass('active')) {
-                makeActive(para);
-                sendMakeEditable();
-            }
+        let para = $(this);
+        let act = para.hasClass('active');
+        let edit = para.hasClass('editable');
+        if ((state.ssv && !edit) || (!state.ssv && act && !edit)) {
+            makeActive(para);
+            sendMakeEditable();
             return false;
+        } else if (!state.ssv && !act) {
+            makeActive(para);
+        }
     });
 
     $(document).on('click', '#bg', function(e) {
@@ -198,16 +200,16 @@ function initIndex() {
         controlGifs();
     });
 }
-function genExample(example) {
 
+function genExample(example) {
     cache.ref = [];
-    let ex = examples[example]
+    let ex = examples[example];
     ex.forEach((raw, i) => {
         let para = $('<div>', {class: `para`});
         para.attr('fold_level', 0)
             .attr('raw', raw)
-            .attr('pid', 'demo'+i)
-        $('#content').append(para)
+            .attr('pid', 'demo'+i);
+        $('#content').append(para);
         $(`.ex_butt`).removeClass('clicked');
         $(`#${example}.ex_butt`).addClass('clicked');
         makePara(para, false);
@@ -215,11 +217,12 @@ function genExample(example) {
         resize(input[0]);
         syntaxHL(para);
         updateRefHTML(para);
-    })
-
+    });
+    let first = $('.para:not(.folder)').first();
+    makeActive(first);
 }
 
-function initEx(examples) {
+function initExamples(examples) {
     for (const example in examples) {
         let ex = $('<div>', {class: `ex_butt`, text: example});
         ex.attr('id', example)
@@ -227,30 +230,26 @@ function initEx(examples) {
     };
 }
 
-function playGIF(gif){
+function playGIF(gif) {
     console.log(gif);
 }
 
-function controlGifs(){
-
+function controlGifs() {
 }
 
-function setSSV(val){
-    if(val){
+function setSSV(val) {
+    if (val) {
         state.ssv = true;
-        $('.para').addClass('ssv');
         $('#content').addClass('ssv');
-        $('.para').each(function(){
-            let input = $(this).children('.p_input')
-            resize(input[0]);
-        })
-        console.log(state.ssv)
-    }else{
+        console.log('ssv', state.ssv);
+    } else {
         state.ssv = false;
-        $('.para').removeClass('ssv');
         $('#content').removeClass('ssv');
-        console.log(state.ssv)
+        console.log('ssv', state.ssv);
     }
+    $('.para').each(function() {
+        let input = $(this).children('.p_input');
+        resize(input[0]);
+        placeCursor('end');
+    });
 }
-
-
