@@ -240,6 +240,10 @@ function setSSV(val){
         state.ssv = true;
         $('.para').addClass('ssv');
         $('#content').addClass('ssv');
+        $('.para').each(function(){
+            let input = $(this).children('.p_input')
+            resize(input[0]);
+        })
         console.log(state.ssv)
     }else{
         state.ssv = false;
