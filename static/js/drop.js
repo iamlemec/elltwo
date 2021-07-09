@@ -1,6 +1,6 @@
 // drop to upload — used in article and img
 
-export { connectDrops, renderImage }
+export { connectDrops, promptUpload, renderImage, uploadImage, invalidateImage }
 
 import { config, cache } from './state.js'
 import { sendCommand } from './client.js'
@@ -9,8 +9,8 @@ import { sendCommand } from './client.js'
 
 let img_types = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/gif'];
 
-function uploadImg(file, key, callback) {
-    console.log('uploadImg:', file.name, file.type, file.size);
+function uploadImage(file, key, callback) {
+    console.log('uploadImage:', file.name, file.type, file.size);
     if (!img_types.includes(file.type)) {
         return `Unsupported file type: ${file.type}`;
     }
@@ -19,13 +19,13 @@ function uploadImg(file, key, callback) {
         return `File size too large (${ksize}kb > 1024kb)`;
     }
     let fbase = file.name.split('.')[0];
-    key = name || fbase;
+    key = key || fbase;
     let form_data = new FormData();
     form_data.append('file', file);
     form_data.append('key', key);
     $.ajax({
         type: 'POST',
-        url: '/uploadImg',
+        url: '/uploadImage',
         data: form_data,
         contentType: false,
         cache: false,
@@ -38,7 +38,7 @@ function uploadImg(file, key, callback) {
 function handleDrop(box, files, key, callback) {
     if (files.length == 1) {
         let file = files[0];
-        let ret = uploadImg(file, key, function(data) {
+        let ret = uploadImage(file, key, function(data) {
             callback(box, data);
         });
         if (ret == null) {
@@ -49,6 +49,17 @@ function handleDrop(box, files, key, callback) {
     } else if (files.length > 1) {
         box.text('Please upload a single image file');
     }
+}
+
+function promptUpload(callback) {
+    let input = $('<input>', {type: 'file', style: 'display: none'});
+    input.on('change', function() {
+        let files = this.files;
+        callback(files);
+        input.remove();
+    });
+    $('body').append(input);
+    input.trigger('click');
 }
 
 function connectDrops(callback) {
@@ -72,14 +83,9 @@ function connectDrops(callback) {
 
     $(document).on('click', '.dropzone', function(e) {
         let box = $(this);
-        let input = $('<input>', {type: 'file', style: 'display: none'});
-        input.on('change', function() {
-            let files = this.files;
+        promptUpload(function(files) {
             handleDrop(box, files, null, callback);
-            input.remove();
         });
-        $('body').append(input);
-        input.trigger('click');
         return false;
     });
 }
@@ -99,5 +105,11 @@ function renderImage(img, key) {
                 img.attr('src', url);
             }
         });
+    }
+}
+
+function invalidateImage(key) {
+    if (key in cache.img) {
+        delete cache.img[key];
     }
 }

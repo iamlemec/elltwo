@@ -776,9 +776,9 @@ def timeout(data):
 ### image handling
 ###
 
-@app.route('/uploadImg', methods=['POST'])
+@app.route('/uploadImage', methods=['POST'])
 @edit_decor
-def UploadImg():
+def UploadImage():
     file = request.files['file']
     img_key = request.form.get('key')
     img_mime = file.mimetype

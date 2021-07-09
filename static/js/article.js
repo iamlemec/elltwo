@@ -20,7 +20,7 @@ import {
     initEditor, resize, makeActive, lockParas, unlockParas, sendMakeEditable,
     sendUpdatePara, placeCursor
 } from './editor.js'
-import { connectDrops } from './drop.js'
+import { connectDrops, promptUpload, uploadImage, invalidateImage } from './drop.js'
 import { initExport } from './export.js'
 import { initHelp } from './help.js'
 
@@ -240,6 +240,20 @@ function eventArticle() {
         sendUpdatePara(para, raw);
     });
 
+    // upload replacement image
+    $(document).on('click', '.img_update', function() {
+        let para = $(this).closest('.para');
+        let key = para.attr('id');
+        promptUpload(function(files) {
+            let file = files[0];
+            console.log(key, file);
+            let ret = uploadImage(file, key, function(data) {
+                invalidateImage(key);
+                rawToRender(para, false);
+            });
+        });
+    });
+
     // syntax highlighting and brace matching
     $(document).on('input', '.p_input', function(e) {
         let para = $(this).parent('.para');
@@ -443,7 +457,7 @@ function getBlurb(len=200, max=5) {
     $('.para').not('.folder').each(function() {
         let para = $(this);
         let ptxt = para.children('.p_text').clone();
-        let core = ptxt.find('.katex-mathml, .eqnum, img, svg').remove().end()
+        let core = ptxt.find('.katex-mathml, .eqnum, .img_update, img, svg').remove().end()
                        .removeClass('p_text');
 
         let text = core.text();

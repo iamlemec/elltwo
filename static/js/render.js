@@ -524,7 +524,9 @@ function imgEnv(ptxt, args) {
 
     let fig = ptxt.find('.fig_cont');
     let img = $('<img>', {class: 'env_add'});
+    let upd = $('<div>', {class: 'env_add img_update', text: '⮉'});
     fig.append(img);
+    fig.append(upd);
 
     let key = ptxt.parent().attr('id');
     if (key in cache.img) {
@@ -677,7 +679,6 @@ function getTro(ref, callback, mode) {
         let blurb = mode == 'pop';
         let data = {title: title, blurb: blurb};
         sendCommand('get_link', data, function(ret) {
-            console.log(ret);
             if (ret.found) {
                 tro.cite_type = 'ilink';
                 tro.pop_text = ret.blurb;
