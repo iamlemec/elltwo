@@ -40,6 +40,8 @@
         <div id="preview">
         </div>
 
+        {% block post_content %}{% endblock %}
+
         <div id="foot">
             <a id="axell" href="/">
             <img src="{{ url_for('static', filename='favicon/elltwo.svg') }}" width="16" height="16"/>

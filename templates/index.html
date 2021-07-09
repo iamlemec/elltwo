@@ -26,7 +26,7 @@
 </div>
 
 <div id=info_block>
-    elltwo <span class=latex>\ell^2</span> is a browser based platform for decentralized and collaborative technical documents. It has a wiki like structure with an emphasis on typesetting and intelligent referencing. elltwo articles are written in a simple markup language borrowing elements of Markdown and LaTeX.
+    Click a tab for examples...
 </div>
 
 <div id=example_options>
@@ -35,6 +35,18 @@
 {% endblock %}
 
 {% block content %}
+{% endblock %}
+
+{% block post_content %}
+<div id=features>
+    Features...
+    <div class=feature>
+            <div class=feature_copy>
+            <bf>Intelligent Referencing</bf> Easily create references to equations, figures, and environments. elltwo will generate popup style links to help readers parse reference heavy documents without leaving the page.
+            </div>
+            <img src="{{ url_for('static', filename='adverts/hyperlinks.gif') }}"/>
+    </div>
+</div>
 {% endblock %}
 
 

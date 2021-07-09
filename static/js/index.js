@@ -165,6 +165,23 @@ function initIndex() {
         $('.para').remove()
         genExample(ex);
     });
+
+    $(document).on('click', '.para', function() {
+        let para = $(this)
+        if (!para.hasClass('active')) {
+                makeActive(para);
+                sendMakeEditable();
+            }
+            return false;
+    });
+
+    $(document).on('click', '#bg', function(e) {
+        let targ = event.target.id;
+        let alt = e.altKey || config.mobile;
+        if (targ == 'bg' || targ == 'content') {
+            makeActive(null);
+        }
+    });
 }
 function genExample(example) {
 
