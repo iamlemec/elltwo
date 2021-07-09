@@ -209,6 +209,7 @@ function resize(textarea) {
     textarea.style.height = h;
     let para = $(textarea).parent('.para');
     para.css('min-height', h);
+    para.children('.p_input_view').css('min-height', h);
 }
 
 /// rendering and storage
@@ -331,7 +332,6 @@ function trueMakeEditable(rw=true, cursor='end') {
     }
 
     syntaxHL(state.active_para);
-
     schedTimeout();
 }
 
@@ -359,7 +359,7 @@ function sendMakeEditable(cursor='end') {
 function makeUnEditable(unlock=true) {
     $('.para.editable')
         .removeClass('editable')
-        .css('min-height', '30px')
+        //.css('min-height', '30px')
         .children('.p_input')
         .prop('readonly', true);
 

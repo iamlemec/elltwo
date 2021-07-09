@@ -176,7 +176,7 @@ button:hover {
     background-color: var(--bg-hl-col);
 }
 
-.active .code {
+.para.active .code {
     background-color: var(--bg-hl2-col);
 }
 

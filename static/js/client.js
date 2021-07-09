@@ -66,6 +66,7 @@ function sendCommand(cmd, data='', ack=noop) {
         socket.emit(cmd, data, ack);
     } else {
         console.log(`tried to send "${cmd}" without connection or dummy handler`);
+        console.log(console.trace())
     }
 }
 
