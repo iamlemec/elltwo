@@ -36,6 +36,10 @@
     padding-top: 30px;
     width: 100%;
     height: 450px;
+    background-color: whitesmoke;
+}
+
+#content.ssv{
     background: linear-gradient(to right, whitesmoke 0%,whitesmoke 50%,rgb(240,240,240) 50%,rgb(240,240,240) 100%);
 }
 
@@ -57,6 +61,14 @@
 
 #example_options{
     background-color: #A8DADC;
+}
+
+#ssv{
+    display: flex;
+    align-items: center;
+    font-size: 70%;
+    min-width: 110px;
+    justify-content: right;
 }
 
 #features{
@@ -86,8 +98,62 @@
     left: 55%;
 }
 
+.para:not(.para.ssv) {
+    position: relative;
+    left: 23%;
+    width: 54%;
+    min-height: 30px;
+    margin-bottom: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+    max-width: 700px;
+    border-left: 2px solid var(--bg-col);
+    border-right: 2px solid var(--bg-col);
+}
 
-.para {
+/*.para:hover {
+     border-left: 2px solid var(--bor-col);
+}*/
+
+.p_text:not(.para.ssv .p_text) {
+    /* cursor: pointer; */
+    line-height: 1.5;
+    text-align: justify;
+}
+
+.p_input:not(.para.ssv .p_input) {
+    white-space: pre-wrap;
+    position: absolute;
+    width: 100%;
+    min-height: 50px;
+    font-size: 90%;
+    overflow: hidden;
+    display: none;
+    border: none;
+    color: inherit;
+    background-color: inherit;
+    caret-color: inherit;
+    color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0);
+    padding-right: 5px;
+
+}
+
+.p_input_view:not(.para.ssv .p_input_view) {
+    position: absolute;
+    white-space: pre-wrap;
+    width: 100%;
+    min-height: 50px;
+    font-size: 90%;
+    overflow: hidden;
+    display: none;
+    border: none;
+    font-family: monospace;
+    padding-right: 5px;
+}
+
+
+.para.ssv {
     position: relative;
     left: 10%;
     width: 80%;
@@ -96,19 +162,20 @@
     margin-bottom: 20px;
 }
 
-.para.active{
+
+.para.active.ssv{
     background-color: rgba(0,0,0,0);
     border: none;
 }
 
-.para.active .p_input_view{
+.para.active.ssv .p_input_view{
     background-color: rgba(0,0,0,.08)
 }
 /*.para:hover {
      border-left: 2px solid var(--bor-col);
 }*/
 
-.p_text {
+.para.ssv .p_text {
     /* cursor: pointer; */
     line-height: 20px;
     text-align: justify;
@@ -118,7 +185,7 @@
     min-height: 50px;
 }
 
-.p_input {
+.para.ssv .p_input {
     white-space: pre-wrap;
     position: absolute;
     top: 0;
@@ -137,7 +204,7 @@
     line-height: 20px;
 }
 
-.p_input_view {
+.para.ssv .p_input_view {
     position: absolute;
     white-space: pre-wrap;
     top: 0;

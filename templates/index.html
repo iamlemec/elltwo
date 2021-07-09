@@ -30,6 +30,15 @@
 </div>
 
 <div id=example_options>
+<span id="ssv">Side-by-Side View</span>
+<label class="toggle" for="ssv_check" id="ssv_label">
+<input type="checkbox" class="toggle__input" name="ssv" id="ssv_check" checked/>
+<span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
+<svg width="20" height="20">
+<use xlink:href="{{ url_for('static', filename='img/toggle_button.svg') }}#svg-check"></use>
+</svg>
+</span></span></span>
+</label>
 </div>
 
 {% endblock %}
@@ -40,11 +49,11 @@
 {% block post_content %}
 <div id=features>
     Features...
-    <div class=feature>
+    <div class=feature feature=hyperlinks>
             <div class=feature_copy>
             <bf>Intelligent Referencing</bf> Easily create references to equations, figures, and environments. elltwo will generate popup style links to help readers parse reference heavy documents without leaving the page.
             </div>
-            <img src="{{ url_for('static', filename='adverts/hyperlinks.gif') }}"/>
+            <img feature=hyperlinks class=ad_img src="{{ url_for('static', filename='adverts/hyperlinks.png') }}"/>
     </div>
 </div>
 {% endblock %}
