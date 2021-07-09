@@ -4,7 +4,7 @@ export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
     rawToTextarea, envClasses, createRefs, createTOC, getTro, troFromKey,
     popText, renderPop, syntaxHL, cacheBib, deleteCite, s_env_spec,
-    getFoldLevel, renderFold, braceMatch, makePara
+    getFoldLevel, renderFold, braceMatch, makePara, connectCallbacks
 }
 
 import { merge, cooks, getPara } from './utils.js'
@@ -105,7 +105,7 @@ function initMarkdown(markdown) {
     });
 }
 
-function connectMarkdown(callbacks) {
+function connectCallbacks(callbacks) {
     for (const [cmd, cb] of Object.entries(callbacks)) {
         addDummy(cmd, cb);
     }
@@ -116,7 +116,7 @@ function loadMarkdown(data) {
     stateMarkdown();
 
     let callbacks = merge(default_callbacks, data.callbacks ?? {});
-    connectMarkdown(callbacks);
+    connectCallbacks(callbacks);
 
     initMarkdown(data.markdown ?? '');
     initRender();

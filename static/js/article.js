@@ -46,6 +46,7 @@ let default_cache = {
     ext_ref: {}, // external ref info
 };
 
+
 let default_state = {
     sidebar_show: false, // is sidebar shown
     help_show: false, // is help overlay on
@@ -60,7 +61,6 @@ let default_state = {
 
 function stateArticle() {
     stateRender();
-
     updateState(default_state);
     setReadonly(config.readonly);
 }
@@ -274,6 +274,7 @@ function eventArticle() {
 function updatePara(pid, raw) {
     let para = getPara(pid);
     para.attr('raw', raw);
+    rawToTextarea(para);
     rawToRender(para);
 }
 

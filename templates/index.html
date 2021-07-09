@@ -11,10 +11,11 @@
 
 {% endblock %}
 
-{% block title %}{{title}}{% endblock %}
+{% block title %}elltwo{% endblock %}
 
 {% block header %}
 
+<div id=head_block>
 <div id="prompt">
 <span id="title">
 {{name|safe}}
@@ -22,20 +23,20 @@
 <br>
 {{tag|safe}}
 </div>
+</div>
 
+<div id=info_block>
+    elltwo <span class=latex>\ell^2</span> is a browser based platform for decentralized and collaborative technical documents. It has a wiki like structure with an emphasis on typesetting and intelligent referencing. elltwo articles are written in a simple markup language borrowing elements of Markdown and LaTeX.
+</div>
+
+<div id=example_options>
+</div>
 
 {% endblock %}
 
 {% block content %}
-
-<div class="para" pid="xxx" raw="what poop $\sum$" fold_level="0"></div>
-
 {% endblock %}
 
-{% block foot %}
-
-
-{% endblock %}
 
 {% block init %}
 

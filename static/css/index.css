@@ -1,45 +1,96 @@
 @import 'core.css';
 
-#content.sb_content {
-    position: absolute;
-    left: 20%;
+*{
+    color: #1D3557;
 }
 
-.sb_content .para {
-    left: 13%;
+#head_block{
+    background-color: #457b9d;
+    position: relative;
+    width: 100%;
+    height: 150px;
 }
+
+#prompt {
+    position: relative;
+    width: 100%;
+    min-height: 50px;
+    top: 20%;
+    text-align: center;
+}
+
+#title {
+    font-size: 250%;
+}
+
+#content{
+    padding-top: 30px;
+    width: 100%;
+    height: 60%;
+    background: linear-gradient(to right, whitesmoke 0%,whitesmoke 50%,rgb(240,240,240) 50%,rgb(240,240,240) 100%);
+}
+
+#content:after{
+    height: 0;
+}
+
+#info_block{
+    position: relative;
+    width: 100%;
+    left: 0%;
+    padding-top: 20px;
+    padding-bottom: 40px;
+    padding-left: 20%;
+    padding-right: 20%;
+    background-color: #457b9d;
+    color: #1D3557;
+}
+
+#demo_block, #bg{
+    background-color: #A8DADC;
+}
+
 
 .para {
     position: relative;
-    left: 23%;
-    width: 54%;
-    min-height: 30px;
+    left: 10%;
+    width: 80%;
+    height: auto;
+    min-height: 50px;
     margin-bottom: 20px;
-    padding-left: 5px;
-    padding-right: 5px;
-    max-width: 700px;
-    border-left: 2px solid var(--bg-col);
-    border-right: 2px solid var(--bg-col);
 }
 
+.para.active{
+    background-color: rgba(0,0,0,0);
+    border: none;
+}
+
+.para.active .p_input_view{
+    background-color: rgba(0,0,0,.08)
+}
 /*.para:hover {
      border-left: 2px solid var(--bor-col);
 }*/
 
 .p_text {
     /* cursor: pointer; */
-    line-height: 1.5;
+    line-height: 20px;
     text-align: justify;
+    width: 45%;
+    display: inline-block;
+    margin-left: 55%;
+    min-height: 50px;
 }
 
 .p_input {
     white-space: pre-wrap;
     position: absolute;
-    width: 100%;
+    top: 0;
+    width: 45%;
+    right: 55%;
     min-height: 50px;
     font-size: 90%;
     overflow: hidden;
-    display: none;
     border: none;
     color: inherit;
     background-color: inherit;
@@ -47,34 +98,50 @@
     color: rgba(0, 0, 0, 0);
     background-color: rgba(0, 0, 0, 0);
     padding-right: 5px;
-
+    line-height: 20px;
 }
 
 .p_input_view {
     position: absolute;
     white-space: pre-wrap;
-    width: 100%;
+    top: 0;
+    width: 45%;
+    height: 100%;
+    right: 55%;
     min-height: 50px;
     font-size: 90%;
     overflow: hidden;
-    display: none;
     border: none;
     font-family: monospace;
     padding-right: 5px;
+    display: inline-block;
+    background-color: rgba(0,0,0,.02);
+    line-height: 20px;
+}
+
+#example_options{
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.ex_butt{
+    margin: 5px;
+    border: 2px solid black;
+    border-radius:2px;
+    padding: 4px;
+    cursor: pointer;
+    background-color: rgb(200,200,200);
+}
+
+.ex_butt.clicked{
+    background-color: steelblue;
+    color: whitesmoke;
 }
 
 .control {
     display: none;
-    position: absolute;
-    width: 15%;
-    right: 100%;
-    top: 0%;
-    text-align: right;
-    padding-right: 8px;
-}
-
-#bg.writeable .para.editable > .control {
-    display: block;
 }
 
 .folded {
@@ -117,17 +184,10 @@ button {
     margin-top: 3px;
 }
 
-.editable > .p_text {
-    display: none;
-}
-
 .editable > .error_footer {
     display: none;
 }
 
-.editable > .p_input, .editable > .p_input_view {
-    display: block;
-}
 
 /* DIV renderer stylying */
 
@@ -135,7 +195,7 @@ button {
     white-space: pre;
 }
 
-.env__equation:not(.editable) > .p_text {
+.env__equation > .p_text {
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -423,35 +483,6 @@ button {
 }
 
 
-/* sidebar */
-
-#head {
-    z-index: 30;
-    padding-top: 0;
-    padding-bottom: 0;
-}
-
-#logo {
-    font-size: 30px;
-    cursor: pointer;
-    position: absolute;
-    display: block;
-    cursor: pointer;
-    width: 50px;
-}
-
-#sidebar {
-    display: none;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 20%;
-    min-width: 210px;
-    height: 100%;
-    padding-bottom: 10px;
-    z-index: 1;
-}
-
 #sidebar_inner {
     overflow: hidden;
     height: 100%;
@@ -476,66 +507,7 @@ button {
     right: 5px;
 }
 
-#toc_wrap {
-    margin-top: 10px;
-    flex:1;
-    overflow-y: auto;
-    min-height: 0;
-    white-space: normal;
-}
 
-#toc{
-    height: auto;
-    padding-bottom: 45px;
-    width: 100%;
-
-}
-
-#toc_title {
-    padding-left: 10px;
-    padding-top: 15px;
-    border-top: 2px solid var(--font-col-int);
-}
-
-#sb_links{
-    margin-bottom: 20px;
-}
-
-#sb_links_title {
-    padding-left: 10px;
-    padding-top: 20px;
-    padding-bottom: 10px;
-    border-top: 2px solid var(--font-col-int);
-}
-
-#sb_links > a {
-    display: block;
-    padding-left: 20px;
-    margin-top: 7px;
-}
-
-.toc_entry {
-    display: block;
-    margin-top: 10px;
-    padding-left: 20px;
-}
-
-.toc_entry.head_level2 {
-    padding-left: 30px;
-}
-
-.toc_entry.head_level3 {
-    padding-left: 40px;
-}
-
-.locked:after {
-    content: '\1F512';
-    position: absolute;
-    width: 15%;
-    left:90%;
-    top: 0%;
-    text-align: right;
-}
 
 /* drop down */
 
@@ -590,18 +562,6 @@ button {
     border-color: var(--hl2-col);
 }
 
-#logo:after {
-    transform: translateY(120%) translateX(-100%) rotate(-45deg);
-    width: 20px;
-    height: 20px;
-    border-bottom: 3px solid;
-    border-right: 3px solid;
-    border-color: var(--hl2-col);
-}
-
-#logo.opened:after {
-    transform: translateY(120%) translateX(0%) rotate(45deg);
-}
 
 .custom-select.opened .custom-select-trigger:after {
     margin-top: 3px;
@@ -642,119 +602,6 @@ button {
     border-bottom: 0;
 }
 
-#hist {
-    display: none;
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    background-color: var(--bg-hl2-col);
-    border-top: 2px solid var(--hl-col);
-}
-
-#revert_hist {
-    display: none;
-}
-
-#revert_hist.selected {
-    display: inline;
-}
-
-#bg.readonly #revert_hist {
-    display: none;
-}
-
-.hist_pop {
-    position: absolute;
-    text-align: center;
-    padding: 10px;
-    font: 12px sans-serif;
-    background: var(--pop-bg-col);
-    color:   var(--pop-fg-col);;
-    border: 0px;
-    border-radius: 2px;
-    pointer-events: none;
-    z-index: 3;
-}
-
-/* history */
-
-circle.commit {
-    fill: var(--hl2-col);
-}
-
-circle.commit:hover {
-    fill: var(--font-col-int);
-}
-
-circle.commit.active {
-    fill: var(--hl-col);
-}
-
-#prog_bar {
-        position: absolute;
-        top:-1px;
-        left:-1px;
-        width:0%;
-        height: 1px;
-        background-color: var(--font-col-int);
-}
-
-#prog_bar:after {
-  content: "";
-  position: absolute;
-  right: 0px;
-  top: .5px;
-  transform:translate(50%,-50%);
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--font-col-int);
-}
-
-#export_options {
-    display: none;
-    position: absolute;
-    width: 80px;
-    bottom: 150%;
-    right: 5px;
-    background-color: var(--bg-hl2-col);
-    padding: 0px 5px 0px 5px
-}
-
-.export_butt {
-    width: 100%;
-    min-height: 20px;
-    font-size: 110%;
-    margin: 5px 0px 5px 0px;
-    background-color: var(--bg-hl-col);
-    border: 1px solid var(--delimit-col);
-    font-size: 90%;
-}
-
-#export_options:after {
-    content: "";
-    position: absolute;
-    border-width: 10px;
-    border-style: solid;
-    border-color: var(--bg-hl2-col) transparent transparent transparent;
-    bottom: -20px;
-    left: 40%;
-}
-
-#editable_text {
-    min-width: 50px;
-    text-align: right;
-}
-
-.toggle-track {
-    height: 25px;
-    width: 50px;
-}
-
-.toggle-indicator {
-    height: 19px;
-    width: 19px;
-}
 
 
 /* tables */
@@ -785,104 +632,6 @@ circle.commit.active {
     padding: 3px 10px;
 }
 
-/* help overlay */
-
-#help {
-    position: fixed;
-    height: 100%;
-    width: 100%;
-    background-color: rgba(255, 255, 255, 0.4);
-    z-index: 50;
-    display: none;
-    font-size: 13px;
-}
-
-#help_inner {
-    position: fixed;
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    justify-content: space-evenly;
-    top: 10%;
-    left: 7.5%;
-    width: 85%;
-    height: 75%;
-    background-color: var(--bg-col);
-    border: 1px solid var(--font-col);
-    border-radius: 5px;
-    padding: 5px;
-}
-
-.help_row {
-    width: 32.8%;
-    margin: 3px;
-    height: 30px;
-}
-
-.help_empty {
-}
-
-.help_header {
-    font-weight: bold;
-    text-align: center;
-    padding: 7px;
-}
-
-.help_key {
-    display: flex;
-    border: 1px solid var(--font-col);
-    border-radius: 5px;
-}
-
-.key_cell {
-    padding: 3px 3px 3px 5px;
-}
-
-.key_combo {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    width: 35%;
-    text-align: center;
-    background-color: var(--bg-hl2-col);
-    border-right: 1px solid var(--font-col);
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-}
-
-.key_desc {
-    width: 65%;
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
-}
-
-.help_syntax {
-    display: flex;
-    border: 1px solid var(--font-col);
-    border-radius: 5px;
-}
-
-.syntax_cell {
-    padding: 3px 3px 3px 5px;
-}
-
-.syntax_code {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    width: 35%;
-    text-align: center;
-    background-color: var(--bg-hl2-col);
-    border-right: 1px solid var(--font-col);
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
-}
-
-.syntax_desc {
-    width: 65%;
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
-}
 
 /*  MOBILE CSS */
 
@@ -897,63 +646,10 @@ circle.commit.active {
     padding-right: 5px;
 }
 
-#sidebar {
-    min-width: 250px;
-    width: 100%;
-    height: 100%;
-    padding: 5%;
-    z-index: 10;
-}
+
 
 .custom-select-wrapper {
     right: 15%;
-}
-
-.control {
-    display: none;
-    position: fixed;
-    width: 100%;
-    height: 40px;
-    left: 0%;
-    top: unset;
-    bottom: 0;
-    text-align: right;
-    padding-right: 0;
-    z-index: 3;
-    background-color: var(--bg-hl2-col)
-}
-
-.control {
-    display: none;
-}
-
-#bg.writeable .para.active > .control {
-    display: block;
-}
-
-.controlButs {
-    padding-top: 5px;
-    display: flex;
-    width: 100%;
-    justify-content: center;
-}
-
-.controlButs > button {
-    display: inline-block;
-    width: unset;
-    height: 25px;
-    margin: 3px;
-    flex-basis: 10px;
-    flex-grow: 1;
-    border: 1px solid var(--delimit-col)
-}
-
-.control:hover .controlButs {
-    display: flex;
-}
-
-.controlDots {
-    display: none;
 }
 
 #pop {
@@ -972,14 +668,5 @@ circle.commit.active {
     right: 30px;
 }
     
-#help {
-    font-size: 11px;
-}
-
-.help_row {
-    width: 48%;
-    margin: 1px;
-    height: 22px;
-}
 
 }

@@ -169,7 +169,7 @@ def Demo():
 @view_decor
 def Index():
     style = getStyle(request)
-    return render_template('index.html', **style, **HTML_config)
+    return render_template('index.html', **style, **HTML_config, login=False)
 
 ###
 ### Auth Routes

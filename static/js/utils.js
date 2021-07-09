@@ -115,5 +115,5 @@ function cooks(name) {
 // detect mobile
 
 function isMobile() {
-    return window.matchMedia('(max-width: 1000px)').matches;
+    return window.matchMedia('(max-width: 600px) and (max-device-width: 800px)').matches;
 }
