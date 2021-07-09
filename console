@@ -175,7 +175,7 @@ class Article:
         if (art := art_find(self.edb, aid=aid, title=title, all=True)) is None:
             print(f'Article "{title}" not found')
         elif confirm_request(f'purge article "{art.short_title}"?'):
-            self.edb.expunge_article(art.aid)
+            self.edb.purge_article(art.aid)
 
 class Paragraph:
     def __init__(self, edb):
@@ -212,10 +212,13 @@ class Image:
             self.edb.delete_image(key)
 
     def purge(self, key):
-        if (img := self.edb.get_image(key)) is None:
+        if len(self.edb.get_image(key, all=True)) == 0:
             print(f'Image "{key}" not found')
         elif confirm_request(f'purge image "{key}"?'):
-            self.edb.expunge_image(key)
+            self.edb.purge_image(key)
+
+    def prune(self, key):
+        print('Not implemented')
 
 class Index:
     def __init__(self, edb):

@@ -207,12 +207,12 @@ class ElltwoDB:
                 k.delete_time = None
             self.session.commit()
 
-    def expunge_article(self, aid, klass=None, commit=True):
+    def purge_article(self, aid, klass=None, commit=True):
         if klass is None:
-            self.expunge_article(aid, klass=Article, commit=False)
-            self.expunge_article(aid, klass=Paragraph, commit=False)
-            self.expunge_article(aid, klass=Paralink, commit=False)
-            self.expunge_article(aid, klass=ExtRef, commit=False)
+            self.purge_article(aid, klass=Article, commit=False)
+            self.purge_article(aid, klass=Paragraph, commit=False)
+            self.purge_article(aid, klass=Paralink, commit=False)
+            self.purge_article(aid, klass=ExtRef, commit=False)
         else:
             self.session.query(klass).filter_by(aid=aid).delete()
         if commit:
@@ -668,7 +668,6 @@ class ElltwoDB:
                 title = short_title.replace('_', ' ').title()
 
         art = self.create_article(title, short_title=short_title, init=False, time=time, g_ref=True, index=index)
-        print(art)
         aid = art.aid
 
         paras = re.sub(r'\n{3,}', '\n\n', mark).strip().split('\n\n')
@@ -806,10 +805,14 @@ class ElltwoDB:
     ## storing images
     ##
 
-    def get_image(self, key, time=None):
+    def get_image(self, key, time=None, all=False):
         if time is None:
             time = datetime.utcnow()
-        return self.session.query(Image).filter_by(key=key).filter(imgtime(time)).one_or_none()
+        query = self.session.query(Image).filter_by(key=key)
+        if all:
+            return query.all()
+        else:
+            return query.filter(imgtime(time)).one_or_none()
 
     def update_image_key(self, key, new_key=None, new_kw=None, time=None):
         if time is None:
@@ -858,12 +861,11 @@ class ElltwoDB:
         self.session.add(img)
         self.session.commit()
 
-    def expunge_image(self, key):
-        if (img := self.get_image(key)) is None:
-            return
-
-        self.session.delete(img)
-        self.session.commit()
+    def purge_image(self, key):
+        if len(imgs := self.get_image(key, all=True)) > 0:
+            for img in imgs:
+                self.session.delete(img)
+            self.session.commit()
 
     ##
     ## getting differentials
