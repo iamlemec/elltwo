@@ -42,6 +42,7 @@ let default_state = {
     help_show: false, // is help overlay on
     hist_show: false, // is history mode on
     editable: false, // are we focused on the active para
+    ssv: true, // sidebyside view for demo
     writeable: false, // can we actually modify contents
     active_para: null, // current active para
     last_active: null, // to keep track of where cursor was
@@ -133,6 +134,8 @@ function initIndex() {
     //constuct examples
     initEx(examples)
     genExample('text')
+    setSSV(true);
+
 
 
     //events
@@ -182,6 +185,18 @@ function initIndex() {
             makeActive(null);
         }
     });
+
+    $(document).on('change', '#ssv_check', function() {
+        let check = $(this);
+        let val = check.is(':checked');
+        let text = val ? 'Side-by-Side View' : 'Classic View';
+        $('#ssv').text(text);
+        setSSV(val);
+    });
+
+    $(document).scroll(function() {
+        controlGifs();
+    });
 }
 function genExample(example) {
 
@@ -210,6 +225,32 @@ function initEx(examples) {
         ex.attr('id', example)
         $('#example_options').append(ex)
     };
+}
+
+function playGIF(gif){
+    console.log(gif);
+}
+
+function controlGifs(){
+
+}
+
+function setSSV(val){
+    if(val){
+        state.ssv = true;
+        $('.para').addClass('ssv');
+        $('#content').addClass('ssv');
+        $('.para').each(function(){
+            let input = $(this).children('.p_input')
+            resize(input[0]);
+        })
+        console.log(state.ssv)
+    }else{
+        state.ssv = false;
+        $('.para').removeClass('ssv');
+        $('#content').removeClass('ssv');
+        console.log(state.ssv)
+    }
 }
 
 
