@@ -45,7 +45,7 @@ function connectImage() {
         sendCommand('join_room', {'room': '__img'}, (response) => {
             // console.log(response);
         });
-    });
+    }, []);
 }
 
 function eventImage() {

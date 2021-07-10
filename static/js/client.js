@@ -9,14 +9,18 @@ let socket = null;
 // dummy callbacks
 let dummy = {};
 
+// cached commands
+let cached = {};
+
 // timeout state
 let timeout_id = null;
 
 // takes optional connect event callback
-function connect(url, on_connect) {
+function connect(url, on_connect=noop, cached_cmds=[]) {
     console.log(url);
 
     socket = io(url);
+    cached = Object.fromEntries(cached_cmds.map((x) => [x, new Map()]));
 
     socket.on('connect', () => {
         console.log(`socket connect: ${socket.id}`);
@@ -42,6 +46,13 @@ function connect(url, on_connect) {
     });
 }
 
+function disconnect() {
+    if (socket !== null) {
+        socket.close();
+        socket = null;
+    }
+}
+
 function addHandler(signal, callback) {
     socket.on(signal, callback);
 }
@@ -51,22 +62,26 @@ function addDummy(cmd, callback) {
     dummy[cmd] = callback;
 }
 
-function disconnect() {
-    if (socket !== null) {
-        socket.close();
-        socket = null;
-    }
-}
-
 function sendCommand(cmd, data='', ack=noop) {
+    let sdat = JSON.stringify(data);
     if (cmd in dummy) {
+        console.log(`dummy: ${cmd}`);
         dummy[cmd](data, ack);
+    } else if (cmd in cached && cached[cmd].has(sdat)) {
+        console.log(`cached: ${cmd}`);
+        let ret = cached[cmd].get(sdat);
+        ack(ret);
     } else if (socket !== null) {
         console.log(`sending: ${cmd}`);
-        socket.emit(cmd, data, ack);
+        socket.emit(cmd, data, function(ret) {
+            if (cmd in cached) {
+                cached[cmd].set(sdat, ret);
+            }
+            ack(ret);
+        });
     } else {
         console.log(`tried to send "${cmd}" without connection or dummy handler`);
-        console.log(console.trace())
+        console.log(console.trace());
     }
 }
 

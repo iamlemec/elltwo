@@ -894,7 +894,7 @@ function deleteCite(data) {
 }
 
 function renderBibLocal(data) {
-    data.map(createBibEntry);
+    data.forEach(createBibEntry);
 }
 
 function createBibEntry(cite) {

@@ -29,7 +29,7 @@ img_mime = Multimap({
 ## table export
 ##
 
-bib_meta = ['bid', 'create_time', 'delete_time', 'citekey', 'raw']
+bib_meta = ['bid', 'create_time', 'delete_time', 'citekey']
 bib_cols = [
     col.name for col in Bib.__table__.columns if col.name not in bib_meta
 ]
@@ -725,27 +725,22 @@ class ElltwoDB:
         if time is None:
             time = datetime.utcnow()
 
+        if type(keys) is str:
+            keys = [keys]
+            multi = False
+        else:
+            multi = True
+
         query = self.session.query(Bib)
         if not all:
             query = query.filter(bibtime(time))
         if keys is not None:
             query = query.filter(Bib.citekey.in_(keys))
 
-        return query.all()
-
-    def get_bib_dict(self, keys=None, time=None):
-        if time is None:
-            time = datetime.utcnow()
-
-        bib = self.get_bib(keys, time)
-        bib_dict = []
-        for c in bib:
-            x = c.__dict__.copy()
-            del x['_sa_instance_state']
-            del x['create_time']
-            del x['delete_time']
-            bib_dict.append(x)
-        return bib_dict
+        if multi:
+            return query.all()
+        else:
+            return query.one_or_none()
 
     ##
     ## exteral references

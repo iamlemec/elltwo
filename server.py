@@ -618,12 +618,18 @@ def search_text(data):
 ### citations
 ###
 
+bib_cols = [
+    'citekey', 'entry_type', 'title', 'author', 'journal', 'number', 'volume',
+    'year', 'booktitle', 'publisher', 'DOI', 'pages', 'raw'
+]
+bib_info = lambda b: {c: getattr(b, c, '') for c in bib_cols}
+
 @socketio.on('create_cite')
 @edit_decor
 def create_cite(data):
     edb.create_cite(data['citationKey'], data['entryType'], **data['entryTags'])
-    bib = edb.get_bib_dict(keys=[data['citationKey']])
-    socketio.emit('renderBib', bib, broadcast=True)
+    bib = edb.get_bib(data['citationKey'])
+    socketio.emit('renderBib', [bib_info(bib)], broadcast=True)
 
 @socketio.on('delete_cite')
 @edit_decor
@@ -631,18 +637,12 @@ def delete_cite(data):
     edb.delete_cite(data['key'])
     socketio.emit('deleteCite', data['key'], broadcast=True)
 
-@socketio.on('get_bib')
-@view_decor
-def get_bib(data):
-    keys = data.get('keys', None)
-    bib = edb.get_bib_dict(keys=keys)
-    socketio.emit('renderBib', bib)
-
 @socketio.on('get_cite')
 @view_decor
 def get_cite(data):
-    keys = data['keys']
-    return edb.get_bib_dict(keys=keys)
+    keys = data.get('keys', None)
+    bibs = edb.get_bib(keys=keys)
+    return [bib_info(b) for b in bibs]
 
 ###
 ### external references

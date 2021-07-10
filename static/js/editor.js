@@ -1,8 +1,8 @@
 ////// UI ///////
 
 export {
-    initEditor, resize, makeActive, lockParas, unlockParas, sendMakeEditable,
-    sendUpdatePara, placeCursor
+    initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
+    unlockParas, sendMakeEditable, sendUpdatePara, placeCursor
 }
 
 import { config, state, cache } from './state.js'
@@ -20,7 +20,10 @@ import { toggleHelp } from './help.js'
 /// initialization
 
 function initEditor() {
-    eventEditor();
+}
+
+function stateEditor() {
+    config.resize = true;
 }
 
 function eventEditor() {
@@ -30,7 +33,7 @@ function eventEditor() {
     });
 
     window.onresize = () => {
-        if(state.editable){
+        if (state.editable) {
             let inp = state.active_para.children('.p_input');
             resize(inp[0]);
         }
@@ -209,7 +212,7 @@ function resize(textarea) {
     textarea.style.height = h;
     let para = $(textarea).parent('.para');
     para.css('min-height', h);
-    para.children('.p_input_view').css('min-height', h);
+    // para.children('.p_input_view').css('min-height', h);
 }
 
 /// rendering and storage
@@ -357,11 +360,14 @@ function sendMakeEditable(cursor='end') {
 }
 
 function makeUnEditable(unlock=true) {
-    $('.para.editable')
-        .removeClass('editable')
-        //.css('min-height', '30px')
+    let para = $('.para.editable');
+    para.removeClass('editable')
         .children('.p_input')
         .prop('readonly', true);
+
+    if (config.resize) {
+        para.css('min-height', '30px');
+    }
 
     $('#bg').removeClass('editable');
     $('#content').focus();

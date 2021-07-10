@@ -17,8 +17,8 @@ import {
     braceMatch,
 } from './render.js'
 import {
-    initEditor, resize, makeActive, lockParas, unlockParas, sendMakeEditable,
-    sendUpdatePara, placeCursor
+    initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
+    unlockParas, sendMakeEditable, sendUpdatePara, placeCursor
 } from './editor.js'
 import { connectDrops, promptUpload, uploadImage, invalidateImage } from './drop.js'
 import { initExport } from './export.js'
@@ -61,6 +61,7 @@ let default_state = {
 
 function stateArticle() {
     stateRender();
+    stateEditor();
     updateState(default_state);
     setReadonly(config.readonly);
 }
@@ -76,12 +77,12 @@ function initArticle() {
 }
 
 function loadArticle(args) {
+    // initialize full state
+    stateArticle();
+
     // load in server side config/cache
     updateConfig(default_config, args.config ?? {});
     updateCache(default_cache, args.cache ?? {});
-
-    // initialize full state
-    stateArticle();
 
     // connect and join room
     connectServer();
@@ -138,7 +139,7 @@ function connectServer() {
         sendCommand('join_room', {'room': config.aid, 'get_locked': true}, (response) => {
             lockParas(response);
         });
-    });
+    }, ['get_arts', 'get_link', 'get_ref', 'get_refs']);
 
     addHandler('updatePara', function(data) {
         updatePara(...data);
@@ -195,6 +196,7 @@ function syncRefs() {
 function eventArticle() {
     // core render events
     eventRender();
+    eventEditor();
 
     // statusbar
     $(document).on('click', '#logo', toggleSidebar);
@@ -458,7 +460,7 @@ function getBlurb(len=200, max=5) {
     $('.para').not('.folder').each(function() {
         let para = $(this);
         let ptxt = para.children('.p_text').clone();
-        let core = ptxt.find('.katex-mathml, .eqnum, .img_update, img, svg').remove().end()
+        let core = ptxt.find('.katex-mathml, .eqnum, .img_update, .dropzone, img, svg').remove().end()
                        .removeClass('p_text');
 
         let text = core.text();

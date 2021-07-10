@@ -15,7 +15,7 @@ import {
 } from './render.js'
 import { renderKatex } from './math.js'
 import {
-    initEditor, resize, makeActive, sendMakeEditable,
+    initEditor, stateEditor, eventEditor, resize, makeActive, sendMakeEditable,
     sendUpdatePara, placeCursor
 } from './editor.js'
 import {
@@ -26,6 +26,7 @@ import {
 let default_config = {
     theme: 'classic', // theme to use
     font: 'default', // font to use
+    resize: false, // don't resize in sidebyside
 };
 
 let default_cache = {
@@ -105,12 +106,16 @@ let examples = {
          "<< that is, the probability that infinitely many of them occur is $0$.",
          "The @[thm_BC] theorem is an important result in establishing ...",],
     'images':
-        [`!svg [svg_figure|caption=It's a box]\n<rect x="5" y="5" width="90" height="90" stroke="black" fill="#5D9D68" />`,
+        [`!svg [svg_figure|caption=It's a box|width=60]\n<rect x="5" y="5" width="90" height="90" stroke="black" fill="#5D9D68" />`,
          "Embed and reference images and SVG figures easily, as with @[svg_figure]."],
 }
 
 function initIndex() {
     renderKatex();
+
+    stateRender();
+    stateEditor();
+
     updateState(default_state);
     updateCache(default_cache);
 
@@ -137,6 +142,7 @@ function initIndex() {
 
     // events
     eventRender();
+    eventEditor();
     eventIndex();
 }
 
@@ -240,10 +246,12 @@ function controlGifs() {
 function setSSV(val) {
     if (val) {
         state.ssv = true;
+        config.resize = false;
         $('#content').addClass('ssv');
         console.log('ssv', state.ssv);
     } else {
         state.ssv = false;
+        config.resize = true;
         $('#content').removeClass('ssv');
         console.log('ssv', state.ssv);
     }

@@ -49,11 +49,11 @@ function eventBib() {
     });
 
     $(document).on('click', '#search_results > .cite', function() {
-        editcite(this);
+        editCite(this);
     });
 
     $(document).on('click', '.update', function(e) {
-        editcite(this);
+        editCite(this);
         $('.editable').removeClass('editable');
         e.stopPropagation();
     });
@@ -72,7 +72,10 @@ function connectBib() {
         sendCommand('join_room', {'room': '__bib'}, (response) => {
             // console.log(response);
         });
-        sendCommand('get_bib', {});
+        sendCommand('get_cite', {}, function(refs) {
+            console.log(refs);
+            renderBib(refs);
+        });
     });
 
     addHandler('renderBib', function(refs) {
@@ -193,7 +196,7 @@ function sortCite(id) {
     $(id).html(alphabeticallyOrderedDivs);
 }
 
-function editcite(el) {
+function editCite(el) {
     let src = $(el).closest('.cite').attr('raw');
     $('#bib_input').val(src);
     $('#search_results').find('.cite').remove();
