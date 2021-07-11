@@ -573,14 +573,14 @@ function fold(para, init=false) {
         fold.attr('fold_level', l+1);
         makeActive(fold);
         if (!init) {
-            cache.folded.push(env_pid);
-            const foldcookie = JSON.stringify(cache.folded);
+            state.folded.push(env_pid);
+            const foldcookie = JSON.stringify(state.folded);
             document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
         }
     } else if (fold_pid) {
-        const index = cache.folded.indexOf(fold_pid);
+        const index = state.folded.indexOf(fold_pid);
         if (index > -1) {
-            cache.folded.splice(index, 1);
+            state.folded.splice(index, 1);
         }
         const foldParas = getFoldParas(fold_pid);
         foldParas[0].each(function() {
@@ -592,7 +592,7 @@ function fold(para, init=false) {
         const l = getFoldLevel(fold);
         fold.attr('fold_level', l-1);
         makeActive(foldParas[1]);
-        const foldcookie = JSON.stringify(cache.folded);
+        const foldcookie = JSON.stringify(state.folded);
         document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
     }
     renderFold();
@@ -600,8 +600,8 @@ function fold(para, init=false) {
 
 function unfold() {
     $('.para').attr('fold_level', 0);
-    cache.folded = [];
-    const foldcookie = JSON.stringify(cache.folded);
+    state.folded = [];
+    const foldcookie = JSON.stringify(state.folded);
     document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
     renderFold();
 }

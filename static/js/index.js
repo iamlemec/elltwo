@@ -30,11 +30,11 @@ let default_config = {
 };
 
 let default_cache = {
-    bib: new DummyCache('bib'), // bibliography entries
+    link: new DummyCache('link'), // article links/blurbs
+    ref: new DummyCache('ref'), // external refs/blurbs
     img: new DummyCache('img'), // local image cache
-    int_ref: [], // internal references
-    ext_ref: {}, // external ref info
-    folded: [], // current folded pids
+    bib: new DummyCache('bib'), // bibliography entries
+    cref: new DummyCache('cref'), // external reference completion
 };
 
 let default_state = {
@@ -46,6 +46,7 @@ let default_state = {
     writeable: false, // can we actually modify contents
     active_para: null, // current active para
     last_active: null, // to keep track of where cursor was
+    folded: [], // current folded pids
     cc: false, // is there a command completion window open
     cb: [], // clipboard for cell copy
 };

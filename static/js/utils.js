@@ -59,6 +59,10 @@ class KeyCache {
         return this.data.delete(key);
     }
 
+    flush() {
+        this.data.clear();
+    }
+
     many(keys) {
         return Object.fromEntries(keys.map(k => [k, this.data.get(k)]));
     }
@@ -107,6 +111,9 @@ class DummyCache {
 
     del(key) {
         return false;
+    }
+
+    flush() {
     }
 
     many(keys) {

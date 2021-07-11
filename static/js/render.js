@@ -21,7 +21,7 @@ function stateRender() {
     config.macros = {}; // external katex macros
     state.macros = {}; // internal katex macros
     state.title = null; // document title
-    cache.folded = []; // current folded pids
+    state.folded = []; // current folded pids
 }
 
 function initRender() {
@@ -345,7 +345,7 @@ function envClasses(outer) {
             env_all.addClass('env');
             env_all.attr('env_pid', env_pid);
             env_all.addClass(`env__${env_name}`);
-            if (cache.folded.includes(env_pid)) {
+            if (state.folded.includes(env_pid)) {
                 env_all.addClass('folded');
             };
             envFormat(txt_all, env_name, env_args);
@@ -421,7 +421,7 @@ function simpleEnv(ptxt, env, head='', tail='', number=true, args={}) {
     let env_pid = para.attr('env_pid');
     fold.attr('fold_pid', env_pid)
         .attr('fold_level', 0);
-    // if (!cache.folded.includes(env_pid)) {
+    // if (!state.folded.includes(env_pid)) {
     //     fold.addClass('folded');
     // }
     para.before(fold);
@@ -485,7 +485,7 @@ function headingEnv(ptxt, args) {
     fold.attr('fold_pid', env_pid)
         .attr('head_level', args.level)
         .attr('fold_level', 0);
-    // if (!cache.folded.includes(env_pid)) {
+    // if (!state.folded.includes(env_pid)) {
     //     fold.addClass('folded')
     // }
     para.before(fold);
@@ -1350,8 +1350,8 @@ function getFoldLevel(para) {
 }
 
 function initFold() {
-    cache.folded = cooks('folded') || cache.folded;
-    cache.folded.forEach(pid => {
+    state.folded = cooks('folded') || state.folded;
+    state.folded.forEach(pid => {
         let para = getPara(pid);
         fold(para, init=true);
     });

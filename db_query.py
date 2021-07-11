@@ -753,6 +753,12 @@ class ElltwoDB:
         else:
             return ret
 
+    def get_bib_keys(self, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        query = self.session.query(Bib).filter(bibtime(time))
+        return [b.citekey for b in query.all()]
+
     ##
     ## exteral references
     ##
@@ -767,7 +773,7 @@ class ElltwoDB:
             query = query.filter(reftime(time))
         return query.all()
 
-    def get_refs(self, aid, time=None):
+    def get_ref_keys(self, aid, time=None):
         if time is None:
             time = datetime.utcnow()
         query = self.session.query(ExtRef).filter_by(aid=aid).filter(reftime(time))

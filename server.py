@@ -366,7 +366,6 @@ def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
     art = edb.get_art_short(title)
     if art:
         paras = edb.get_paras(art.aid)
-        ref_list = edb.get_refs(art.aid) if edit else []
         return render_template(
             'article.html',
             title=art.title,
@@ -377,7 +376,6 @@ def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
             font=font,
             pid=pid,
             readonly=not edit,
-            ref_list=ref_list,
             themes=config['themes'],
             timeout=config['timeout'],
             max_size=config['max_size'],
@@ -636,6 +634,11 @@ def get_cite(data):
     keys = data.get('keys', None)
     return edb.get_bib(keys=keys, dump=True)
 
+@socketio.on('get_bibs')
+@view_decor
+def get_cite(data):
+    return edb.get_bib_keys()
+
 ###
 ### external references
 ###
@@ -659,15 +662,14 @@ def get_ref(data):
 def get_refs(data):
     title = data['title']
     if (art := edb.get_art_short(title)) is not None:
-        refs = edb.get_refs(art.aid)
-        return {'refs' : refs, 'title': title}
+        return edb.get_ref_keys(art.aid)
     else:
-        return {'refs': [], 'title': ''}
+        return []
 
 @socketio.on('get_arts')
 @view_decor
 def get_arts(data):
-    return {art: [] for art in edb.get_art_titles()}
+    return edb.get_art_titles()
 
 @socketio.on('update_ref')
 @edit_decor

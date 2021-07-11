@@ -53,11 +53,6 @@ let default_state = {
     cb: [], // clipboard for cell copy
 };
 
-let default_cache = {
-    int_ref: [], // internal references (completion)
-    ext_ref: {}, // external references (completion)
-}
-
 function stateArticle() {
     stateRender();
     stateEditor();
@@ -104,6 +99,17 @@ function cacheArticle() {
             callback(cites);
         });
     });
+
+    // external reference completion
+    cache.cref = new KeyCache('cref', function(key, callback) {
+        if (key == '_art_') {
+            sendCommand('get_arts', {}, callback);
+        } else if (key == '_bib_') {
+            sendCommand('get_bibs', {}, callback);
+        } else {
+            sendCommand('get_refs', {title: key}, callback);
+        }
+    });
 }
 
 function initArticle() {
@@ -119,7 +125,6 @@ function initArticle() {
 function loadArticle(args) {
     // load in server side config/cache
     updateConfig(default_config, args.config ?? {});
-    updateCache(default_cache, args.cache ?? {});
 
     // initialize full state
     cacheArticle();
@@ -345,13 +350,7 @@ function deletePara(pid) {
     let para = getPara(pid);
     let old_id;
     if (old_id = para.attr('id')) {
-        let i = cache.int_ref.indexOf(old_id);
-        if (i !== -1) {
-            cache.int_ref.splice(i, 1);
-        }
-        let ref = {};
-        ref.aid = config.aid;
-        ref.key = old_id;
+        let ref = {aid: config.aid, key: old_id};
         sendCommand('delete_ref', ref, function(success) {
             console.log('success: deleted ref');
         });
@@ -449,9 +448,6 @@ function updateRefHTML(para) {
 
     // for this specific para
     if (new_id) {
-        if (cache.int_ref.indexOf(new_id) == -1) {
-            cache.int_ref.push(new_id);
-        };
         let ref = createExtRef(new_id);
         sendCommand('update_ref', ref, function(success) {
             console.log('success: updated ref');
@@ -480,13 +476,7 @@ function updateRefHTML(para) {
                 console.log('success: updated ref');
             });
         } else {
-            let i = cache.int_ref.indexOf(old_id);
-            if (i !== -1) {
-                cache.int_ref.splice(i, 1);
-            }
-            let ref = {};
-            ref.aid = config.aid;
-            ref.key = old_id;
+            let ref = {aid: config.aid, key: old_id};
             sendCommand('delete_ref', ref, function(success) {
                 console.log('success: deleted ref');
             });
@@ -1050,6 +1040,10 @@ function ccMake() {
 
 /// command completion
 
+function getInternalRefs() {
+    return $('.para:not(.folder):is(.env_beg,.env_one)[id]').map((i, x) => x.id).toArray();
+}
+
 function ccSearch(list, search, placement) {
     list = list.filter(el => el.includes(search));
     if (list.length > 0) {
@@ -1085,30 +1079,25 @@ function ccRefs(view, raw, cur) {
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-            if (cap[1]=='@') { //bib search
+            if (cap[1] == '@') { // bib search
                 let search = cap[2] || '';
-                ccSearch(cache.bib.keys(), search, p);
+                cache.cref.get('_bib_', function(ret) {
+                    ccSearch(ret, search, p);
+                });
             } else if (cap[3] && !cap[2]) { // searching for ext page
-                let ex_keys = Object.keys(cache.ext_ref);
-                if (ex_keys.length == 0) { // if we have not made request
-                    sendCommand('get_arts', '', function(arts) {
-                        cache.ext_ref = arts;
-                        ccSearch(Object.keys(arts), '', p);
-                    });
-                } else {
-                    let search = cap[4] || '';
-                    ccSearch(ex_keys, search, p);
-                }
+                let search = cap[4] || '';
+                cache.cref.get('_art_', function(ret) {
+                    ccSearch(ret, search, p);
+                });
             } else if (cap[2] && cap[3]) {
-                sendCommand('get_refs', {'title': cap[2]}, function(data) {
-                    if (data.refs.length > 0) {
-                        cache.ext_ref[data.title] = data.refs;
-                    }
-                    ccSearch(data.refs, '', p);
+                let title = cap[2];
+                cache.cref.get(title, function(ret) {
+                    ccSearch(ret, '', p);
                 });
             } else {
                 let search = cap[4] || cap[2] || '';
-                ccSearch(cache.int_ref, search, p);
+                let in_refs = getInternalRefs();
+                ccSearch(in_refs, search, p);
             }
         }
     } else if (cap = open_i_link.exec(raw)) {
@@ -1119,17 +1108,10 @@ function ccRefs(view, raw, cur) {
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-            let ex_keys = Object.keys(cache.ext_ref);
-            if (ex_keys.length == 0) { // if we have not made request
-                sendCommand('get_arts', '', function(arts) {
-                    cache.ext_ref = arts;
-                    let search = '';
-                    ccSearch(Object.keys(arts), search, p);
-                });
-            } else {
-                let search = cap[1] || '';
-                ccSearch(ex_keys, search, p);
-            }
+            let search = cap[4] || '';
+            let ex_keys = cache.cref.get('_art_', function(ret) {
+                ccSearch(ret, search, p);
+            });
         }
     }
 }
