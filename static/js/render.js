@@ -3,8 +3,8 @@
 export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
     rawToTextarea, envClasses, createRefs, createTOC, getTro, troFromKey,
-    popText, renderPop, syntaxHL, cacheBib, deleteCite, s_env_spec,
-    getFoldLevel, renderFold, braceMatch, makePara, connectCallbacks
+    popText, renderPop, syntaxHL, s_env_spec, getFoldLevel, renderFold,
+    braceMatch, makePara, connectCallbacks
 }
 
 import { merge, cooks, getPara } from './utils.js'
@@ -43,7 +43,7 @@ function eventRender() {
             $('#pop').remove();
             let ref = $(this);
             ref.data('show_pop', true);
-            let html = getTro(ref, renderPop, 'pop');
+            let html = getTro(ref, renderPop);
             return false;
         });
 
@@ -60,7 +60,7 @@ function eventRender() {
             mouseenter: function() {
                 let ref = $(this);
                 ref.data('show_pop', true);
-                let html = getTro(ref, renderPop, 'pop');
+                let html = getTro(ref, renderPop);
             },
             mouseleave: function() {
                 let ref = $(this);
@@ -529,24 +529,16 @@ function imgEnv(ptxt, args) {
     fig.append(upd);
 
     let key = ptxt.parent().attr('id');
-    if (key in cache.img) {
-        let url = cache.img[key];
-        img.attr('src', url);
-    } else {
-        sendCommand('get_image', {key: key}, (ret) => {
-            if (ret.found) {
-                const blob = new Blob([ret.data], {type: ret.mime});
-                let url = URL.createObjectURL(blob);
-                cache.img[key] = url;
-                img.attr('src', url);
-            } else {
-                let msg = `Error: image "${key}" not found`;
-                let err = $('<span>', {class: 'img_err env_add', text: msg});
-                img.remove();
-                fig.append(err);
-            }
-        });
-    }
+    cache.img.get(key, function(url) {
+        if (url === undefined) {
+            let msg = `Error: image "${key}" not found`;
+            let err = $('<span>', {class: 'img_err env_add', text: msg});
+            fig.empty();
+            fig.append(err);
+        } else {
+            img.attr('src', url);
+        }
+    });
 }
 
 // simple envs for user creation and simpler setup
@@ -632,8 +624,6 @@ function createTOC(outer) {
 
 /// REFERENCING and CITATIONS
 
-// renderedCites = new Set(); // state var, citations previously rendered
-
 function createRefs(para) {
     let refs;
     if (para == undefined) {
@@ -654,19 +644,13 @@ function createRefs(para) {
         }
     });
 
-    if (citeKeys.size > 0) {
-        sendCommand('get_cite', {'keys': [...citeKeys]}, function(ret) {
-            renderBibLocal(ret);
-            renderRefText(para);
-        });
-    } else {
+    // fetch cite info
+    cache.bib.bulk([...citeKeys], function(ret) {
         renderRefText(para);
-    }
-
-    // renderedCites = citeKeys;
+    });
 }
 
-function getTro(ref, callback, mode) {
+function getTro(ref, callback) {
     let tro = {};
     let key = ref.attr('citekey');
 
@@ -675,31 +659,48 @@ function getTro(ref, callback, mode) {
         tro.cite_type = 'self';
         callback(ref, tro);
     } else if (key == '_ilink_') {
-        let title = ref.attr('href');
-        let blurb = mode == 'pop';
-        let data = {title: title, blurb: blurb};
-        sendCommand('get_link', data, function(ret) {
-            if (ret.found) {
+        let short = ref.attr('href');
+        cache.link.get(short, function(ret) {
+            if (ret !== undefined) {
                 tro.cite_type = 'ilink';
-                tro.pop_text = ret.blurb;
                 tro.ref_text = ret.title;
+                tro.pop_text = ret.blurb;
             } else {
                 tro.cite_type = 'err';
                 tro.cite_err = 'art_not_found';
-                tro.ref_text = `[[${title}]]`;
+                tro.ref_text = `[[${short}]]`;
             }
-            callback(ref, tro, ret.title);
+            callback(ref, tro);
+        });
+    } else if (cache.bib.has(key)) {
+        cache.bib.get(key, function(ret) {
+            if (ret !== undefined) {
+                tro.cite_type = 'cite';
+                tro.cite_author = ret.author;
+                tro.cite_year = ret.year;
+                tro.pop_text = ret.entry;
+            } else {
+                tro.cite_type = 'err';
+                tro.cite_err = 'cite_not_found';
+                tro.cite_text = `@[${key}]`;
+            }
+            callback(ref, tro);
         });
     } else if (ref.data('extern')) {
-        let [extern, citekey] = key.split(':');
-        let data = {title: extern, key: citekey};
-        sendCommand('get_ref', data, function(ret) {
-            tro.tro = $($.parseHTML(ret.text));
-            tro.cite_type = ret.cite_type;
-            tro.cite_env = ret.cite_env;
-            tro.cite_err = ret.cite_err;
-            tro.ref_text = ret.ref_text;
-            callback(ref, tro, ret.title);
+        cache.ref.get(key, function(ret) {
+            if (ret !== undefined) {
+                tro.tro = $($.parseHTML(ret.text));
+                tro.cite_type = ret.cite_type;
+                tro.cite_env = ret.cite_env;
+                tro.cite_err = ret.cite_err;
+                tro.ref_text = ret.ref_text;
+                tro.ext_title = ret.title;
+            } else {
+                tro.cite_type = 'err';
+                tro.cite_err = 'ref_not_found';
+                tro.ref_text = `@[${key}]`;
+            }
+            callback(ref, tro);
         });
     } else {
         tro = troFromKey(key, tro);
@@ -745,7 +746,7 @@ function renderRefText(para) {
 
     refs.each(function() {
         var r = $(this);
-        getTro(r, renderRef, 'ref');
+        getTro(r, renderRef);
     });
 }
 
@@ -754,14 +755,14 @@ function renderRefText(para) {
  **/
 
 // routing is split due to aysc of sever commands
-function renderRef(ref, tro, ext) {
+function renderRef(ref, tro) {
     if (tro.cite_type == 'self') {
         refSelf(ref);
     } else if (tro.cite_type == 'env') {
         if (tro.cite_env in ref_spec) {
-            ref_spec[tro.cite_env](ref, tro, ext);
+            ref_spec[tro.cite_env](ref, tro);
         } else if (tro.cite_env in s_env_spec) { // simple env
-            refEnv(ref, tro, s_env_spec[tro.cite_env].head, ext);
+            refEnv(ref, tro, s_env_spec[tro.cite_env].head);
         } else {
             refError(ref, 'env');
         };
@@ -792,6 +793,18 @@ function refError(ref, tro) {
     ref.html(`<span class="ref_error">${text}</span>`);
 }
 
+function citeEtal(authors) {
+    if (authors.length == 0) {
+        return '';
+    } else if (authors.length == 1) {
+        return authors[0];
+    } else if (authors.length == 2) {
+        return `${authors[0]} and ${authors[1]}`;
+    } else {
+        return `${authors[0]} et al.`;
+    }
+}
+
 function refCite(ref, tro) {
     let text = ref.data('text');
     let citeText;
@@ -800,18 +813,10 @@ function refCite(ref, tro) {
         citeText = text;
     } else {
         let format = ref.attr('format') || '';
-        let authors = tro.tro.attr('authors').split(',');
-        let year = tro.tro.attr('year');
-        let href = '#' + tro.tro.attr('id');
+        let authors = tro.cite_author.split(',');
+        let year = tro.cite_year;
 
-        if (authors.length == 2) {
-            citeText = `${authors[0]} and ${authors[1]}`;
-        } else if (authors.length < 2) {
-            citeText = authors[0];
-        } else {
-            citeText = `${authors[0]} et al.`;
-        }
-
+        citeText = citeEtal(authors);
         if (format == 'p') {
             citeText = `(${citeText}, ${year})`;
         } else {
@@ -820,10 +825,9 @@ function refCite(ref, tro) {
     }
 
     ref.html(citeText);
-    ref.attr('href', '');
 }
 
-function refEquation(ref, tro, ext) {
+function refEquation(ref, tro) {
     let num = tro.tro.find('.num').first().text();
     let citebox = $('<span>', {class: 'eqn_cite', text: num});
     let text = ref.data('text');
@@ -833,14 +837,14 @@ function refEquation(ref, tro, ext) {
     } else {
         ref.empty();
         ref.append(citebox);
-        if (ext) {
-            let txt = $('<span>', {class: 'eqn_cite_ext', text: `[${ext}]`});
+        if (tro.ext_title) {
+            let txt = $('<span>', {class: 'eqn_cite_ext', text: `[${tro.ext_title}]`});
             ref.append(txt);
         }
     }
 }
 
-function refEnv(ref, tro, env, ext) {
+function refEnv(ref, tro, env) {
     let format = ref.attr('format') || '';
     let num = tro.tro.find('.num').first().text();
     let text = ref.data('text');
@@ -856,19 +860,19 @@ function refEnv(ref, tro, env, ext) {
         citeText = `${env} ${num}`;
     }
 
-    if (ext && !text) {
-        citeText += ` [${ext}]`;
+    if (tro.ext_title && !text) {
+        citeText += ` [${tro.ext_title}]`;
     }
 
     ref.html(citeText);
 };
 
-function refSection(ref, tro, ext) {
-    refEnv(ref, tro, 'Section', ext);
+function refSection(ref, tro) {
+    refEnv(ref, tro, 'Section');
 }
 
-function refFigure(ref, tro, ext) {
-    refEnv(ref, tro, 'Figure', ext);
+function refFigure(ref, tro) {
+    refEnv(ref, tro, 'Figure');
 }
 
 let ref_spec = {
@@ -882,56 +886,6 @@ let ref_spec = {
 /**
  **  bibliography cache
  **/
-
-function cacheBib(data) {
-    data.forEach(cite => {
-        cache.bib[cite.citekey] = cache.bib[cite.citekey] ? cite.raw : null;
-    });
-}
-
-function deleteCite(data) {
-    delete cache.bib[data];
-}
-
-function renderBibLocal(data) {
-    data.forEach(createBibEntry);
-}
-
-function createBibEntry(cite) {
-    cache.bib[cite.citekey] = cite.raw;
-    $('#'+cite['citekey']).remove();
-
-    let yr = cite['year'] ? ` ${cite['year']}. ` : '';
-    let vol = cite['volume'] ? `, ${cite['volume']}` : '';
-    let num = cite['number'] ? `, no. ${cite['number']}` : '';
-    let pgs = cite['pages'] ? `, pp. ${cite['pages']}` : '';
-    let title = cite['title'] ? `${cite['title']}` : '';
-    let pubs = ['book', 'incollection'];
-    let jns = ['article', 'techreport', 'unpublished'];
-
-    let pub;
-    let journal;
-    if (pubs.includes(cite['entry_type'])) {
-        pub = cite['publisher'] || '';
-        journal = (cite['booktitle']) ? `In ${cite['booktitle']}`: '';
-    } else if (jns.includes(cite['entry_type'])) {
-        pub = '';
-        journal = cite['journal'] || 'mimeo';
-    }
-
-    let author = `<b>${cite['author']}</b>. ` || '';
-    let index = (vol || num || pgs) ? `${vol + num + pgs}.` : '';
-    let author_list = cite['author'].split(' and ').map(auth => auth.split(',')[0]);
-
-    $('#bib_block').append(
-        `<div class="cite" id=${cite['citekey']} cite-type="cite" authors="${author_list}" year="${cite['year']}">
-        <span class="citeText">
-        ${author}${yr}${title}. <em>${journal}</em>${index} ${pub}
-        </span>
-        <span class="citekey">${cite['citekey']}</span>
-        </div>`
-    );
-}
 
 /**
  **  popup rendering
@@ -966,11 +920,11 @@ function createPop(ref, html='', link=false, blurb=false) {
 }
 
 // generates pop text from tro (only for internal refs)
-function popText(tro, ext) {
+function popText(tro) {
     if (tro.cite_type == 'self') {
         return popSelf(tro.tro);
     } else if (tro.cite_type == 'env') {
-        if (ext) {
+        if (tro.ext_title) {
             return tro.tro;
         }
         let paras = $(tro.cite_sel);
@@ -982,7 +936,7 @@ function popText(tro, ext) {
             return popError('ref_not_found');
         }
     } else if (tro.cite_type == 'cite') {
-        return popCite(tro.tro);
+        return popCite(tro.pop_text);
     } else if (tro.cite_type == 'ilink') {
         return popLink(tro.pop_text);
     } else if (tro.cite_type == 'err') {
@@ -990,11 +944,11 @@ function popText(tro, ext) {
     }
 }
 
-function renderPop(ref, tro, ext) {
+function renderPop(ref, tro) {
     if (!ref.data('show_pop')) { // we've since left with mouse
         return;
     }
-    let pop = popText(tro, ext);
+    let pop = popText(tro);
     let link = config.mobile ? ref.attr('href') : false;
     let blurb = tro.cite_type == 'ilink';
     createPop(ref, pop, link, blurb);
@@ -1026,8 +980,8 @@ function popEquation(tro) {
     return tro.children('.p_text').html();
 }
 
-function popCite(tro) {
-    return tro.find('.citeText').html();
+function popCite(text) {
+    return text;
 }
 
 function popSelf(tro) {

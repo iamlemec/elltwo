@@ -2,7 +2,7 @@
 
 export { getCiteData }
 
-import { createBibEntry } from './bib.js'
+import { createBibInfo } from './bib.js'
 
 function getCiteData(q) {
     q = q.replace(' ', '+');
@@ -16,7 +16,7 @@ function getCiteData(q) {
             $('#search_results').append(nr);
         } else {
             data.forEach(function(cite) {
-                createBibEntry(cite, $('#search_results'), true);
+                createBibInfo(cite, $('#search_results'), true).entry;
             });
         }
     });

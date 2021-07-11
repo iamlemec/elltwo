@@ -1,14 +1,18 @@
 /* random utilities */
 
 export {
-    merge, initToggleBox, toggleBox, ensureVisible, setCookie, cooks, getPara,
-    isMobile, noop, on_success
+    merge, mapObject, initToggleBox, toggleBox, ensureVisible, setCookie,
+    cooks, getPara, isMobile, noop, on_success, KeyCache, DummyCache
 }
 
 // js tricks
 
 function merge() {
     return Object.assign({}, ...arguments);
+}
+
+function mapObject(obj, func) {
+    return Object.fromEntries(Object.entries(obj).map(([x, y]) => func(x, y)));
 }
 
 function noop() {
@@ -20,6 +24,102 @@ function on_success(func) {
             func();
         }
     };
+}
+
+// key cache
+
+class KeyCache {
+    constructor(name, getter, bulker) {
+        this.name = name;
+        this.getter = getter;
+        this.bulker = bulker;
+        this.data = new Map();
+    }
+
+    has(key) {
+        return this.data.has(key);
+    }
+
+    get(key, callback) {
+        let kc = this;
+        if (this.data.has(key)) {
+            let val = this.data.get(key);
+            callback(val);
+        } else {
+            this.getter(key, function(val) {
+                if (val !== undefined) {
+                    kc.data.set(key, val);
+                }
+                callback(val);
+            });
+        }
+    }
+
+    del() {
+        return this.data.delete(key);
+    }
+
+    many(keys) {
+        return Object.fromEntries(keys.map(k => [k, this.data.get(k)]));
+    }
+
+    bulk(keys, callback) {
+        if (this.bulker === undefined) {
+            console.log(`KeyCache ${this.name} is not bulked`);
+            return;
+        }
+
+        let kc = this;
+        let rest = keys.filter(k => !this.has(k));
+        if (rest.length > 0) {
+            this.bulker(rest, function(vals) {
+                for (const [k, v] of Object.entries(vals)) {
+                    if (v !== undefined) {
+                        kc.data.set(k, v);
+                    }
+                }
+                let ret = kc.many(keys);
+                callback(ret);
+            });
+        } else {
+            let ret = this.many(keys);
+            callback(ret);
+        }
+    }
+
+    keys() {
+        return [...this.data.keys()];
+    }
+}
+
+class DummyCache {
+    constructor(name) {
+        this.name = name;
+    }
+
+    has(key) {
+        return false;
+    }
+
+    get(key, callback) {
+        callback(undefined);
+    }
+
+    del(key) {
+        return false;
+    }
+
+    many(keys) {
+        return Object.fromEntries(keys.map(k => [k, undefined]));
+    }
+
+    bulk(keys, callback) {
+        callback(this.many(keys));
+    }
+
+    keys() {
+        return [];
+    }
 }
 
 // para tools

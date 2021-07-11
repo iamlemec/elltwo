@@ -308,7 +308,8 @@ button {
     white-space: pre;
 }
 
-.env__equation > .p_text {
+#content.ssv > .env__equation > .p_text,
+#content:not(.ssv) > .env__equation > .p_text {
     display: flex;
     align-items: center;
     justify-content: flex-start;

@@ -5,7 +5,9 @@ export {
     updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs, textWrap
 }
 
-import { setCookie, cooks, getPara, on_success } from './utils.js'
+import {
+    mapObject, on_success, setCookie, cooks, getPara, KeyCache
+} from './utils.js'
 import {
     config, state, cache, updateConfig, updateState, updateCache
 } from './state.js'
@@ -13,8 +15,7 @@ import { connect, addHandler, sendCommand, schedTimeout } from './client.js'
 import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, createTOC, getTro, troFromKey, popText, syntaxHL, cacheBib, deleteCite,
-    braceMatch,
+    envClasses, createTOC, getTro, troFromKey, popText, syntaxHL, braceMatch,
 } from './render.js'
 import {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
@@ -23,6 +24,7 @@ import {
 import { connectDrops, promptUpload, uploadImage, invalidateImage } from './drop.js'
 import { initExport } from './export.js'
 import { initHelp } from './help.js'
+import { createBibInfo } from './bib.js'
 
 // history
 let updateHistMap;
@@ -39,14 +41,6 @@ let default_config = {
     aid: null, // article identifier
 };
 
-let default_cache = {
-    ref: [], // internal references
-    bib: {}, // bibliography entries
-    img: {}, // local image cache
-    ext_ref: {}, // external ref info
-};
-
-
 let default_state = {
     sidebar_show: false, // is sidebar shown
     help_show: false, // is help overlay on
@@ -59,11 +53,57 @@ let default_state = {
     cb: [], // clipboard for cell copy
 };
 
+let default_cache = {
+    int_ref: [], // internal references (completion)
+    ext_ref: {}, // external references (completion)
+}
+
 function stateArticle() {
     stateRender();
     stateEditor();
     updateState(default_state);
     setReadonly(config.readonly);
+}
+
+function cacheArticle() {
+    // article link/blurb
+    cache.link = new KeyCache('link', function(key, callback) {
+        sendCommand('get_link', {title: key}, callback);
+    });
+
+    // external references/popups
+    cache.ref = new KeyCache('ref', function(key, callback) {
+        let [title, refkey] = key.split(':');
+        sendCommand('get_ref', {title: title, key: refkey}, callback);
+    });
+
+    // image cache
+    cache.img = new KeyCache('img', function(key, callback) {
+        sendCommand('get_image', {key: key}, function(ret) {
+            let url;
+            if (ret !== undefined) {
+                const blob = new Blob([ret.data], {type: ret.mime});
+                url = URL.createObjectURL(blob);
+            }
+            callback(url);
+        });
+    });
+
+    // bibliography (external citations)
+    cache.bib = new KeyCache('bib', function(key, callback) {
+        sendCommand('get_cite', {key: key}, function(ret) {
+            let cite = (ret !== undefined) ? createBibInfo(ret) : undefined;
+            callback(cite);
+        });
+    }, function(keys, callback) {
+        sendCommand('get_bib', {keys: keys}, function(ret) {
+            let cites = mapObject(ret, (k, v) => {
+                let cite = (v !== undefined) ? createBibInfo(v) : undefined;
+                return [k, cite];
+            });
+            callback(cites);
+        });
+    });
 }
 
 function initArticle() {
@@ -77,12 +117,13 @@ function initArticle() {
 }
 
 function loadArticle(args) {
-    // initialize full state
-    stateArticle();
-
     // load in server side config/cache
     updateConfig(default_config, args.config ?? {});
     updateCache(default_cache, args.cache ?? {});
+
+    // initialize full state
+    cacheArticle();
+    stateArticle();
 
     // connect and join room
     connectServer();
@@ -139,7 +180,7 @@ function connectServer() {
         sendCommand('join_room', {'room': config.aid, 'get_locked': true}, (response) => {
             lockParas(response);
         });
-    }, ['get_arts', 'get_link', 'get_ref', 'get_refs']);
+    });
 
     addHandler('updatePara', function(data) {
         updatePara(...data);
@@ -304,9 +345,9 @@ function deletePara(pid) {
     let para = getPara(pid);
     let old_id;
     if (old_id = para.attr('id')) {
-        let i = cache.ref.indexOf(old_id);
+        let i = cache.int_ref.indexOf(old_id);
         if (i !== -1) {
-            cache.ref.splice(i, 1);
+            cache.int_ref.splice(i, 1);
         }
         let ref = {};
         ref.aid = config.aid;
@@ -408,8 +449,8 @@ function updateRefHTML(para) {
 
     // for this specific para
     if (new_id) {
-        if(cache.ref.indexOf(new_id) == -1){
-            cache.ref.push(new_id);
+        if (cache.int_ref.indexOf(new_id) == -1) {
+            cache.int_ref.push(new_id);
         };
         let ref = createExtRef(new_id);
         sendCommand('update_ref', ref, function(success) {
@@ -439,9 +480,9 @@ function updateRefHTML(para) {
                 console.log('success: updated ref');
             });
         } else {
-            let i = cache.ref.indexOf(old_id);
+            let i = cache.int_ref.indexOf(old_id);
             if (i !== -1) {
-                cache.ref.splice(i, 1);
+                cache.int_ref.splice(i, 1);
             }
             let ref = {};
             ref.aid = config.aid;
@@ -1046,7 +1087,7 @@ function ccRefs(view, raw, cur) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             if (cap[1]=='@') { //bib search
                 let search = cap[2] || '';
-                ccSearch(Object.keys(cache.bib), search, p);
+                ccSearch(cache.bib.keys(), search, p);
             } else if (cap[3] && !cap[2]) { // searching for ext page
                 let ex_keys = Object.keys(cache.ext_ref);
                 if (ex_keys.length == 0) { // if we have not made request
@@ -1067,7 +1108,7 @@ function ccRefs(view, raw, cur) {
                 });
             } else {
                 let search = cap[4] || cap[2] || '';
-                ccSearch(cache.ref, search, p);
+                ccSearch(cache.int_ref, search, p);
             }
         }
     } else if (cap = open_i_link.exec(raw)) {

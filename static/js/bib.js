@@ -1,6 +1,6 @@
 /* bibtex library browswer */
 
-export { initBib, createBibEntry }
+export { initBib, createBibInfo }
 
 import { connect, addHandler, sendCommand } from './client.js'
 import { getCiteData } from './bib_search.js'
@@ -60,8 +60,7 @@ function eventBib() {
 
     $(document).on('click', '.delete', function() {
         let key = $(this).closest('.cite').attr('id');
-        let data = {'key': key};
-        sendCommand('delete_cite', data);
+        sendCommand('delete_cite', {key: key});
         $('.editable').removeClass('editable');
     });
 }
@@ -69,22 +68,12 @@ function eventBib() {
 function connectBib() {
     let url = `http://${document.domain}:${location.port}`;
     connect(url, () => {
-        sendCommand('join_room', {'room': '__bib'}, (response) => {
-            // console.log(response);
-        });
-        sendCommand('get_cite', {}, function(refs) {
-            console.log(refs);
-            renderBib(refs);
-        });
+        sendCommand('join_room', {room: '__bib'});
+        sendCommand('get_bib', {}, renderBib);
     });
 
-    addHandler('renderBib', function(refs) {
-        renderBib(refs);
-    });
-
-    addHandler('deleteCite', function(key) {
-        deleteCite(key);
-    });
+    addHandler('renderBib', renderBib);
+    addHandler('deleteCite', deleteCite);
 }
 
 function generateJson(src) {
@@ -92,13 +81,13 @@ function generateJson(src) {
     if (!json[0]) {
         return 'Err: bibtex entry incorrectly specified';
     } else {
-        if (!(json[0]['entryTags']['title'])) {
+        if (!(json[0].entryTags.title)) {
             console.log('Err: Title Required');
             return false;
-        } else if (!json[0]['entryTags']['author']) {
+        } else if (!json[0].entryTags.author) {
             console.log('Err: Author Required');
             return false;
-        } else if (!json[0]['entryTags']['year']) {
+        } else if (!json[0].entryTags.year) {
             console.log('Err: Year Required');
             return false;
         } else {
@@ -110,14 +99,14 @@ function generateJson(src) {
 /// editing
 
 function renderBib(data) {
-    //data.map(createBibEntry);
-    data.forEach(function(cite) {
-        createBibEntry(cite, $('#para_holder'));
+    let holder = $('#para_holder');
+    Object.entries(data).forEach(([key, cite]) => {
+        createBibEntry(key, cite, holder);
     });
     $('#bib_input').val('');
     sortCite('#para_holder');
     if (data.length == 1) {
-        location.href = '#' + data[0]['citekey'];
+        location.href = '#' + data[0].citekey;
     }
 }
 
@@ -125,37 +114,47 @@ function deleteCite(key) {
     $(`#${key}`).remove();
 }
 
-function createBibEntry(cite, target, results=false) {
-    console.log(cite.title);
-
-    target.find('#'+cite['citekey']).remove();
-
-    let yr = cite['year'] ? ` ${cite['year']}. ` : '';
-    let vol = cite['volume'] ? `, ${cite['volume']}` : '';
-    let num = cite['number'] ? `, no. ${cite['number']}` : '';
-    let pgs = cite['pages'] ? `, pp. ${cite['pages']}` : '';
-    let title = cite['title'] ? `${cite['title']}` : '';
-    let raw = cite['raw'];
+function createBibInfo(cite) {
+    let yr = cite.year ? ` ${cite.year}. ` : '';
+    let vol = cite.volume ? `, ${cite.volume}` : '';
+    let num = cite.number ? `, no. ${cite.number}` : '';
+    let pgs = cite.pages ? `, pp. ${cite.pages}` : '';
+    let title = cite.title ? `${cite.title}` : '';
     let pubs = ['book', 'incollection'];
     let jns = ['article', 'techreport', 'unpublished'];
     let wild = [undefined];
-    let doi = cite['DOI'] ? `<a target='_blank' href=https://www.doi.org/${cite['DOI']}>[Go]</a>` : '';
+    let doi = cite.DOI ? `<a target="_blank" href="https://www.doi.org/${cite.DOI}">[Go]</a>` : '';
 
     let pub;
     let journal;
-    if (pubs.includes(cite['entry_type'])) {
-        pub = cite['publisher'] || '';
-        journal = (cite['booktitle']) ? `In ${cite['booktitle']}`: '';
-    } else if (jns.includes(cite['entry_type'])) {
+    if (pubs.includes(cite.entry_type)) {
+        pub = cite.publisher || '';
+        journal = (cite.booktitle) ? `In ${cite.booktitle}`: '';
+    } else if (jns.includes(cite.entry_type)) {
         pub = '';
-        journal = cite['journal'] || 'mimeo';
-    } else if (wild.includes(cite['entry_type'])) {
-        pub = pub = cite['publisher'] || '';
-        journal = cite['journal'] || cite['booktitle'] || '';
+        journal = cite.journal || 'mimeo';
+    } else if (wild.includes(cite.entry_type)) {
+        pub = pub = cite.publisher || '';
+        journal = cite.journal || cite.booktitle || '';
     }
 
-    let author = `<b>${cite['author']}</b> ` || '';
+    let author = `<b>${cite.author}</b>. ` || '';
     let index = (vol || num || pgs) ? `${vol + num + pgs}.` : '';
+
+    return {
+        author: cite.author,
+        year: cite.year,
+        entry: `${author}${yr}${title}. <em>${journal}</em>${index} ${pub}`,
+    }
+}
+
+function createBibEntry(key, cite, target, results=false) {
+    console.log(cite.title);
+
+    target.find(`#${key}`).remove();
+
+    let info = createBibInfo(cite);
+    let raw = cite.raw || '';
 
     let buts = `<button class="update">Update</button>
                 <button class="delete">Delete</button>`;
@@ -165,9 +164,9 @@ function createBibEntry(cite, target, results=false) {
     }
 
     target.append(
-        `<div class=cite id=${cite['citekey']} citeType=cite raw="${raw}">
-            ${author}${yr}${title}. <em>${journal}</em>${index} ${pub} ${doi}
-            <span class=citekey>${cite['citekey']}</span>
+        `<div class="cite" id="${key}" citeType=cite raw="${raw}">
+            ${info.entry}
+            <span class="citekey">${key}</span>
             <div class="control">
                 <div class="controlDots">&#9776;</div>
                 <div class="controlButs">

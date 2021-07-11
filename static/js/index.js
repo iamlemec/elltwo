@@ -4,14 +4,14 @@ export {
     initIndex
 }
 
-import { setCookie, cooks, getPara, on_success } from './utils.js'
+import { setCookie, cooks, getPara, on_success, DummyCache } from './utils.js'
 import {
     config, state, cache, updateConfig, updateState, updateCache
 } from './state.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, createTOC, getTro, troFromKey, popText, syntaxHL, cacheBib, deleteCite,
-    braceMatch, makePara, connectCallbacks,
+    envClasses, createTOC, getTro, troFromKey, popText, syntaxHL, braceMatch,
+    makePara, connectCallbacks,
 } from './render.js'
 import { renderKatex } from './math.js'
 import {
@@ -30,9 +30,9 @@ let default_config = {
 };
 
 let default_cache = {
-    ref: [], // internal references
-    bib: {}, // bibliography entries
-    img: {}, // local image cache
+    bib: new DummyCache('bib'), // bibliography entries
+    img: new DummyCache('img'), // local image cache
+    int_ref: [], // internal references
     ext_ref: {}, // external ref info
     folded: [], // current folded pids
 };
@@ -208,7 +208,7 @@ function eventIndex() {
 }
 
 function genExample(example) {
-    cache.ref = [];
+    cache.int_ref = [];
     let ex = examples[example];
     ex.forEach((raw, i) => {
         let para = $('<div>', {class: `para`});
@@ -255,7 +255,7 @@ function setSSV(val) {
         $('#content').removeClass('ssv');
         console.log('ssv', state.ssv);
     }
-    $('.para').each(function() {
+    $('.para:not(.folded)').each(function() {
         let input = $(this).children('.p_input');
         resize(input[0]);
         placeCursor('end');

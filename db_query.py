@@ -39,6 +39,13 @@ usr_cols = [
     col.name for col in User.__table__.columns if col.name not in usr_meta
 ]
 
+def row_dump(row, cols, string=False):
+    data = {col: getattr(row, col) for col in cols}
+    if string:
+        return toml.dumps(data)
+    else:
+        return data
+
 def table_dump(rows, index, cols, string=False):
     data = {
         getattr(row, index): {
@@ -706,11 +713,6 @@ class ElltwoDB:
             self.session.add(cite)
             self.session.commit()
 
-    def get_cite(self, citekey, time=None):
-        if time is None:
-            time = datetime.utcnow()
-        return self.session.query(Bib).filter_by(citekey=citekey).filter(bibtime(time)).one_or_none()
-
     def delete_cite(self, citekey):
         now = datetime.utcnow()
 
@@ -721,15 +723,23 @@ class ElltwoDB:
         self.session.add(bib)
         self.session.commit()
 
-    def get_bib(self, keys=None, time=None, all=False):
+    def get_cite(self, citekey, time=None, all=False, dump=False):
         if time is None:
             time = datetime.utcnow()
 
-        if type(keys) is str:
-            keys = [keys]
-            multi = False
+        query = self.session.query(Bib).filter_by(citekey=citekey)
+        if not all:
+            query = query.filter(bibtime(time))
+
+        ret = query.one_or_none()
+        if dump and ret is not None:
+            row_dump(ret, bib_cols)
         else:
-            multi = True
+            return ret
+
+    def get_bib(self, keys=None, time=None, all=False, dump=False):
+        if time is None:
+            time = datetime.utcnow()
 
         query = self.session.query(Bib)
         if not all:
@@ -737,10 +747,11 @@ class ElltwoDB:
         if keys is not None:
             query = query.filter(Bib.citekey.in_(keys))
 
-        if multi:
-            return query.all()
+        ret = query.all()
+        if dump:
+            return table_dump(ret, 'citekey', bib_cols)
         else:
-            return query.one_or_none()
+            return ret
 
     ##
     ## exteral references
@@ -765,7 +776,7 @@ class ElltwoDB:
     def get_ref(self, key, aid, time=None):
         if time is None:
             time = datetime.utcnow()
-        return self.session.query(ExtRef).filter_by(key=key).filter_by(aid=aid).filter(reftime(time)).one_or_none()
+        return self.session.query(ExtRef).filter_by(aid=aid).filter_by(key=key).filter(reftime(time)).one_or_none()
 
     def create_ref(self, key, aid, cite_type, cite_env, text, ref_text, time=None):
         if time is None:

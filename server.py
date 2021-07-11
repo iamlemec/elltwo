@@ -366,11 +366,7 @@ def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
     art = edb.get_art_short(title)
     if art:
         paras = edb.get_paras(art.aid)
-        ref_list = []
-        bib_list = {}
-        if edit:
-            bib_list = {cite.citekey: None for cite in edb.get_bib()}
-            ref_list = edb.get_refs(art.aid)
+        ref_list = edb.get_refs(art.aid) if edit else []
         return render_template(
             'article.html',
             title=art.title,
@@ -382,7 +378,6 @@ def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
             pid=pid,
             readonly=not edit,
             ref_list=ref_list,
-            bib_list=bib_list,
             themes=config['themes'],
             timeout=config['timeout'],
             max_size=config['max_size'],
@@ -574,11 +569,9 @@ def revert_history(data):
 @edit_decor
 def create_art(title):
     art = edb.get_art_short(title)
-    if art is not None:
-        return url_for('RenderArticle', title=art.short_title)
-    else:
+    if art is None:
         art = edb.create_article(title)
-        return url_for('RenderArticle', title=art.short_title)
+    return url_for('RenderArticle', title=art.short_title)
 
 @socketio.on('set_title')
 def set_title(data):
@@ -618,12 +611,6 @@ def search_text(data):
 ### citations
 ###
 
-bib_cols = [
-    'citekey', 'entry_type', 'title', 'author', 'journal', 'number', 'volume',
-    'year', 'booktitle', 'publisher', 'DOI', 'pages', 'raw'
-]
-bib_info = lambda b: {c: getattr(b, c, '') for c in bib_cols}
-
 @socketio.on('create_cite')
 @edit_decor
 def create_cite(data):
@@ -640,9 +627,14 @@ def delete_cite(data):
 @socketio.on('get_cite')
 @view_decor
 def get_cite(data):
+    key = data['key']
+    return edb.get_cite(key, dump=True)
+
+@socketio.on('get_bib')
+@view_decor
+def get_cite(data):
     keys = data.get('keys', None)
-    bibs = edb.get_bib(keys=keys)
-    return [bib_info(b) for b in bibs]
+    return edb.get_bib(keys=keys, dump=True)
 
 ###
 ### external references
@@ -651,35 +643,22 @@ def get_cite(data):
 @socketio.on('get_ref')
 @view_decor
 def get_ref(data):
-    art = edb.get_art_short(data['title'])
-    if art is not None:
-        ref = edb.get_ref(data['key'], art.aid)
-        title = art.title
-        if ref:
+    short, key = data['title'], data['key']
+    if (art := edb.get_art_short(short)) is not None:
+        if (ref := edb.get_ref(key, art.aid)) is not None:
             return {
                 'cite_type': ref.cite_type,
                 'cite_env': ref.cite_env,
                 'ref_text': ref.ref_text,
-                'title': title,
+                'title': art.title,
                 'text': ref.text,
             }
-        else:
-            return {
-                'cite_type': 'err',
-                'cite_err': 'ref_not_found',
-            }
-    else:
-        return {
-            'cite_type': 'err',
-            'cite_err': 'art_not_found',
-        }
 
 @socketio.on('get_refs')
 @view_decor
 def get_refs(data):
     title = data['title']
-    art = edb.get_art_short(title)
-    if art is not None:
+    if (art := edb.get_art_short(title)) is not None:
         refs = edb.get_refs(art.aid)
         return {'refs' : refs, 'title': title}
     else:
@@ -721,15 +700,9 @@ def set_blurb(data):
 
 @socketio.on('get_link')
 def get_link(data):
-    title, blurb = data['title'], data['blurb']
-    art = edb.get_art_short(title)
-    if art is not None:
-        if blurb:
-            return {'found': True, 'title': art.title, 'blurb': art.blurb}
-        else:
-            return {'found': True, 'title': art.title}
-    else:
-        return {'found': False}
+    title = data['title']
+    if (art := edb.get_art_short(title)) is not None:
+        return {'title': art.title, 'blurb': art.blurb}
 
 ###
 ### locking
@@ -802,9 +775,7 @@ def UploadImage():
 def get_image(data):
     key = data['key']
     if (img := edb.get_image(key)) is not None:
-        return {'found': True, 'mime': img.mime, 'data': img.data, 'kw': img.keywords}
-    else:
-        return {'found': False}
+        return {'mime': img.mime, 'data': img.data, 'kw': img.keywords}
 
 @socketio.on('update_image_key')
 @edit_decor

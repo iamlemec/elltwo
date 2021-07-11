@@ -40,7 +40,7 @@ def bib_summary(bib, full=False, time=False):
     else:
         time_text = ''
     if full:
-        summ_text = '\n' + '\n'.join([f'{col} = {getattr(bib, col)}' for col in dbq.bib_cols])
+        summ_text = '\n' + '\n'.join([f'{col} = {getattr(bib, col)}' for col in dbq.bib_cols if col != 'raw'])
     else:
         summ_text = f' {bib.author} ({bib.year})'
     return f'{bib.citekey}{time_text}:{summ_text}'
@@ -246,7 +246,7 @@ class Biblio:
             print(bib_summary(b, time=all))
 
     def show(self, key, all=False):
-        bib, = self.edb.get_bib([key], all=all)
+        bib = self.edb.get_cite(key, all=all)
         print(bib_summary(bib, full=True, time=all))
 
 class Reference:
