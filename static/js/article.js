@@ -100,9 +100,9 @@ function cacheArticle() {
 
     // external reference completion
     cache.cref = new KeyCache('cref', function(key, callback) {
-        if (key == '_art_') {
+        if (key == '__art') {
             sendCommand('get_arts', {}, callback);
-        } else if (key == '_bib_') {
+        } else if (key == '__bib') {
             sendCommand('get_bibs', {}, callback);
         } else {
             sendCommand('get_refs', {title: key}, callback);
@@ -1092,12 +1092,12 @@ function ccRefs(view, raw, cur) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             if (cap[1] == '@') { // bib search
                 let search = cap[2] || '';
-                cache.cref.get('_bib_', function(ret) {
+                cache.cref.get('__bib', function(ret) {
                     ccSearch(ret, search, p);
                 });
             } else if (cap[3] && !cap[2]) { // searching for ext page
                 let search = cap[4] || '';
-                cache.cref.get('_art_', function(ret) {
+                cache.cref.get('__art', function(ret) {
                     ccSearch(ret, search, p);
                 });
             } else if (cap[2] && cap[3]) {
@@ -1120,7 +1120,7 @@ function ccRefs(view, raw, cur) {
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let search = cap[4] || '';
-            let ex_keys = cache.cref.get('_art_', function(ret) {
+            let ex_keys = cache.cref.get('__art', function(ret) {
                 ccSearch(ret, search, p);
             });
         }
