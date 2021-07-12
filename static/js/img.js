@@ -7,7 +7,8 @@ import {
 } from './state.js'
 import { connect, sendCommand } from './client.js'
 import { renderKatex } from './math.js'
-import { connectDrops, renderImage } from './drop.js'
+import { connectDrops, makeImageBlob } from './drop.js'
+import { KeyCache } from './utils.js'
 
 // config
 
@@ -15,10 +16,6 @@ let default_config = {
     readonly: true,
     max_size: 1024,
     max_imgs: 50,
-};
-
-let default_cache = {
-    img: {},
 };
 
 let default_state = {
@@ -29,22 +26,39 @@ let default_state = {
 
 function initImage(args) {
     updateConfig(default_config, args.config || {});
-    updateCache(default_cache, args.cache || {});
     updateState(default_state);
+    cacheImage();
 
     connectImage();
     eventImage();
 
     renderKatex();
-    renderImgs();
+    imageQuery();
+}
+
+function cacheImage() {
+    cache.img = new KeyCache('img', function(key, callback) {
+        if (key == '__img') {
+            sendCommand('get_images', {}, callback);
+        } else {
+            sendCommand('get_image', {key: key}, function(ret) {
+                let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : undefined;
+                callback(url);
+            });
+        }
+    });
+}
+
+function invalidateCache() {
+    cache.img.flush();
+    let query = $('#img_search').val();
+    imageQuery(query);
 }
 
 function connectImage() {
     let url = `http://${document.domain}:${location.port}`;
     connect(url, () => {
-        sendCommand('join_room', {'room': '__img'}, (response) => {
-            // console.log(response);
-        });
+        sendCommand('join_room', {'room': '__img'});
     });
 }
 
@@ -54,7 +68,6 @@ function eventImage() {
         let kws = '';
         let div = $('<div>', {class: 'img_cont img_src', id: key});
         $('#dropzone').after(div);
-        cache.img.push([key, kws]);
         renderBox(div, key, kws);
     });
 
@@ -116,33 +129,29 @@ function eventImage() {
         clearTimeout(state.timeout);
         state.timeout = setTimeout(function() {
             let query = $('#img_search').val();
-            if (query.length > 0) {
-                let terms = query.split(' ');
-                let img_sel = cache.img.filter(img => wordSearch(img, terms) > 0);
-                renderImgs(img_sel);
-            } else {
-                renderImgs();
-            }
+            imageQuery(query);
         }, 300);
     });
+
+    $('#refresh').click(invalidateCache);
 }
 
 // rendering
 
-function renderBox(elem, key, kws) {
-    let img = $('<img>', {id: key, kw: kws});
-    elem.append(img);
+function imageQuery(query='') {
+    cache.img.get('__img', function(ret) {
+        let img_sel;
+        if (query.length > 0) {
+            let terms = query.split(' ');
+            img_sel = ret.filter(img => wordSearch(img, terms) > 0);
+        } else {
+            img_sel = ret;
+        }
+        renderImages(img_sel);
+    });
+}
 
-    let keyspan = $('<div>', {class: 'keyspan', text: key});
-    elem.append(keyspan);
-
-    renderImage(img, key);
- }
-
-function renderImgs(img_list) {
-    if (img_list === undefined) {
-        img_list = cache.img;
-    }
+function renderImages(img_list) {
     $('.img_src').remove();
     let imgs_n = img_list.slice(0, config.max_imgs);
     imgs_n.forEach(img => {
@@ -152,6 +161,18 @@ function renderImgs(img_list) {
         renderBox(img_cont, key, kws);
     });
 };
+
+function renderBox(elem, key, kws) {
+    let img = $('<img>', {id: key, kw: kws});
+    elem.append(img);
+
+    let keyspan = $('<div>', {class: 'keyspan', text: key});
+    elem.append(keyspan);
+
+    cache.img.get(key, function(ret) {
+        img.attr('src', ret);
+    });
+ }
 
 function copyKey(keyspan) {
     let textArea = document.createElement("textarea");

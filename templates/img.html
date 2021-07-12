@@ -6,6 +6,8 @@
 
 <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/img.css') }} />
 
+<script src={{ url_for('static', filename='libs/socket.io.min.js') }} type="text/javascript"></script>
+
 {% endblock %}
 
 {% block title %}Img{% endblock %}
@@ -36,7 +38,17 @@
     <button id="img_update">Update</button>
 </div>
 
-<script src={{ url_for('static', filename='libs/socket.io.min.js') }} type="text/javascript"></script>
+{% endblock %}
+
+{% block foot %}
+
+<span class="push"></span>
+
+<button id="refresh" class="foot_butt">Refresh</button>
+
+{% endblock %}
+
+{% block init %}
 
 <script type="module">
 import { initImage } from '{{ url_for('static', filename='js/img.js') }}'
@@ -47,13 +59,8 @@ initImage({{
         'max_size': max_size,
         'max_imgs': max_imgs,
     },
-    'cache': {
-        'img': img,
-    },
 } | tojson
 }});
 </script>
 
 {% endblock %}
-
-{% block foot %}{% endblock %}

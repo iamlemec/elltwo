@@ -2,7 +2,8 @@
 
 export {
     loadArticle, insertParaRaw, insertPara, updatePara, updateParas, deletePara,
-    updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs, textWrap
+    updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs, textWrap,
+    invalidateCache
 }
 
 import {
@@ -16,12 +17,13 @@ import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
     envClasses, createTOC, getTro, troFromKey, popText, syntaxHL, braceMatch,
+    createRefs
 } from './render.js'
 import {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
     unlockParas, sendMakeEditable, sendUpdatePara, placeCursor
 } from './editor.js'
-import { connectDrops, promptUpload, uploadImage, invalidateImage } from './drop.js'
+import { connectDrops, promptUpload, uploadImage, makeImageBlob } from './drop.js'
 import { initExport } from './export.js'
 import { initHelp } from './help.js'
 import { createBibInfo } from './bib.js'
@@ -75,11 +77,7 @@ function cacheArticle() {
     // image cache
     cache.img = new KeyCache('img', function(key, callback) {
         sendCommand('get_image', {key: key}, function(ret) {
-            let url;
-            if (ret !== undefined) {
-                const blob = new Blob([ret.data], {type: ret.mime});
-                url = URL.createObjectURL(blob);
-            }
+            let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : undefined;
             callback(url);
         });
     });
@@ -296,7 +294,7 @@ function eventArticle() {
             let file = files[0];
             console.log(key, file);
             let ret = uploadImage(file, key, function(data) {
-                invalidateImage(key);
+                cache.img.del(key);
                 rawToRender(para, false);
             });
         });
@@ -329,6 +327,8 @@ function eventArticle() {
         $('#editable_text').text(text);
         setReadonly(!val);
     });
+
+    $('#refresh').click(invalidateCache);
 }
 
 /// server command editing
@@ -420,6 +420,17 @@ function applyDiff(edits) {
             base.after(para);
         }
     });
+}
+
+/// cache management
+
+function invalidateCache() {
+    cache.link.flush();
+    cache.ref.flush();
+    cache.img.flush();
+    cache.bib.flush();
+    cache.cref.flush();
+    createRefs();
 }
 
 /// external references and blurbs

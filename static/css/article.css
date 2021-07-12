@@ -737,12 +737,12 @@ circle.commit.active {
 }
 
 #prog_bar {
-        position: absolute;
-        top:-1px;
-        left:-1px;
-        width:0%;
-        height: 1px;
-        background-color: var(--font-col-int);
+    position: absolute;
+    top:-1px;
+    left:-1px;
+    width:0%;
+    height: 1px;
+    background-color: var(--font-col-int);
 }
 
 #prog_bar:after {

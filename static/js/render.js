@@ -18,9 +18,9 @@ import { markthree, replace, divInlineLexer } from './marked3.js'
 // main rendering entry point (for all cases)
 
 function stateRender() {
+    state.title = null; // document title
     config.macros = {}; // external katex macros
     state.macros = {}; // internal katex macros
-    state.title = null; // document title
     state.folded = []; // current folded pids
 }
 

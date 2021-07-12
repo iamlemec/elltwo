@@ -13,7 +13,7 @@ import {
 } from './render.js'
 import {
     insertParaRaw, insertPara, deletePara, updateRefHTML, toggleHistMap,
-    toggleSidebar, ccNext, ccMake, textWrap
+    toggleSidebar, ccNext, ccMake, textWrap, invalidateCache
 } from './article.js'
 import { toggleHelp } from './help.js'
 
@@ -64,6 +64,8 @@ function eventEditor() {
             toggleSidebar();
         } else if (key == 'f1') {
             toggleHelp();
+        } else if (key == 'f2') {
+            invalidateCache();
         } else if (key == 'escape') {
             if (state.help_show) {
                 toggleHelp();

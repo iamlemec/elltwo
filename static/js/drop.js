@@ -1,6 +1,6 @@
 // drop to upload — used in article and img
 
-export { connectDrops, promptUpload, renderImage, uploadImage, invalidateImage }
+export { connectDrops, promptUpload, makeImageBlob, uploadImage }
 
 import { config, cache } from './state.js'
 import { sendCommand } from './client.js'
@@ -92,24 +92,7 @@ function connectDrops(callback) {
 
 // image retrieval
 
-function renderImage(img, key) {
-    if (key in cache.img) {
-        let url = cache.img[key];
-        img.attr('src', url);
-    } else {
-        sendCommand('get_image', {'key': key}, (ret) => {
-            if (ret) {
-                const blob = new Blob([ret.data], {type: ret.mime});
-                let url = URL.createObjectURL(blob);
-                cache.img[key] = url;
-                img.attr('src', url);
-            }
-        });
-    }
-}
-
-function invalidateImage(key) {
-    if (key in cache.img) {
-        delete cache.img[key];
-    }
+function makeImageBlob(mime, data) {
+    const blob = new Blob([data], {type: mime});
+    return URL.createObjectURL(blob);
 }

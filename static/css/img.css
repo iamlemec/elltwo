@@ -32,6 +32,7 @@
     flex-wrap: wrap;
     flex-direction: row;
     justify-content: flex-start;
+    align-content: flex-start;
     overflow: scroll;
     scrollbar-width: none;
     width: 100%;

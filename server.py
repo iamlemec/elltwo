@@ -772,6 +772,11 @@ def UploadImage():
 
     return {'mime': img_mime, 'key': img_key}
 
+@socketio.on('get_images')
+@view_decor
+def get_images(data):
+    return [(i.key, i.keywords) for i in edb.get_images()]
+
 @socketio.on('get_image')
 @view_decor
 def get_image(data):
