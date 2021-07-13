@@ -2,7 +2,7 @@
 
 export {
     loadArticle, insertParaRaw, insertPara, updatePara, updateParas, deletePara,
-    updateRefHTML, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs, textWrap,
+    updateRefs, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs, textWrap,
     invalidateCache
 }
 
@@ -237,7 +237,7 @@ function syncRefs() {
     console.log('init global refs');
     $('.para:not(.folder)').each(function() {
         let para = $(this);
-        updateRefHTML(para);
+        updateRefs(para);
     });
     sendCommand('update_g_ref', {'aid': config.aid, 'g_ref': false}, function(response) {
         console.log(`g_ref set to '${response}'`);
@@ -454,8 +454,22 @@ function createExtRef(id) {
     return ref;
 }
 
-// push reference blurb changes to server
-function updateRefHTML(para) {
+function sendUpdateRef(pid) {
+    let ref = createExtRef(pid);
+    sendCommand('update_ref', ref, function(success) {
+        console.log(`updated ref ${pid}`);
+    });
+}
+
+function sendDeleteRef(pid) {
+    let ref = {aid: config.aid, key: pid};
+    sendCommand('delete_ref', ref, function(success) {
+        console.log(`deleted ref ${pid}`);
+    });
+}
+
+// push reference/blurb changes to server
+function updateRefs(para) {
     // get para id, old_id is for when the update is an id change
     let new_id = para.attr('id');
     let old_id = para.attr('old_id');
@@ -466,38 +480,26 @@ function updateRefHTML(para) {
 
     // for this specific para
     if (new_id) {
-        let ref = createExtRef(new_id);
-        sendCommand('update_ref', ref, function(success) {
-            console.log('success: updated ref');
-        });
+        sendUpdateRef(new_id);
     }
 
     // for containing env - this should already exist
     if (env_pid && !env_beg) {
-        let epar = getPara(env_pid);
+        let env_par = getPara(env_pid);
         let env_id = epar.attr('id');
         if (env_id) {
-            let ref = createExtRef(env_id);
-            sendCommand('update_ref', ref, function(success) {
-                console.log('success: updated ref');
-            });
+            sendUpdateRef(env_id);
         }
     }
 
     // check if this was obscuring another same-id para? otherwise delete
     if (old_id) {
         para.removeAttr('old_id');
-        let old_para = $(`#${old_id}`);
-        if (old_para.length > 0) {
-            let ref = createExtRef(old_id);
-            sendCommand('update_ref', ref, function(success) {
-                console.log('success: updated ref');
-            });
+        let old_par = $(`#${old_id}`);
+        if (old_par.length > 0) {
+            sendUpdateRef(old_id);
         } else {
-            let ref = {aid: config.aid, key: old_id};
-            sendCommand('delete_ref', ref, function(success) {
-                console.log('success: deleted ref');
-            });
+            sendDeleteRef(old_id);
         }
     }
 }

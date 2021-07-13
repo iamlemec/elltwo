@@ -4,7 +4,7 @@ export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
     rawToTextarea, envClasses, renderRefText, createTOC, getTro, troFromKey,
     popText, renderPop, syntaxHL, s_env_spec, getFoldLevel, renderFold,
-    braceMatch, makePara, connectCallbacks
+    braceMatch, barePara, makePara, connectCallbacks
 }
 
 import { merge, cooks, getPara } from './utils.js'
@@ -100,7 +100,7 @@ function stateMarkdown() {
 function initMarkdown(markdown) {
     let content = $('#content');
     markdown.split(/\n{2,}/).forEach((raw, pid) => {
-        let para = $('<div>', {class: 'para', pid: pid, raw: raw, fold_level: 0});
+        let para = barePara(pid, raw);
         content.append(para);
     });
 }
@@ -140,6 +140,12 @@ const innerPara = `
 </div>
 </div>
 `;
+
+function barePara(pid, raw='') {
+    return $('<div>', {
+        class: 'para', pid: pid, raw: raw, fold_level: 0
+    });
+}
 
 function makePara(para, defer=true) {
     para.html(innerPara);

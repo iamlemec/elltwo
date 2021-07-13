@@ -12,7 +12,7 @@ import {
     rawToRender, rawToTextarea, envClasses, syntaxHL, getFoldLevel, renderFold
 } from './render.js'
 import {
-    insertParaRaw, insertPara, deletePara, updateRefHTML, toggleHistMap,
+    insertParaRaw, insertPara, deletePara, updateRefs, toggleHistMap,
     toggleSidebar, ccNext, ccMake, textWrap, invalidateCache
 } from './article.js'
 import { toggleHelp } from './help.js'
@@ -245,7 +245,7 @@ function storeChange(para, unlock=true) {
 // apply change locally (from server side)
 function applyChange(para, raw) {
     para.attr('raw', raw);
-    updateRefHTML(para);
+    updateRefs(para);
     para.removeClass('changed');
 }
 
