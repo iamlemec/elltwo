@@ -2,7 +2,7 @@
 
 export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
-    rawToTextarea, envClasses, createRefs, createTOC, getTro, troFromKey,
+    rawToTextarea, envClasses, renderRefText, createTOC, getTro, troFromKey,
     popText, renderPop, syntaxHL, s_env_spec, getFoldLevel, renderFold,
     braceMatch, makePara, connectCallbacks
 }
@@ -362,7 +362,7 @@ function envClasses(outer) {
 
     // add in numbers with auto-increment
     createNumbers(outer);
-    createRefs(outer);
+    renderRefText(outer);
     createTOC(outer);
     renderFold();
 }
@@ -624,44 +624,19 @@ function createTOC(outer) {
 
 /// REFERENCING and CITATIONS
 
-function createRefs(para) {
-    let refs;
-    if (para == undefined) {
-        refs = $('.reference');
-    } else {
-        refs = para.find('.reference');
-    }
-
-    // get citations
-    let citeKeys = new Set();
-    refs.each(function() {
-        let ref = $(this);
-        if (!ref.data('extern')) {
-            let key = ref.attr('citekey');
-            if (($(`#${key}`).length == 0) && (key != '_self_')) {
-                citeKeys.add(key);
-            }
-        }
-    });
-
-    // fetch cite info
-    cache.bib.bulk([...citeKeys], function(ret) {
-        renderRefText(para);
-    });
-}
-
 function getTro(ref, callback) {
     let tro = {};
-    let key = ref.attr('citekey');
+    let key = ref.attr('refkey');
+    let type = ref.attr('reftype');
 
-    if (key == '_self_') {
+    if (type == 'self') {
         tro.tro = ref;
         tro.cite_type = 'self';
         callback(ref, tro);
-    } else if (key == '_ilink_') {
+    } else if (type == 'ilink') {
         let short = ref.attr('href');
         cache.link.get(short, function(ret) {
-            if (ret !== undefined) {
+            if (ret !== null) {
                 tro.cite_type = 'ilink';
                 tro.ref_text = ret.title;
                 tro.pop_text = ret.blurb;
@@ -672,9 +647,9 @@ function getTro(ref, callback) {
             }
             callback(ref, tro);
         });
-    } else if (cache.bib.has(key)) {
+    } else if (type == 'cite') {
         cache.bib.get(key, function(ret) {
-            if (ret !== undefined) {
+            if (ret !== null) {
                 tro.cite_type = 'cite';
                 tro.cite_author = ret.author;
                 tro.cite_year = ret.year;
@@ -686,9 +661,9 @@ function getTro(ref, callback) {
             }
             callback(ref, tro);
         });
-    } else if (ref.data('extern')) {
+    } else if (type == 'extern') {
         cache.ref.get(key, function(ret) {
-            if (ret !== undefined) {
+            if (ret !== null) {
                 tro.tro = $($.parseHTML(ret.text));
                 tro.cite_type = ret.cite_type;
                 tro.cite_env = ret.cite_env;
@@ -702,9 +677,11 @@ function getTro(ref, callback) {
             }
             callback(ref, tro);
         });
-    } else {
+    } else if (type == 'ref') {
         tro = troFromKey(key, tro);
         callback(ref, tro);
+    } else {
+        console.log('unknown reference type');
     }
 }
 
@@ -737,13 +714,7 @@ function troFromKey(key, tro={}) {
 }
 
 function renderRefText(para) {
-    let refs;
-    if (para == undefined) {
-        refs = $('.reference');
-    } else {
-        refs = para.find('.reference');
-    }
-
+    let refs = (para == undefined) ? $('.reference') : para.find('.reference');
     refs.each(function() {
         var r = $(this);
         getTro(r, renderRef);
@@ -786,7 +757,7 @@ function refText(ref, tro) {
 }
 
 function refError(ref, tro) {
-    let key = ref.attr('citekey');
+    let key = ref.attr('refkey');
     let href = ref.attr('href');
     let targ = (key == '_ilink_') ? `[[${href}]]`: `@[${key}]`;
     let text = ref.data('text') || tro.ref_text || targ;
@@ -1049,6 +1020,7 @@ let inline = {
     ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/g,
     math: /\$((?:\\\$|[\s\S])+?)\$/g,
     ref: /@(\[([^\]]+)\])/g,
+    cite: /@@(\[([^\]]+)\])/g,
     ilink: /\[\[([^\]]+)\]\]/g,
     em: /\*((?:\*\*|[\s\S])+?)\*(?!\*)/g,
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
@@ -1079,6 +1051,10 @@ function syntaxParseInline(raw) {
 
     html = html.replace(inline.math, (a, b) =>
         s('$', 'delimit') + s(b, 'math') + s('$', 'delimit')
+    );
+
+    html = html.replace(inline.cite, (a, b) =>
+        s('@@', 'delimit') + s(fArgs(b, false), 'ref')
     );
 
     html = html.replace(inline.ref, (a, b) =>

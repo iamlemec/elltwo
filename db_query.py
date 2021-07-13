@@ -733,7 +733,7 @@ class ElltwoDB:
 
         ret = query.one_or_none()
         if dump and ret is not None:
-            row_dump(ret, bib_cols)
+            return row_dump(ret, bib_cols)
         else:
             return ret
 

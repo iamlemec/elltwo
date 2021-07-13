@@ -7,7 +7,7 @@ export {
 }
 
 import {
-    mapObject, on_success, setCookie, cooks, getPara, KeyCache
+    mapValues, on_success, setCookie, cooks, getPara, KeyCache
 } from './utils.js'
 import {
     config, state, cache, updateConfig, updateState, updateCache
@@ -17,7 +17,7 @@ import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
     envClasses, createTOC, getTro, troFromKey, popText, syntaxHL, braceMatch,
-    createRefs
+    renderRefText
 } from './render.js'
 import {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
@@ -65,19 +65,25 @@ function stateArticle() {
 function cacheArticle() {
     // article link/blurb
     cache.link = new KeyCache('link', function(key, callback) {
-        sendCommand('get_link', {title: key}, callback);
+        sendCommand('get_link', {title: key}, function(ret) {
+            let data = (ret !== undefined) ? ret : null;
+            callback(data);
+        });
     });
 
     // external references/popups
     cache.ref = new KeyCache('ref', function(key, callback) {
         let [title, refkey] = key.split(':');
-        sendCommand('get_ref', {title: title, key: refkey}, callback);
+        sendCommand('get_ref', {title: title, key: refkey}, function(ret) {
+            let data = (ret !== undefined) ? ret : null;
+            callback(data);
+        });
     });
 
     // image cache
     cache.img = new KeyCache('img', function(key, callback) {
         sendCommand('get_image', {key: key}, function(ret) {
-            let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : undefined;
+            let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : null;
             callback(url);
         });
     });
@@ -85,15 +91,14 @@ function cacheArticle() {
     // bibliography (external citations)
     cache.bib = new KeyCache('bib', function(key, callback) {
         sendCommand('get_cite', {key: key}, function(ret) {
-            let cite = (ret !== undefined) ? createBibInfo(ret) : undefined;
+            let cite = (ret !== undefined) ? createBibInfo(ret) : null;
             callback(cite);
         });
     }, function(keys, callback) {
         sendCommand('get_bib', {keys: keys}, function(ret) {
-            let cites = mapObject(ret, (k, v) => {
-                let cite = (v !== undefined) ? createBibInfo(v) : undefined;
-                return [k, cite];
-            });
+            let cites = Object.fromEntries(keys.map(k =>
+                [k, (k in ret) ? createBibInfo(ret[k]) : null]
+            ));
             callback(cites);
         });
     });
@@ -108,6 +113,8 @@ function cacheArticle() {
             sendCommand('get_refs', {title: key}, callback);
         }
     });
+
+    window.cache = cache;
 }
 
 function initArticle() {
@@ -430,7 +437,7 @@ function invalidateCache() {
     cache.img.flush();
     cache.bib.flush();
     cache.cref.flush();
-    createRefs();
+    renderRefText();
 }
 
 /// external references and blurbs
@@ -1011,33 +1018,38 @@ function ccMake() {
     let cap, l;
     if (cap = open_ref.exec(raw)) {
         l = cap.index;
-        let space = cap[5] || ""
-        if (cap[3] && !cap[2]) { // searching for ext page
+        let space = cap[5] || '';
+        if (cap[3] && !cap[2]) { // start ext page
            raw = raw.replace(open_ref, function() {
                 const out = `@[${cctxt}:${space}`;
-                l = l + out.length - space.length
-                return out
+                l += out.length - space.length;
+                return out;
             });
-        } else if (cap[2] && cap[3]) {
+        } else if (cap[2] && cap[3]) { // ref on ext page
             raw = raw.replace(open_ref, function() {
                 const out = `@[${cap[2]}:${cctxt}]${space}`;
-                l = l + out.length - space.length
+                l += out.length - space.length;
                 return out;
             });
-        } else {
+        } else if (cap[1] == '@') { // external citation
+            raw = raw.replace(open_ref, function() {
+                const out = `@@[${cctxt}]${space}`;
+                l += out.length - space.length;
+                return out;
+            });
+        } else { // internal reference
             raw = raw.replace(open_ref, function() {
                 const out = `@[${cctxt}]${space}`;
-                l = l + out.length - space.length
+                l += out.length - space.length;
                 return out;
-
             });
         }
     } else if (cap = open_i_link.exec(raw)) {
         l = cap.index;
-        let space = cap[2] || ""
+        let space = cap[2] || '';
         raw = raw.replace(open_i_link, function() {
             const out = `[[${cctxt}]]${space}`;
-            l = l + out.length - space.length
+            l += out.length - space.length;
             return out;
         });
     }

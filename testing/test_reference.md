@@ -15,11 +15,11 @@ Hello world named!
 
 [[test_reference]]
 
-[[test_reference|The **Article**]]
+[[test_reference|text=The **Article**]]
 
 [[unknown]]
 
-[[unknown|The **Article**]]
+[[unknown|text=The **Article**]]
 
 # Internal
 
@@ -77,13 +77,13 @@ Hello world named!
 
 # Citations
 
-@[morgenstern1953theory]
+@@[morgenstern1953theory]
 
-@[morgenstern1953theory|text=The **Citation**]
+@@[morgenstern1953theory|text=The **Citation**]
 
-@[somejoker2005]
+@@[somejoker2005]
 
-@[somejoker2005|text=The **Citation**]
+@@[somejoker2005|text=The **Citation**]
 
 # Footnotes
 
