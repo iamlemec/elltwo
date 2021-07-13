@@ -486,7 +486,7 @@ function updateRefs(para) {
     // for containing env - this should already exist
     if (env_pid && !env_beg) {
         let env_par = getPara(env_pid);
-        let env_id = epar.attr('id');
+        let env_id = env_par.attr('id');
         if (env_id) {
             sendUpdateRef(env_id);
         }
