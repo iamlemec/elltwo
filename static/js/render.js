@@ -657,7 +657,7 @@ function getTro(ref, callback) {
             } else {
                 tro.cite_type = 'err';
                 tro.cite_err = 'cite_not_found';
-                tro.cite_text = `@[${key}]`;
+                tro.ref_text = `@@[${key}]`;
             }
             callback(ref, tro);
         });
@@ -930,6 +930,8 @@ function popError(err) {
         return '[Reference Not Found]';
     } else if (err == 'art_not_found') {
         return '[Article Not Found]';
+    } else if (err == 'cite_not_found') {
+        return '[Citation Not Found]';
     } else if (err == 'parse_error') {
         return '[Referenced Environment Not Closed]';
     } else if (err == 'unknown_type') {
