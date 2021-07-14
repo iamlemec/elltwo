@@ -226,7 +226,7 @@ function storeChange(para, unlock=true) {
     let raw = para.attr('raw');
 
     // store old env and render
-    rawToRender(para, true, text); // local changes only
+    rawToRender(para, true, true, text); // local changes only
     envClasses();
 
     // update server as needed

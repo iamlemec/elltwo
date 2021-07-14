@@ -308,7 +308,7 @@ class ElltwoDB:
                 data = reader(name)
                 biblio = toml.loads(data)
                 for key, cite in biblio.items():
-                    self.create_cite(key, raw='', **cite)
+                    self.create_cite(key, **cite)
             elif name == 'user.toml':
                 data = reader(name)
                 users = toml.loads(data)
@@ -360,6 +360,10 @@ class ElltwoDB:
 
         index = {p.pid: p for p in paras}
         return [index[p] for p in pids]
+
+    def get_art_title(self, aid):
+        art = self.session.query(Article).filter_by(aid=aid).one_or_none()
+        return art.short_title
 
     def get_art_titles(self, aids=None, time=None):
         if time is None:
@@ -610,7 +614,6 @@ class ElltwoDB:
         art.title = title
         self.index_document('title', aid, title, clear=True, commit=False)
         self.session.commit()
-        return True
 
     def delete_article(self, aid, time=None):
         if time is None:
@@ -698,20 +701,21 @@ class ElltwoDB:
     ## citation methods
     ##
 
-    def create_cite(self, citekey, entry_type, **kwargs):
+    def create_cite(self, citekey, entry_type, raw='', **kwargs):
         now = datetime.utcnow()
 
-        if (bib := self.get_cite(citekey)) is None:
-            cite = Bib(citekey=citekey, entry_type=entry_type, create_time=now, **kwargs)
-            self.session.add(cite)
-            self.session.commit()
-            return cite
-        else:
+        if (bib := self.get_cite(citekey)) is not None:
             bib.delete_time = now
-            cite = Bib(citekey=citekey, entry_type=entry_type, create_time=now, **kwargs)
             self.session.add(bib)
-            self.session.add(cite)
-            self.session.commit()
+            create = False
+        else:
+            create = True
+
+        cite = Bib(citekey=citekey, entry_type=entry_type, create_time=now, raw=raw, **kwargs)
+        self.session.add(cite)
+        self.session.commit()
+
+        return create
 
     def delete_cite(self, citekey):
         now = datetime.utcnow()
@@ -784,19 +788,24 @@ class ElltwoDB:
             time = datetime.utcnow()
         return self.session.query(ExtRef).filter_by(aid=aid).filter_by(key=key).filter(reftime(time)).one_or_none()
 
-    def create_ref(self, key, aid, cite_type, cite_env, text, ref_text, time=None):
+    def create_ref(self, aid, key, cite_type, cite_env, text, ref_text, time=None):
         if time is None:
             time = datetime.utcnow()
 
         if (ref0 := self.get_ref(key, aid, time=time)) is not None:
             ref0.delete_time = time
             self.session.add(ref0)
+            create = False
+        else:
+            create = True
 
         ref = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, ref_text=ref_text, create_time=time)
         self.session.add(ref)
         self.session.commit()
 
-    def delete_ref(self, key, aid, time=None):
+        return create
+
+    def delete_ref(self, aid, key, time=None):
         if time is None:
             time = datetime.utcnow()
 
@@ -857,10 +866,15 @@ class ElltwoDB:
         if (img0 := self.get_image(key, time=time)) is not None:
             img0.delete_time = time
             self.session.add(img0)
+            create = False
+        else:
+            create = True
 
         img = Image(key=key, mime=mime, data=data, create_time=time)
         self.session.add(img)
         self.session.commit()
+
+        return create
 
     def delete_image(self, key, time=None):
         if time is None:

@@ -17,7 +17,7 @@ import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
     envClasses, createTOC, getTro, troFromKey, popText, syntaxHL, braceMatch,
-    renderRefText
+    renderRefText, getRefTags, untrackRef, doRenderRef
 } from './render.js'
 import {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
@@ -63,6 +63,15 @@ function stateArticle() {
 }
 
 function cacheArticle() {
+    // external references/popups
+    cache.ext = new KeyCache('ext', function(key, callback) {
+        let [title, refkey] = key.split(':');
+        sendCommand('get_ref', {title: title, key: refkey}, function(ret) {
+            let data = (ret !== undefined) ? ret : null;
+            callback(data);
+        });
+    });
+
     // article link/blurb
     cache.link = new KeyCache('link', function(key, callback) {
         sendCommand('get_link', {title: key}, function(ret) {
@@ -71,25 +80,8 @@ function cacheArticle() {
         });
     });
 
-    // external references/popups
-    cache.ref = new KeyCache('ref', function(key, callback) {
-        let [title, refkey] = key.split(':');
-        sendCommand('get_ref', {title: title, key: refkey}, function(ret) {
-            let data = (ret !== undefined) ? ret : null;
-            callback(data);
-        });
-    });
-
-    // image cache
-    cache.img = new KeyCache('img', function(key, callback) {
-        sendCommand('get_image', {key: key}, function(ret) {
-            let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : null;
-            callback(url);
-        });
-    });
-
     // bibliography (external citations)
-    cache.bib = new KeyCache('bib', function(key, callback) {
+    cache.cite = new KeyCache('cite', function(key, callback) {
         sendCommand('get_cite', {key: key}, function(ret) {
             let cite = (ret !== undefined) ? createBibInfo(ret) : null;
             callback(cite);
@@ -103,8 +95,16 @@ function cacheArticle() {
         });
     });
 
+    // image cache
+    cache.img = new KeyCache('img', function(key, callback) {
+        sendCommand('get_image', {key: key}, function(ret) {
+            let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : null;
+            callback(url);
+        });
+    });
+
     // external reference completion
-    cache.cref = new KeyCache('cref', function(key, callback) {
+    cache.list = new KeyCache('list', function(key, callback) {
         if (key == '__art') {
             sendCommand('get_arts', {}, callback);
         } else if (key == '__bib') {
@@ -113,8 +113,6 @@ function cacheArticle() {
             sendCommand('get_refs', {title: key}, callback);
         }
     });
-
-    window.cache = cache;
 }
 
 function initArticle() {
@@ -231,6 +229,10 @@ function connectServer() {
     addHandler('deleteCite', function(key) {
         deleteCite(key);
     });
+
+    addHandler('invalidateRef', function(data) {
+        invalidateRef(...data);
+    });
 }
 
 function syncRefs() {
@@ -301,7 +303,6 @@ function eventArticle() {
             let file = files[0];
             console.log(key, file);
             let ret = uploadImage(file, key, function(data) {
-                cache.img.del(key);
                 rawToRender(para, false);
             });
         });
@@ -355,13 +356,17 @@ function updateParas(para_dict) {
 
 function deletePara(pid) {
     let para = getPara(pid);
-    let old_id;
-    if (old_id = para.attr('id')) {
+
+    let old_id = para.attr('id');
+    if (old_id) {
         let ref = {aid: config.aid, key: old_id};
         sendCommand('delete_ref', ref, function(success) {
             console.log('success: deleted ref');
         });
     }
+
+    let old_ref = getRefTags(para);
+    old_ref.forEach(untrackRef);
 
     para.remove();
     envClasses();
@@ -432,12 +437,37 @@ function applyDiff(edits) {
 /// cache management
 
 function invalidateCache() {
+    cache.ext.flush();
     cache.link.flush();
-    cache.ref.flush();
+    cache.cite.flush();
     cache.img.flush();
-    cache.bib.flush();
-    cache.cref.flush();
+    cache.list.flush();
     renderRefText();
+}
+
+function invalidateRef(type, refkey) {
+    console.log('invalidateRef', type, refkey);
+
+    if (type == 'ext') {
+        cache.ext.del(refkey);
+    } else if (type == 'link') {
+        cache.link.del(refkey);
+    } else if (type == 'cite') {
+        cache.cite.del(refkey);
+    } else if (type == 'img') {
+        cache.img.del(img);
+    } else if (type == 'list') {
+        cache.list.del(refkey);
+    }
+
+    if (type == 'ext' || type == 'link' || type == 'cite') {
+        let rk1 = refkey.replace(':', '\\:');
+        let refs = $(`.reference[reftype=${type}][refkey=${rk1}]`);
+        refs.each(function() {
+            let r = $(this);
+            doRenderRef(r);
+        });
+    }
 }
 
 /// external references and blurbs
@@ -534,9 +564,7 @@ function getBlurb(len=200, max=5) {
 
 function setBlurb() {
     let blurb = getBlurb();
-    sendCommand('set_blurb', {'aid': config.aid, 'blurb': blurb}, function(success) {
-        console.log('blurb set');
-    });
+    sendCommand('set_blurb', {'aid': config.aid, 'blurb': blurb});
 }
 
 /// sidebar
@@ -1106,17 +1134,17 @@ function ccRefs(view, raw, cur) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             if (cap[1] == '@') { // bib search
                 let search = cap[2] || '';
-                cache.cref.get('__bib', function(ret) {
+                cache.list.get('__bib', function(ret) {
                     ccSearch(ret, search, p);
                 });
             } else if (cap[3] && !cap[2]) { // searching for ext page
                 let search = cap[4] || '';
-                cache.cref.get('__art', function(ret) {
+                cache.list.get('__art', function(ret) {
                     ccSearch(ret, search, p);
                 });
             } else if (cap[2] && cap[3]) {
                 let title = cap[2];
-                cache.cref.get(title, function(ret) {
+                cache.list.get(title, function(ret) {
                     ccSearch(ret, '', p);
                 });
             } else {
@@ -1134,7 +1162,7 @@ function ccRefs(view, raw, cur) {
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let search = cap[4] || '';
-            let ex_keys = cache.cref.get('__art', function(ret) {
+            let ex_keys = cache.list.get('__art', function(ret) {
                 ccSearch(ret, search, p);
             });
         }

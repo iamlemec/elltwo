@@ -4,7 +4,8 @@ export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
     rawToTextarea, envClasses, renderRefText, createTOC, getTro, troFromKey,
     popText, renderPop, syntaxHL, s_env_spec, getFoldLevel, renderFold,
-    braceMatch, barePara, makePara, connectCallbacks
+    braceMatch, barePara, makePara, connectCallbacks, getRefTags, trackRef,
+    untrackRef, doRenderRef
 }
 
 import { merge, cooks, getPara } from './utils.js'
@@ -77,19 +78,27 @@ function eventRender() {
 let default_callbacks = {
     get_image: (data, ack) => {
         console.log('dummy get_image:', data.key);
-        ack({found: false});
+        ack();
     },
     get_link: (data, ack) => {
         console.log('dummy get_link:', data.title, data.blurb);
-        ack({found: false});
+        ack();
     },
     get_ref: (data, ack) => {
         console.log('dummy get_ref:', data.title, data.key);
-        ack({cite_type: 'err', cite_err: 'art_not_found'});
+        ack();
     },
     get_cite: (data, ack) => {
         console.log('dummy get_cite:', data.keys);
-        ack([]);
+        ack();
+    },
+    track_ref: (data, ack) => {
+        console.log('dummy track_ref:', data.key);
+        ack();
+    },
+    untrack_ref: (data, ack) => {
+        console.log('dummy untrack_ref:', data.key);
+        ack();
     },
 };
 
@@ -163,9 +172,10 @@ function renderParas() {
 /// low level rendering
 
 // get raw text from data-raw attribute, parse, render
-function rawToRender(para, defer=false, raw=null) {
+function rawToRender(para, defer=false, track=true, raw=null) {
     // existing features
     let old_id = para.attr('id');
+    let old_ref = getRefTags(para);
 
     // render with markthree
     let mark_in = (raw === null) ? para.attr('raw') : raw;
@@ -222,6 +232,13 @@ function rawToRender(para, defer=false, raw=null) {
     if (old_id && (old_id != new_id)) {
         old_id = para.attr('old_id') || old_id;
         para.attr('old_id', old_id);
+    }
+
+    // track reference add/del
+    let new_ref = getRefTags(para);
+    if (track) {
+        new_ref.filter(x => !old_ref.includes(x)).forEach(trackRef);
+        old_ref.filter(x => !new_ref.includes(x)).forEach(untrackRef);
     }
 
     // call environment formatters and reference updates
@@ -639,11 +656,11 @@ function getTro(ref, callback) {
         tro.tro = ref;
         tro.cite_type = 'self';
         callback(ref, tro);
-    } else if (type == 'ilink') {
+    } else if (type == 'link') {
         let short = ref.attr('href');
         cache.link.get(short, function(ret) {
             if (ret !== null) {
-                tro.cite_type = 'ilink';
+                tro.cite_type = 'link';
                 tro.ref_text = ret.title;
                 tro.pop_text = ret.blurb;
             } else {
@@ -654,7 +671,7 @@ function getTro(ref, callback) {
             callback(ref, tro);
         });
     } else if (type == 'cite') {
-        cache.bib.get(key, function(ret) {
+        cache.cite.get(key, function(ret) {
             if (ret !== null) {
                 tro.cite_type = 'cite';
                 tro.cite_author = ret.author;
@@ -667,8 +684,8 @@ function getTro(ref, callback) {
             }
             callback(ref, tro);
         });
-    } else if (type == 'extern') {
-        cache.ref.get(key, function(ret) {
+    } else if (type == 'ext') {
+        cache.ext.get(key, function(ret) {
             if (ret !== null) {
                 tro.tro = $($.parseHTML(ret.text));
                 tro.cite_type = ret.cite_type;
@@ -683,7 +700,7 @@ function getTro(ref, callback) {
             }
             callback(ref, tro);
         });
-    } else if (type == 'ref') {
+    } else if (type == 'int') {
         tro = troFromKey(key, tro);
         callback(ref, tro);
     } else {
@@ -694,10 +711,11 @@ function getTro(ref, callback) {
 function troFromKey(key, tro={}) {
     tro.id = key;
     tro.tro = $(`#${key}`); // the referenced object
+    tro.cite_type = 'err'; // error fallback
+    tro.ref_text = `@[${key}]`;
     if (tro.tro.length > 0) {
         if (tro.tro.hasClass('env_beg') || tro.tro.hasClass('env_one')) {
             if (tro.tro.hasClass('env_err')) {
-                tro.cite_type = 'err';
                 tro.cite_err = 'parse_error';
             } else {
                 tro.cite_type = 'env';
@@ -705,25 +723,24 @@ function troFromKey(key, tro={}) {
                 tro.cite_sel = tro.tro.attr('env_sel');
                 tro.ref_text = tro.tro.attr('ref_text');
             }
-        } else if (tro.tro.hasClass('cite')) {
-            tro.cite_type = 'cite';
-            tro.ref_text = tro.tro.attr('ref_text');
         } else {
-            tro.cite_type = 'err';
             tro.cite_err = 'unknown_type';
         }
     } else {
-        tro.cite_type = 'err';
         tro.cite_err = 'ref_not_found';
     }
     return tro;
 }
 
+function doRenderRef(ref) {
+    getTro(ref, renderRef);
+}
+
 function renderRefText(para) {
     let refs = (para == undefined) ? $('.reference') : para.find('.reference');
     refs.each(function() {
-        var r = $(this);
-        getTro(r, renderRef);
+        let r = $(this);
+        doRenderRef(r);
     });
 }
 
@@ -741,11 +758,11 @@ function renderRef(ref, tro) {
         } else if (tro.cite_env in s_env_spec) { // simple env
             refEnv(ref, tro, s_env_spec[tro.cite_env].head);
         } else {
-            refError(ref, 'env');
+            refError(ref, tro);
         };
     } else if (tro.cite_type == 'cite') {
         refCite(ref, tro);
-    } else if (tro.cite_type == 'ilink') {
+    } else if (tro.cite_type == 'link') {
         refText(ref, tro);
     } else if (tro.cite_type == 'err') {
         refError(ref, tro);
@@ -764,9 +781,9 @@ function refText(ref, tro) {
 
 function refError(ref, tro) {
     let key = ref.attr('refkey');
+    let type = ref.attr('reftype');
     let href = ref.attr('href');
-    let targ = (key == '_ilink_') ? `[[${href}]]`: `@[${key}]`;
-    let text = ref.data('text') || tro.ref_text || targ;
+    let text = ref.data('text') || tro.ref_text;
     ref.html(`<span class="ref_error">${text}</span>`);
 }
 
@@ -914,7 +931,7 @@ function popText(tro) {
         }
     } else if (tro.cite_type == 'cite') {
         return popCite(tro.pop_text);
-    } else if (tro.cite_type == 'ilink') {
+    } else if (tro.cite_type == 'link') {
         return popLink(tro.pop_text);
     } else if (tro.cite_type == 'err') {
         return popError(tro.cite_err);
@@ -927,7 +944,7 @@ function renderPop(ref, tro) {
     }
     let pop = popText(tro);
     let link = config.mobile ? ref.attr('href') : false;
-    let blurb = tro.cite_type == 'ilink';
+    let blurb = tro.cite_type == 'link';
     createPop(ref, pop, link, blurb);
 }
 
@@ -1364,4 +1381,35 @@ function renderFold() {
             para.addClass('folded');
         }
     });
+}
+
+////// Reference registering //////
+
+function refTag(ref) {
+    let key = ref.attr('refkey');
+    let type = ref.attr('reftype');
+    if (type == 'ext') {
+        return `@[${key}]`;
+    } else if (type == 'cite') {
+        return `@@[${key}]`;
+    } else if (type == 'link') {
+        return `[[${key}]]`;
+    }
+}
+
+function getRefTags(para) {
+    return para.find('.reference[type!=int]').map(function() {
+        let ref = $(this);
+        return refTag(ref);
+    }).toArray();
+}
+
+function trackRef(tag) {
+    console.log('trackRef', tag);
+    sendCommand('track_ref', {key: tag});
+}
+
+function untrackRef(tag) {
+    console.log('untrackRef', tag);
+    sendCommand('untrack_ref', {key: tag});
 }

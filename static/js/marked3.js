@@ -940,7 +940,7 @@ class DivRenderer {
     ref(args, text) {
         const id = args.id || '';
         const ext = id.includes(':');
-        const type = ext ? 'extern' : 'ref';
+        const type = ext ? 'ext' : 'int';
         const format = args.format || args.fmt || args.f || '';
         const pclass = (args.popup != 'false') ? 'pop_anchor': '';
         const dtext = text ? ` data-text="${escape(text)}"` : '';
@@ -961,7 +961,7 @@ class DivRenderer {
         const id = args.id || '';
         const pclass = (args.popup != 'false') ? 'pop_anchor': '';
         const dtext = text ? ` data-text="${escape(text)}"` : '';
-        return `<a class="reference ${pclass}" href="${id}" refkey="${id}" ${dtext} reftype="ilink"></a>`;
+        return `<a class="reference ${pclass}" href="${id}" refkey="${id}" ${dtext} reftype="link"></a>`;
     }
 
     footnote(text) {

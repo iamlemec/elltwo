@@ -26,11 +26,11 @@ let default_config = {
 };
 
 let default_cache = {
+    ext: new DummyCache('ext'), // external refs/blurbs
     link: new DummyCache('link'), // article links/blurbs
-    ref: new DummyCache('ref'), // external refs/blurbs
+    cite: new DummyCache('cite'), // bibliography entries
     img: new DummyCache('img'), // local image cache
-    bib: new DummyCache('bib'), // bibliography entries
-    cref: new DummyCache('cref'), // external reference completion
+    list: new DummyCache('list'), // external reference completion
 };
 
 let default_state = {
@@ -156,7 +156,7 @@ function eventIndex() {
         let cur = e.target.selectionStart;
         ccRefs(view, raw, cur);
         syntaxHL(para);
-        rawToRender(para, true, raw); // local changes only
+        rawToRender(para, true, false, raw); // local changes only
         envClasses();
     });
 

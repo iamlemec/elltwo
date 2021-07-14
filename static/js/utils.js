@@ -59,7 +59,7 @@ class KeyCache {
         }
     }
 
-    del() {
+    del(key) {
         return this.data.delete(key);
     }
 
