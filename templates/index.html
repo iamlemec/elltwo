@@ -25,9 +25,9 @@
 </div>
 </div>
 
-<div id=info_block>
+<!-- <div id=info_block>
     Click a tab for examples...
-</div>
+</div> -->
 
 <div id=example_options>
 <span id="ssv">Side-by-Side View</span>
@@ -48,12 +48,23 @@
 
 {% block post_content %}
 <div id=features>
-    Features...
+    <div class=feature feature=equations>
+            <div class=feature_copy>
+            <b>Simple Math and Text Styling</b> Use LaTeX and Markdown syntax to style text and add math, equations, lists and more. Export articles to .tex or .md.
+            </div>
+            <img feature=equations class="unplayed ad_img" src="{{ url_for('static', filename='adverts/eq.png') }}"/>
+    </div>
     <div class=feature feature=hyperlinks>
             <div class=feature_copy>
-            <bf>Intelligent Referencing</bf> Easily create references to equations, figures, and environments. elltwo will generate popup style links to help readers parse reference heavy documents without leaving the page.
+            <b>Intelligent Referencing</b> Easily create references to equations, figures, and environments. elltwo will generate popup style links to help readers parse reference heavy documents without leaving the page.
             </div>
-            <img feature=hyperlinks class=ad_img src="{{ url_for('static', filename='adverts/hyperlinks.png') }}"/>
+            <img feature=hyperlinks class="unplayed ad_img" src="{{ url_for('static', filename='adverts/hyperlinks.png') }}"/>
+    </div>
+    <div class=feature feature=hyperlinks>
+            <div class=feature_copy>
+            <b>Search </b>...
+            </div>
+            <img feature=hyperlinks class="unplayed ad_img" src="{{ url_for('static', filename='adverts/hyperlinks.png') }}"/>
     </div>
 </div>
 {% endblock %}
@@ -62,8 +73,16 @@
 {% block init %}
 
 <script type="module">
-import { initIndex } from '{{ url_for('static', filename='js/index.js') }}';
+import { initIndex, controlGifs} from '{{ url_for('static', filename='js/index.js') }}';
 initIndex();
+controlGifs({
+'hyperlinks': {'video': `{{ url_for('static', filename='adverts/hyperlink.mp4') }}`,
+               'static': `{{ url_for('static', filename='adverts/hyperlinks.png') }}`,
+           },
+'equations': {'video': `{{ url_for('static', filename='adverts/eq.mp4') }}`,
+               'static': `{{ url_for('static', filename='adverts/eq.png') }}`,
+           },
+})
 </script>
 
 {% endblock %}

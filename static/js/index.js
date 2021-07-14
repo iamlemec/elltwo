@@ -1,7 +1,7 @@
 /* main article entry point */
 
 export {
-    initIndex
+    initIndex, controlGifs
 }
 
 import { setCookie, cooks, getPara, on_success, DummyCache } from './utils.js'
@@ -203,10 +203,8 @@ function eventIndex() {
         setSSV(val);
     });
 
-    $(document).scroll(function() {
-        controlGifs();
-    });
 }
+
 
 function genExample(example) {
     cache.int_ref = [];
@@ -237,11 +235,47 @@ function initExamples(examples) {
     };
 }
 
-function playGIF(gif) {
-    console.log(gif);
+function playGIF(unplayed, gif, feature) {
+    let vid = $('<video>', {class: `ad_vid`})
+    vid.attr('feature', feature)
+    vid.attr('autoplay', 'autoplay')
+    let src = $('<source>')
+    src.attr('src', gif)
+    src.attr('type', 'video/mp4')
+    vid.append(src) 
+    $('.ad_img').show();
+    unplayed.hide()
+    $('.ad_vid').remove();
+    unplayed.parent().append(vid)
+    unplayed.removeClass('unplayed')
+    unplayed.addClass('played')
+
+    vid[0].addEventListener('ended',myHandler,false);
+    function myHandler(e) {
+        unplayed.show()
+        vid.remove()
+    }
 }
 
-function controlGifs() {
+function controlGifs(gifs) {
+    let offset = .4*window.innerHeight;
+    $(document).scroll(function() {
+        for (const feature in gifs) {
+            let unplayed = $(`.unplayed[feature=${feature}]`).first();
+            if(unplayed.length > 0){
+                let gifdif= unplayed[0].getBoundingClientRect().top
+                if(gifdif-offset < 0){
+                    playGIF(unplayed, gifs[feature]['video'], feature)
+                }
+            }
+        }
+    });
+
+    $(document).on('click', '.played', function() {
+        let feature=$(this).attr('feature');
+        let gif = gifs[feature]['video']
+        playGIF($(this), gif, feature)
+    });
 }
 
 function setSSV(val) {
