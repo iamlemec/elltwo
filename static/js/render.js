@@ -2,9 +2,10 @@
 
 export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
-    rawToTextarea, envClasses, createRefs, createTOC, getTro, troFromKey,
+    rawToTextarea, envClasses, renderRefText, createTOC, getTro, troFromKey,
     popText, renderPop, syntaxHL, s_env_spec, getFoldLevel, renderFold,
-    braceMatch, makePara, connectCallbacks
+    braceMatch, barePara, makePara, connectCallbacks, getRefTags, trackRef,
+    untrackRef, doRenderRef
 }
 
 import { merge, cooks, getPara } from './utils.js'
@@ -77,19 +78,27 @@ function eventRender() {
 let default_callbacks = {
     get_image: (data, ack) => {
         console.log('dummy get_image:', data.key);
-        ack({found: false});
+        ack();
     },
     get_link: (data, ack) => {
         console.log('dummy get_link:', data.title, data.blurb);
-        ack({found: false});
+        ack();
     },
     get_ref: (data, ack) => {
         console.log('dummy get_ref:', data.title, data.key);
-        ack({cite_type: 'err', cite_err: 'art_not_found'});
+        ack();
     },
     get_cite: (data, ack) => {
         console.log('dummy get_cite:', data.keys);
-        ack([]);
+        ack();
+    },
+    track_ref: (data, ack) => {
+        console.log('dummy track_ref:', data.key);
+        ack();
+    },
+    untrack_ref: (data, ack) => {
+        console.log('dummy untrack_ref:', data.key);
+        ack();
     },
 };
 
@@ -100,7 +109,7 @@ function stateMarkdown() {
 function initMarkdown(markdown) {
     let content = $('#content');
     markdown.split(/\n{2,}/).forEach((raw, pid) => {
-        let para = $('<div>', {class: 'para', pid: pid, raw: raw, fold_level: 0});
+        let para = barePara(pid, raw);
         content.append(para);
     });
 }
@@ -141,6 +150,12 @@ const innerPara = `
 </div>
 `;
 
+function barePara(pid, raw='') {
+    return $('<div>', {
+        class: 'para', pid: pid, raw: raw, fold_level: 0
+    });
+}
+
 function makePara(para, defer=true) {
     para.html(innerPara);
     rawToTextarea(para);
@@ -157,9 +172,10 @@ function renderParas() {
 /// low level rendering
 
 // get raw text from data-raw attribute, parse, render
-function rawToRender(para, defer=false, raw=null) {
+function rawToRender(para, defer=false, track=true, raw=null) {
     // existing features
     let old_id = para.attr('id');
+    let old_ref = getRefTags(para);
 
     // render with markthree
     let mark_in = (raw === null) ? para.attr('raw') : raw;
@@ -216,6 +232,13 @@ function rawToRender(para, defer=false, raw=null) {
     if (old_id && (old_id != new_id)) {
         old_id = para.attr('old_id') || old_id;
         para.attr('old_id', old_id);
+    }
+
+    // track reference add/del
+    let new_ref = getRefTags(para);
+    if (track) {
+        new_ref.filter(x => !old_ref.includes(x)).forEach(trackRef);
+        old_ref.filter(x => !new_ref.includes(x)).forEach(untrackRef);
     }
 
     // call environment formatters and reference updates
@@ -362,7 +385,7 @@ function envClasses(outer) {
 
     // add in numbers with auto-increment
     createNumbers(outer);
-    createRefs(outer);
+    renderRefText(outer);
     createTOC(outer);
     renderFold();
 }
@@ -624,45 +647,20 @@ function createTOC(outer) {
 
 /// REFERENCING and CITATIONS
 
-function createRefs(para) {
-    let refs;
-    if (para == undefined) {
-        refs = $('.reference');
-    } else {
-        refs = para.find('.reference');
-    }
-
-    // get citations
-    let citeKeys = new Set();
-    refs.each(function() {
-        let ref = $(this);
-        if (!ref.data('extern')) {
-            let key = ref.attr('citekey');
-            if (($(`#${key}`).length == 0) && (key != '_self_')) {
-                citeKeys.add(key);
-            }
-        }
-    });
-
-    // fetch cite info
-    cache.bib.bulk([...citeKeys], function(ret) {
-        renderRefText(para);
-    });
-}
-
 function getTro(ref, callback) {
     let tro = {};
-    let key = ref.attr('citekey');
+    let key = ref.attr('refkey');
+    let type = ref.attr('reftype');
 
-    if (key == '_self_') {
+    if (type == 'self') {
         tro.tro = ref;
         tro.cite_type = 'self';
         callback(ref, tro);
-    } else if (key == '_ilink_') {
+    } else if (type == 'link') {
         let short = ref.attr('href');
         cache.link.get(short, function(ret) {
-            if (ret !== undefined) {
-                tro.cite_type = 'ilink';
+            if (ret !== null) {
+                tro.cite_type = 'link';
                 tro.ref_text = ret.title;
                 tro.pop_text = ret.blurb;
             } else {
@@ -672,9 +670,9 @@ function getTro(ref, callback) {
             }
             callback(ref, tro);
         });
-    } else if (cache.bib.has(key)) {
-        cache.bib.get(key, function(ret) {
-            if (ret !== undefined) {
+    } else if (type == 'cite') {
+        cache.cite.get(key, function(ret) {
+            if (ret !== null) {
                 tro.cite_type = 'cite';
                 tro.cite_author = ret.author;
                 tro.cite_year = ret.year;
@@ -682,13 +680,13 @@ function getTro(ref, callback) {
             } else {
                 tro.cite_type = 'err';
                 tro.cite_err = 'cite_not_found';
-                tro.cite_text = `@[${key}]`;
+                tro.ref_text = `@@[${key}]`;
             }
             callback(ref, tro);
         });
-    } else if (ref.data('extern')) {
-        cache.ref.get(key, function(ret) {
-            if (ret !== undefined) {
+    } else if (type == 'ext') {
+        cache.ext.get(key, function(ret) {
+            if (ret !== null) {
                 tro.tro = $($.parseHTML(ret.text));
                 tro.cite_type = ret.cite_type;
                 tro.cite_env = ret.cite_env;
@@ -702,19 +700,22 @@ function getTro(ref, callback) {
             }
             callback(ref, tro);
         });
-    } else {
+    } else if (type == 'int') {
         tro = troFromKey(key, tro);
         callback(ref, tro);
+    } else {
+        console.log('unknown reference type');
     }
 }
 
 function troFromKey(key, tro={}) {
     tro.id = key;
     tro.tro = $(`#${key}`); // the referenced object
+    tro.cite_type = 'err'; // error fallback
+    tro.ref_text = `@[${key}]`;
     if (tro.tro.length > 0) {
         if (tro.tro.hasClass('env_beg') || tro.tro.hasClass('env_one')) {
             if (tro.tro.hasClass('env_err')) {
-                tro.cite_type = 'err';
                 tro.cite_err = 'parse_error';
             } else {
                 tro.cite_type = 'env';
@@ -722,31 +723,24 @@ function troFromKey(key, tro={}) {
                 tro.cite_sel = tro.tro.attr('env_sel');
                 tro.ref_text = tro.tro.attr('ref_text');
             }
-        } else if (tro.tro.hasClass('cite')) {
-            tro.cite_type = 'cite';
-            tro.ref_text = tro.tro.attr('ref_text');
         } else {
-            tro.cite_type = 'err';
             tro.cite_err = 'unknown_type';
         }
     } else {
-        tro.cite_type = 'err';
         tro.cite_err = 'ref_not_found';
     }
     return tro;
 }
 
-function renderRefText(para) {
-    let refs;
-    if (para == undefined) {
-        refs = $('.reference');
-    } else {
-        refs = para.find('.reference');
-    }
+function doRenderRef(ref) {
+    getTro(ref, renderRef);
+}
 
+function renderRefText(para) {
+    let refs = (para == undefined) ? $('.reference') : para.find('.reference');
     refs.each(function() {
-        var r = $(this);
-        getTro(r, renderRef);
+        let r = $(this);
+        doRenderRef(r);
     });
 }
 
@@ -764,11 +758,11 @@ function renderRef(ref, tro) {
         } else if (tro.cite_env in s_env_spec) { // simple env
             refEnv(ref, tro, s_env_spec[tro.cite_env].head);
         } else {
-            refError(ref, 'env');
+            refError(ref, tro);
         };
     } else if (tro.cite_type == 'cite') {
         refCite(ref, tro);
-    } else if (tro.cite_type == 'ilink') {
+    } else if (tro.cite_type == 'link') {
         refText(ref, tro);
     } else if (tro.cite_type == 'err') {
         refError(ref, tro);
@@ -786,10 +780,10 @@ function refText(ref, tro) {
 }
 
 function refError(ref, tro) {
-    let key = ref.attr('citekey');
+    let key = ref.attr('refkey');
+    let type = ref.attr('reftype');
     let href = ref.attr('href');
-    let targ = (key == '_ilink_') ? `[[${href}]]`: `@[${key}]`;
-    let text = ref.data('text') || tro.ref_text || targ;
+    let text = ref.data('text') || tro.ref_text;
     ref.html(`<span class="ref_error">${text}</span>`);
 }
 
@@ -937,7 +931,7 @@ function popText(tro) {
         }
     } else if (tro.cite_type == 'cite') {
         return popCite(tro.pop_text);
-    } else if (tro.cite_type == 'ilink') {
+    } else if (tro.cite_type == 'link') {
         return popLink(tro.pop_text);
     } else if (tro.cite_type == 'err') {
         return popError(tro.cite_err);
@@ -950,7 +944,7 @@ function renderPop(ref, tro) {
     }
     let pop = popText(tro);
     let link = config.mobile ? ref.attr('href') : false;
-    let blurb = tro.cite_type == 'ilink';
+    let blurb = tro.cite_type == 'link';
     createPop(ref, pop, link, blurb);
 }
 
@@ -959,6 +953,8 @@ function popError(err) {
         return '[Reference Not Found]';
     } else if (err == 'art_not_found') {
         return '[Article Not Found]';
+    } else if (err == 'cite_not_found') {
+        return '[Citation Not Found]';
     } else if (err == 'parse_error') {
         return '[Referenced Environment Not Closed]';
     } else if (err == 'unknown_type') {
@@ -1049,6 +1045,7 @@ let inline = {
     ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/g,
     math: /\$((?:\\\$|[\s\S])+?)\$/g,
     ref: /@(\[([^\]]+)\])/g,
+    cite: /@@(\[([^\]]+)\])/g,
     ilink: /\[\[([^\]]+)\]\]/g,
     em: /\*((?:\*\*|[\s\S])+?)\*(?!\*)/g,
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
@@ -1079,6 +1076,10 @@ function syntaxParseInline(raw) {
 
     html = html.replace(inline.math, (a, b) =>
         s('$', 'delimit') + s(b, 'math') + s('$', 'delimit')
+    );
+
+    html = html.replace(inline.cite, (a, b) =>
+        s('@@', 'delimit') + s(fArgs(b, false), 'ref')
     );
 
     html = html.replace(inline.ref, (a, b) =>
@@ -1380,4 +1381,35 @@ function renderFold() {
             para.addClass('folded');
         }
     });
+}
+
+////// Reference registering //////
+
+function refTag(ref) {
+    let key = ref.attr('refkey');
+    let type = ref.attr('reftype');
+    if (type == 'ext') {
+        return `@[${key}]`;
+    } else if (type == 'cite') {
+        return `@@[${key}]`;
+    } else if (type == 'link') {
+        return `[[${key}]]`;
+    }
+}
+
+function getRefTags(para) {
+    return para.find('.reference[type!=int]').map(function() {
+        let ref = $(this);
+        return refTag(ref);
+    }).toArray();
+}
+
+function trackRef(tag) {
+    console.log('trackRef', tag);
+    sendCommand('track_ref', {key: tag});
+}
+
+function untrackRef(tag) {
+    console.log('untrackRef', tag);
+    sendCommand('untrack_ref', {key: tag});
 }

@@ -8,6 +8,7 @@
 #bg {
     height: unset;
     position: absolute;
+<<<<<<< HEAD
     padding-top: 80px;
     background-color: var(--bg);
 }
@@ -15,6 +16,13 @@
 #head_block {
     background-color: var(--bg);
     position: sticky;
+=======
+    background-color: #457b9d;
+}
+
+#head_block {
+    background-color: #457b9d;
+>>>>>>> f872f205348851db86043124f94591b64988acaa
     top: 0;
     width: 100%;
     height: 200px;
@@ -36,8 +44,11 @@
 #content {
     padding-top: 80px;
     width: 100%;
+<<<<<<< HEAD
     min-height: 500px;
+=======
     height: 400px;
+>>>>>>> f872f205348851db86043124f94591b64988acaa
     background-color: whitesmoke;
 }
 

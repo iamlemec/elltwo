@@ -1,8 +1,8 @@
 /* random utilities */
 
 export {
-    merge, mapObject, initToggleBox, toggleBox, ensureVisible, setCookie,
-    cooks, getPara, isMobile, noop, on_success, KeyCache, DummyCache
+    merge, mapObject, mapValues, initToggleBox, toggleBox, ensureVisible,
+    setCookie, cooks, getPara, isMobile, noop, on_success, KeyCache, DummyCache
 }
 
 // js tricks
@@ -13,6 +13,10 @@ function merge() {
 
 function mapObject(obj, func) {
     return Object.fromEntries(Object.entries(obj).map(([x, y]) => func(x, y)));
+}
+
+function mapValues(obj, func) {
+    return Object.fromEntries(Object.entries(obj).map(([x, y]) => [x, func(y)]));
 }
 
 function noop() {
@@ -55,7 +59,7 @@ class KeyCache {
         }
     }
 
-    del() {
+    del(key) {
         return this.data.delete(key);
     }
 

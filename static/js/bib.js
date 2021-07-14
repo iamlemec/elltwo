@@ -67,13 +67,14 @@ function eventBib() {
 
 function connectBib() {
     let url = `http://${document.domain}:${location.port}`;
-    connect(url, () => {
-        sendCommand('join_room', {room: '__bib'});
-        sendCommand('get_bib', {}, renderBib);
-    });
+    connect(url, fetchBib);
 
-    addHandler('renderBib', renderBib);
-    addHandler('deleteCite', deleteCite);
+    addHandler('invalidateRef', function(data) {
+        let [type, key] = data;
+        if (type == 'list' && key == '__bib') {
+            fetchBib();
+        }
+    });
 }
 
 function generateJson(src) {
@@ -100,6 +101,7 @@ function generateJson(src) {
 
 function renderBib(data) {
     let holder = $('#para_holder');
+    holder.empty();
     Object.entries(data).forEach(([key, cite]) => {
         createBibEntry(key, cite, holder);
     });
@@ -108,6 +110,10 @@ function renderBib(data) {
     if (data.length == 1) {
         location.href = '#' + data[0].citekey;
     }
+}
+
+function fetchBib() {
+    sendCommand('get_bib', {}, renderBib);
 }
 
 function deleteCite(key) {

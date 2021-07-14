@@ -4,24 +4,20 @@ export {
     initIndex, controlGifs
 }
 
-import { setCookie, cooks, getPara, on_success, DummyCache } from './utils.js'
+import { DummyCache } from './utils.js'
 import {
     config, state, cache, updateConfig, updateState, updateCache
 } from './state.js'
 import {
-    stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, createTOC, getTro, troFromKey, popText, syntaxHL, braceMatch,
-    makePara, connectCallbacks,
+    stateRender, initRender, eventRender, rawToRender, envClasses, syntaxHL,
+    braceMatch, barePara, makePara, connectCallbacks
 } from './render.js'
 import { renderKatex } from './math.js'
 import {
     initEditor, stateEditor, eventEditor, resize, makeActive, sendMakeEditable,
-    sendUpdatePara, placeCursor
+    placeCursor
 } from './editor.js'
-import {
-    ccNext, ccMake, ccRefs, textWrap, updateRefHTML
-} from './article.js'
-
+import { ccRefs } from './article.js'
 
 let default_config = {
     theme: 'classic', // theme to use
@@ -30,11 +26,11 @@ let default_config = {
 };
 
 let default_cache = {
+    ext: new DummyCache('ext'), // external refs/blurbs
     link: new DummyCache('link'), // article links/blurbs
-    ref: new DummyCache('ref'), // external refs/blurbs
+    cite: new DummyCache('cite'), // bibliography entries
     img: new DummyCache('img'), // local image cache
-    bib: new DummyCache('bib'), // bibliography entries
-    cref: new DummyCache('cref'), // external reference completion
+    list: new DummyCache('list'), // external reference completion
 };
 
 let default_state = {
@@ -94,22 +90,26 @@ let dummy_callbacks = {
 };
 
 let examples = {
-    'text':
-        ["**elltwo** ($\\ell^2$) is a browser based platform for decentralized and collaborative technical documents.",
-         "It has a wiki like structure with an emphasis on typesetting and intelligent referencing.",
-         "elltwo articles are written in a simple markup language borrowing elements of [Markdown](https://en.wikipedia.org/wiki/Markdown) and [LaTeX](https://www.latex-project.org/)."],
-    'equations':
-        ["$$ [eq_geo] \\sum_{i=0}^{\\infty} \\frac1{2^n} = 1",
-         "Equation @[eq_geo] states"],
-    'environments':
-        [">> theorem [thm_BC|name=rt=Borel Cantelli] If the sum of the probabilities of the events $\\{E_n\\}_{n\\in \\mathbb{N}}$ is finite, then",
-         "$$ \\mu\\left(\\bigcap_{n=1}^{\\infty }\\bigcup_{k\\geq n}^{\\infty }E_{k}\\right) = 0",
-         "<< that is, the probability that infinitely many of them occur is $0$.",
-         "The @[thm_BC] theorem is an important result in establishing ...",],
-    'images':
-        [`!svg [svg_figure|caption=It's a box|width=60]\n<rect x="5" y="5" width="90" height="90" stroke="black" fill="#5D9D68" />`,
-         "Embed and reference images and SVG figures easily, as with @[svg_figure]."],
-}
+    'text': [
+        "**elltwo** ($\\ell^2$) is a browser based platform for decentralized and collaborative technical documents.",
+        "It has a wiki like structure with an emphasis on typesetting and intelligent referencing.",
+        "elltwo articles are written in a simple markup language borrowing elements of [Markdown](https://en.wikipedia.org/wiki/Markdown) and [LaTeX](https://www.latex-project.org/)."
+    ],
+    'equations': [
+        "$$ [eq_geo] \\sum_{i=0}^{\\infty} \\frac1{2^n} = 1",
+        "Equation @[eq_geo] states"
+    ],
+    'environments': [
+        ">> theorem [thm_BC|name=rt=Borel Cantelli] If the sum of the probabilities of the events $\\{E_n\\}_{n\\in \\mathbb{N}}$ is finite, then",
+        "$$ \\mu\\left(\\bigcap_{n=1}^{\\infty }\\bigcup_{k\\geq n}^{\\infty }E_{k}\\right) = 0",
+        "<< that is, the probability that infinitely many of them occur is $0$.",
+        "The @[thm_BC] theorem is an important result in establishing ...",
+    ],
+    'images': [
+        `!svg [svg_figure|caption=It's a box|width=60]\n<rect x="5" y="5" width="90" height="90" stroke="black" fill="#5D9D68" />`,
+        "Embed and reference images and SVG figures easily, as with @[svg_figure]."
+    ],
+};
 
 function initIndex() {
     renderKatex();
@@ -156,7 +156,7 @@ function eventIndex() {
         let cur = e.target.selectionStart;
         ccRefs(view, raw, cur);
         syntaxHL(para);
-        rawToRender(para, true, raw); // local changes only
+        rawToRender(para, true, false, raw); // local changes only
         envClasses();
     });
 
@@ -170,7 +170,7 @@ function eventIndex() {
 
     $(document).on('click', '.ex_butt', function() {
         let ex = $(this).attr('id');
-        $('.para').remove()
+        $('.para').remove();
         genExample(ex);
     });
 
@@ -207,22 +207,19 @@ function eventIndex() {
 
 
 function genExample(example) {
-    cache.int_ref = [];
-    let ex = examples[example];
-    ex.forEach((raw, i) => {
-        let para = $('<div>', {class: `para`});
-        para.attr('fold_level', 0)
-            .attr('raw', raw)
-            .attr('pid', 'demo'+i);
+    $(`.ex_butt`).removeClass('clicked');
+    $(`#${example}.ex_butt`).addClass('clicked');
+
+    examples[example].forEach((raw, i) => {
+        let para = barePara(i, raw);
         $('#content').append(para);
-        $(`.ex_butt`).removeClass('clicked');
-        $(`#${example}.ex_butt`).addClass('clicked');
-        makePara(para, false);
-        let input = para.children('.p_input')
+        makePara(para);
+        let input = para.children('.p_input');
         resize(input[0]);
         syntaxHL(para);
-        updateRefHTML(para);
     });
+    envClasses();
+
     let first = $('.para:not(.folder)').first();
     makeActive(first);
 }
@@ -230,8 +227,8 @@ function genExample(example) {
 function initExamples(examples) {
     for (const example in examples) {
         let ex = $('<div>', {class: `ex_butt`, text: example});
-        ex.attr('id', example)
-        $('#example_options').append(ex)
+        ex.attr('id', example);
+        $('#example_options').append(ex);
     };
 }
 

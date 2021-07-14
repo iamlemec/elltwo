@@ -118,7 +118,7 @@ Typing `@` will open a command completion window ranging over all extant referen
 
 Bibliographic data is stored globally in the [$\ell^2$ Bibliography](/bib). New citations can be entered using the standard [bibTeX](https://en.wikipedia.org/wiki/BibTeX) formatting. Extant citations can be updated by clicking *update* on the relevant entry, changing the data, and clicking *create*. A (rudimentary) search function can find references and directly import the bibTex from Google Scholar.
 
-Each reference has a *citekey*, which can be viewed by hovering over a bibliographic entry (clicking the entry copies the citekey to the clipboard). In text citations are created using `@[citekey]`. Typing `@@` will open a command completion window that will search over bibliographic entries (i.e., citekeys).
+Each reference has a *citekey*, which can be viewed by hovering over a bibliographic entry (clicking the entry copies the citekey to the clipboard). In text citations are created using `@@[citekey]`, for example @@[morgenstern1953theory]. Typing `@@` will open a command completion window that will search over bibliographic entries (i.e., citekeys).
 
 # [sec_history] Version Control
 

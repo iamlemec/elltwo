@@ -469,7 +469,7 @@ def socket_disconnect():
     emit('status', 'disconnected')
 
 @socketio.on('join_room')
-def room(data):
+def room_join(data):
     sid = request.sid
     app.logger.debug(f'join_room: {sid}')
     room = str(data['room'])
@@ -477,6 +477,20 @@ def room(data):
     roomed.add(room, sid)
     if data.get('get_locked', False):
         return sum([locked.get(s) for s in roomed.get(room)], [])
+
+@socketio.on('track_ref')
+def track_ref(data):
+    sid = request.sid
+    key = data['key']
+    app.logger.debug(f'track_ref [{sid}]: {key}')
+    join_room(key)
+
+@socketio.on('untrack_ref')
+def track_ref(data):
+    sid = request.sid
+    key = data['key']
+    app.logger.debug(f'untrack_ref [{sid}]: {key}')
+    leave_room(key)
 
 ###
 ### para editing
@@ -569,12 +583,23 @@ def create_art(title):
     art = edb.get_art_short(title)
     if art is None:
         art = edb.create_article(title)
+    socketio.emit('invalidateRef', ['list', '__art'])
     return url_for('RenderArticle', title=art.short_title)
 
 @socketio.on('set_title')
 def set_title(data):
     aid, title = data['aid'], data['title']
-    return edb.rename_article(aid, title)
+    edb.rename_article(aid, title)
+    short = edb.get_art_title(aid)
+    socketio.emit('invalidateRef', ['link', short], to=f'[[{short}]]')
+
+@socketio.on('set_blurb')
+@edit_decor
+def set_blurb(data):
+    aid, blurb = data['aid'], data['blurb']
+    edb.set_blurb(aid, blurb)
+    short = edb.get_art_title(aid)
+    socketio.emit('invalidateRef', ['link', short], to=f'[[{short}]]')
 
 ##
 ## text search
@@ -612,15 +637,18 @@ def search_text(data):
 @socketio.on('create_cite')
 @edit_decor
 def create_cite(data):
-    edb.create_cite(data['citationKey'], data['entryType'], **data['entryTags'])
-    bib = edb.get_bib(data['citationKey'])
-    socketio.emit('renderBib', [bib_info(bib)], broadcast=True)
+    citekey, citetype, citetags = data['citationKey'], data['entryType'], data['entryTags']
+    if edb.create_cite(citekey, citetype, **citetags):
+        socketio.emit('invalidateRef', ['list', '__bib'])
+    socketio.emit('invalidateRef', ['cite', citekey], to=f'@@[{citekey}]')
 
 @socketio.on('delete_cite')
 @edit_decor
 def delete_cite(data):
-    edb.delete_cite(data['key'])
-    socketio.emit('deleteCite', data['key'], broadcast=True)
+    citekey = data['key']
+    edb.delete_cite(citekey)
+    socketio.emit('invalidateRef', ['list', '__bib'])
+    socketio.emit('invalidateRef', ['cite', citekey], to=f'@@[{citekey}]')
 
 @socketio.on('get_cite')
 @view_decor
@@ -674,11 +702,16 @@ def get_arts(data):
 @socketio.on('update_ref')
 @edit_decor
 def update_ref(data):
-    key, aid, cite_type, cite_env, text, ref_text = (
-        data['key'], data['aid'], data['cite_type'],
+    aid, key, cite_type, cite_env, text, ref_text = (
+        data['aid'], data['key'], data['cite_type'],
         data['cite_env'], data['text'], data.get('ref_text')
     )
-    edb.create_ref(key, aid, cite_type, cite_env, text, ref_text)
+    short = edb.get_art_title(aid)
+    refkey = f'{short}:{key}'
+
+    if edb.create_ref(aid, key, cite_type, cite_env, text, ref_text):
+        socketio.emit('invalidateRef', ['list', short])
+    socketio.emit('invalidateRef', ['ext', refkey], to=f'@[{refkey}]')
 
 @socketio.on('update_g_ref')
 @edit_decor
@@ -690,15 +723,13 @@ def update_g_ref(data):
 @socketio.on('delete_ref')
 @edit_decor
 def delete_ref(data):
-    edb.delete_ref(data['key'], data['aid'])
-    # socketio.emit('deleteRef', data['key'], broadcast=True)
+    aid, key = data['aid'], data['key']
+    short = edb.get_art_title(aid)
+    refkey = f'{short}:{key}'
 
-@socketio.on('set_blurb')
-@edit_decor
-def set_blurb(data):
-    aid, blurb = data['aid'], data['blurb']
-    edb.set_blurb(aid, blurb)
-    return True
+    edb.delete_ref(aid, key)
+    socketio.emit('invalidateRef', ['list', short])
+    socketio.emit('invalidateRef', ['ext', refkey], to=f'@[{refkey}]')
 
 @socketio.on('get_link')
 def get_link(data):
@@ -769,6 +800,7 @@ def UploadImage():
     val = buf.getvalue()
 
     edb.create_image(img_key, img_mime, val)
+    socketio.emit('invalidateRef', ['img', img_key], to=f'![{img_key}]')
 
     return {'mime': img_mime, 'key': img_key}
 

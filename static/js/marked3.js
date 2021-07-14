@@ -27,7 +27,7 @@ let block = {
     svg: /^\!svg(\*)? *(?:refargs)?\s*/,
     image: /^!(\*)? *(?:refargs)? *\(href\)\s*$/,
     imagelocal: /^!(\*)? *(?:refargs)\s*$/,
-    biblio: /^@@ *(?:refid)\s*/,
+    // biblio: /^@@ *(?:refid)\s*/,
     figtab: /^@\| *(?:refargs) *\n(?:table)/,
     envbeg: /^\>\>(\!)? *([\w-]+)(\*)? *(?:refargs)?\s*/,
     envend: /^\<\<\s*/,
@@ -73,9 +73,11 @@ block.svg = replace(block.svg)
     ('refargs', block._refargs)
     ();
 
+/*
 block.biblio = replace(block.biblio)
     ('refid', block._refid)
     ();
+*/
 
 block.envbeg = replace(block.envbeg)
     ('refargs', block._refargs)
@@ -320,10 +322,12 @@ class Lexer {
           }
 
           // bibliographic info
+          /*
           if (cap = this.rules.biblio.exec(src)) {
               text = src.slice(cap[0].length);
               return this.parseBiblio(cap[1], text);
           }
+          */
 
           // comment
           if (cap = this.rules.comment.exec(src)) {
@@ -479,6 +483,7 @@ let inline = {
     text: /^[\s\S]+?(?=[\/\\<!\[_*`\$\^@%]| {2,}\n|$)/,
     math: /^\$((?:\\\$|[\s\S])+?)\$/,
     ref: /^@\[([^\]]+)\]/,
+    cite: /^@@\[([^\]]+)\]/,
     footnote: /^\^\[(inside)\]/,
 };
 
@@ -599,6 +604,15 @@ class InlineLexer {
                 out += this.renderer.ref(args, this.output(text));
             }
 
+            // cite
+            if (cap = this.rules.cite.exec(src)) {
+                src = src.substring(cap[0].length);
+                let argsraw = cap[1];
+                let args = parseArgs(argsraw, false, false);
+                let text = args.text || args.txt || args.t || '';
+                out += this.renderer.cite(args, this.output(text));
+            }
+
             // footnote
             if (cap = this.rules.footnote.exec(src)) {
                 src = src.substring(cap[0].length);
@@ -609,9 +623,10 @@ class InlineLexer {
             // internal link
             if (cap = this.rules.ilink.exec(src)) {
                 src = src.substring(cap[0].length);
-                [href, text] = cap[1].split('|');
-                text = text || '';
-                out += this.renderer.ilink(href, this.output(text));
+                let argsraw = cap[1];
+                let args = parseArgs(argsraw, false, false);
+                let text = args.text || args.txt || args.t || '';
+                out += this.renderer.ilink(args, this.output(text));
             }
 
             // autolink
@@ -903,11 +918,6 @@ class DivRenderer {
 
     }
 
-    ilink(href, text) {
-        const dtext = text ? ` data-text="${escape(text)}"` : '';
-        return `<a class="reference pop_anchor" citekey="_ilink_" href="${href}" ${dtext} data-extern="true"></a>`;
-    }
-
     escape(esc) {
         return escape(esc);
     }
@@ -928,18 +938,34 @@ class DivRenderer {
     }
 
     ref(args, text) {
-        const id = args['id'] || '';
-        const ext = id.includes(':') || false;
-        const format = args['format'] || args['fmt'] || args['f'] || '';
-        const pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
-        const [art, key] = id.split(':');
+        const id = args.id || '';
+        const ext = id.includes(':');
+        const type = ext ? 'ext' : 'int';
+        const format = args.format || args.fmt || args.f || '';
+        const pclass = (args.popup != 'false') ? 'pop_anchor': '';
         const dtext = text ? ` data-text="${escape(text)}"` : '';
+        const [art, key] = id.split(':');
         const href = ext ? `${window.location.origin}/a/${art}\#${key}` : `\#${id}`;
-        return `<a href="${href}" class="reference ${pclass}" citekey="${id}" data-extern="${ext}" format="${format}" ${dtext}></a>`;
+        return `<a href="${href}" class="reference ${pclass}" refkey="${id}" reftype="${type}" format="${format}" ${dtext}></a>`;
+    }
+
+    cite(args, text) {
+        const id = args.id || '';
+        const format = args.format || args.fmt || args.f || '';
+        const pclass = (args.popup != 'false') ? 'pop_anchor': '';
+        const dtext = text ? ` data-text="${escape(text)}"` : '';
+        return `<a href="" class="reference ${pclass}" refkey="${id}" reftype="cite" format="${format}" ${dtext}></a>`;
+    }
+
+    ilink(args, text) {
+        const id = args.id || '';
+        const pclass = (args.popup != 'false') ? 'pop_anchor': '';
+        const dtext = text ? ` data-text="${escape(text)}"` : '';
+        return `<a class="reference ${pclass}" href="${id}" refkey="${id}" ${dtext} reftype="link"></a>`;
     }
 
     footnote(text) {
-        return `<span class="footnote pop_anchor" cite_type="footnote" citekey="_self_"><span class=num counter=footnote inc=1></span><span class="ft_content">${text}</span></span>`;
+        return `<span class="footnote pop_anchor" reftype="self"><span class="num" counter="footnote" inc="1"></span><span class="ft_content">${text}</span></span>`;
     }
 
     image(href) {
@@ -951,7 +977,7 @@ class DivRenderer {
     }
 
     upload(args) {
-        const img_id  = (args['id']) ?  `img_id=${args['id']}`: '';
+        const img_id = args.id ? `img_id=${args.id}`: '';
         return `<div ${img_id} class="dropzone">Drop Image or Click to Upload</div>`;
     }
 

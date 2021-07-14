@@ -4,3 +4,9 @@ title = "Theory of games and economic behavior"
 author = "Morgenstern, Oskar and Von Neumann, John"
 year = "1953"
 publisher = "Princeton university press"
+raw = """@book{morgenstern1953theory,
+  title={Theory of games and economic behavior},
+  author={Morgenstern, Oskar and Von Neumann, John},
+  year={1953},
+  publisher={Princeton university press}
+}"""
