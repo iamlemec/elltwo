@@ -15,6 +15,7 @@
 
 {% block header %}
 
+<div id="sentinal"></div>
 <div id=head_block>
 <div id="prompt">
 <span id="title">
@@ -48,24 +49,47 @@
 
 {% block post_content %}
 <div id=features>
-    <div class=feature feature=equations>
-            <div class=feature_copy>
-            <b>Simple Math and Text Styling</b> Use LaTeX and Markdown syntax to style text and add math, equations, lists and more. Export articles to .tex or .md.
-            </div>
-            <img feature=equations class="unplayed ad_img" src="{{ url_for('static', filename='adverts/eq.png') }}"/>
+    <div id=vid_wrap>
+        <video id=ad_vid feature=equations>
+            <source src="{{ url_for('static', filename='adverts/ad.mp4') }}" type="video/mp4">
+     </video>
     </div>
-    <div class=feature feature=hyperlinks>
-            <div class=feature_copy>
-            <b>Intelligent Referencing</b> Easily create references to equations, figures, and environments. elltwo will generate popup style links to help readers parse reference heavy documents without leaving the page.
-            </div>
-            <img feature=hyperlinks class="unplayed ad_img" src="{{ url_for('static', filename='adverts/hyperlinks.png') }}"/>
+    <div id=feature_wrap>
+    <div class=feature feature=syntax tb=0 te=3>
+        <div class=fname>Simple Math and Text Styling</div>
+        <br><br>
+        Use LaTeX and Markdown syntax to style text and add math, equations, lists and more. Export articles to <span class=code>.tex</span> or <span class=code>.md</span>. elltwo features syntax highlighting, command completion, macros and more.
     </div>
-    <div class=feature feature=hyperlinks>
-            <div class=feature_copy>
-            <b>Search </b>...
-            </div>
-            <img feature=hyperlinks class="unplayed ad_img" src="{{ url_for('static', filename='adverts/hyperlinks.png') }}"/>
+    <div class=feature feature=env tb=3 te=7>
+        <div class=fname>Customizable Enviroments</div>
+        <br><br>
+        Customizable latex like environments make formatting easy. Environments can be custom styled and referenced from other cells or other articles. elltwo handels both text based enviorments as well as images, HTML5 SVG elements, and figures.
     </div>
+    <div class=feature feature=ref tb=7 te=10>
+        <div class=fname>Intelligent Referencing</div>
+        <br><br>
+        Easily create references to equations, figures, environments and other articles. elltwo will generate popup style links to help readers parse reference heavy documents without leaving the page.
+    </div>
+    <div class=feature feature=cite tb=11 te=16>
+        <div class=fname>Biblograpic Managment</div>
+        <br><br>
+        Manage a bibliographic database, search the web for articles, and import citations. Reference within articles using a citeKey a la bibTeX. 
+    </div>
+    <div class=feature feature=search tb=17 te=18.5>
+        <div class=fname>Full Text Search</div>
+        <br><br>
+        Articles are fully indexed to allow users to search the full text. Search using math/latex notation to find formula and equations.  
+    </div>
+    <div class=feature feature=search tb=19 te=24>
+        <div class=fname>Themes</div>
+        <br><br>
+        We have a Simpson's theme. What else could you need? 
+    </div>
+</div>
+</div>
+
+<div id=about>
+    blah blah
 </div>
 {% endblock %}
 
@@ -73,16 +97,8 @@
 {% block init %}
 
 <script type="module">
-import { initIndex, controlGifs} from '{{ url_for('static', filename='js/index.js') }}';
+import {initIndex} from '{{ url_for('static', filename='js/index.js') }}';
 initIndex();
-controlGifs({
-'hyperlinks': {'video': `{{ url_for('static', filename='adverts/hyperlink.mp4') }}`,
-               'static': `{{ url_for('static', filename='adverts/hyperlinks.png') }}`,
-           },
-'equations': {'video': `{{ url_for('static', filename='adverts/eq.mp4') }}`,
-               'static': `{{ url_for('static', filename='adverts/eq.png') }}`,
-           },
-})
 </script>
 
 {% endblock %}

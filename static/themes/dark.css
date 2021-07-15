@@ -124,7 +124,7 @@ button:hover {
     left: 20% !important;
     width: 60% !important;
     border-left: .25px solid var(--bg-col);
-    border-right: .25px solid var(--bg-col);
+/*     border-right: .25px solid var(--bg-col); */
 }
 
 .para.active {

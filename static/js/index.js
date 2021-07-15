@@ -1,7 +1,7 @@
 /* main article entry point */
 
 export {
-    initIndex, controlGifs
+    initIndex, controlVid
 }
 
 import { DummyCache } from './utils.js'
@@ -45,6 +45,7 @@ let default_state = {
     folded: [], // current folded pids
     cc: false, // is there a command completion window open
     cb: [], // clipboard for cell copy
+    paus: 0, //when to paus video (must be global becuase fucking passing args to callbacks, amiright?)
 };
 
 let dummy_callbacks = {
@@ -111,6 +112,8 @@ let examples = {
     ],
 };
 
+
+
 function initIndex() {
     renderKatex();
 
@@ -145,6 +148,9 @@ function initIndex() {
     eventRender();
     eventEditor();
     eventIndex();
+
+    //video
+    controlVid();
 }
 
 function eventIndex() {
@@ -232,47 +238,46 @@ function initExamples(examples) {
     };
 }
 
-function playGIF(unplayed, gif, feature) {
-    let vid = $('<video>', {class: `ad_vid`})
-    vid.attr('feature', feature)
-    vid.attr('autoplay', 'autoplay')
-    let src = $('<source>')
-    src.attr('src', gif)
-    src.attr('type', 'video/mp4')
-    vid.append(src) 
-    $('.ad_img').show();
-    unplayed.hide()
-    $('.ad_vid').remove();
-    unplayed.parent().append(vid)
-    unplayed.removeClass('unplayed')
-    unplayed.addClass('played')
+/// video control
 
-    vid[0].addEventListener('ended',myHandler,false);
-    function myHandler(e) {
-        unplayed.show()
-        vid.remove()
-    }
-}
-
-function controlGifs(gifs) {
-    let offset = .4*window.innerHeight;
-    $(document).scroll(function() {
-        for (const feature in gifs) {
-            let unplayed = $(`.unplayed[feature=${feature}]`).first();
-            if(unplayed.length > 0){
-                let gifdif= unplayed[0].getBoundingClientRect().top
-                if(gifdif-offset < 0){
-                    playGIF(unplayed, gifs[feature]['video'], feature)
-                }
-            }
+let vid_callback = function (es) {
+    es.forEach(function (e) {
+        // entry.isIntersecting true if in viewport
+        if(e.isIntersecting){
+            let tb = $(e.target).attr('tb');
+            let te = $(e.target).attr('te');
+            let vid = document.getElementById('ad_vid')
+            playPause(vid, tb, te)
         }
     });
+};
 
-    $(document).on('click', '.played', function() {
-        let feature=$(this).attr('feature');
-        let gif = gifs[feature]['video']
-        playGIF($(this), gif, feature)
-    });
+let vid_options = {
+    root: null,
+    rootMargin: '0px',
+    threshold: .8,
+}
+
+let obVid = new IntersectionObserver(vid_callback, vid_options);
+
+
+const paus = function(){
+    if(this.currentTime >= state.vid) {
+        this.pause();
+        this.removeEventListener("timeupdate",paus);
+    }
+};
+
+let playPause  = function(vid, tb, te){
+    vid.currentTime = tb;
+    vid.play();
+    state.vid = te;
+    vid.addEventListener("timeupdate", paus);
+}
+
+function controlVid(timeStamps) {
+    let features = document.querySelectorAll('.feature');
+    features.forEach(feature => obVid.observe(feature));
 }
 
 function setSSV(val) {
@@ -293,3 +298,28 @@ function setSSV(val) {
         placeCursor('end');
     });
 }
+
+//making header smaller---mostly for testing
+
+let head_callback = function (entries) {
+    entries.forEach(function (entry) {
+        // entry.isIntersecting true if in viewport
+        $('#head_block').toggleClass('stuck',!entry.isIntersecting)
+    });
+};
+
+var head_options = {
+    root: null,
+    rootMargin: '100px',
+    threshold: 1,
+}
+
+let obHead = new IntersectionObserver(head_callback, head_options);
+
+
+// The element to observe
+let sen = document.querySelector('#sentinal');
+
+// Attach it to the observer
+obHead.observe(sen);
+

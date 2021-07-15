@@ -1,6 +1,6 @@
 /* bibtex library browswer */
 
-export { initBib, createBibInfo }
+export { initBib, createBibInfo, createBibEntry}
 
 import { connect, addHandler, sendCommand } from './client.js'
 import { getCiteData } from './bib_search.js'

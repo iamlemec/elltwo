@@ -2,7 +2,7 @@
 
 export { getCiteData }
 
-import { createBibInfo } from './bib.js'
+import { createBibInfo, createBibEntry} from './bib.js'
 
 function getCiteData(q) {
     q = q.replace(' ', '+');
@@ -16,7 +16,8 @@ function getCiteData(q) {
             $('#search_results').append(nr);
         } else {
             data.forEach(function(cite) {
-                createBibInfo(cite, $('#search_results'), true).entry;
+                createBibEntry(cite.citekey, cite, $('#search_results'), true);
+                //console.log(v)
             });
         }
     });
@@ -53,7 +54,7 @@ function createbtjs(bd) {
                 btjs.booktitle = bd['container-title'][0];
             }
         }
-        let s = bd.author[0].family.toLowerCase() + btjs.year + btjs.title.split(' ')[0];
+        let s = bd.author[0].family.toLowerCase().replace(' ', '') + btjs.year + btjs.title.split(' ')[0];
         s = s.replace(/[^\w\s]/g, "");
         btjs.citekey = s;
         btjs.raw = toBibtexStr(btjs);
