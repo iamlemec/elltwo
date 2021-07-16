@@ -2,7 +2,8 @@
 
 export {
     merge, mapObject, mapValues, initToggleBox, toggleBox, ensureVisible,
-    setCookie, cooks, getPara, isMobile, noop, on_success, KeyCache, DummyCache
+    setCookie, cooks, getPara, isMobile, noop, on_success, KeyCache, DummyCache,
+    RefCount
 }
 
 // js tricks
@@ -130,6 +131,43 @@ class DummyCache {
 
     keys() {
         return [];
+    }
+}
+
+// reference counting
+
+class RefCount {
+    constructor(create=noop, destroy=noop) {
+        this.count = new Object();
+        this.create = create;
+        this.destroy = destroy;
+    }
+
+    inc(key) {
+        if (key in this.count) {
+            this.count[key] += 1;
+        } else {
+            this.count[key] = 1;
+            this.create(key);
+        }
+    }
+
+    dec(key) {
+        if (key in this.count) {
+            this.count[key] -= 1;
+            if (this.count[key] == 0) {
+                this.destroy(key);
+                delete this.count[key];
+            }
+        }
+    }
+
+    get(key) {
+        if (key in this.count) {
+            return this.count[key];
+        } else {
+            return 0;
+        }
     }
 }
 

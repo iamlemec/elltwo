@@ -366,7 +366,9 @@ function deletePara(pid) {
     }
 
     let old_ref = getRefTags(para);
-    old_ref.forEach(untrackRef);
+    old_ref.forEach((key) => {
+        cache.track.dec(key);
+    });
 
     para.remove();
     envClasses();

@@ -8,7 +8,7 @@ export {
     untrackRef, doRenderRef
 }
 
-import { merge, cooks, getPara } from './utils.js'
+import { merge, cooks, getPara, RefCount } from './utils.js'
 import {
     config, cache, state, updateConfig, updateCache, updateState
 } from './state.js'
@@ -19,10 +19,11 @@ import { markthree, replace, divInlineLexer } from './marked3.js'
 // main rendering entry point (for all cases)
 
 function stateRender() {
-    state.title = null; // document title
     config.macros = {}; // external katex macros
+    state.title = null; // document title
     state.macros = {}; // internal katex macros
     state.folded = []; // current folded pids
+    cache.track = new RefCount(trackRef, untrackRef); // reference counting
 }
 
 function initRender() {
@@ -237,8 +238,12 @@ function rawToRender(para, defer=false, track=true, raw=null) {
     // track reference add/del
     let new_ref = getRefTags(para);
     if (track) {
-        new_ref.filter(x => !old_ref.includes(x)).forEach(trackRef);
-        old_ref.filter(x => !new_ref.includes(x)).forEach(untrackRef);
+        new_ref.filter(x => !old_ref.includes(x)).forEach((key) => {
+            cache.track.inc(key);
+        });
+        old_ref.filter(x => !new_ref.includes(x)).forEach((key) => {
+            cache.track.dec(key);
+        });
     }
 
     // call environment formatters and reference updates
