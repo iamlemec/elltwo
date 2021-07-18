@@ -2,10 +2,10 @@
 
 export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
-    rawToTextarea, envClasses, renderRefText, createTOC, getTro, troFromKey,
-    popText, renderPop, syntaxHL, s_env_spec, getFoldLevel, renderFold,
-    braceMatch, barePara, makePara, connectCallbacks, getRefTags, trackRef,
-    untrackRef, doRenderRef
+    rawToTextarea, envClasses, envGlobal, renderRefText, createTOC, getTro,
+    troFromKey, popText, renderPop, syntaxHL, s_env_spec, getFoldLevel,
+    renderFold, braceMatch, barePara, makePara, connectCallbacks, getRefTags,
+    trackRef, untrackRef, doRenderRef
 }
 
 import { merge, cooks, getPara, RefCount } from './utils.js'
@@ -176,6 +176,7 @@ function renderParas() {
 function rawToRender(para, defer=false, track=true, raw=null) {
     // existing features
     let old_id = para.attr('id');
+    let env_pid = para.attr('env_pid');
     let old_ref = getRefTags(para);
 
     // render with markthree
@@ -238,17 +239,22 @@ function rawToRender(para, defer=false, track=true, raw=null) {
     // track reference add/del
     let new_ref = getRefTags(para);
     if (track) {
-        new_ref.filter(x => !old_ref.includes(x)).forEach((key) => {
-            cache.track.inc(key);
-        });
-        old_ref.filter(x => !new_ref.includes(x)).forEach((key) => {
-            cache.track.dec(key);
-        });
+        let net_add = new_ref.filter(x => !old_ref.includes(x));
+        let net_del = old_ref.filter(x => !new_ref.includes(x))
+        net_add.forEach(key => cache.track.inc(key));
+        net_del.forEach(key => cache.track.dec(key));
     }
 
     // call environment formatters and reference updates
     if (!defer) {
-        envClasses();
+        if (env_info !== null) {
+            envClasses();
+        } else if (env_pid !== undefined) {
+            let paras = $(`.para[env_pid=${env_pid}]`);
+            envClasses(paras);
+        } else {
+            envGlobal();
+        }
     }
 }
 
@@ -269,7 +275,8 @@ function stripEnvs(paras) {
     // remove env markers
     paras.removeClass('env')
          .removeClass('env_err')
-         .removeAttr('env_sel');
+         .removeAttr('env_sel')
+         .removeAttr('env_pid');
 
     // remove formatting addins
     paras.find('.env_add').remove();
@@ -279,11 +286,12 @@ function stripEnvs(paras) {
 }
 
 //creates classes for environs
-function envClasses(outer) {
-    if (outer === undefined) {
-        outer = $('#content');
+function envClasses(paras) {
+    console.log('envClasses', paras);
+
+    if (paras === undefined) {
+        paras = $('#content > .para:not(.folder)');
     }
-    let paras = outer.children('.para:not(.folder)');
     stripEnvs(paras);
 
     // env state
@@ -388,11 +396,16 @@ function envClasses(outer) {
         envFormat(env_beg, 'error', {code: 'eof', env: env_name});
     }
 
-    // add in numbers with auto-increment
+    envGlobal();
+}
+
+// numbering, referencing, folding, TOC
+function envGlobal(outer) {
+    console.log('envGlobal', outer);
     createNumbers(outer);
     renderRefText(outer);
-    createTOC(outer);
     renderFold();
+    createTOC();
 }
 
 function envFormat(ptxt, env, args) {
@@ -613,6 +626,10 @@ function setTitle(title) {
 /// Numbering and TOC
 
 function createNumbers(outer) {
+    if (outer === undefined) {
+        outer = $('#content');
+    }
+
     let nums = {};
 
     outer.find('.num').each(function() {
@@ -634,6 +651,10 @@ function createNumbers(outer) {
 }
 
 function createTOC(outer) {
+    if (outer === undefined) {
+        outer = $('#content');
+    }
+
     let toc = $('#toc');
     toc.find('.toc_entry').remove();
 
@@ -741,8 +762,11 @@ function doRenderRef(ref) {
     getTro(ref, renderRef);
 }
 
-function renderRefText(para) {
-    let refs = (para == undefined) ? $('.reference') : para.find('.reference');
+function renderRefText(outer) {
+    if (outer === undefined) {
+        outer = $('#content');
+    }
+    let refs = outer.find('.reference');
     refs.each(function() {
         let r = $(this);
         doRenderRef(r);
@@ -1374,6 +1398,7 @@ function renderFold() {
             para.removeClass('folded');
         }
     });
+
     $('.folder').each(function() {
         let para = $(this);
         let fl = getFoldLevel(para);

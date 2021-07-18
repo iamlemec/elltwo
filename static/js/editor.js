@@ -226,8 +226,7 @@ function storeChange(para, unlock=true) {
     let raw = para.attr('raw');
 
     // store old env and render
-    rawToRender(para, true, true, text); // local changes only
-    envClasses();
+    rawToRender(para, false, true, text); // local changes only
 
     // update server as needed
     if (text != raw) {
@@ -275,7 +274,6 @@ function sendInsertPara(para, after=true, edit=true, raw='') {
             let new_para = insertParaRaw(pid, new_pid, raw, after);
             makeActive(new_para);
             if (edit) {
-                envClasses();
                 trueMakeEditable();
             } else {
                 rawToRender(new_para);

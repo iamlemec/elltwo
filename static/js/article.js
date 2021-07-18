@@ -7,7 +7,7 @@ export {
 }
 
 import {
-    mapValues, on_success, setCookie, cooks, getPara, KeyCache
+    mapValues, on_success, setCookie, cooks, getPara, getEnvParas, KeyCache
 } from './utils.js'
 import {
     config, state, cache, updateConfig, updateState, updateCache
@@ -16,8 +16,8 @@ import { connect, addHandler, sendCommand, schedTimeout } from './client.js'
 import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, createTOC, getTro, troFromKey, popText, syntaxHL, braceMatch,
-    renderRefText, getRefTags, untrackRef, doRenderRef
+    envClasses, envGlobal, createTOC, getTro, troFromKey, popText, syntaxHL,
+    braceMatch, renderRefText, getRefTags, untrackRef, doRenderRef, barePara
 } from './render.js'
 import {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
@@ -356,6 +356,7 @@ function updateParas(para_dict) {
 
 function deletePara(pid) {
     let para = getPara(pid);
+    let do_env = para.hasClass('env_beg') || para.hasClass('env_end') || para.hasClass('env_one');
 
     let old_id = para.attr('id');
     if (old_id) {
@@ -371,15 +372,29 @@ function deletePara(pid) {
     });
 
     para.remove();
-    envClasses();
+
+    if (do_env) {
+        envClasses();
+    }
 };
 
 function insertParaRaw(pid, new_pid, raw='', after=true) {
     let para = getPara(pid);
-    let new_para = $('<div>', {class: 'para', pid: new_pid, raw: raw});
+    let env_pid = para.attr('env_pid');
+    let new_para = barePara(new_pid, raw);
+    let do_env = false;
+
     if (after) {
+        if (env_pid !== undefined && !para.hasClass('env_end')) {
+            new_para.attr('env_pid', env_pid);
+            do_env = true;
+        }
         para.after(new_para);
     } else {
+        if (env_pid !== undefined && !para.hasClass('env_beg')) {
+            new_para.attr('env_pid', env_pid);
+            do_env = true;
+        }
         let prev = para.prev();
         if (prev.hasClass('folder')) {
             prev.before(new_para);
@@ -387,8 +402,15 @@ function insertParaRaw(pid, new_pid, raw='', after=true) {
             para.before(new_para);
         }
     }
+
     new_para.html(innerPara);
     rawToTextarea(new_para);
+
+    if (do_env) {
+        let env_paras = getEnvParas(env_pid);
+        envClasses(env_paras);
+    }
+
     return new_para;
 }
 
@@ -746,7 +768,9 @@ function renderPreview(hist) {
         rawToRender(para, true); // postpone formatting
     });
 
-    envClasses(preview);
+    let paras = preview.children('.para:not(.folder)');
+    envClasses(paras);
+    envGlobal(preview);
 
     $.each(hist.diff, (i, pid) => {
         $(`#preview > .para[pid="${pid}"`).addClass('hl_change');
@@ -957,7 +981,7 @@ function hideHistPreview() {
     }
 
     preview.empty();
-    createTOC(content);
+    createTOC();
 }
 
 function toggleHistMap() {

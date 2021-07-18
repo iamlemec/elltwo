@@ -2,8 +2,8 @@
 
 export {
     merge, mapObject, mapValues, initToggleBox, toggleBox, ensureVisible,
-    setCookie, cooks, getPara, isMobile, noop, on_success, KeyCache, DummyCache,
-    RefCount
+    setCookie, cooks, getPara, getEnvParas, isMobile, noop, on_success,
+    KeyCache, DummyCache, RefCount
 }
 
 // js tricks
@@ -174,7 +174,11 @@ class RefCount {
 // para tools
 
 function getPara(pid) {
-    return $(`#content [pid=${pid}]`);
+    return $(`#content > .para[pid=${pid}]`);
+}
+
+function getEnvParas(env_pid) {
+    return $(`#content > .para[env_pid=${env_pid}]`);
 }
 
 // toggle boxen
