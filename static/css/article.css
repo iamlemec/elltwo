@@ -1,38 +1,37 @@
 @import 'core.css';
 
-#content.sb_content {
-    position: absolute;
-    left: 20%;
-}
 
-.sb_content .para {
-    left: 13%;
-}
+/* classic view paras */
 
-.para {
+
+#content:not(.ssv) .para {
     position: relative;
-    left: 23%;
-    width: 54%;
+    margin: auto;
+    width: 70%;
     min-height: 30px;
     margin-bottom: 20px;
     padding-left: 5px;
     padding-right: 5px;
-    max-width: 700px;
+    max-width: 800px !important;
     border-left: 2px solid var(--bg-col);
     border-right: 2px solid var(--bg-col);
 }
 
-/*.para:hover {
-     border-left: 2px solid var(--bor-col);
-}*/
+#content.sb_content .para {
+    transform: translateX(-90px)
+}
 
-.p_text {
+#content:not(.ssv) .para.active {
+    border-left: 2px solid var(--hl-col);
+}
+
+#content:not(.ssv) .p_text {
     /* cursor: pointer; */
     line-height: 1.5;
     text-align: justify;
 }
 
-.p_input {
+#content:not(.ssv) .p_input {
     white-space: pre-wrap;
     position: absolute;
     width: 100%;
@@ -50,7 +49,7 @@
 
 }
 
-.p_input_view {
+#content:not(.ssv) .p_input_view {
     position: absolute;
     white-space: pre-wrap;
     width: 100%;
@@ -63,14 +62,97 @@
     padding-right: 5px;
 }
 
-.control {
+#content:not(.ssv) > .para.editable > .p_text {
     display: none;
+}
+
+#content:not(.ssv) > .para.editable > .p_input,
+#content:not(.ssv) > .para.editable > .p_input_view {
+    display: block;
+}
+
+/* side-by-side view paras */
+
+#content.ssv {
+    background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 47.5%,var(--bg-hl-col) 42%,var(--bg-hl-col) 100%);
+}
+
+#content.ssv.sb_content {
+     background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 56%,var(--bg-hl-col) 54%,var(--bg-hl-col) 100%); */
+}
+
+
+#content.ssv .para {
+    position: relative;
+    left: 55%;
+    width: 40%;
+    height: auto;
+    min-height: 50px;
+    margin-bottom: 20px;
+}
+
+#content.ssv .para.active {
+    background-color: rgba(0,0,0,0);
+    border: none;
+}
+
+#content.ssv .para.active .p_input_view {
+    background-color: var(--bg-hl2-col)
+}
+/*
+.para:hover {
+    border-left: 2px solid var(--bor-col);
+}
+*/
+
+#content.ssv .p_text {
+    /* cursor: pointer; */
+    line-height: 20px;
+    text-align: justify;
+    width: 100%;
+    display: inline-block;
+    margin-left: 0%;
+    min-height: 50px;
+}
+
+#content.ssv.sb_content .p_text {
+    margin-left: -8%;
+}
+
+#content.ssv .p_input_view, #content.ssv .p_input {
+    white-space: pre-wrap;
     position: absolute;
-    width: 15%;
-    right: 100%;
-    top: 0%;
-    text-align: right;
-    padding-right: 8px;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    right: 115%;
+    min-height: 50px;
+    font-size: 85%;
+    overflow: hidden;
+    border: none;
+}
+
+#content.ssv .p_input {
+    color: inherit;
+    background-color: inherit;
+    caret-color: inherit;
+    color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0);
+    padding-right: 5px;
+    line-height: 20px;
+}
+
+#content.ssv .p_input_view {
+    font-family: monospace;
+    padding-right: 5px;
+    display: inline-block;
+    background-color: rgba(0,0,0,.03);
+    line-height: 20px;
+}
+
+#content.sb_content {
+    position: absolute;
+    left: 180px;
 }
 
 #bg.writeable .para.editable > .control {
@@ -92,6 +174,26 @@
 
 .comment.fold_text::after {
     content: "env folded, [ ⇧ + f ] to unfold";
+}
+
+#content:not(.ssv) .control {
+    display: none;
+    position: absolute;
+    width: 15%;
+    right: 100%;
+    top: 0%;
+    text-align: right;
+    padding-right: 8px;
+}
+
+#content.ssv .control {
+    display: none;
+    position: absolute;
+    width: 15%;
+    right: 215%;
+    top: 0%;
+    text-align: right;
+    padding-right: 8px;
 }
 
 .controlButs {
@@ -117,18 +219,6 @@ button {
     margin-top: 3px;
 }
 
-.editable > .p_text {
-    display: none;
-}
-
-.editable > .error_footer {
-    display: none;
-}
-
-.editable > .p_input, .editable > .p_input_view {
-    display: block;
-}
-
 /* DIV renderer stylying */
 
 .comment {
@@ -136,6 +226,14 @@ button {
 }
 
 .env__equation:not(.editable) > .p_text {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+
+#content.ssv > .env__equation > .p_text,
+#content:not(.ssv) > .env__equation > .p_text {
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -489,10 +587,10 @@ button {
 #sidebar {
     display: none;
     position: absolute;
+    font-size: 90%;
     left: 0;
     top: 0;
-    width: 20%;
-    min-width: 210px;
+    width: 180px;
     height: 100%;
     padding-bottom: 10px;
     z-index: 1;
@@ -506,7 +604,7 @@ button {
 }
 
 #options_title {
-    font-size: 25px;
+    font-size: 20px;
     border-bottom: 2px dashed black;
 }
 
@@ -613,7 +711,7 @@ button {
 .custom-select-trigger {
     position: relative;
     display: block;
-    width: 120px;
+    width: 100px;
     padding: 0 50% 0 5%;
     line-height: 160%;
     border-radius: 0px;
@@ -788,18 +886,22 @@ circle.commit.active {
 }
 
 #editable_text {
-    min-width: 50px;
+    min-width: 60px;
     text-align: right;
 }
 
 .toggle-track {
     height: 25px;
-    width: 50px;
+    width: 45px;
 }
 
 .toggle-indicator {
     height: 19px;
     width: 19px;
+}
+
+.toggle__input:checked + .toggle-track .toggle-indicator {
+	transform: translateX(20px);
 }
 
 
@@ -931,7 +1033,7 @@ circle.commit.active {
 @media only screen and (max-width: 1000px) {
 
 .para {
-    left: 12%;
+    left: 0%;
     width: 74%;
     min-height: 30px;
     margin-bottom: 20px;

@@ -15,6 +15,7 @@ import {
 import { sendCommand, schedTimeout, addDummy } from './client.js'
 import { renderKatex } from './math.js'
 import { markthree, replace, divInlineLexer } from './marked3.js'
+import { fold } from './editor.js'
 
 // main rendering entry point (for all cases)
 
@@ -1383,7 +1384,7 @@ function initFold() {
     state.folded = cooks('folded') || state.folded;
     state.folded.forEach(pid => {
         let para = getPara(pid);
-        fold(para, init=true);
+        fold(para, true);
     });
     renderFold();
 }

@@ -47,6 +47,7 @@ parser.add_argument('--reindex', action='store_true', help='reindex search datab
 parser.add_argument('--conf', type=str, default=None, help='path to configuation file')
 parser.add_argument('--auth', type=str, default=None, help='user authorization config')
 parser.add_argument('--mail', type=str, default=None, help='mail authorization config')
+parser.add_argument('--edit_by_default', action='store_true', help='Editing mode is default')
 args = parser.parse_args()
 
 ###
@@ -361,7 +362,7 @@ def confirm_token(token, expiration=3600):
 ### Article
 ###
 
-def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
+def GetArtData(title, edit, theme=args.theme, font='default', pid=None, em=False):
     app.logger.debug(f'article [{pid}]: {title}')
     art = edb.get_art_short(title)
     if art:
@@ -376,6 +377,7 @@ def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
             font=font,
             pid=pid,
             readonly=not edit,
+            edit_mode=edit and em,
             themes=config['themes'],
             timeout=config['timeout'],
             max_size=config['max_size'],
@@ -394,13 +396,17 @@ def getStyle(request):
         'font': request.args.get('theme') or request.cookies.get('font') or 'default',
     }
 
+
 @app.route('/a/<title>', methods=['GET'])
 @view_decor
 def RenderArticle(title):
     style = getStyle(request)
     pid = request.args.get('pid')
+    em = request.cookies.get('edit_mode') == 'true'#must be a better way
+    em = em or args.edit_by_default
+    print('editmode ===', em, type(em), request.cookies.get('edit_mode'))
     if current_user.is_authenticated or not args.login:
-        return GetArtData(title, edit=True, pid=pid, **style)
+        return GetArtData(title, edit=True, pid=pid, em=em, **style)
     else:
         return redirect(url_for('RenderArticleRO', title=title))
 

@@ -39,6 +39,7 @@ let default_config = {
     timeout: 180, // para lock timeout
     max_size: 1024, // max image size
     readonly: true, // is session readonly
+    edit_mode: false, //editable check?
     title: null, // default article title
     aid: null, // article identifier
 };
@@ -47,8 +48,9 @@ let default_state = {
     sidebar_show: false, // is sidebar shown
     help_show: false, // is help overlay on
     hist_show: false, // is history mode on
-    editable: false, // are we focused on the active para
+    editing: false, // are we focused on the active para
     writeable: false, // can we actually modify contents
+    ssv: false,
     active_para: null, // current active para
     last_active: null, // to keep track of where cursor was
     cc: false, // is there a command completion window open
@@ -59,7 +61,7 @@ function stateArticle() {
     stateRender();
     stateEditor();
     updateState(default_state);
-    setReadonly(config.readonly);
+    setEditMode(config.edit_mode);
 }
 
 function cacheArticle() {
@@ -160,14 +162,14 @@ function loadArticle(args) {
     eventArticle();
 }
 
-function setReadonly(ro) {
-    state.readonly = ro;
+function setEditMode(ro) {
+    state.edit_mode = ro && !state.readonly;
     setWriteable();
 }
 
 function setWriteable(wr) {
     if (wr === undefined) {
-        wr = !state.readonly && !state.hist_show;
+        wr = !state.readonly && !state.hist_show && state.edit_mode;
     }
 
     state.writeable = wr;
@@ -318,6 +320,9 @@ function eventArticle() {
         schedTimeout();
         ccRefs(view, raw, cur);
         syntaxHL(para);
+        if(state.ssv){
+            rawToRender(para, false, false, raw);
+        }
     });
 
     $(document).on('keyup', '.p_input', function(e) {
@@ -333,7 +338,16 @@ function eventArticle() {
         let val = check.is(':checked');
         let text = val ? 'Editable' : 'Readonly';
         $('#editable_text').text(text);
-        setReadonly(!val);
+        setEditMode(val);
+        setCookie('edit_mode', val);
+    });
+
+    $(document).on('change', '#ssv_check', function() {
+        let check = $(this);
+        let val = check.is(':checked');
+        let text = val ? 'Side-by-Side View' : 'Classic View';
+        $('#ssv').text(text);
+        setSSV(val);
     });
 
     $('#refresh').click(invalidateCache);
@@ -374,6 +388,8 @@ function deletePara(pid) {
     para.remove();
 
     if (do_env) {
+        let fold = $(`.folded[fold_pid=${pid}]`)
+        fold.remove();
         envClasses();
     }
 };
@@ -1194,3 +1210,28 @@ function ccRefs(view, raw, cur) {
         }
     }
 }
+
+/// side by side view
+
+function setSSV(val) {
+    if (val) {
+        state.ssv = true;
+        config.resize = false;
+        $('#content').addClass('ssv');
+        $('.para:not(.folder)').each(function() {
+            syntaxHL($(this));
+        });
+        console.log('ssv', state.ssv);
+    } else {
+        state.ssv = false;
+        config.resize = true;
+        $('#content').removeClass('ssv');
+        console.log('ssv', state.ssv);
+    }
+    $('.para:not(.folded)').each(function() {
+        let input = $(this).children('.p_input');
+        resize(input[0]);
+        placeCursor('end');
+    });
+}
+

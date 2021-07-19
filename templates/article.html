@@ -7,8 +7,6 @@
 <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
 
 <script src="{{ url_for('static', filename='libs/socket.io.min.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('static', filename='libs/d3.v5.min.js') }}" type="text/javascript"></script>
-
 {% endblock %}
 
 {% block title %}{{title}}{% endblock %}
@@ -38,9 +36,9 @@ Font
 <select id="font_select" name="font_select" class="sources" placeholder="default">
     <option value="default">default</option>
     <option value="serif">serif</option>
-    <option value="sans-serif">sans-serif</option>
-    <option value="monospace">monospace</option>
-    <option value="sim">simpsons</option>
+    <option value="sans-serif">sans</option>
+    <option value="monospace">mono</option>
+    <option value="sim">simpson</option>
 </select>
 </div>
 
@@ -83,10 +81,20 @@ Font
 
 <span class="push"></span>
 
+<span id="ssv">Side-by-Side View</span>
+<label class="toggle" for="ssv_check" id="ssv_label">
+<input type="checkbox" class="toggle__input" name="ssv" id="ssv_check"/>
+<span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
+<svg width="20" height="20">
+<use xlink:href="{{ url_for('static', filename='img/toggle_button.svg') }}#svg-check"></use>
+</svg>
+</span></span></span>
+</label>
+
 {% if not readonly %}
-<span id="editable_text">Editable</span>
+<span id="editable_text">{{'Editable' if edit_mode else 'Readonly'}}</span>
 <label class="toggle" for="editable_check" id="editable_label">
-<input type="checkbox" class="toggle__input" name="editable" id="editable_check" checked/>
+<input type="checkbox" class="toggle__input" name="editable" id="editable_check" {% if edit_mode %}checked{% endif %}/>
 <span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
 <svg width="20" height="20">
 <use xlink:href="{{ url_for('static', filename='img/toggle_button.svg') }}#svg-check"></use>
@@ -120,6 +128,7 @@ loadArticle({{
         'timeout': timeout,
         'max_size': max_size,
         'readonly': readonly,
+        'edit_mode': edit_mode,
         'title': title,
         'aid': aid,
     },
@@ -128,5 +137,5 @@ loadArticle({{
 } | tojson
 }});
 </script>
-
+<script src="{{ url_for('static', filename='libs/d3.v5.min.js') }}" type="text/javascript"></script>
 {% endblock %}

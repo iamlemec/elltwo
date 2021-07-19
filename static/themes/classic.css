@@ -80,6 +80,10 @@ button:hover {
 
 /* paras */
 
+.p_text{
+    line-height: 30px !important;;
+}
+
 .para {
     font-family: CM;
 }
@@ -108,13 +112,17 @@ button:hover {
     margin-bottom: 10px;
 }
 
-.env__proof:not(.editable), .env__theorem:not(.editable),
-.env__axiom:not(.editable), .env__definition:not(.editable) {
+#content:not(.ssv) .env__proof:not(.editable),
+#content:not(.ssv) .env__theorem:not(.editable),
+#content:not(.ssv) .env__axiom:not(.editable),
+#content:not(.ssv) .env__definition:not(.editable) {
     padding-left: 22px;
 }
 
-.env__proof.env_beg:not(.editable), .env__theorem.env_beg:not(.editable),
-.env__axiom.env_beg:not(.editable), .env__definition.env_beg:not(.editable) {
+#content:not(.ssv) .env__proof.env_beg:not(.editable),
+#content:not(.ssv)  .env__theorem.env_beg:not(.editable),
+#content:not(.ssv) .env__axiom.env_beg:not(.editable),
+#content:not(.ssv) .env__definition.env_beg:not(.editable) {
     text-indent: -17px;
 }
 

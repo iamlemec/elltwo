@@ -97,6 +97,7 @@ button:hover {
 .env__title > .p_text {
     text-align: center;
     border-bottom: 2px solid black;
+    padding-bottom: 20px;
 }
 
 .env__heading > .p_text {
@@ -104,8 +105,10 @@ button:hover {
     border-bottom: 1px solid black;
 }
 
-.para {
+.p_text{
+    line-height: 25px !important;;
 }
+
 
 .para.active {
    border-left: 2px solid var(--hl-col);

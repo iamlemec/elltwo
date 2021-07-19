@@ -108,26 +108,15 @@ button:hover {
  color: var(--font-col);
 }
 
-#content.sb_content{
-    position: absolute;
-    left: 20%;
-}
-
-.sb_content .para {
-    left: 10% !important;
-}
-
 /* paras */
 
 .para {
-    max-width: 1000px !important;;
-    left: 20% !important;
-    width: 60% !important;
+    max-width: 1000px !important;
     border-left: .25px solid var(--bg-col);
 /*     border-right: .25px solid var(--bg-col); */
 }
 
-.para.active {
+#content:not(.ssv) .para.active {
    border-left: .25px solid var(--hl2-col) !important;
    background-color: var(--pop-fg-col);
 }
@@ -160,35 +149,59 @@ button:hover {
     margin-top: 40px;
 }
 
-.env__proof, .env__theorem, .env__axiom, .env__definition {
-    margin: 0;
-    padding-top: 2px;
-    padding-bottom: 4px;
-    border-left: .25px solid;
-    border-right: .25px solid;
+#content.ssv .para{
+    border-left: none;
+    border-right: none;
 }
 
-.env__proof.env_beg, .env__theorem.env_beg, .env__axiom.env_beg, .env__definition.env_beg {
+
+#content:not(.ssv) .env__proof,
+#content:not(.ssv) .env__theorem,
+#content:not(.ssv) .env__axiom,
+#content:not(.ssv) .env__definition {
+    padding-top: 2px;
+    padding-bottom: 4px;
+    border-left: .25px;
+    border-right: .25px;
+}
+
+
+.env__proof.env_beg,
+.env__theorem.env_beg,
+.env__axiom.env_beg,
+.env__definition.env_beg {
     border-top: .25px solid;
 }
 
-.env__proof.env_end, .env__theorem.env_end, .env__axiom.env_end, .env__definition.env_end {
+.env__proof.env_end,
+.env__theorem.env_end,
+.env__axiom.env_end,
+.env__definition.env_end {
     border-bottom: .25px solid;
-    margin-bottom: 20px;
+    margin-bottom: 20px !important;
 }
 
-.env__proof, .env__proof.env_beg, .env__proof.env_end {
+.env__proof,
+.env__proof.env_beg,
+.env__proof.env_end {
     border-color: var(--font-col-int);
 }
 
-.env__theorem, .env__theorem.env_beg, .env__theorem.end_end {
+.env__theorem,
+.env__theorem.env_beg,
+.env__theorem.end_end {
     border-color: var(--bg-hl2-col);
 }
 
-.env__axiom, .env__axiom.env_beg, .env__axiom.end_end,
-.env__definition, .env__definition.env_beg, .env__definition.env_end {
+.env__axiom,
+.env__axiom.env_beg,
+.env__axiom.end_end,
+.env__definition,
+.env__definition.env_beg,
+.env__definition.env_end {
     border-color: var(--delimit-col);
 }
+
 
 .empty {
     color: var(--comment-col);

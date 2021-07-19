@@ -2,7 +2,7 @@
 
 export {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
-    unlockParas, sendMakeEditable, sendUpdatePara, placeCursor
+    unlockParas, sendMakeEditable, sendUpdatePara, placeCursor, fold
 }
 
 import { config, state, cache } from './state.js'
@@ -70,6 +70,13 @@ function eventEditor() {
             if (state.help_show) {
                 toggleHelp();
                 return false;
+            }
+        } else if (key == '-') {
+                $('#ssv_check').click();
+            }
+        if (!state.readonly) { // permission to edit
+            if (key == '=') {
+                $('#editable_check').click();
             }
         }
 
@@ -160,11 +167,16 @@ function eventEditor() {
     /// mouse interface
 
     $(document).on('click', '.para', function(e) {
-        let alt = e.altKey || config.mobile;
+        let alt = state.edit_mode || e.altKey || config.mobile;
         let cmd = e.metaKey;
+        let targ = event.target.href;//if link, follow link
+        if(!targ){
         if (alt) {
             let para = $(this);
-            if (!para.hasClass('active')) {
+            if (!para.hasClass('active') && state.editable) {
+                makeActive($(this));
+                sendMakeEditable(); 
+            }else if (!para.hasClass('active')) {
                 makeActive($(this));
             } else if (!state.editable) {
                 sendMakeEditable();
@@ -174,17 +186,14 @@ function eventEditor() {
             $(this).addClass('copy_sel');
             return false;
         }
+        }
     });
 
     $(document).on('click', '#bg', function(e) {
         let targ = event.target.id;
-        let alt = e.altKey || config.mobile;
         if (targ == 'bg' || targ == 'content') {
-            if (alt) {
-                makeActive(null);
-            } else {
-                $('.para').removeClass('copy_sel');
-            }
+            makeActive(null);
+            $('.para').removeClass('copy_sel');
         }
     });
 
