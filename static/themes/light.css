@@ -106,12 +106,19 @@ button:hover {
 .para {
     max-width: 1000px !important;
     border-left: .25px solid var(--bg-col);
-/*     border-right: .25px solid var(--bg-col); */
 }
 
 #content:not(.ssv) .para.active {
-   border-left: .25px solid var(--hl2-col) !important;
+   box-shadow: -2px 0px 0px 0px var(--bor-col);
    background-color: var(--pop-fg-col);
+}
+
+#content.ssv .para.active {
+      box-shadow: -2px 0px 0px 0px var(--bor-col);
+}
+
+#content.ssv .p_input {
+    caret-color: var(--hl2-col);
 }
 
 .para.changed {
@@ -402,7 +409,7 @@ a.result {
 }
 
 .custom-option{
-    background-color: var(--delimit-col);
+    background-color: var(--bor-col);
         color: var(--pop-fg-col);
 
 }
@@ -452,8 +459,5 @@ a.result {
 }
 
 @media only screen and (max-width: 1000px) {
-.para {
-    left: 10% !important;
-    width: 80% !important;
-}
+
 }

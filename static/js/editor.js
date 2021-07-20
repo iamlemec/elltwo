@@ -20,6 +20,7 @@ import { toggleHelp } from './help.js'
 /// initialization
 
 function initEditor() {
+    smallable_butt()
 }
 
 function stateEditor() {
@@ -33,10 +34,11 @@ function eventEditor() {
     });
 
     window.onresize = () => {
-        if (state.editable) {
+        if (state.editing) {
             let inp = state.active_para.children('.p_input');
             resize(inp[0]);
         }
+        smallable_butt()
     };
 
     // keyboard interface
@@ -71,11 +73,12 @@ function eventEditor() {
                 toggleHelp();
                 return false;
             }
-        } else if (key == '-') {
+        }
+        if (!state.editing){ 
+            if (key == '-') {
                 $('#ssv_check').click();
             }
-        if (!state.readonly) { // permission to edit
-            if (key == '=') {
+            else if (!state.readonly && key == '=') { // permission to edit
                 $('#editable_check').click();
             }
         }
@@ -85,7 +88,7 @@ function eventEditor() {
                 let foc_para = state.last_active || $('.para').first();
                 makeActive(foc_para);
             }
-        } else if (state.active_para && !state.editable) {
+        } else if (state.active_para && !state.editing) {
             if (key == 'enter' || key == 'w') {
                 sendMakeEditable();
                 return false;
@@ -125,7 +128,7 @@ function eventEditor() {
                     sendDeletePara(state.active_para);
                 }
             }
-        } else if (state.active_para && state.editable) { // we are active and editable
+        } else if (state.active_para && state.editing) { // we are active and editable
             if (key == 'arrowup' || key == 'arrowleft') {
                 if (state.cc) { // if there is an open command completion window
                     ccNext('down');
@@ -173,12 +176,12 @@ function eventEditor() {
         if(!targ){
         if (alt) {
             let para = $(this);
-            if (!para.hasClass('active') && state.editable) {
+            if (!para.hasClass('active') && state.editing) {
                 makeActive($(this));
                 sendMakeEditable(); 
             }else if (!para.hasClass('active')) {
                 makeActive($(this));
-            } else if (!state.editable) {
+            } else if (!state.editing) {
                 sendMakeEditable();
             }
             return false;
@@ -331,7 +334,7 @@ function unPlaceCursor() {
 }
 
 function trueMakeEditable(rw=true, cursor='end') {
-    state.editable = true;
+    state.editing = true;
     state.active_para.addClass('editable');
     $('#bg').addClass('editable');
 
@@ -384,8 +387,8 @@ function makeUnEditable(unlock=true) {
     state.cc = false;
     $('#cc_pop').remove();
 
-    if (state.active_para && state.editable) {
-        state.editable = false;
+    if (state.active_para && state.editing) {
+        state.editing = false;
         if (state.writeable) {
             storeChange(state.active_para, unlock, true);
         }
@@ -613,4 +616,14 @@ function unfold() {
     const foldcookie = JSON.stringify(state.folded);
     document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
     renderFold();
+}
+
+function smallable_butt() {
+        let small = ($(window).width() < 1000)
+        let r_text = small ? '' : "Refresh"
+        let e_text = small ? '' : "Export"
+        let h_text = small ? '' : "History"
+        $('#r_text').text(r_text);
+        $('#e_text').text(e_text);
+        $('#h_text').text(h_text);
 }

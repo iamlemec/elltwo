@@ -118,16 +118,15 @@ button:hover {
 }
 
 .para.active {
-    border-left: 2px solid var(--hl-col);
     background-color: var(--bg-hl-col);
 }
 
 .para.changed {
-    border-right: 2px solid var(--hl2-col);
+   box-shadow: 1px 0px 0px 0px var(--hl-col);
 }
 
 .para.hl_change {
-    border-right: 2px solid var(--dc-blue-col);
+   box-shadow: 1px 0px 0px 0px var(--dc-blue-col);
 }
 
 .para.copy_sel{

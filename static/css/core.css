@@ -134,8 +134,15 @@ a.reference {
     margin-right: 5px;
     padding: 3px;
     top: 0;
-    width: 70px;
+    max-width: 90px;
     margin-bottom: 2px;
+    line-height: 20px;
+}
+
+.foot_butt img{
+    height: 15px;
+    width: 15px;
+    transform: translateY(3px)
 }
 
 .push {
@@ -197,8 +204,8 @@ a.reference {
 	cursor: pointer;
 	display: flex;
 	height: 30px;
-	margin-right: 10px;
-    margin-left: 10px;
+	margin-right: 20px;
+    margin-left: 5px;
 	position: relative;
 	width: 56px;
 }
@@ -273,6 +280,10 @@ a.reference {
     top: 0;
     width: 70px;
 }
+    
+    .smallable_butt{
+        width: 40px;
+    }
 
 #bg {
     position: fixed;
@@ -299,6 +310,11 @@ a.reference {
 
  #locallogin:after {
     left: 60px;
+}
+    
+   .toggle-track {
+	margin-right: 5px;
+    margin-left: 5px;
 }
 
 }

@@ -13,8 +13,6 @@
     padding-left: 5px;
     padding-right: 5px;
     max-width: 800px !important;
-    border-left: 2px solid var(--bg-col);
-    border-right: 2px solid var(--bg-col);
 }
 
 #content.sb_content .para {
@@ -22,7 +20,7 @@
 }
 
 #content:not(.ssv) .para.active {
-    border-left: 2px solid var(--hl-col);
+    box-shadow: -1px 0px 0px 0px var(--hl-col);
 }
 
 #content:not(.ssv) .p_text {
@@ -78,7 +76,7 @@
 }
 
 #content.ssv.sb_content {
-     background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 56%,var(--bg-hl-col) 54%,var(--bg-hl-col) 100%); */
+     background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 58%,var(--bg-hl-col) 51%,var(--bg-hl-col) 100%); */
 }
 
 
@@ -89,6 +87,11 @@
     height: auto;
     min-height: 50px;
     margin-bottom: 20px;
+    padding-left: 5px;
+}
+
+#content.ssv.sb_content .para {
+    left: 50%;
 }
 
 #content.ssv .para.active {
@@ -97,13 +100,13 @@
 }
 
 #content.ssv .para.active .p_input_view {
-    background-color: var(--bg-hl2-col)
+      box-shadow: -2px 0px 0px 0px var(--bor-col);
 }
-/*
-.para:hover {
-    border-left: 2px solid var(--bor-col);
+
+#content.ssv .para.editable .p_input_view {
+    background-color: rgba(0,0,0,.15);
 }
-*/
+
 
 #content.ssv .p_text {
     /* cursor: pointer; */
@@ -113,11 +116,9 @@
     display: inline-block;
     margin-left: 0%;
     min-height: 50px;
+    line-height: 25px;
 }
 
-#content.ssv.sb_content .p_text {
-    margin-left: -8%;
-}
 
 #content.ssv .p_input_view, #content.ssv .p_input {
     white-space: pre-wrap;
@@ -130,6 +131,10 @@
     font-size: 85%;
     overflow: hidden;
     border: none;
+}
+
+#content.ssv.sb_content .p_input_view, #content.ssv.sb_content .p_input {
+    right: 105%;
 }
 
 #content.ssv .p_input {
@@ -1028,9 +1033,10 @@ circle.commit.active {
     border-bottom-right-radius: 5px;
 }
 
-/*  MOBILE CSS */
+/*  NARROW CSS */
 
 @media only screen and (max-width: 1000px) {
+    
 
 .para {
     left: 0%;
@@ -1053,7 +1059,9 @@ circle.commit.active {
     right: 15%;
 }
 
-.control {
+@media only screen and (max-width: 1000px) and (max-device-width: 1000px) {
+
+#content:not(.ssv) .control {
     display: none;
     position: fixed;
     width: 100%;
@@ -1067,7 +1075,7 @@ circle.commit.active {
     background-color: var(--bg-hl2-col)
 }
 
-.control {
+#content:not(.ssv) .control {
     display: none;
 }
 
@@ -1075,14 +1083,14 @@ circle.commit.active {
     display: block;
 }
 
-.controlButs {
+#content:not(.ssv) .controlButs {
     padding-top: 5px;
     display: flex;
     width: 100%;
     justify-content: center;
 }
 
-.controlButs > button {
+#content:not(.ssv) .controlButs > button {
     display: inline-block;
     width: unset;
     height: 25px;
@@ -1124,6 +1132,10 @@ circle.commit.active {
     width: 48%;
     margin: 1px;
     height: 22px;
+}
+    
+#ssv, #ssv_label, #ssv_check{
+    display: none;
 }
 
 }

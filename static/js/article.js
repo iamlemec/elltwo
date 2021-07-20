@@ -345,7 +345,7 @@ function eventArticle() {
     $(document).on('change', '#ssv_check', function() {
         let check = $(this);
         let val = check.is(':checked');
-        let text = val ? 'Side-by-Side View' : 'Classic View';
+        let text = val ? 'Split View' : 'Classic View';
         $('#ssv').text(text);
         setSSV(val);
     });

@@ -70,15 +70,24 @@ button:hover {
     background-color: var(--bg-hl-col)
 }
 
-#logo_placeholder {
-    /* border-bottom: 1px dashed black; */
-}
 
 .toc_entry {
     color: var(--font-col);
 }
 
 /* paras */
+
+#content.ssv.sb_content {
+     background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 58%,var(--bg-hl2-col) 51%,var(--bg-hl2-col) 100%); */
+}
+
+#content.ssv {
+    background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 47.5%,var(--bg-hl2-col) 42%,var(--bg-hl2-col) 100%);
+}
+
+#content.ssv .p_input_view {
+    background-color: rgba(255, 255, 255, .3);
+}
 
 .p_text{
     line-height: 30px !important;;
@@ -89,16 +98,15 @@ button:hover {
 }
 
 .para.active {
-    border-left: 2px solid var(--hl-col);
     background-color: var(--bg-hl-col);
 }
 
 .para.changed {
-    border-right: 2px solid var(--hl2-col);
+       box-shadow: 1px 0px 0px 0px var(--hl2-col);
 }
 
 .para.hl_change {
-    border-right: 2px solid var(--font-col-int);
+       box-shadow: 2px 0px 0px 0px var(--font-col-int);
 }
 
 .para.copy_sel {

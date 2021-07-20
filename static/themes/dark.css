@@ -110,24 +110,48 @@ button:hover {
 
 /* paras */
 
+
+
 .para {
     max-width: 1000px !important;
-    border-left: .25px solid var(--bg-col);
-/*     border-right: .25px solid var(--bg-col); */
+}
+
+#content.ssv {
+    background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 47.5%,var(--pop-fg-col) 42%,var(--pop-fg-col) 100%);
+}
+
+#content.ssv.sb_content {
+     background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 58%,var(--pop-fg-col) 51%,var(--pop-fg-col) 100%); */
 }
 
 #content:not(.ssv) .para.active {
-   border-left: .25px solid var(--hl2-col) !important;
+   box-shadow: -1px 0px 0px 0px var(--hl2-col);
    background-color: var(--pop-fg-col);
 }
 
+#content.ssv .p_input_view {
+    background-color: var(--bg-col)
+}
+
+
+#content.ssv .para.active .p_input_view {
+    box-shadow: -2px 0px 0px 0px var(--hl2-col);
+}
+
+#content.ssv .para.active {
+    box-shadow: -2px 0px 0px 0px var(--hl2-col);
+}
+
 .para.changed {
-    border-right: 2px solid var(--hl-col);
+       box-shadow: 2px 0px 0px 0px var(--hl-col);
+
 }
 
 .para.hl_change {
-    border-right: 2px solid var(--hl-col);
+     box-shadow: 1px 0px 0px 0px var(--hl-col);
+
 }
+
 
 .para.copy_sel{
     background-color: var(--pop-fg-col);
@@ -459,8 +483,5 @@ a.result {
 }
 
 @media only screen and (max-width: 1000px) {
-.para {
-    left: 10% !important;
-    width: 80% !important;
-}
+
 }
