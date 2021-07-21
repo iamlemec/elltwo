@@ -177,8 +177,7 @@ function eventEditor() {
         if (alt) {
             let para = $(this);
             //cur returns undefined if not a textarea
-            //let cur = event.explicitOriginalTarget.selectionStart || 'end'
-            let cur = event.srcElement.selectionStart || event.explicitOriginalTarget.selectionStart || 'end'
+            let cur = event.target.selectionStart || 'end'
             console.log(cur)
             if(para.attr('pid')==state.active_para?.attr('pid')){
                 if (state.editing) {
