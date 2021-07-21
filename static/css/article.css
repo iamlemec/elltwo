@@ -20,7 +20,7 @@
 }
 
 #content:not(.ssv) .para.active {
-    box-shadow: -1px 0px 0px 0px var(--hl-col);
+    box-shadow: -1px 0px var(--hl-col);
 }
 
 #content:not(.ssv) .p_text {
@@ -95,15 +95,16 @@
 }
 
 #content.ssv .para.active {
-    background-color: rgba(0,0,0,0);
+    background-color: rgba(0, 0, 0, 0);
 }
 
 #content.ssv .para.active .p_input_view {
-    box-shadow: -2px 0px 0px 0px var(--bor-col);
+    box-shadow: -2px 0px var(--bor-col);
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 #content.ssv .para.editable .p_input_view {
-    background-color: rgba(0,0,0,.15);
+    background-color: rgba(0, 0, 0, 0.15);
 }
 
 

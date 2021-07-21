@@ -106,7 +106,7 @@ button:hover {
 }
 
 #content:not(.ssv) .para.active {
-    box-shadow: -4px 0px 0px 0px var(--hl-col);
+    box-shadow: -4px 0px var(--hl-col);
 }
 
 .para.active {
@@ -114,7 +114,7 @@ button:hover {
 }
 
 .para.changed {
-    border-right: 2px solid var(--hl2-col);
+    box-shadow: 4px 0px var(--hl2-col);
 }
 
 .para.hl_change {
