@@ -521,6 +521,7 @@ button {
 .cc_row {
     display: none;
 }
+
 .cc_row:nth-child(-n+5) {
   display: block;
 }
