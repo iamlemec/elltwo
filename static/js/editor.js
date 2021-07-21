@@ -62,7 +62,7 @@ function eventEditor() {
             unfold();
         } else if (ctrl && key == 's') {
             return false;
-        } else if (key == '§' || (ctrl && key == '/')) {
+        } else if (key == '§' || (ctrl && key == '`')) {
             toggleSidebar();
         } else if (key == 'f1') {
             toggleHelp();
@@ -74,7 +74,7 @@ function eventEditor() {
                 return false;
             }
         }
-        if (!state.editing){ 
+        if (!state.editing) {
             if (key == '-') {
                 $('#ssv_check').click();
             }
@@ -178,7 +178,7 @@ function eventEditor() {
             let para = $(this);
             if (!para.hasClass('active') && state.editing) {
                 makeActive($(this));
-                sendMakeEditable(); 
+                sendMakeEditable();
             }else if (!para.hasClass('active')) {
                 makeActive($(this));
             } else if (!state.editing) {

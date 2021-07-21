@@ -17,7 +17,7 @@
     resize: none;
     width: 50%;
     left: 25%;
-    bottom: 12%;
+    bottom: 20%;
     height: 20%;
 }
 
@@ -25,7 +25,7 @@
     position: fixed;
     width: 50%;
     right: 25%;
-    bottom: 7%;
+    bottom: 16%;
     text-align: right;
     z-index: 3;
 }
@@ -56,7 +56,7 @@
     width: 80%;
     left: 10%;
     top: 25%;
-    height: 55%;
+    height: 35%;
     overflow: scroll;
     scrollbar-width: none;
 

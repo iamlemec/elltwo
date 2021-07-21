@@ -1038,8 +1038,7 @@ circle.commit.active {
 
 @media only screen and (max-width: 1000px) {
 
-
-.para {
+#content:not(.ssv) .para {
     left: 0%;
     width: 74%;
     min-height: 30px;
@@ -1058,6 +1057,8 @@ circle.commit.active {
 
 .custom-select-wrapper {
     right: 15%;
+}
+
 }
 
 @media only screen and (max-width: 1000px) and (max-device-width: 1000px) {

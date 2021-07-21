@@ -241,7 +241,7 @@ function rawToRender(para, defer=false, track=true, raw=null) {
     let new_ref = getRefTags(para);
     if (track) {
         let net_add = new_ref.filter(x => !old_ref.includes(x));
-        let net_del = old_ref.filter(x => !new_ref.includes(x))
+        let net_del = old_ref.filter(x => !new_ref.includes(x));
         net_add.forEach(key => cache.track.inc(key));
         net_del.forEach(key => cache.track.dec(key));
     }

@@ -704,7 +704,7 @@ class ElltwoDB:
     def create_cite(self, citekey, entry_type, raw='', **kwargs):
         now = datetime.utcnow()
 
-        if (bib := self.get_cite(citekey)) is not None:
+        if (bib := self.get_cite(citekey, time=now)) is not None:
             bib.delete_time = now
             self.session.add(bib)
             create = False

@@ -45,6 +45,10 @@ class KeyCache {
         return this.data.has(key);
     }
 
+    see(key) {
+        return this.data.get(key);
+    }
+
     get(key, callback) {
         let kc = this;
         if (this.data.has(key)) {
@@ -108,6 +112,10 @@ class DummyCache {
 
     has(key) {
         return false;
+    }
+
+    see(key) {
+        return;
     }
 
     get(key, callback) {

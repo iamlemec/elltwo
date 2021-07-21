@@ -2,14 +2,38 @@
 
 export { initBib, createBibInfo, createBibEntry}
 
+import { config, state, cache, updateConfig, updateState, updateCache } from './state.js'
 import { connect, addHandler, sendCommand } from './client.js'
 import { getCiteData } from './bib_search.js'
 import { renderKatex } from './math.js'
+import { KeyCache } from './utils.js'
 
 function initBib() {
+    cacheBib();
     connectBib();
     eventBib();
     renderKatex();
+}
+
+function cacheBib() {
+    cache.cite = new KeyCache('cite', function(key, callback) {
+        sendCommand('get_cite', {key: key}, function(ret) {
+            let cite = (ret !== undefined) ? ret : null;
+            callback(cite);
+        });
+    }, function(keys, callback) {
+        sendCommand('get_bib', {keys: keys}, function(ret) {
+            let cites = Object.fromEntries(keys.map(k =>
+                [k, (k in ret) ? ret[k] : null]
+            ));
+            callback(cites);
+        });
+    });
+    cache.list = new KeyCache('list', function(key, callback) {
+        if (key == '__bib') {
+            sendCommand('get_bibs', {}, callback);
+        }
+    });
 }
 
 function eventBib() {
@@ -67,11 +91,16 @@ function eventBib() {
 
 function connectBib() {
     let url = `http://${document.domain}:${location.port}`;
-    connect(url, fetchBib);
+    connect(url, () => { fetchBib([]); });
 
     addHandler('invalidateRef', function(data) {
         let [type, key] = data;
         if (type == 'list' && key == '__bib') {
+            let old_bib = cache.list.see('__bib');
+            cache.list.del('__bib');
+            fetchBib(old_bib);
+        } else if (type == 'cite') {
+            cache.cite.del(key);
             fetchBib();
         }
     });
@@ -112,8 +141,20 @@ function renderBib(data) {
     }
 }
 
-function fetchBib() {
-    sendCommand('get_bib', {}, renderBib);
+function fetchBib(old_bib) {
+    cache.list.get('__bib', function(bib) {
+        if (old_bib !== undefined) {
+            let net_add = bib.filter(x => !old_bib.includes(x));
+            let net_del = old_bib.filter(x => !bib.includes(x));
+            net_add.forEach(key => {
+                sendCommand('track_ref', {key: `@@[${key}]`});
+            });
+            net_del.forEach(key => {
+                sendCommand('untrack_ref', {key: `@@[${key}]`});
+            });
+        }
+        cache.cite.bulk(bib, renderBib);
+    });
 }
 
 function deleteCite(key) {
@@ -155,8 +196,6 @@ function createBibInfo(cite) {
 }
 
 function createBibEntry(key, cite, target, results=false) {
-    console.log(cite.title);
-
     target.find(`#${key}`).remove();
 
     let info = createBibInfo(cite);
