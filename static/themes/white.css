@@ -106,7 +106,7 @@ button:hover {
 }
 
 #content:not(.ssv) .para.active {
-    box-shadow: -2px 0px 0px 0px var(--hl-col);
+    box-shadow: -4px 0px 0px 0px var(--hl-col);
 }
 
 .para.active {
