@@ -176,13 +176,21 @@ function eventEditor() {
         if(!targ){
         if (alt) {
             let para = $(this);
-            if (!para.hasClass('active') && state.editing) {
-                makeActive($(this));
-                sendMakeEditable();
-            }else if (!para.hasClass('active')) {
-                makeActive($(this));
-            } else if (!state.editing) {
-                sendMakeEditable();
+            //cur returns undefined if not a textarea
+            let cur = event.explicitOriginalTarget.selectionStart || 'end'
+            if(para.attr('pid')==state.active_para?.attr('pid')){
+                if (state.editing) {
+                    placeCursor(cur)
+                } else {
+                    sendMakeEditable(cur);
+                }
+            }else{
+                if (state.editing) {
+                    makeActive($(this));
+                    sendMakeEditable(cur);
+                }else if (!para.hasClass('active')) {
+                    makeActive($(this));
+                }
             }
             return false;
         } else if (state.active_para && cmd) {
@@ -322,6 +330,8 @@ function placeCursor(loc) {
         } else if (loc == 'end') {
             let tlen = text[0].value.length;
             text[0].setSelectionRange(tlen, tlen);
+        } else {
+            text[0].setSelectionRange(loc, loc);
         }
     }
 }
