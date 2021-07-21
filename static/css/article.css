@@ -7,7 +7,7 @@
 #content:not(.ssv) .para {
     position: relative;
     margin: auto;
-    width: 70%;
+    width: 60%;
     min-height: 30px;
     margin-bottom: 20px;
     padding-left: 5px;
@@ -96,11 +96,10 @@
 
 #content.ssv .para.active {
     background-color: rgba(0,0,0,0);
-    border: none;
 }
 
 #content.ssv .para.active .p_input_view {
-      box-shadow: -2px 0px 0px 0px var(--bor-col);
+    box-shadow: -2px 0px 0px 0px var(--bor-col);
 }
 
 #content.ssv .para.editable .p_input_view {
@@ -1036,7 +1035,7 @@ circle.commit.active {
 /*  NARROW CSS */
 
 @media only screen and (max-width: 1000px) {
-    
+
 
 .para {
     left: 0%;
@@ -1133,7 +1132,7 @@ circle.commit.active {
     margin: 1px;
     height: 22px;
 }
-    
+
 #ssv, #ssv_label, #ssv_check{
     display: none;
 }

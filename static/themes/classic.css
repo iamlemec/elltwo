@@ -78,7 +78,7 @@ button:hover {
 /* paras */
 
 #content.ssv.sb_content {
-     background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 58%,var(--bg-hl2-col) 51%,var(--bg-hl2-col) 100%); */
+    background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 58%,var(--bg-hl2-col) 51%,var(--bg-hl2-col) 100%);
 }
 
 #content.ssv {
@@ -89,7 +89,7 @@ button:hover {
     background-color: rgba(255, 255, 255, .3);
 }
 
-.p_text{
+.p_text {
     line-height: 30px !important;;
 }
 
@@ -101,18 +101,21 @@ button:hover {
     background-color: var(--bg-hl-col);
 }
 
+.para:not(.active) {
+    /* border-left: 2px solid var(--bg-col); */
+}
+
 .para.changed {
-       box-shadow: 1px 0px 0px 0px var(--hl2-col);
+    box-shadow: 1px 0px 0px 0px var(--hl2-col);
 }
 
 .para.hl_change {
-       box-shadow: 2px 0px 0px 0px var(--font-col-int);
+    box-shadow: 2px 0px 0px 0px var(--font-col-int);
 }
 
 .para.copy_sel {
     background-color: var(--bg-hl-col);
 }
-
 
 /* text elements */
 

@@ -1,7 +1,7 @@
 :root {
     --font-col: black;
-    --hl-col: steelblue;
-    --hl2-col: tomato;
+    --hl-col: rgb(31, 111, 241);
+    --hl2-col: rgb(255, 13, 87);
     --bg-col: white;
     --bg-hl-col: whitesmoke;
     --bg-hl2-col: rgb(200,200,200);
@@ -12,6 +12,8 @@
     --font-col-int: goldenrod;
     --brace-col: rgba(33, 150, 243, 0.3);
     --comment-col: rgb(140, 140, 140); /* comment text color */
+    --neon-blue: rgba(31, 111, 241, 0.85);
+    --faint-gray: rgba(30, 30, 30, 0.4);
 }
 
 @font-face {
@@ -85,11 +87,10 @@ button:hover {
 }
 
 #logo_placeholder {
-/*    border-bottom: 1px dashed black;*/
 }
 
 .toc_entry {
- color: var(--font-col);
+    color: var(--font-col);
 }
 
 /* paras */
@@ -97,7 +98,6 @@ button:hover {
 .env__title > .p_text {
     text-align: center;
     border-bottom: 2px solid black;
-    padding-bottom: 20px;
 }
 
 .env__heading > .p_text {
@@ -105,14 +105,12 @@ button:hover {
     border-bottom: 1px solid black;
 }
 
-.p_text{
-    line-height: 25px !important;;
+#content:not(.ssv) .para.active {
+    box-shadow: -2px 0px 0px 0px var(--hl-col);
 }
 
-
 .para.active {
-   border-left: 2px solid var(--hl-col);
-   background-color: var(--bg-hl-col);
+    background-color: var(--bg-hl-col);
 }
 
 .para.changed {
@@ -135,9 +133,9 @@ button:hover {
 
 .footnote > .num {
     color: var(--bg-col);
-    background-color: var(--hl-col);
-    border: 1px solid var(--font-col);
-    border-radius: 4px;
+    background-color: var(--neon-blue);
+    border: 1px solid var(--faint-gray);
+    border-radius: 2px;
     font-family: monospace;
     font-size: 90%;
     padding: 0 5px;
