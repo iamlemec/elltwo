@@ -252,7 +252,7 @@ button {
     border: 1px solid var(--font-col);
     width: 25px;
     height: 25px;
-    border-radius: 15%;
+    border-radius: 2px;
     margin-right: 10px;
 }
 
@@ -261,7 +261,7 @@ button {
     font-size: 90%;
     border: 1px solid var(--font-col);
     color: var(--font-col);
-    border-radius: 4px;
+    border-radius: 2px;
     padding: 0 5px;
     margin: 0 1px;
 }
