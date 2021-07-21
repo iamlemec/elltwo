@@ -434,6 +434,13 @@ a.result {
     color: var(--font-col-int);
     border-radius: 10px;
     font-family: fira;
+    padding-bottom: 6px;
+}
+
+.foot_butt svg{
+    fill: var(--font-col-int);
+    transform: translateY(4px);
+    margin-left: 0px;
 }
 
 .login-button{

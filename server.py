@@ -673,6 +673,7 @@ def get_cite(data):
 def get_cite(data):
     return edb.get_bib_keys()
 
+
 ###
 ### external references
 ###
@@ -814,6 +815,11 @@ def UploadImage():
 @view_decor
 def get_images(data):
     return [(i.key, i.keywords) for i in edb.get_images()]
+
+@socketio.on('get_imgs')
+@view_decor
+def get_imgs(data):
+    return [i.key for i in edb.get_images()]
 
 @socketio.on('get_image')
 @view_decor

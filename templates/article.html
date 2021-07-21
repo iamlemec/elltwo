@@ -105,9 +105,19 @@ Font
 <button id="revert_hist" class="foot_butt">Revert</button>
 {% endif %}
 
-<button id="show_hist" class="foot_butt smallable_butt"><span id=h_text>History</span> <img src="{{url_for('static', filename='img/history.svg')}}"/></button>
-<button id="export" class="foot_butt smallable_butt"><span id=e_text>Export</span> <img src="{{url_for('static', filename='img/export.svg')}}"/></button>
-<button id="refresh" class="foot_butt smallable_butt"><span id=r_text>Refresh</span> <img src="{{url_for('static', filename='img/refresh.svg')}}"/>
+<button id="show_hist" class="foot_butt smallable_butt"><span id=h_text>History</span>
+<svg>
+<use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#hist"></use>
+</svg>
+</button>
+<button id="export" class="foot_butt smallable_butt"><span id=e_text>Export</span>
+<svg>
+<use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#exp"></use>
+</svg></button>
+<button id="refresh" class="foot_butt smallable_butt"><span id=r_text>Refresh</span>
+<svg>
+<use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#ref"></use>
+</svg>
 </button>
 
 <div id="export_options" class="box">

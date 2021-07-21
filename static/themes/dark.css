@@ -458,6 +458,13 @@ a.result {
     color: var(--font-col-int);
     border-radius: 10px;
     font-family: fira;
+    padding-bottom: 6px;
+}
+
+.foot_butt svg{
+    fill: var(--font-col-int);
+    transform: translateY(4px);
+    margin-left: 0px;
 }
 
 .login-button{
@@ -466,16 +473,6 @@ a.result {
 
 #locallogin > a, .notification > a{
     color: var(--hl-col)
-}
-
-.export_butt{
-    background-color: var(--font-col-int) !important;
-    border-radius: 10px;
-    font-family: fira;
-}
-
-.export_butt:hover{
-    background-color: darkgray !important;
 }
 
 .box{

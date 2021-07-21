@@ -132,17 +132,18 @@ a.reference {
     font-size: 90%;
     margin-left: 5px;
     margin-right: 5px;
-    padding: 3px;
     top: 0;
+    padding-bottom: 3px; 
     max-width: 90px;
     margin-bottom: 2px;
-    line-height: 20px;
+    line-height: 17px;
 }
 
-.foot_butt img{
-    height: 15px;
-    width: 15px;
-    transform: translateY(3px)
+.foot_butt svg{ 
+    height: 18px;
+    width: 18px;
+    transform: translateY(4px);
+    margin-left: 4px;
 }
 
 .push {
@@ -315,6 +316,10 @@ a.reference {
    .toggle-track {
 	margin-right: 5px;
     margin-left: 5px;
+}
+    
+.smallable_butt svg{
+    margin-left: 0px;
 }
 
 }

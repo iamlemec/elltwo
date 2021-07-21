@@ -111,6 +111,8 @@ function cacheArticle() {
             sendCommand('get_arts', {}, callback);
         } else if (key == '__bib') {
             sendCommand('get_bibs', {}, callback);
+        }else if (key == '__img') {
+            sendCommand('get_imgs', {}, callback);
         } else {
             sendCommand('get_refs', {title: key}, callback);
         }
@@ -1083,11 +1085,15 @@ function ccNext(dir) {
 
 function ccMake() {
     let cctxt = $('.cc_row').first().text();
-    let input = state.active_para.children('.p_input');
+    let para = state.active_para;
+    let input = para.children('.p_input');
     let raw = input.val();
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
+    let open_img = /^\!(\[)?([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
+
     let cap, l;
+    let iter = false //true iterates the process (for ext art refs)
     if (cap = open_ref.exec(raw)) {
         l = cap.index;
         let space = cap[5] || '';
@@ -1095,6 +1101,7 @@ function ccMake() {
            raw = raw.replace(open_ref, function() {
                 const out = `@[${cctxt}:${space}`;
                 l += out.length - space.length;
+                iter=true;
                 return out;
             });
         } else if (cap[2] && cap[3]) { // ref on ext page
@@ -1124,6 +1131,14 @@ function ccMake() {
             l += out.length - space.length;
             return out;
         });
+    } else if (cap = open_img.exec(raw)) {
+        l = cap.index;
+        let space = cap[2] || '';
+        raw = raw.replace(open_img, function() {
+            const out = `![${cctxt}]${space}`;
+            l += out.length - space.length;
+            return out;
+        });
     }
     input.val(raw);
     resize(input[0]);
@@ -1131,6 +1146,10 @@ function ccMake() {
     state.cc = false;
     $('#cc_pop').remove();
     input[0].setSelectionRange(l, l);
+    if(iter){
+        let view = para.children('.p_input_view');
+        ccRefs(view, raw, l);
+    }
 }
 
 /// command completion
@@ -1140,6 +1159,7 @@ function getInternalRefs() {
 }
 
 function ccSearch(list, search, placement) {
+                                    console.log(list)
     list = list.filter(el => el.includes(search));
     if (list.length > 0) {
         state.cc = true;
@@ -1164,6 +1184,7 @@ function ccRefs(view, raw, cur) {
     $('#cc_pop').remove();
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
+    let open_img = /^\!(\[)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     let cap;
     if (cap = open_ref.exec(raw)) {
         // if cursor is near the match
@@ -1205,6 +1226,19 @@ function ccRefs(view, raw, cur) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let search = cap[4] || '';
             let ex_keys = cache.list.get('__art', function(ret) {
+                ccSearch(ret, search, p);
+            });
+        }
+    } else if (cap = open_img.exec(raw)) {
+        let b = cap.index;
+        let e = b + cap[0].length;
+        if (cur >= b && cur <= e) {
+            raw = raw.slice(0, e) + '<span id="cc_pos"></span>' + raw.slice(e);
+            view.html(raw);
+            let off = $('#cc_pos').offset();
+            let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+            let search = cap[2] || '';
+            let ex_keys = cache.list.get('__img', function(ret) {
                 ccSearch(ret, search, p);
             });
         }

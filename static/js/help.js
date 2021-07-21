@@ -23,6 +23,8 @@ let spec = [
     ['key', 'Ctrl + Shift + F', 'Unfold all cells'],
     ['key', 'Ctrl + `', 'Toggle sidebar options'],
     ['key', 'Ctrl + Enter', 'Toggle history explorer'],
+    ['key', '+', 'Toggle Editing Mode'],
+    ['key', '-', 'Toggle Split View'],
     ['key', 'F1', 'Toggle help overlay'],
     ['header', 'Cell Syntax'],
     ['syntax', '#!', 'Article title'],

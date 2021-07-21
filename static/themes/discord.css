@@ -74,6 +74,10 @@ button {
     border-radius: 2px;
 }
 
+.foot_butt svg{
+    fill: var(--butt-fg-col);
+}
+
 button:hover {
     background-color: rgb(101, 101, 101) !important;
 }

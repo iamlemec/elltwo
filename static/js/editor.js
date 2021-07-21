@@ -74,7 +74,7 @@ function eventEditor() {
                 return false;
             }
         }
-        if (!state.editing) {
+        if (!state.editing && !meta && !ctrl) {
             if (key == '-') {
                 $('#ssv_check').click();
             }
@@ -621,9 +621,12 @@ function unfold() {
 function smallable_butt() {
         let small = ($(window).width() < 1000)
         let r_text = small ? '' : "Refresh"
+        let r_tit = small ? 'Refresh' : ""
         let e_text = small ? '' : "Export"
+        let e_tit = small ? 'Export' : ""
         let h_text = small ? '' : "History"
-        $('#r_text').text(r_text);
-        $('#e_text').text(e_text);
-        $('#h_text').text(h_text);
+        let h_tit = small ? 'History' : ""
+        $('#r_text').text(r_text).parent().attr('title',r_tit);
+        $('#e_text').text(e_text).parent().attr('title',e_tit);
+        $('#h_text').text(h_text).parent().attr('title',h_tit);
 }

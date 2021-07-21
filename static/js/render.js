@@ -566,7 +566,7 @@ function imgEnv(ptxt, args) {
 
     let fig = ptxt.find('.fig_cont');
     let img = $('<img>', {class: 'env_add'});
-    let upd = $('<div>', {class: 'env_add img_update', text: '⮉'});
+    let upd = $('<div>', {class: 'env_add img_update', text: 'Update'});
     fig.append(img);
     fig.append(upd);
 

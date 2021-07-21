@@ -372,6 +372,10 @@ button {
     padding-bottom: 5px;
 }
 
+.editable .error_footer{
+    display: none;
+}
+
 .footnote {
     cursor: pointer;
 }

@@ -1,15 +1,20 @@
 @import 'core.css';
 
+
 #prompt {
   position: relative;
   width: 100%;
   min-height: 50px;
-  top: 0%;
+  top: 4%;
   text-align: center;
 }
 
+#content{
+padding-top: 0;
+}
+
 #title {
-   font-size: 250%;
+   font-size: 200%;
 }
 
 #bib_input {
@@ -55,7 +60,7 @@
     font-size: 80%;
     width: 80%;
     left: 10%;
-    top: 25%;
+    top: 15%;
     height: 35%;
     overflow: scroll;
     scrollbar-width: none;
