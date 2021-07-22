@@ -922,8 +922,8 @@ function createPop(ref, html='', link=false, blurb=false) {
     }
     $('#bg').append(pop);
 
-    let h = pop.height();
-    let w = pop.width();
+    let h = pop.outerHeight();
+    let w = pop.outerWidth();
 
     if (!config.mobile) { // no mouse binding with mobile popups
         ref.mousemove(function(event) {
@@ -933,9 +933,14 @@ function createPop(ref, html='', link=false, blurb=false) {
             if (event.pageY < mid) { // if on top half of page
                 y = event.pageY + 20;
             }
+            if (x + w >= window.innerWidth) {
+                x = window.innerWidth - w;
+            }
             pop.css({
-                'left': `${x}px`, // offset 10px for padding
-                'top': `${y}px`, // offset up by 35 px
+                'left': `${x}px`,
+                'top': `${y}px`,
+                'width': `${w}px`,
+                'height': `${h}px`,
             });
         });
     }

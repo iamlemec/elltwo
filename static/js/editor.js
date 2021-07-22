@@ -172,32 +172,26 @@ function eventEditor() {
     $(document).on('click', '.para', function(e) {
         let alt = state.edit_mode || e.altKey || config.mobile;
         let cmd = e.metaKey;
-        let targ = event.target.href;//if link, follow link
-        if(!targ){
-        if (alt) {
-            let para = $(this);
-            //cur returns undefined if not a textarea
-            let cur = event.target.selectionStart || 'end'
-            console.log(cur)
-            if(para.attr('pid')==state.active_para?.attr('pid')){
-                if (state.editing) {
-                    placeCursor(cur)
+        let targ = event.target.href; // if link, follow link
+        if (!targ) {
+            if (alt) {
+                let para = $(this);
+                let cur = event.target.selectionStart || 'end'; // returns undefined if not a textarea
+                if (para.attr('pid') == state.active_para?.attr('pid')) {
+                    if (state.editing) {
+                        placeCursor(cur)
+                    } else {
+                        sendMakeEditable(cur);
+                    }
                 } else {
-                    sendMakeEditable(cur);
-                }
-            }else{
-                if (state.editing) {
-                    makeActive($(this));
-                    sendMakeEditable(cur);
-                }else if (!para.hasClass('active')) {
-                    makeActive($(this));
+                    if (state.editing) {
+                        makeActive(para);
+                        sendMakeEditable(cur);
+                    } else if (!para.hasClass('active')) {
+                        makeActive(para);
+                    }
                 }
             }
-            return false;
-        } else if (state.active_para && cmd) {
-            $(this).addClass('copy_sel');
-            return false;
-        }
         }
     });
 
