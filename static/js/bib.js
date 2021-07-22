@@ -191,6 +191,7 @@ function createBibInfo(cite) {
     return {
         author: cite.author,
         year: cite.year,
+        doi: cite.DOI,
         entry: `${author}${yr}${title}. <em>${journal}</em>${index} ${pub}`,
     }
 }

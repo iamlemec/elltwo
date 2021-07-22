@@ -703,6 +703,7 @@ function getTro(ref, callback) {
                 tro.cite_type = 'cite';
                 tro.cite_author = ret.author;
                 tro.cite_year = ret.year;
+                tro.cite_doi = ret.doi;
                 tro.pop_text = ret.entry;
             } else {
                 tro.cite_type = 'err';
@@ -849,6 +850,13 @@ function refCite(ref, tro) {
     }
 
     ref.html(citeText);
+
+    if (tro.cite_doi) {
+        let doi_url = `http://doi.org/${tro.cite_doi}`;
+        ref.attr('href', doi_url);
+    } else {
+        ref.click(() => false);
+    }
 }
 
 function refEquation(ref, tro) {
@@ -929,7 +937,7 @@ function createPop(ref, html='', link=false, blurb=false) {
         ref.mousemove(function(event) {
             let mid = window.innerHeight / 2;
             let x = event.pageX - 0.5*w - 10;
-            let y = event.pageY - h - 35;
+            let y = event.pageY - h - 20;
             if (event.pageY < mid) { // if on top half of page
                 y = event.pageY + 20;
             }
