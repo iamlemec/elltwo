@@ -703,6 +703,7 @@ function getTro(ref, callback) {
                 tro.cite_type = 'cite';
                 tro.cite_author = ret.author;
                 tro.cite_year = ret.year;
+                tro.cite_doi = ret.doi;
                 tro.pop_text = ret.entry;
             } else {
                 tro.cite_type = 'err';
@@ -849,6 +850,13 @@ function refCite(ref, tro) {
     }
 
     ref.html(citeText);
+
+    if (tro.cite_doi) {
+        let doi_url = `http://doi.org/${tro.cite_doi}`;
+        ref.attr('href', doi_url);
+    } else {
+        ref.click(() => false);
+    }
 }
 
 function refEquation(ref, tro) {
@@ -922,20 +930,25 @@ function createPop(ref, html='', link=false, blurb=false) {
     }
     $('#bg').append(pop);
 
-    let h = pop.height();
-    let w = pop.width();
+    let h = pop.outerHeight();
+    let w = pop.outerWidth();
 
     if (!config.mobile) { // no mouse binding with mobile popups
         ref.mousemove(function(event) {
             let mid = window.innerHeight / 2;
             let x = event.pageX - 0.5*w - 10;
-            let y = event.pageY - h - 35;
+            let y = event.pageY - h - 20;
             if (event.pageY < mid) { // if on top half of page
                 y = event.pageY + 20;
             }
+            if (x + w >= window.innerWidth) {
+                x = window.innerWidth - w;
+            }
             pop.css({
-                'left': `${x}px`, // offset 10px for padding
-                'top': `${y}px`, // offset up by 35 px
+                'left': `${x}px`,
+                'top': `${y}px`,
+                'width': `${w}px`,
+                'height': `${h}px`,
             });
         });
     }

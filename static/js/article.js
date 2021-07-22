@@ -1159,7 +1159,6 @@ function getInternalRefs() {
 }
 
 function ccSearch(list, search, placement) {
-                                    console.log(list)
     list = list.filter(el => el.includes(search));
     if (list.length > 0) {
         state.cc = true;
@@ -1268,4 +1267,3 @@ function setSSV(val) {
         placeCursor('end');
     });
 }
-
