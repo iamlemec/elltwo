@@ -6,7 +6,7 @@ import { createBibInfo, createBibEntry} from './bib.js'
 
 function getCiteData(q) {
     q = q.replace(' ', '+');
-    let url = 'https://api.crossref.org/works?rows=5&query.bibliographic=';
+    let url = 'https://api.crossref.org/works?rows=20&query.bibliographic=';
     $.getJSON(url+q).then(function(data) {
         let cts = data.message.items;
         data = cts.map(createbtjs).filter(Boolean);

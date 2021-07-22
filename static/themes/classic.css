@@ -40,6 +40,11 @@
 
 /*global */
 
+#bg{
+    font-family: CM;
+}
+
+
 body {
     font-weight: 300;
     font-size: 18px;

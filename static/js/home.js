@@ -87,7 +87,7 @@ function searchTitle(query, last_url) {
         if (nres > 0) {
             for (let idx in response) {
                 let art = response[idx];
-                let url = `a/${art.url}`;
+                let url = `${art.url}`;
                 let title = art.title;
                 let btext = art.blurb || art.title;
                 let art_div = $('<a>', {class: 'result art_link', href: url});

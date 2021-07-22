@@ -6,7 +6,7 @@ import { config, state, cache, updateConfig, updateState, updateCache } from './
 import { connect, addHandler, sendCommand } from './client.js'
 import { getCiteData } from './bib_search.js'
 import { renderKatex } from './math.js'
-import { KeyCache } from './utils.js'
+import { KeyCache, flash } from './utils.js'
 
 function initBib() {
     cacheBib();
@@ -40,16 +40,33 @@ function eventBib() {
     $(document).on('click', '#create', function() {
         let src = $('#bib_input').val();
         let json = generateJson(src);
-        if (json) {
+        if (json.entryTags) {
             json.entryTags.raw = src;
             sendCommand('create_cite', json);
+        } else {
+            flash('invalid bibtex')
         }
     });
 
+    $(document).on('change', '#local_search_check', function() {
+        let web = $(this).is(':checked');
+        let ph = web ? 'Search the web for references' : 'Search existing references'
+        if(web){
+            $('#search').show();
+            $('#query').addClass('search');
+            $('#local_search').addClass('search');
+        } else {
+            $('#search').hide();
+            $('#query').removeClass('search');
+            $('#local_search').removeClass('search');
+        }
+        $('#query').attr('placeholder', ph)
+    });
+
     $(document).on('click', '#search', function() {
-        let q = $('#bib_input').val();
+        let q = $('#query').val();
         $('#search_results').find('.cite').remove();
-        $('.nr').remove();""
+        $('.nr').remove();
         $('#search_results').show();
         getCiteData(q);
     });
@@ -60,32 +77,61 @@ function eventBib() {
         $('#search_results').hide();
     });
 
-    $(document).on('click', '.cite', function() {
-        $('.editable').removeClass('editable');
-        copyCitekey(this);
-        $(this).addClass('editable');
+    $(document).on('dblclick', '.cite', function() {
+        //$('.editable').removeClass('editable');
+       //$(this).addClass('editable');
+        editCite(this);
     });
 
+    $(document).on('click', '.citekey', function(e) {
+        copyCitekey(this);
+        e.stopPropagation();
+    });
+
+    //close open windows
     $(document).click(function(e) {
-        if ($(e.target).closest('.cite').length == 0) {
-            $('.editable').removeClass('editable');
+        let targ = $(e.target);
+        let clk_cr = (targ.closest('#create_wrap').length == 0);
+        let clk_cn = (targ.closest('#create_new').length == 0);
+        let clk_cite = (targ.closest('.cite').length == 0);
+        if (clk_cn && clk_cr && clk_cite) {
+            $('#create_wrap').hide();
+            console.log(targ)
+        } else if (clk_cite) {
+            $('#search_results').hide();
         }
     });
 
     $(document).on('click', '#search_results > .cite', function() {
-        editCite(this);
-    });
-
-    $(document).on('click', '.update', function(e) {
-        editCite(this);
-        $('.editable').removeClass('editable');
-        e.stopPropagation();
+        editCite(this, 'Create');
     });
 
     $(document).on('click', '.delete', function() {
         let key = $(this).closest('.cite').attr('id');
         sendCommand('delete_cite', {key: key});
         $('.editable').removeClass('editable');
+    });
+
+    $(document).on('click', '#create_new', function(e) {
+        let cr = $('#create_wrap')
+        let bi = cr.children('#bib_input')
+        bi.val(''); 
+        cr.show()
+        bi.focus();
+        bi[0].setSelectionRange(0, 0);
+    });
+
+    $(document).keydown(function(e) {
+        let key = e.key.toLowerCase();
+        let ctrl = e.ctrlKey;
+        let meta = e.metaKey;
+        if(!meta && !ctrl && key == '=') {
+            $('#local_search_check').click();
+            return false
+        } else if(key == 'escape'){
+            $('#create_wrap').hide()
+            $('#search_results').hide()
+        }
     });
 }
 
@@ -130,12 +176,16 @@ function generateJson(src) {
 
 function renderBib(data) {
     let holder = $('#para_holder');
+    $('#create_wrap').hide()
     holder.empty();
     Object.entries(data).forEach(([key, cite]) => {
         createBibEntry(key, cite, holder);
     });
     $('#bib_input').val('');
     sortCite('#para_holder');
+    let create_new = $('<div>', {text: 'New BibTex Reference'});
+    create_new.attr('id', 'create_new')
+    $('#para_holder').prepend(create_new)
     if (data.length == 1) {
         location.href = '#' + data[0].citekey;
     }
@@ -201,22 +251,22 @@ function createBibEntry(key, cite, target, results=false) {
     let info = createBibInfo(cite);
     let raw = cite.raw || '';
 
-    let buts = `<button class="update">Update</button>
-                <button class="delete">Delete</button>`;
+    let buts = `<div class="control">
+                <div class="controlDots">&#9776;</div>
+                <div class="controlButs">
+                    <button class="update">Update</button>
+                    <button class="delete">Delete</button>
+                </div>`;
 
     if (results) {
-        buts = `<button class="update">Edit</button>`;
+        buts = "";
     }
 
     target.append(
         `<div class="cite" id="${key}" citeType=cite raw="${raw}">
             ${info.entry}
-            <span class="citekey">${key}</span>
-            <div class="control">
-                <div class="controlDots">&#9776;</div>
-                <div class="controlButs">
-                ${buts}
-            </div>
+            <span class="citekey" title="copy citekey">${key}</span>
+            ${buts}
         </div>`
     );
 }
@@ -225,11 +275,13 @@ function createBibEntry(key, cite, target, results=false) {
 
 function copyCitekey(cite) {
     let textArea = document.createElement("textarea");
-    textArea.value = $(cite).attr('id');
+    let ck = $(cite).text();
+    textArea.value = ck
     document.body.appendChild(textArea);
     textArea.select();
     document.execCommand("Copy");
     textArea.remove();
+    flash(`CiteKey "${ck}" copied to clipboard`);
 }
 
 function sortCite(id) {
@@ -240,10 +292,13 @@ function sortCite(id) {
     $(id).html(alphabeticallyOrderedDivs);
 }
 
-function editCite(el) {
+function editCite(el, text='Update') {
     let src = $(el).closest('.cite').attr('raw');
+    console.log(src)
     $('#bib_input').val(src);
     $('#search_results').find('.cite').remove();
     $('.nr').remove()
     $('#search_results').hide();
+    $('#create').text(text);
+    $('#create_wrap').show()
 }

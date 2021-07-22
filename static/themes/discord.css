@@ -318,6 +318,10 @@ a.result {
     color: var(--delimit-col);
 }
 
+#query, .cite, #create_new{
+    border-radius: 2px;
+}
+
 #search_results {
     background-color: var(--bg-col);
 }

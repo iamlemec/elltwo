@@ -3,7 +3,7 @@
 export {
     merge, mapObject, mapValues, initToggleBox, toggleBox, ensureVisible,
     setCookie, cooks, getPara, getEnvParas, isMobile, noop, on_success,
-    KeyCache, DummyCache, RefCount
+    KeyCache, DummyCache, RefCount, flash
 }
 
 // js tricks
@@ -29,6 +29,21 @@ function on_success(func) {
             func();
         }
     };
+}
+
+// messages
+
+function flash(msg) {
+    let flash = $('<div>', {text: msg});
+    flash.attr('id', 'flash')
+    $('#bg').append(flash)
+    $('#flash').fadeIn(400, function(){
+        setTimeout(function(){
+            $('#flash').fadeOut(400, function(){
+                $(this).remove();
+            });
+        }, 800);
+    });
 }
 
 // key cache
