@@ -125,15 +125,57 @@ function eventBib() {
         let key = e.key.toLowerCase();
         let ctrl = e.ctrlKey;
         let meta = e.metaKey;
+        let web_s = $('#local_search_check').is(':checked');
+        let real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
+        let andriod_is_fucking_stupid = e.keyCode == 229;
         if(!meta && !ctrl && key == '=') {
             $('#local_search_check').click();
             return false
         } else if(key == 'escape'){
             $('#create_wrap').hide()
             $('#search_results').hide()
-        }
+        } else if(key == 'escape'){
+            $('#create_wrap').hide()
+            $('#search_results').hide()
+        } else if (key=='enter' && web_s){
+            $('#search').click();
+        } else if (real || (key == 'backspace') || (key == 'delete') || andriod_is_fucking_stupid) {
+            clearTimeout(state.timeout);
+            state.timeout = setTimeout(runQuery, 200);
+        };
     });
 }
+
+function runQuery() {
+    let query = $('#query').val();
+    $('.hl').contents().unwrap();
+    if (query.length > 2) {
+        let bibs = $('.cite').toArray();
+        let terms = query.toLowerCase().split(' ');
+        let bib_sel = bibs.filter(bib => wordSearch(bib, terms) == 0);
+        $(bib_sel).each(function(){
+            $(this).hide();
+        })
+    } else {
+        $('.cite').show();
+    };
+};
+
+function wordSearch(bib, list) {
+    let value = 0;
+    let text = $(bib).children('.cite_text');
+    let target = text.text().toLowerCase();
+    let raw = text.html()
+    list.forEach(word => {
+      value = value + target.includes(word);
+      if (word.length > 2){
+        let re = new RegExp(word, 'i');
+        raw = raw.replace(re, '<span class="hl">$&</span>');
+      }
+    });
+    text.html(raw)
+    return value;
+};
 
 function connectBib() {
     let url = `http://${document.domain}:${location.port}`;
@@ -265,7 +307,9 @@ function createBibEntry(key, cite, target, results=false) {
 
     target.append(
         `<div class="cite" id="${key}" citeType=cite raw="${raw}">
+            <span class='cite_text'>
             ${info.entry}
+            </span>
             <span class="citekey" title="copy citekey">${key}</span>
             ${buts}
         </div>`

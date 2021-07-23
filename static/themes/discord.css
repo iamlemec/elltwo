@@ -334,6 +334,11 @@ a.result {
     color: var(--hl-col)
 }
 
+.hl{
+    font-weight: bold;
+    color: var(--hl2-col);
+}
+
 /* dropdown */
 
 .custom-select-wrapper {
