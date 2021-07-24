@@ -63,10 +63,13 @@ function eventEditor() {
             return false;
         } else if (key == '§' || (ctrl && key == '`')) {
             toggleSidebar();
+            return false;
         } else if (key == 'f1') {
             toggleHelp();
+            return false;
         } else if (key == 'f2') {
             invalidateCache();
+            return false;
         } else if (key == 'escape') {
             if (state.help_show) {
                 toggleHelp();
@@ -107,6 +110,7 @@ function eventEditor() {
             if (key == 'enter') {
                 let foc_para = state.last_active || $('.para').first();
                 makeActive(foc_para);
+                return false;
             }
         } else if (state.active_para && !state.rawtext) {
             if (key == 'enter') {
@@ -127,25 +131,32 @@ function eventEditor() {
                 }
                 return !activeNextPara();
             } else if (ctrl && key == 'home') {
-                activeFirstPara();
+                activeFirstPara(); // keep native home scroll
             } else if (ctrl && key == 'end') {
-                activeLastPara();
+                activeLastPara(); // keep native end scroll
             } else if (ctrl && key == 'c') {
                 copyCells();
+                return false;
             } else if (ctrl && key == 'v') {
                 pasteCells();
+                return false;
             } else if (key == 'escape') {
                 makeActive(null);
+                return false;
             } else if (shift && key == 'f') {
                 fold(state.active_para);
+                return false;
             }
             if (state.writeable) { // if we are active but not in edit mode
                 if (key == 'a') {
                     sendInsertPara(state.active_para, false);
+                    return false;
                 } else if (key == 'b') {
                     sendInsertPara(state.active_para, true);
+                    return false;
                 } else if (shift && key == 'd') {
                     sendDeletePara(state.active_para);
+                    return false;
                 }
             }
         } else if (state.active_para && state.rawtext) { // we are active and rawtext
@@ -170,6 +181,7 @@ function eventEditor() {
                 } else {
                     makeUnEditable();
                 }
+                return false;
             } else if (!shift && key == 'enter') {
                 if (state.cc) {
                     ccMake();

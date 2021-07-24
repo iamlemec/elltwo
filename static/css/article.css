@@ -1140,7 +1140,7 @@ circle.commit.active {
     height: 22px;
 }
 
-#ssv, #ssv_label, #ssv_check{
+#ssv_text, #ssv_label, #ssv_check {
     display: none;
 }
 

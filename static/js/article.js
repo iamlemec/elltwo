@@ -349,7 +349,7 @@ function eventArticle() {
         let check = $(this);
         let val = check.is(':checked');
         let text = val ? 'Split View' : 'Classic View';
-        $('#ssv').text(text);
+        $('#ssv_text').text(text);
         setSSV(val);
     });
 
@@ -1008,11 +1008,15 @@ function toggleHistMap() {
     if (state.hist_show) {
         hideHistPreview();
         $('#prog_bar').show();
+        $('#ssv_text').show();
+        $('#ssv_label').show();
         $('#editable_text').show();
         $('#editable_label').show();
     } else {
         launchHistMap();
         $('#prog_bar').hide();
+        $('#ssv_text').hide();
+        $('#ssv_label').hide();
         $('#editable_text').hide();
         $('#editable_label').hide();
     }

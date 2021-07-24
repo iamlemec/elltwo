@@ -206,7 +206,7 @@ function eventIndex() {
         let check = $(this);
         let val = check.is(':checked');
         let text = val ? 'Side-by-Side View' : 'Classic View';
-        $('#ssv').text(text);
+        $('#ssv_text').text(text);
         setSSV(val);
     });
 
