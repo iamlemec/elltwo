@@ -60,12 +60,12 @@
     padding-right: 5px;
 }
 
-#content:not(.ssv) > .para.editable > .p_text {
+#content:not(.ssv) > .para.rawtext > .p_text {
     display: none;
 }
 
-#content:not(.ssv) > .para.editable > .p_input,
-#content:not(.ssv) > .para.editable > .p_input_view {
+#content:not(.ssv) > .para.rawtext > .p_input,
+#content:not(.ssv) > .para.rawtext > .p_input_view {
     display: block;
 }
 
@@ -103,7 +103,7 @@
     background-color: rgba(0, 0, 0, 0.05);
 }
 
-#content.ssv .para.editable .p_input_view {
+#content.ssv .para.rawtext .p_input_view {
     background-color: rgba(0, 0, 0, 0.15);
 }
 
@@ -160,7 +160,7 @@
     left: 180px;
 }
 
-#bg.writeable .para.editable > .control {
+#bg.writeable .para.rawtext > .control {
     display: block;
 }
 
@@ -230,7 +230,7 @@ button {
     white-space: pre;
 }
 
-.env__equation:not(.editable) > .p_text {
+.env__equation:not(.rawtext) > .p_text {
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -372,7 +372,7 @@ button {
     padding-bottom: 5px;
 }
 
-.editable .error_footer{
+.rawtext .error_footer {
     display: none;
 }
 

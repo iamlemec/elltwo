@@ -24,7 +24,6 @@ function initEditor() {
 }
 
 function stateEditor() {
-    config.resize = true;
 }
 
 function eventEditor() {
@@ -34,7 +33,7 @@ function eventEditor() {
     });
 
     window.onresize = () => {
-        if (state.editing) {
+        if (state.rawtext) {
             let inp = state.active_para.children('.p_input');
             resize(inp[0]);
         }
@@ -75,17 +74,18 @@ function eventEditor() {
             }
         }
 
-        if (!state.editing && !meta && !ctrl) {
+        if (!state.rawtext && !meta && !ctrl) {
             if (key == '-') {
                 $('#ssv_check').click();
-            }
-            else if (!state.readonly && key == '=') { // permission to edit
+                return false;
+            } else if (!state.readonly && key == '=') { // permission to edit
                 $('#editable_check').click();
+                return false;
             }
         }
 
         // short circuit in ssv mode
-        if (state.ssv && state.edit_mode) {
+        if (state.ssv_mode && state.edit_mode) {
             if (key == 'enter') {
                 let foc_para = state.last_active || $('.para').first();
                 makeActive(foc_para);
@@ -102,7 +102,7 @@ function eventEditor() {
                 let foc_para = state.last_active || $('.para').first();
                 makeActive(foc_para);
             }
-        } else if (state.active_para && !state.editing) {
+        } else if (state.active_para && !state.rawtext) {
             if (key == 'enter') {
                 sendMakeEditable();
                 return false;
@@ -142,7 +142,7 @@ function eventEditor() {
                     sendDeletePara(state.active_para);
                 }
             }
-        } else if (state.active_para && state.editing) { // we are active and editable
+        } else if (state.active_para && state.rawtext) { // we are active and rawtext
             if (key == 'arrowup' || key == 'arrowleft') {
                 if (state.cc) { // if there is an open command completion window
                     ccNext('down');
@@ -174,8 +174,8 @@ function eventEditor() {
                 sendInsertPara(state.active_para, true);
                 return false;
             } else if ((ctrl || meta) && key in wraps) {
-                let cur = [e.target.selectionStart,e.target.selectionEnd];
-                textWrap(state.active_para,cur,wraps[key])
+                let cur = [e.target.selectionStart, e.target.selectionEnd];
+                textWrap(state.active_para, cur, wraps[key]);
                 return false;
             }
         }
@@ -192,23 +192,19 @@ function eventEditor() {
                 let para = $(this);
                 let cur = event.target.selectionStart || 'end'; // returns undefined if not a textarea
                 let act = para.hasClass('active');
-                if (state.ssv) {
+                if (state.ssv_mode) {
                     if (!act) {
                         makeActive(para);
                         sendMakeEditable(cur);
                     }
                 } else if (act) {
-                    if (state.editing) {
+                    if (state.rawtext) {
                         placeCursor(cur);
                     } else {
                         sendMakeEditable(cur);
                     }
                 } else {
-                    if (state.editing) {
-                        makeActive(para);
-                    } else if (!act) {
-                        makeActive(para);
-                    }
+                    makeActive(para);
                 }
             }
         }
@@ -333,7 +329,7 @@ function sendDeletePara(para) {
 
 // revertChange?
 
-/// para editable
+/// para rawtext
 
 function placeCursor(loc) {
     if (state.active_para && state.writeable) {
@@ -358,9 +354,9 @@ function unPlaceCursor() {
 }
 
 function trueMakeEditable(rw=true, cursor='end') {
-    state.editing = true;
-    state.active_para.addClass('editable');
-    $('#bg').addClass('editable');
+    state.rawtext = true;
+    state.active_para.addClass('rawtext');
+    $('#bg').addClass('rawtext');
 
     let text = state.active_para.children('.p_input');
     resize(text[0]);
@@ -375,7 +371,7 @@ function trueMakeEditable(rw=true, cursor='end') {
 }
 
 function sendMakeEditable(cursor='end') {
-    $('.para').removeClass('editable');
+    $('.para').removeClass('rawtext');
     $('.para').removeClass('copy_sel');
     if (state.active_para) {
         if (state.active_para.hasClass('folder')) {
@@ -396,23 +392,23 @@ function sendMakeEditable(cursor='end') {
 }
 
 function makeUnEditable(unlock=true) {
-    let para = $('.para.editable');
-    para.removeClass('editable')
+    let para = $('.para.rawtext');
+    para.removeClass('rawtext')
         .children('.p_input')
         .prop('readonly', true);
 
-    if (config.resize) {
+    if (config.ssv_mode) {
         para.css('min-height', '30px');
     }
 
-    $('#bg').removeClass('editable');
+    $('#bg').removeClass('rawtext');
     $('#content').focus();
 
     state.cc = false;
     $('#cc_pop').remove();
 
-    if (state.active_para && state.editing) {
-        state.editing = false;
+    if (state.active_para && state.rawtext) {
+        state.rawtext = false;
         if (state.writeable) {
             storeChange(state.active_para, unlock, true);
         }
@@ -441,7 +437,7 @@ function unlockParas(pids) {
     pids.forEach(function(pid) {
         let para = getPara(pid);
         para.removeClass('locked');
-        if (para.hasClass('editable')) {
+        if (para.hasClass('rawtext')) {
             makeUnEditable(false);
         }
     });

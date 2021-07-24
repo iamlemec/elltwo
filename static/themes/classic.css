@@ -128,17 +128,17 @@ button:hover {
     margin-bottom: 10px;
 }
 
-#content:not(.ssv) .env__proof:not(.editable),
-#content:not(.ssv) .env__theorem:not(.editable),
-#content:not(.ssv) .env__axiom:not(.editable),
-#content:not(.ssv) .env__definition:not(.editable) {
+#content:not(.ssv) .env__proof:not(.rawtext),
+#content:not(.ssv) .env__theorem:not(.rawtext),
+#content:not(.ssv) .env__axiom:not(.rawtext),
+#content:not(.ssv) .env__definition:not(.rawtext) {
     padding-left: 22px;
 }
 
-#content:not(.ssv) .env__proof.env_beg:not(.editable),
-#content:not(.ssv)  .env__theorem.env_beg:not(.editable),
-#content:not(.ssv) .env__axiom.env_beg:not(.editable),
-#content:not(.ssv) .env__definition.env_beg:not(.editable) {
+#content:not(.ssv) .env__proof.env_beg:not(.rawtext),
+#content:not(.ssv)  .env__theorem.env_beg:not(.rawtext),
+#content:not(.ssv) .env__axiom.env_beg:not(.rawtext),
+#content:not(.ssv) .env__definition.env_beg:not(.rawtext) {
     text-indent: -17px;
 }
 

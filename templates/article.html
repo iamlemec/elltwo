@@ -92,9 +92,9 @@ Font
 </label>
 
 {% if not readonly %}
-<span id="editable_text">{{'Editable' if edit_mode else 'Readonly'}}</span>
+<span id="editable_text">Readonly</span>
 <label class="toggle" for="editable_check" id="editable_label">
-<input type="checkbox" class="toggle__input" name="editable" id="editable_check" {% if edit_mode %}checked{% endif %}/>
+<input type="checkbox" class="toggle__input" name="editable" id="editable_check" />
 <span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
 <svg width="20" height="20">
 <use xlink:href="{{ url_for('static', filename='img/toggle_button.svg') }}#svg-check"></use>

@@ -39,7 +39,6 @@ let default_config = {
     timeout: 180, // para lock timeout
     max_size: 1024, // max image size
     readonly: true, // is session readonly
-    edit_mode: false, // editable check?
     title: null, // default article title
     aid: null, // article identifier
 };
@@ -48,11 +47,12 @@ let default_state = {
     sidebar_show: false, // is sidebar shown
     help_show: false, // is help overlay on
     hist_show: false, // is history mode on
-    editing: false, // are we focused on the active para
-    writeable: false, // can we actually modify contents
-    ssv: false, // whether we're in side-by-side view
+    ssv_mode: false, // whether we're in side-by-side mode
+    edit_mode: false, // whether we're in edit mode
     active_para: null, // current active para
     last_active: null, // to keep track of where cursor was
+    rawtext: false, // are we showing the raw textarea
+    writeable: false, // can we actually modify contents
     cc: false, // is there a command completion window open
     cb: [], // clipboard for cell copy
 };
@@ -61,7 +61,6 @@ function stateArticle() {
     stateRender();
     stateEditor();
     updateState(default_state);
-    setEditMode(config.edit_mode);
 }
 
 function cacheArticle() {
@@ -160,6 +159,10 @@ function loadArticle(args) {
         makeActive(para);
     }
 
+    // update button state
+    setSSV(false);
+    setEditMode(false);
+
     // connect events
     eventArticle();
 }
@@ -169,10 +172,8 @@ function setEditMode(ro) {
     setWriteable();
 }
 
-function setWriteable(wr) {
-    if (wr === undefined) {
-        wr = !state.readonly && !state.hist_show && state.edit_mode;
-    }
+function setWriteable() {
+    let wr = !config.readonly && !state.hist_show && state.edit_mode;
 
     state.writeable = wr;
     $('#bg').toggleClass('writeable', wr);
@@ -322,7 +323,7 @@ function eventArticle() {
         schedTimeout();
         ccRefs(view, raw, cur);
         syntaxHL(para);
-        if(state.ssv){
+        if (state.ssv_mode) {
             rawToRender(para, false, false, raw);
         }
     });
@@ -338,7 +339,7 @@ function eventArticle() {
     $(document).on('change', '#editable_check', function() {
         let check = $(this);
         let val = check.is(':checked');
-        let text = val ? 'Editable' : 'Readonly';
+        let text = val ? 'Editing' : 'Readonly';
         $('#editable_text').text(text);
         setEditMode(val);
         setCookie('edit_mode', val);
@@ -1247,23 +1248,18 @@ function ccRefs(view, raw, cur) {
 /// side by side view
 
 function setSSV(val) {
-    console.log('ssv', state.ssv);
+    console.log('ssv', state.ssv_mode);
+    state.ssv_mode = val;
+    $('#content').toggleClass('ssv', val);
     if (val) {
-        state.ssv = true;
-        config.resize = false;
-        $('#content').addClass('ssv');
         $('.para:not(.folder)').each(function() {
             syntaxHL($(this));
         });
         makeActive(null);
-    } else {
-        state.ssv = false;
-        config.resize = true;
-        $('#content').removeClass('ssv');
     }
     $('.para:not(.folded)').each(function() {
         let input = $(this).children('.p_input');
         resize(input[0]);
-        placeCursor('end');
+        // placeCursor('end');
     });
 }

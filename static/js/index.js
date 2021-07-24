@@ -37,15 +37,15 @@ let default_state = {
     sidebar_show: false, // is sidebar shown
     help_show: false, // is help overlay on
     hist_show: false, // is history mode on
-    editable: false, // are we focused on the active para
-    ssv: true, // sidebyside view for demo
-    writeable: false, // can we actually modify contents
+    ssv_mode: true, // sidebyside view for demo
     active_para: null, // current active para
     last_active: null, // to keep track of where cursor was
+    rawtext: false, // are we showing the raw textarea
+    writeable: false, // can we actually modify contents
     folded: [], // current folded pids
     cc: false, // is there a command completion window open
     cb: [], // clipboard for cell copy
-    paus: 0, //when to paus video (must be global becuase fucking passing args to callbacks, amiright?)
+    paus: 0, // when to paus video (must be global becuase fucking passing args to callbacks, amiright?)
 };
 
 let dummy_callbacks = {
@@ -183,12 +183,13 @@ function eventIndex() {
     $(document).on('click', '.para', function() {
         let para = $(this);
         let act = para.hasClass('active');
-        let edit = para.hasClass('editable');
-        if ((state.ssv && !edit) || (!state.ssv && act && !edit)) {
+        let edit = para.hasClass('rawtext');
+        let cur = event.target.selectionStart || 'end'; // returns undefined if not a textarea
+        if ((state.ssv_mode && !edit) || (!state.ssv_mode && act && !edit)) {
             makeActive(para);
-            sendMakeEditable();
+            sendMakeEditable(cur);
             return false;
-        } else if (!state.ssv && !act) {
+        } else if (!state.ssv_mode && !act) {
             makeActive(para);
         }
     });
@@ -225,9 +226,6 @@ function genExample(example) {
         syntaxHL(para);
     });
     envClasses();
-
-    let first = $('.para:not(.folder)').first();
-    makeActive(first);
 }
 
 function initExamples(examples) {
@@ -281,16 +279,15 @@ function controlVid(timeStamps) {
 }
 
 function setSSV(val) {
+    console.log('ssv', state.ssv_mode);
     if (val) {
-        state.ssv = true;
+        state.ssv_mode = true;
         config.resize = false;
         $('#content').addClass('ssv');
-        console.log('ssv', state.ssv);
     } else {
-        state.ssv = false;
+        state.ssv_mode = false;
         config.resize = true;
         $('#content').removeClass('ssv');
-        console.log('ssv', state.ssv);
     }
     $('.para:not(.folded)').each(function() {
         let input = $(this).children('.p_input');
@@ -299,7 +296,7 @@ function setSSV(val) {
     });
 }
 
-//making header smaller---mostly for testing
+// making header smaller---mostly for testing
 
 let head_callback = function (entries) {
     entries.forEach(function (entry) {
@@ -316,10 +313,8 @@ var head_options = {
 
 let obHead = new IntersectionObserver(head_callback, head_options);
 
-
-// The element to observe
+// the element to observe
 let sen = document.querySelector('#sentinal');
 
 // Attach it to the observer
 obHead.observe(sen);
-

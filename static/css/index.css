@@ -210,12 +210,12 @@
     padding-right: 5px;
 }
 
-#content:not(.ssv) > .para.editable > .p_text {
+#content:not(.ssv) > .para.rawtext > .p_text {
     display: none;
 }
 
-#content:not(.ssv) > .para.editable > .p_input,
-#content:not(.ssv) > .para.editable > .p_input_view {
+#content:not(.ssv) > .para.rawtext > .p_input,
+#content:not(.ssv) > .para.rawtext > .p_input_view {
     display: block;
 }
 
@@ -361,7 +361,7 @@ button {
     margin-top: 3px;
 }
 
-.editable > .error_footer {
+.rawtext > .error_footer {
     display: none;
 }
 

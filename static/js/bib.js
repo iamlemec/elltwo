@@ -78,8 +78,6 @@ function eventBib() {
     });
 
     $(document).on('dblclick', '.cite', function() {
-        //$('.editable').removeClass('editable');
-       //$(this).addClass('editable');
         editCite(this);
     });
 
@@ -106,16 +104,19 @@ function eventBib() {
         editCite(this, 'Create');
     });
 
+    $(document).on('click', '.update', function() {
+        editCite(this);
+    });
+
     $(document).on('click', '.delete', function() {
         let key = $(this).closest('.cite').attr('id');
         sendCommand('delete_cite', {key: key});
-        $('.editable').removeClass('editable');
     });
 
     $(document).on('click', '#create_new', function(e) {
         let cr = $('#create_wrap')
         let bi = cr.children('#bib_input')
-        bi.val(''); 
+        bi.val('');
         cr.show()
         bi.focus();
         bi[0].setSelectionRange(0, 0);
