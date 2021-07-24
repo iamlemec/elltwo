@@ -47,7 +47,6 @@ parser.add_argument('--reindex', action='store_true', help='reindex search datab
 parser.add_argument('--conf', type=str, default=None, help='path to configuation file')
 parser.add_argument('--auth', type=str, default=None, help='user authorization config')
 parser.add_argument('--mail', type=str, default=None, help='mail authorization config')
-parser.add_argument('--edit_by_default', action='store_true', help='Editing mode is default')
 args = parser.parse_args()
 
 ###
@@ -63,22 +62,24 @@ config = {
     'timeout': 180, # paragraph lock timeout in seconds
     'max_size': 1024, # max image size in kilobytes
     'max_imgs': 50, # max number of images returned in search
+    'ssv_default': False, # start articles in ssv mode
+    'edit_default': False, # start articles in edit mode
     'themes': themes, # all themes by default
     'demo_path': 'testing/howto.md', # path to demo content
 }
 
 #config to pass to templets
-HTML_config = {
+chtml = {
     'name': '<span class=latex>\\ell^2</span>',
     'tag': 'Simple Beautiful Collaborative',
 }
 
 if args.conf is not None:
     conf = toml.load(args.conf)
-    if conf['config']:
-        config |= conf['config']
-    if conf['HTML_config']:
-        HTML_config |= conf['HTML_config']
+    if 'options' in conf:
+        config |= conf['options']
+    if 'html' in conf:
+        chtml |= conf['html']
 
 # login decorator (or not)
 edit_decor = login_required if (args.login or args.private) else (lambda f: f)
@@ -143,7 +144,7 @@ def inject_dict_for_all_templates():
 @view_decor
 def Home():
     style = getStyle(request)
-    return render_template('home.html', **style, **HTML_config)
+    return render_template('home.html', **style, **chtml)
 
 @app.route('/create', methods=['POST'])
 @edit_decor
@@ -170,7 +171,7 @@ def Demo():
 @view_decor
 def Index():
     style = getStyle(request)
-    return render_template('index.html', **style, **HTML_config, login=False)
+    return render_template('index.html', **style, **chtml, login=False)
 
 ###
 ### Auth Routes
@@ -179,7 +180,7 @@ def Index():
 @app.route('/signup')
 def Signup():
     style = getStyle(request)
-    return render_template('signup.html', **style, **HTML_config)
+    return render_template('signup.html', **style, **chtml)
 
 @app.route('/login', methods=['GET', 'POST'])
 def Login():
@@ -188,7 +189,7 @@ def Login():
     else:
         next = url_for('Home')
     style = getStyle(request)
-    return render_template('login.html', next=next, **style, **HTML_config)
+    return render_template('login.html', next=next, **style, **chtml)
 
 def CreateUser():
     email = request.form.get('email')
@@ -243,7 +244,7 @@ def Resend(email):
 @app.route('/forgot', methods=['GET', 'POST'])
 def Forgot():
     style = getStyle(request)
-    return render_template('forgot.html', **style, **HTML_config)
+    return render_template('forgot.html', **style, **chtml)
 
 @app.route('/reset_email', methods=['POST'])
 def ResetEmail():
@@ -263,7 +264,7 @@ def ResetEmail():
 @app.route('/reset/<email>/<token>', methods=['GET'])
 def Reset(email, token):
     style = getStyle(request)
-    return render_template('reset.html', email=email, token=token, **style, **HTML_config)
+    return render_template('reset.html', email=email, token=token, **style, **chtml)
 
 @app.route('/reset_with_token/<token>', methods=['POST'])
 def ResetWithToken(token):
@@ -362,25 +363,22 @@ def confirm_token(token, expiration=3600):
 ### Article
 ###
 
-def GetArtData(title, edit, theme=args.theme, font='default', pid=None, em=False):
+def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
     app.logger.debug(f'article [{pid}]: {title}')
     art = edb.get_art_short(title)
     if art:
         paras = edb.get_paras(art.aid)
         return render_template(
             'article.html',
-            title=art.title,
             aid=art.aid,
-            g_ref=art.g_ref,
-            paras=paras,
+            title=art.title,
             theme=theme,
             font=font,
+            g_ref=art.g_ref,
             pid=pid,
+            paras=paras,
             readonly=not edit,
-            edit_mode=edit and em,
-            themes=config['themes'],
-            timeout=config['timeout'],
-            max_size=config['max_size'],
+            **config
         )
     else:
         flash(f'Article "{title}" does not exist.')
@@ -393,20 +391,16 @@ def ErrorPage(title='Error', message=''):
 def getStyle(request):
     return {
         'theme': request.args.get('theme') or request.cookies.get('theme') or args.theme,
-        'font': request.args.get('theme') or request.cookies.get('font') or 'default',
+        'font': request.args.get('font') or request.cookies.get('font') or 'default',
     }
-
 
 @app.route('/a/<title>', methods=['GET'])
 @view_decor
 def RenderArticle(title):
     style = getStyle(request)
     pid = request.args.get('pid')
-    em = request.cookies.get('edit_mode') == 'true'#must be a better way
-    em = em or args.edit_by_default
-    print('editmode ===', em, type(em), request.cookies.get('edit_mode'))
     if current_user.is_authenticated or not args.login:
-        return GetArtData(title, edit=True, pid=pid, em=em, **style)
+        return GetArtData(title, edit=True, pid=pid, **style)
     else:
         return redirect(url_for('RenderArticleRO', title=title))
 
@@ -434,7 +428,7 @@ def GetImage(key):
 @view_decor
 def RenderBib():
     style = getStyle(request)
-    resp = make_response(render_template('bib.html', **style, **HTML_config))
+    resp = make_response(render_template('bib.html', **style, **chtml))
     resp.headers.set('Access-Control-Allow-Origin', '*')
     return resp
 
@@ -451,7 +445,7 @@ def Img():
         max_size=config['max_size'],
         max_imgs=config['max_imgs'],
         **style,
-        **HTML_config,
+        **chtml,
     )
 
 ###

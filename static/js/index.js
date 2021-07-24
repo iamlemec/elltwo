@@ -142,7 +142,7 @@ function initIndex() {
     //constuct examples
     initExamples(examples);
     genExample('text');
-    setSSV(true);
+    setSsvMode(true);
 
     // events
     eventRender();
@@ -207,7 +207,7 @@ function eventIndex() {
         let val = check.is(':checked');
         let text = val ? 'Side-by-Side View' : 'Classic View';
         $('#ssv_text').text(text);
-        setSSV(val);
+        setSsvMode(val);
     });
 
 }
@@ -278,7 +278,7 @@ function controlVid(timeStamps) {
     features.forEach(feature => obVid.observe(feature));
 }
 
-function setSSV(val) {
+function setSsvMode(val) {
     console.log('ssv', state.ssv_mode);
     state.ssv_mode = val;
     $('#content').toggleClass('ssv', val);

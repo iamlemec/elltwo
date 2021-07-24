@@ -13,7 +13,7 @@ import {
 } from './render.js'
 import {
     insertParaRaw, insertPara, deletePara, updateRefs, toggleHistMap,
-    toggleSidebar, ccNext, ccMake, textWrap, invalidateCache
+    toggleSidebar, ccNext, ccMake, textWrap
 } from './article.js'
 import { toggleHelp } from './help.js'
 
@@ -67,9 +67,6 @@ function eventEditor() {
         } else if (key == 'f1') {
             toggleHelp();
             return false;
-        } else if (key == 'f2') {
-            invalidateCache();
-            return false;
         } else if (key == 'escape') {
             if (state.help_show) {
                 toggleHelp();
@@ -82,7 +79,7 @@ function eventEditor() {
                 $('#ssv_check').click();
                 return false;
             } else if (!state.readonly && key == '=') { // permission to edit
-                $('#editable_check').click();
+                $('#edit_check').click();
                 return false;
             }
         }
@@ -228,8 +225,9 @@ function eventEditor() {
         }
     });
 
-    $(document).on('click', '#bg', function(e) {
+    $(document).on('mouseup', '#bg', function(e) {
         let targ = event.target.id;
+        console.log('#bg::mouseup', targ);
         if (targ == 'bg' || targ == 'content') {
             makeActive(null);
             $('.para').removeClass('copy_sel');

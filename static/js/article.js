@@ -2,8 +2,7 @@
 
 export {
     loadArticle, insertParaRaw, insertPara, updatePara, updateParas, deletePara,
-    updateRefs, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs, textWrap,
-    invalidateCache
+    updateRefs, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs, textWrap
 }
 
 import {
@@ -39,6 +38,8 @@ let default_config = {
     timeout: 180, // para lock timeout
     max_size: 1024, // max image size
     readonly: true, // is session readonly
+    ssv_default: false, // start in ssv mode
+    edit_default: false, // start in edit mode
     title: null, // default article title
     aid: null, // article identifier
 };
@@ -110,7 +111,7 @@ function cacheArticle() {
             sendCommand('get_arts', {}, callback);
         } else if (key == '__bib') {
             sendCommand('get_bibs', {}, callback);
-        }else if (key == '__img') {
+        } else if (key == '__img') {
             sendCommand('get_imgs', {}, callback);
         } else {
             sendCommand('get_refs', {title: key}, callback);
@@ -159,12 +160,32 @@ function loadArticle(args) {
         makeActive(para);
     }
 
-    // update button state
-    setSSV(false);
-    setEditMode(false);
+    // update button state (persistent)
+    let ssv0 = config.ssv_default && (cooks('ssv_mode') ?? false);
+    let edit0 = config.edit_default && (cooks('edit_mode') ?? false);
 
     // connect events
     eventArticle();
+
+    // set config modes via toggles
+    $('#ssv_check').prop('checked', ssv0).change();
+    $('#edit_check').prop('checked', edit0).change();
+}
+
+function setSsvMode(val) {
+    console.log('ssv', state.ssv_mode);
+    state.ssv_mode = val;
+    $('#content').toggleClass('ssv', val);
+    if (val) {
+        $('.para:not(.folder)').each(function() {
+            syntaxHL($(this));
+        });
+        makeActive(null);
+    }
+    $('.para:not(.folded)').each(function() {
+        let input = $(this).children('.p_input');
+        resize(input[0]);
+    });
 }
 
 function setEditMode(ro) {
@@ -336,24 +357,23 @@ function eventArticle() {
         }
     });
 
-    $(document).on('change', '#editable_check', function() {
-        let check = $(this);
-        let val = check.is(':checked');
-        let text = val ? 'Editing' : 'Readonly';
-        $('#editable_text').text(text);
-        setEditMode(val);
-        setCookie('edit_mode', val);
-    });
-
     $(document).on('change', '#ssv_check', function() {
         let check = $(this);
         let val = check.is(':checked');
         let text = val ? 'Split View' : 'Classic View';
         $('#ssv_text').text(text);
-        setSSV(val);
+        setSsvMode(val);
+        setCookie('ssv_mode', val);
     });
 
-    $('#refresh').click(invalidateCache);
+    $(document).on('change', '#edit_check', function() {
+        let check = $(this);
+        let val = check.prop('checked');
+        let text = val ? 'Editing' : 'Readonly';
+        $('#edit_text').text(text);
+        setEditMode(val);
+        setCookie('edit_mode', val);
+    });
 }
 
 /// server command editing
@@ -478,15 +498,6 @@ function applyDiff(edits) {
 }
 
 /// cache management
-
-function invalidateCache() {
-    cache.ext.flush();
-    cache.link.flush();
-    cache.cite.flush();
-    cache.img.flush();
-    cache.list.flush();
-    renderRefText();
-}
 
 function invalidateRef(type, refkey) {
     console.log('invalidateRef', type, refkey);
@@ -1010,15 +1021,15 @@ function toggleHistMap() {
         $('#prog_bar').show();
         $('#ssv_text').show();
         $('#ssv_label').show();
-        $('#editable_text').show();
-        $('#editable_label').show();
+        $('#edit_text').show();
+        $('#edit_label').show();
     } else {
         launchHistMap();
         $('#prog_bar').hide();
         $('#ssv_text').hide();
         $('#ssv_label').hide();
-        $('#editable_text').hide();
-        $('#editable_label').hide();
+        $('#edit_text').hide();
+        $('#edit_label').hide();
     }
     state.hist_show = !state.hist_show;
     setWriteable();
@@ -1247,22 +1258,4 @@ function ccRefs(view, raw, cur) {
             });
         }
     }
-}
-
-/// side by side view
-
-function setSSV(val) {
-    console.log('ssv', state.ssv_mode);
-    state.ssv_mode = val;
-    $('#content').toggleClass('ssv', val);
-    if (val) {
-        $('.para:not(.folder)').each(function() {
-            syntaxHL($(this));
-        });
-        makeActive(null);
-    }
-    $('.para:not(.folded)').each(function() {
-        let input = $(this).children('.p_input');
-        resize(input[0]);
-    });
 }

@@ -895,7 +895,7 @@ circle.commit.active {
     left: 40%;
 }
 
-#editable_text {
+#edit_text {
     min-width: 60px;
     text-align: right;
 }

@@ -92,9 +92,9 @@ Font
 </label>
 
 {% if not readonly %}
-<span id="editable_text">Readonly</span>
-<label class="toggle" for="editable_check" id="editable_label">
-<input type="checkbox" class="toggle__input" name="editable" id="editable_check" />
+<span id="edit_text">Readonly</span>
+<label class="toggle" for="edit_check" id="edit_label">
+<input type="checkbox" class="toggle__input" name="edit" id="edit_check" />
 <span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
 <svg width="20" height="20">
 <use xlink:href="{{ url_for('static', filename='img/toggle_button.svg') }}#svg-check"></use>
@@ -113,10 +113,6 @@ Font
 <button id="export" class="foot_butt smallable_butt"><span id=e_text>Export</span>
 <svg>
 <use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#exp"></use>
-</svg></button>
-<button id="refresh" class="foot_butt smallable_butt"><span id=r_text>Refresh</span>
-<svg>
-<use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#ref"></use>
 </svg>
 </button>
 
@@ -134,14 +130,15 @@ import { loadArticle } from '{{ url_for('static', filename='js/article.js') }}';
 loadArticle({{
 {
     'config': {
+        'aid': aid,
+        'title': title,
         'theme': theme,
         'font': font,
         'timeout': timeout,
         'max_size': max_size,
         'readonly': readonly,
-        'edit_mode': edit_mode,
-        'title': title,
-        'aid': aid,
+        'ssv_default': ssv_default,
+        'edit_default': edit_default,
     },
     'update_refs': g_ref,
     'pid': pid,

@@ -49,12 +49,6 @@ function cacheImage() {
     });
 }
 
-function invalidateCache() {
-    cache.img.flush();
-    let query = $('#img_search').val();
-    imageQuery(query);
-}
-
 function connectImage() {
     let url = `http://${document.domain}:${location.port}`;
     connect(url, () => {
@@ -132,8 +126,6 @@ function eventImage() {
             imageQuery(query);
         }, 300);
     });
-
-    $('#refresh').click(invalidateCache);
 }
 
 // rendering
