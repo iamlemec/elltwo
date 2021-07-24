@@ -20,7 +20,7 @@ import { toggleHelp } from './help.js'
 /// initialization
 
 function initEditor() {
-    smallable_butt()
+    smallable_butt();
 }
 
 function stateEditor() {
@@ -38,7 +38,7 @@ function eventEditor() {
             let inp = state.active_para.children('.p_input');
             resize(inp[0]);
         }
-        smallable_butt()
+        smallable_butt();
     };
 
     // keyboard interface
@@ -74,6 +74,7 @@ function eventEditor() {
                 return false;
             }
         }
+
         if (!state.editing && !meta && !ctrl) {
             if (key == '-') {
                 $('#ssv_check').click();
@@ -83,13 +84,26 @@ function eventEditor() {
             }
         }
 
+        // short circuit in ssv mode
+        if (state.ssv && state.edit_mode) {
+            if (key == 'enter') {
+                let foc_para = state.last_active || $('.para').first();
+                makeActive(foc_para);
+                sendMakeEditable('begin');
+                return false;
+            } else if (key == 'escape') {
+                makeActive(null);
+                return false;
+            }
+        }
+
         if (!state.active_para) { // if we are inactive
             if (key == 'enter') {
                 let foc_para = state.last_active || $('.para').first();
                 makeActive(foc_para);
             }
         } else if (state.active_para && !state.editing) {
-            if (key == 'enter' || key == 'w') {
+            if (key == 'enter') {
                 sendMakeEditable();
                 return false;
             } else if (key == 'arrowup') {
@@ -177,17 +191,22 @@ function eventEditor() {
             if (alt) {
                 let para = $(this);
                 let cur = event.target.selectionStart || 'end'; // returns undefined if not a textarea
-                if (para.attr('pid') == state.active_para?.attr('pid')) {
+                let act = para.hasClass('active');
+                if (state.ssv) {
+                    if (!act) {
+                        makeActive(para);
+                        sendMakeEditable(cur);
+                    }
+                } else if (act) {
                     if (state.editing) {
-                        placeCursor(cur)
+                        placeCursor(cur);
                     } else {
                         sendMakeEditable(cur);
                     }
                 } else {
                     if (state.editing) {
                         makeActive(para);
-                        sendMakeEditable(cur);
-                    } else if (!para.hasClass('active')) {
+                    } else if (!act) {
                         makeActive(para);
                     }
                 }
@@ -624,14 +643,14 @@ function unfold() {
 }
 
 function smallable_butt() {
-        let small = ($(window).width() < 1000)
-        let r_text = small ? '' : "Refresh"
-        let r_tit = small ? 'Refresh' : ""
-        let e_text = small ? '' : "Export"
-        let e_tit = small ? 'Export' : ""
-        let h_text = small ? '' : "History"
-        let h_tit = small ? 'History' : ""
-        $('#r_text').text(r_text).parent().attr('title',r_tit);
-        $('#e_text').text(e_text).parent().attr('title',e_tit);
-        $('#h_text').text(h_text).parent().attr('title',h_tit);
+    let small = $(window).width() < 1000;
+    let r_text = small ? '' : 'Refresh';
+    let r_tit = small ? 'Refresh' : '';
+    let e_text = small ? '' : 'Export';
+    let e_tit = small ? 'Export' : '';
+    let h_text = small ? '' : 'History';
+    let h_tit = small ? 'History' : '';
+    $('#r_text').text(r_text).parent().attr('title', r_tit);
+    $('#e_text').text(e_text).parent().attr('title', e_tit);
+    $('#h_text').text(h_text).parent().attr('title', h_tit);
 }

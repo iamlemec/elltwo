@@ -615,10 +615,11 @@ def set_blurb(data):
 @view_decor
 def search_title(data):
     results = edb.search_title(data)
-    res  = [{'url': 'a/' + art.short_title,
+    return [{
+        'url': f'a/{art.short_title}',
         'title': art.title,
-        'blurb': art.blurb} for art in results]
-    return res
+        'blurb': art.blurb
+    } for art in results]
 
 @socketio.on('search_text')
 @view_decor

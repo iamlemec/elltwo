@@ -39,7 +39,7 @@ let default_config = {
     timeout: 180, // para lock timeout
     max_size: 1024, // max image size
     readonly: true, // is session readonly
-    edit_mode: false, //editable check?
+    edit_mode: false, // editable check?
     title: null, // default article title
     aid: null, // article identifier
 };
@@ -50,7 +50,7 @@ let default_state = {
     hist_show: false, // is history mode on
     editing: false, // are we focused on the active para
     writeable: false, // can we actually modify contents
-    ssv: false,
+    ssv: false, // whether we're in side-by-side view
     active_para: null, // current active para
     last_active: null, // to keep track of where cursor was
     cc: false, // is there a command completion window open
@@ -1247,6 +1247,7 @@ function ccRefs(view, raw, cur) {
 /// side by side view
 
 function setSSV(val) {
+    console.log('ssv', state.ssv);
     if (val) {
         state.ssv = true;
         config.resize = false;
@@ -1254,12 +1255,11 @@ function setSSV(val) {
         $('.para:not(.folder)').each(function() {
             syntaxHL($(this));
         });
-        console.log('ssv', state.ssv);
+        makeActive(null);
     } else {
         state.ssv = false;
         config.resize = true;
         $('#content').removeClass('ssv');
-        console.log('ssv', state.ssv);
     }
     $('.para:not(.folded)').each(function() {
         let input = $(this).children('.p_input');
