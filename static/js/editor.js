@@ -90,12 +90,12 @@ function eventEditor() {
         // short circuit in ssv mode
         if (state.ssv_mode) {
             if (state.edit_mode) {
-                if (key == 'enter') {
+                if (!state.active_para && key == 'enter') {
                     let foc_para = state.last_active || $('.para').first();
                     makeActive(foc_para);
                     sendMakeEditable('begin');
                     return false;
-                } else if (key == 'escape') {
+                } else if (state.active_para && key == 'escape') {
                     makeActive(null);
                     return false;
                 }
@@ -415,7 +415,7 @@ function makeUnEditable(unlock=true) {
         .children('.p_input')
         .prop('readonly', true);
 
-    if (config.ssv_mode) {
+    if (!state.ssv_mode) {
         para.css('min-height', '30px');
     }
 

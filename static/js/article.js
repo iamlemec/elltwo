@@ -1264,6 +1264,5 @@ function setSSV(val) {
     $('.para:not(.folded)').each(function() {
         let input = $(this).children('.p_input');
         resize(input[0]);
-        // placeCursor('end');
     });
 }

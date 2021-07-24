@@ -280,19 +280,11 @@ function controlVid(timeStamps) {
 
 function setSSV(val) {
     console.log('ssv', state.ssv_mode);
-    if (val) {
-        state.ssv_mode = true;
-        config.resize = false;
-        $('#content').addClass('ssv');
-    } else {
-        state.ssv_mode = false;
-        config.resize = true;
-        $('#content').removeClass('ssv');
-    }
+    state.ssv_mode = val;
+    $('#content').toggleClass('ssv', val);
     $('.para:not(.folded)').each(function() {
         let input = $(this).children('.p_input');
         resize(input[0]);
-        placeCursor('end');
     });
 }
 
@@ -316,5 +308,5 @@ let obHead = new IntersectionObserver(head_callback, head_options);
 // the element to observe
 let sen = document.querySelector('#sentinal');
 
-// Attach it to the observer
+// attach it to the observer
 obHead.observe(sen);
