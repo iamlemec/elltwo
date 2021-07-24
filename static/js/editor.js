@@ -74,7 +74,7 @@ function eventEditor() {
             }
         }
 
-        if (!state.rawtext && !meta && !ctrl) {
+        if (!(state.rawtext && state.writeable) && !meta && !ctrl) {
             if (key == '-') {
                 $('#ssv_check').click();
                 return false;
@@ -85,15 +85,21 @@ function eventEditor() {
         }
 
         // short circuit in ssv mode
-        if (state.ssv_mode && state.edit_mode) {
-            if (key == 'enter') {
-                let foc_para = state.last_active || $('.para').first();
-                makeActive(foc_para);
-                sendMakeEditable('begin');
-                return false;
-            } else if (key == 'escape') {
-                makeActive(null);
-                return false;
+        if (state.ssv_mode) {
+            if (state.edit_mode) {
+                if (key == 'enter') {
+                    let foc_para = state.last_active || $('.para').first();
+                    makeActive(foc_para);
+                    sendMakeEditable('begin');
+                    return false;
+                } else if (key == 'escape') {
+                    makeActive(null);
+                    return false;
+                }
+            } else {
+                if (key == 'enter') {
+                    return false;
+                }
             }
         }
 
