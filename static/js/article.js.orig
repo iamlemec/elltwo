@@ -160,9 +160,16 @@ function loadArticle(args) {
         makeActive(para);
     }
 
+<<<<<<< HEAD
+    // update button state
+    setSSV(false);
+    let val = $('#editable_check').is(':checked');
+    setEditMode(val);
+=======
     // update button state (persistent)
-    let ssv0 = config.ssv_default || (cooks('ssv_mode') ?? false);
-    let edit0 = config.edit_default || (cooks('edit_mode') ?? false);
+    let ssv0 = config.ssv_default && (cooks('ssv_mode') ?? false);
+    let edit0 = config.edit_default && (cooks('edit_mode') ?? false);
+>>>>>>> 27de5fd2786da5e17c237e2709faecb700e2f2cd
 
     // connect events
     eventArticle();

@@ -1,0 +1,155 @@
+{% extends "elltwo.html" %}
+
+{% block head %}
+
+{{ super() }}
+
+<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
+
+<script src="{{ url_for('static', filename='libs/socket.io.min.js') }}" type="text/javascript"></script>
+{% endblock %}
+
+{% block title %}{{title}}{% endblock %}
+
+{% block header %}
+
+<div id="head">
+<span id="logo"></span>
+</div>
+
+<div id="sidebar">
+<div id="sidebar_inner">
+
+<div class="options">
+
+<div class="option">
+Theme
+<select id="theme_select" name="theme_select" class="sources" placeholder="default">
+    {% for t in themes %}
+    <option value="{{t}}">{{t}}</option>
+    {% endfor %}
+</select>
+</div>
+
+<div class="option">
+Font
+<select id="font_select" name="font_select" class="sources" placeholder="default">
+    <option value="default">default</option>
+    <option value="serif">serif</option>
+    <option value="sans-serif">sans</option>
+    <option value="monospace">mono</option>
+    <option value="sim">simpson</option>
+</select>
+</div>
+
+</div>
+
+<div id="sb_links">
+
+<div id="sb_links_title">Helpful Links</div>
+<a href={{ url_for('RenderBib') }} target="_blank">Bibliography</a>
+<a href={{ url_for('RenderArticle', title='howto')}} target="_blank">Documentation</a>
+<a href={{ url_for('Img')}} target="_blank">Image Lib</a>
+
+</div>
+
+<div id="toc_title">Contents</div>
+<div id=toc_wrap><div id="toc"></div></div>
+
+</div>
+</div>
+
+<div id="help">
+<div id="help_inner"></div>
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+{% for p in paras %}
+<div class="para" pid="{{p.pid}}" raw="{{p.text}}" fold_level="0"></div>
+{% endfor%}
+<div id="bib_block"><div class="bib_heading">References</div></div>
+
+{% endblock %}
+
+{% block foot %}
+
+<div id="prog_bar"></div>
+<div id="hist"></div>
+
+<span class="push"></span>
+
+<span id="ssv_text">Classic View</span>
+<label class="toggle" for="ssv_check" id="ssv_label">
+<input type="checkbox" class="toggle__input" name="ssv" id="ssv_check"/>
+<span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
+<svg width="20" height="20">
+<use xlink:href="{{ url_for('static', filename='img/toggle_button.svg') }}#svg-check"></use>
+</svg>
+</span></span></span>
+</label>
+
+{% if not readonly %}
+<<<<<<< HEAD
+<span id="editable_text">{{'Edit Mode' if edit_mode else 'Readonly'}}</span>
+<label class="toggle" for="editable_check" id="editable_label">
+<input type="checkbox" class="toggle__input" name="editable" id="editable_check" {% if edit_mode %}checked{%endif%}/>
+=======
+<span id="edit_text">Readonly</span>
+<label class="toggle" for="edit_check" id="edit_label">
+<input type="checkbox" class="toggle__input" name="edit" id="edit_check" />
+>>>>>>> 27de5fd2786da5e17c237e2709faecb700e2f2cd
+<span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
+<svg width="20" height="20">
+<use xlink:href="{{ url_for('static', filename='img/toggle_button.svg') }}#svg-check"></use>
+</svg>
+</span></span></span>
+</label>
+
+<button id="revert_hist" class="foot_butt">Revert</button>
+{% endif %}
+
+<button id="show_hist" class="foot_butt smallable_butt"><span id=h_text>History</span>
+<svg>
+<use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#hist"></use>
+</svg>
+</button>
+<button id="export" class="foot_butt smallable_butt"><span id=e_text>Export</span>
+<svg>
+<use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#exp"></use>
+</svg>
+</button>
+
+<div id="export_options" class="box">
+<button id="export_tex" class="export_butt">TeX</button>
+<button id="export_md" class="export_butt">MarkDown</button>
+</div>
+
+{% endblock %}
+
+{% block init %}
+
+<script type="module">
+import { loadArticle } from '{{ url_for('static', filename='js/article.js') }}';
+loadArticle({{
+{
+    'config': {
+        'aid': aid,
+        'title': title,
+        'theme': theme,
+        'font': font,
+        'timeout': timeout,
+        'max_size': max_size,
+        'readonly': readonly,
+        'ssv_default': ssv_default,
+        'edit_default': edit_default,
+    },
+    'update_refs': g_ref,
+    'pid': pid,
+} | tojson
+}});
+</script>
+<script src="{{ url_for('static', filename='libs/d3.v5.min.js') }}" type="text/javascript"></script>
+{% endblock %}

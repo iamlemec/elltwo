@@ -213,9 +213,7 @@ function eventEditor() {
                         sendMakeEditable(cur);
                     }
                 } else if (act) {
-                    if (state.rawtext) {
-                        placeCursor(cur);
-                    } else {
+                    if (!state.rawtext) {
                         sendMakeEditable(cur);
                     }
                 } else {

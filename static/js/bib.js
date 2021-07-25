@@ -59,6 +59,7 @@ function eventBib() {
             $('#search').hide();
             $('#query').removeClass('search');
             $('#local_search').removeClass('search');
+            $('.cite').show();
         }
         $('#query').attr('placeholder', ph)
     });
@@ -69,6 +70,7 @@ function eventBib() {
         $('.nr').remove();
         $('#search_results').show();
         getCiteData(q);
+        return false;
     });
 
     $(document).on('click', '#xsr', function() {
@@ -79,6 +81,7 @@ function eventBib() {
 
     $(document).on('dblclick', '.cite', function() {
         editCite(this);
+        return false;
     });
 
     $(document).on('click', '.citekey', function(e) {
@@ -91,11 +94,9 @@ function eventBib() {
         let targ = $(e.target);
         let clk_cr = (targ.closest('#create_wrap').length == 0);
         let clk_cn = (targ.closest('#create_new').length == 0);
-        let clk_cite = (targ.closest('.cite').length == 0);
+        let clk_cite = (targ.closest('#search_results').length == 0);
         if (clk_cn && clk_cr && clk_cite) {
             $('#create_wrap').hide();
-            console.log(targ)
-        } else if (clk_cite) {
             $('#search_results').hide();
         }
     });
@@ -140,7 +141,7 @@ function eventBib() {
             $('#search_results').hide()
         } else if (key=='enter' && web_s){
             $('#search').click();
-        } else if (real || (key == 'backspace') || (key == 'delete') || andriod_is_fucking_stupid) {
+        } else if (!web_s && (real || (key == 'backspace') || (key == 'delete') || andriod_is_fucking_stupid)) {
             clearTimeout(state.timeout);
             state.timeout = setTimeout(runQuery, 200);
         };
