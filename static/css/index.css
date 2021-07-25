@@ -42,18 +42,18 @@
     font-size: 250%;
 }
 
-#content {
+.container {
     padding-top: 80px;
     width: 100%;
     min-height: 500px;
     background-color: var(--bg-col);
 }
 
-#content.ssv {
+.container.ssv {
     background: linear-gradient(to right, var(--bg-col) 0%,var(--bg-col) 50%,var(--bg-hl-col) 50%,var(--bg-hl-col) 100%);
 }
 
-#content:after {
+.container:after {
     height: 0;
 }
 
@@ -156,7 +156,7 @@
 
 /* classic view paras */
 
-#content:not(.ssv) .para {
+.container:not(.ssv) .para {
     position: relative;
     left: 23%;
     width: 54%;
@@ -169,17 +169,17 @@
     border-right: 2px solid var(--bg-col);
 }
 
-#content:not(.ssv) .para.active {
+.container:not(.ssv) .para.active {
     border-left: 2px solid var(--hl-col);
 }
 
-#content:not(.ssv) .p_text {
+.container:not(.ssv) .p_text {
     /* cursor: pointer; */
     line-height: 1.5;
     text-align: justify;
 }
 
-#content:not(.ssv) .p_input {
+.container:not(.ssv) .p_input {
     white-space: pre-wrap;
     position: absolute;
     width: 100%;
@@ -197,7 +197,7 @@
 
 }
 
-#content:not(.ssv) .p_input_view {
+.container:not(.ssv) .p_input_view {
     position: absolute;
     white-space: pre-wrap;
     width: 100%;
@@ -210,18 +210,18 @@
     padding-right: 5px;
 }
 
-#content:not(.ssv) > .para.rawtext > .p_text {
+.container:not(.ssv) > .para.rawtext > .p_text {
     display: none;
 }
 
-#content:not(.ssv) > .para.rawtext > .p_input,
-#content:not(.ssv) > .para.rawtext > .p_input_view {
+.container:not(.ssv) > .para.rawtext > .p_input,
+.container:not(.ssv) > .para.rawtext > .p_input_view {
     display: block;
 }
 
 /* side-by-side view paras */
 
-#content.ssv .para {
+.container.ssv .para {
     position: relative;
     left: 10%;
     width: 80%;
@@ -230,12 +230,12 @@
     margin-bottom: 20px;
 }
 
-#content.ssv .para.active {
+.container.ssv .para.active {
     background-color: rgba(0,0,0,0);
     border: none;
 }
 
-#content.ssv .para.active .p_input_view {
+.container.ssv .para.active .p_input_view {
     background-color: rgba(0,0,0,.08)
 }
 
@@ -245,7 +245,7 @@
 }
 */
 
-#content.ssv .p_text {
+.container.ssv .p_text {
     /* cursor: pointer; */
     line-height: 20px;
     text-align: justify;
@@ -255,7 +255,7 @@
     min-height: 50px;
 }
 
-#content.ssv .p_input {
+.container.ssv .p_input {
     white-space: pre-wrap;
     position: absolute;
     top: 0;
@@ -274,7 +274,7 @@
     line-height: 20px;
 }
 
-#content.ssv .p_input_view {
+.container.ssv .p_input_view {
     position: absolute;
     white-space: pre-wrap;
     top: 0;
@@ -372,8 +372,8 @@ button {
     white-space: pre;
 }
 
-#content.ssv > .env__equation > .p_text,
-#content:not(.ssv) > .env__equation > .p_text {
+.container.ssv > .env__equation > .p_text,
+.container:not(.ssv) > .env__equation > .p_text {
     display: flex;
     align-items: center;
     justify-content: flex-start;

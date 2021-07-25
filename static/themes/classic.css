@@ -82,15 +82,15 @@ button:hover {
 
 /* paras */
 
-#content.ssv.sb_content {
+.container.ssv.sb_content {
     background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 58%,var(--bg-hl2-col) 51%,var(--bg-hl2-col) 100%);
 }
 
-#content.ssv {
+.container.ssv {
     background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 47.5%,var(--bg-hl2-col) 42%,var(--bg-hl2-col) 100%);
 }
 
-#content.ssv .p_input_view {
+.container.ssv .p_input_view {
     background-color: rgba(255, 255, 255, .3);
 }
 
@@ -128,17 +128,17 @@ button:hover {
     margin-bottom: 10px;
 }
 
-#content:not(.ssv) .env__proof:not(.rawtext),
-#content:not(.ssv) .env__theorem:not(.rawtext),
-#content:not(.ssv) .env__axiom:not(.rawtext),
-#content:not(.ssv) .env__definition:not(.rawtext) {
+.container:not(.ssv) .env__proof:not(.rawtext),
+.container:not(.ssv) .env__theorem:not(.rawtext),
+.container:not(.ssv) .env__axiom:not(.rawtext),
+.container:not(.ssv) .env__definition:not(.rawtext) {
     padding-left: 22px;
 }
 
-#content:not(.ssv) .env__proof.env_beg:not(.rawtext),
-#content:not(.ssv)  .env__theorem.env_beg:not(.rawtext),
-#content:not(.ssv) .env__axiom.env_beg:not(.rawtext),
-#content:not(.ssv) .env__definition.env_beg:not(.rawtext) {
+.container:not(.ssv) .env__proof.env_beg:not(.rawtext),
+.container:not(.ssv)  .env__theorem.env_beg:not(.rawtext),
+.container:not(.ssv) .env__axiom.env_beg:not(.rawtext),
+.container:not(.ssv) .env__definition.env_beg:not(.rawtext) {
     text-indent: -17px;
 }
 

@@ -63,7 +63,7 @@ textarea:focus, input:focus {
     background-color: var(--bg-col)
 }
 
-#content, #preview {
+.container {
     overflow-y: scroll;
     scrollbar-width: none;
     height: 100%;
@@ -72,7 +72,7 @@ textarea:focus, input:focus {
     padding-top: 100px;
 }
 
-#content:focus {
+.container:focus {
     outline: 0;
 }
 
@@ -85,7 +85,7 @@ textarea:focus, input:focus {
 }
 
 /* css is so fucking dumb */
-#content:after, #preview:after {
+.container:after {
     content: "";
     display: block;
     height: 150px;
@@ -123,20 +123,19 @@ a.reference {
    width: 120px;
 }
 
-
 .foot_butt {
     display: inline;
     font-size: 90%;
     margin-left: 5px;
     margin-right: 5px;
     top: 0;
-    padding-bottom: 3px; 
+    padding-bottom: 3px;
     max-width: 90px;
     margin-bottom: 2px;
     line-height: 17px;
 }
 
-.foot_butt svg{ 
+.foot_butt svg{
     height: 18px;
     width: 18px;
     transform: translateY(4px);
@@ -279,9 +278,9 @@ a.reference {
     width: 70px;
 }
 
-    .smallable_butt{
-        width: 40px;
-    }
+.smallable_butt {
+    width: 40px;
+}
 
 #bg {
     position: fixed;
@@ -290,7 +289,7 @@ a.reference {
     background-color: var(--bg-col);
 }
 
-#content, #preview {
+.container {
     overflow-y: scroll;
     scrollbar-width: none;
     height: 100%;
@@ -303,19 +302,19 @@ a.reference {
 }
 
 #locallogin {
-    width:90%;
+    width: 90%;
 }
 
  #locallogin:after {
     left: 60px;
 }
 
-   .toggle-track {
+.toggle-track {
 	margin-right: 5px;
     margin-left: 5px;
 }
-    
-.smallable_butt svg{
+
+.smallable_butt svg {
     margin-left: 0px;
 }
 

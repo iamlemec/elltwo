@@ -108,16 +108,16 @@ button:hover {
     border-left: .25px solid var(--bg-col);
 }
 
-#content:not(.ssv) .para.active {
+.container:not(.ssv) .para.active {
    box-shadow: -2px 0px 0px 0px var(--bor-col);
    background-color: var(--pop-fg-col);
 }
 
-#content.ssv .para.active {
+.container.ssv .para.active {
       box-shadow: -2px 0px 0px 0px var(--bor-col);
 }
 
-#content.ssv .p_input {
+.container.ssv .p_input {
     caret-color: var(--hl2-col);
 }
 
@@ -149,16 +149,16 @@ button:hover {
     margin-top: 40px;
 }
 
-#content.ssv .para{
+.container.ssv .para{
     border-left: none;
     border-right: none;
 }
 
 
-#content:not(.ssv) .env__proof,
-#content:not(.ssv) .env__theorem,
-#content:not(.ssv) .env__axiom,
-#content:not(.ssv) .env__definition {
+.container:not(.ssv) .env__proof,
+.container:not(.ssv) .env__theorem,
+.container:not(.ssv) .env__axiom,
+.container:not(.ssv) .env__definition {
     padding-top: 2px;
     padding-bottom: 4px;
     border-left: .25px;

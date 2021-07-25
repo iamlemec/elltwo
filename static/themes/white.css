@@ -105,7 +105,7 @@ button:hover {
     border-bottom: 1px solid black;
 }
 
-#content:not(.ssv) .para.active {
+.container:not(.ssv) .para.active {
     box-shadow: -4px 0px var(--hl-col);
 }
 
@@ -118,7 +118,7 @@ button:hover {
 }
 
 .para.hl_change {
-    border-right: 2px solid var(--font-col-int);
+    box-shadow: 4px 0px var(--font-col-int);
 }
 
 .para.copy_sel {
