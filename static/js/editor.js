@@ -48,11 +48,13 @@ function eventEditor() {
         let meta = e.metaKey;
         let shift = e.shiftKey;
 
+        /*
         let wraps = {'i': ['*','*'],
                      'b': ['**','**'],
                      'm': ['$','$'],
                      '`': ['`','`'],
-                     'n': ['^[', ']']}
+                     'n': ['^[', ']']};
+        */
 
         if (ctrl && key == 'enter') {
             toggleHistMap();
@@ -85,6 +87,7 @@ function eventEditor() {
         }
 
         // short circuit in ssv mode
+        /*
         if (state.ssv_mode) {
             if (state.edit_mode) {
                 if (!state.active_para && key == 'enter') {
@@ -101,7 +104,20 @@ function eventEditor() {
                     return false;
                 }
             }
+            if (state.writeable) { // if we are active but not in edit mode
+                if (ctrl && key == 'a') {
+                    sendInsertPara(state.active_para, false);
+                    return false;
+                } else if (ctrl && key == 'b') {
+                    sendInsertPara(state.active_para, true);
+                    return false;
+                } else if (ctrl && shift && key == 'd') {
+                    sendDeletePara(state.active_para);
+                    return false;
+                }
+            }
         }
+        */
 
         if (!state.active_para) { // if we are inactive
             if (key == 'enter') {
@@ -145,13 +161,13 @@ function eventEditor() {
                 return false;
             }
             if (state.writeable) { // if we are active but not in edit mode
-                if (key == 'a') {
+                if (ctrl && key == 'a') {
                     sendInsertPara(state.active_para, false);
                     return false;
-                } else if (key == 'b') {
+                } else if (ctrl && key == 'b') {
                     sendInsertPara(state.active_para, true);
                     return false;
-                } else if (shift && key == 'd') {
+                } else if (ctrl && shift && key == 'd') {
                     sendDeletePara(state.active_para);
                     return false;
                 }
@@ -188,11 +204,14 @@ function eventEditor() {
                 makeUnEditable();
                 sendInsertPara(state.active_para, true);
                 return false;
+            }
+            /*
             } else if ((ctrl || meta) && key in wraps) {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
                 textWrap(state.active_para, cur, wraps[key]);
                 return false;
             }
+            */
         }
     });
 
@@ -225,7 +244,6 @@ function eventEditor() {
 
     $(document).on('mouseup', '#bg', function(e) {
         let targ = event.target.id;
-        console.log('#bg::mouseup', targ);
         if (targ == 'bg' || targ == 'content') {
             makeActive(null);
             $('.para').removeClass('copy_sel');

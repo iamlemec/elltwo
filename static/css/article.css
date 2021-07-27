@@ -98,7 +98,7 @@
 }
 
 .container.ssv .para.active .p_input_view {
-    box-shadow: -2px 0px var(--bor-col);
+    box-shadow: -2px 0px var(--hl-col);
     background-color: rgba(0, 0, 0, 0.05);
 }
 
@@ -157,7 +157,7 @@
     left: 180px;
 }
 
-#bg.writeable .para.rawtext > .control {
+#bg.writeable .para.active > .control {
     display: block;
 }
 

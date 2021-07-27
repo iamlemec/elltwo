@@ -180,7 +180,6 @@ function setSsvMode(val) {
         $('.para:not(.folder)').each(function() {
             syntaxHL($(this));
         });
-        makeActive(null);
     }
     $('.para:not(.folded)').each(function() {
         let input = $(this).children('.p_input');

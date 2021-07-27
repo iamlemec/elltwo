@@ -109,12 +109,12 @@ button:hover {
 }
 
 .container:not(.ssv) .para.active {
-   box-shadow: -2px 0px 0px 0px var(--bor-col);
-   background-color: var(--pop-fg-col);
+    box-shadow: -2px 0px 0px 0px var(--bor-col);
+    background-color: var(--pop-fg-col);
 }
 
-.container.ssv .para.active {
-      box-shadow: -2px 0px 0px 0px var(--bor-col);
+.container.ssv .para.active > .p_input_view {
+    box-shadow: -2px 0px 0px 0px var(--bor-col);
 }
 
 .container.ssv .p_input {

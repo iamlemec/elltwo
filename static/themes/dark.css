@@ -138,10 +138,6 @@ button:hover {
     box-shadow: -2px 0px 0px 0px var(--hl2-col);
 }
 
-.container.ssv .para.active {
-    box-shadow: -2px 0px 0px 0px var(--hl2-col);
-}
-
 .para.changed {
        box-shadow: 2px 0px 0px 0px var(--hl-col);
 
