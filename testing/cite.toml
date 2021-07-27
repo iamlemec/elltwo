@@ -1,12 +1,35 @@
 [morgenstern1953theory]
 entry_type = "book"
-title = "Theory of games and economic behavior"
+title = "Theory of Games and Economic Behavior"
 author = "Morgenstern, Oskar and Von Neumann, John"
 year = "1953"
-publisher = "Princeton university press"
+publisher = "Princeton University Press"
 raw = """@book{morgenstern1953theory,
-  title={Theory of games and economic behavior},
+  title={Theory of Games and Economic Behavior},
   author={Morgenstern, Oskar and Von Neumann, John},
   year={1953},
-  publisher={Princeton university press}
+  publisher={Princeton University Press}
+}"""
+
+[morris2001political]
+entry_type = "article"
+title = "Political Correctness"
+author = "Morris, Stephen"
+journal = "Journal of Political Economy"
+volume = "109"
+number = "2"
+pages = "231--265"
+year = "2001"
+publisher = "The University of Chicago Press"
+DOI = "10.1086/319554"
+raw = """@article{morris2001political,
+  title={Political correctness},
+  author={Morris, Stephen},
+  journal={Journal of political Economy},
+  volume={109},
+  number={2},
+  pages={231--265},
+  year={2001},
+  publisher={The University of Chicago Press},
+  DOI={10.1086/319554}
 }"""

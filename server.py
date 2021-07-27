@@ -610,8 +610,7 @@ def set_blurb(data):
 def search_title(data):
     results = edb.search_title(data)
     return [{
-        'url': f'a/{art.short_title}',
-        'title': art.title,
+        'short': art.short_title,
         'blurb': art.blurb
     } for art in results]
 
@@ -622,11 +621,11 @@ def search_text(data):
 
     aids = set(par.aid for par in results)
     titles = edb.get_art_titles(aids)
+    app.logger.debug(titles)
 
     return [{
         'pid': par.pid,
-        'title': titles[par.aid]['title'],
-        'url': titles[par.aid]['url'],
+        'short': titles[par.aid],
         'raw': par.text
     } for par in results]
 
@@ -698,7 +697,7 @@ def get_refs(data):
 @socketio.on('get_arts')
 @view_decor
 def get_arts(data):
-    return edb.get_art_titles()
+    return [s for s in edb.get_art_titles().values()]
 
 @socketio.on('update_ref')
 @edit_decor

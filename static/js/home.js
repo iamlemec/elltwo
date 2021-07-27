@@ -87,11 +87,11 @@ function searchTitle(query, last_url) {
         if (nres > 0) {
             for (let idx in response) {
                 let art = response[idx];
-                let url = `${art.url}`;
-                let title = art.title;
-                let btext = art.blurb || art.title;
+                let short = art.short;
+                let url = `a/${short}`;
+                let btext = art.blurb || short;
                 let art_div = $('<a>', {class: 'result art_link', href: url});
-                let art_title = $('<div>', {class: 'blurb_name', text: title});
+                let art_title = $('<div>', {class: 'blurb_name', text: short});
                 let art_blurb = $('<div>', {class: 'blurb', html: btext});
                 art_div.append([art_title, art_blurb]);
                 $('#results').append(art_div);
@@ -119,8 +119,8 @@ function searchText(query, last_pid) {
             for (let idx in response) {
                 let par = response[idx];
                 let pid = par.pid;
-                let title = par.title;
-                let url = `a/${par.url}?pid=${pid}`;
+                let short = par.short;
+                let url = `a/${short}?pid=${pid}`;
                 let raw = par.raw;
                 query.split(' ').forEach(q => {
                     if (q.length > 0) {
@@ -130,7 +130,7 @@ function searchText(query, last_pid) {
                 });
                 let art_div = $('<a>', {class: 'result par_link', href: url, pid: pid});
                 let art_blurb = $('<div>', {class: 'par_text', html: raw});
-                let art_title = $('<div>', {class: 'blurb_name', text: title});
+                let art_title = $('<div>', {class: 'blurb_name', text: short});
                 art_div.append([art_title, art_blurb]);
                 $('#results').append(art_div);
             }
