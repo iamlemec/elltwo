@@ -298,7 +298,7 @@ function storeChange(para, unlock=true) {
         // false in case of timeout (unlocked on server)
         if (unlock) {
             let pid = para.attr('pid');
-            sendUnlockPara([pid]);
+            sendUnlockPara(pid);
         }
     }
 }
@@ -396,10 +396,10 @@ function trueMakeEditable(rw=true, cursor='end') {
     if (rw) {
         text.prop('readonly', false);
         placeCursor(cursor);
+        schedTimeout();
     }
 
     syntaxHL(state.active_para);
-    schedTimeout();
 }
 
 function sendMakeEditable(cursor='end') {
@@ -413,9 +413,7 @@ function sendMakeEditable(cursor='end') {
             let pid = state.active_para.attr('pid');
             let data = {pid: pid, aid: config.aid};
             sendCommand('lock', data, function(response) {
-                if (response) {
-                    trueMakeEditable(true, cursor);
-                };
+                trueMakeEditable(response, cursor);
             });
         } else {
             trueMakeEditable(false);
@@ -457,8 +455,8 @@ function lockParas(pids) {
     });
 }
 
-function sendUnlockPara(pids) {
-    let data = {aid: config.aid, pids: pids};
+function sendUnlockPara(pid) {
+    let data = {aid: config.aid, pid: pid};
     sendCommand('unlock', data, function(response) {
         // console.log(response);
     });

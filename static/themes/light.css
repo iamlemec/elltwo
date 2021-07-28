@@ -149,12 +149,6 @@ button:hover {
     margin-top: 40px;
 }
 
-.container.ssv .para{
-    border-left: none;
-    border-right: none;
-}
-
-
 .container:not(.ssv) .env__proof,
 .container:not(.ssv) .env__theorem,
 .container:not(.ssv) .env__axiom,

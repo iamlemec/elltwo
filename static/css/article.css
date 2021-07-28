@@ -13,6 +13,7 @@
     padding-left: 5px;
     padding-right: 5px;
     max-width: 800px !important;
+    border-right: 2px solid rgba(0, 0, 0, 0);
 }
 
 .container.sb_content .para {
@@ -87,6 +88,7 @@
     min-height: 50px;
     margin-bottom: 20px;
     padding-left: 5px;
+    border-right: 2px solid rgba(0, 0, 0, 0);
 }
 
 .container.ssv.sb_content .para {
@@ -113,6 +115,7 @@
     width: 100%;
     display: inline-block;
     margin-left: 0%;
+    padding-right: 5px;
     min-height: 50px;
     line-height: 25px;
 }
@@ -679,13 +682,32 @@ button {
     padding-left: 40px;
 }
 
-.locked:after {
-    content: '\1F512';
+/* para locking */
+
+.para .lock_icon {
+    display: none;
     position: absolute;
-    width: 15%;
-    left:90%;
+    padding: 5px;
     top: 0%;
-    text-align: right;
+    left: 100%;
+    width: 25px;
+    font-size: 14px;
+    background-color: var(--hl2-col);
+    border-radius: 0px 3px 3px 0px;
+}
+
+.para .lock_icon:before {
+    content: '\1F512';
+}
+
+.para.locked .lock_icon {
+    display: block;
+}
+
+.container .para.locked {
+    /* background-color: var(--bg-hl-col); */
+    border-right: 2px solid var(--hl2-col);
+    opacity: 0.6;
 }
 
 /* drop down */
@@ -711,7 +733,7 @@ button {
 }
 
 .custom-select {
-    position: relative;
+    position: relative;box\-shadow: \-1px 0px var\(\-\-hl\-col\);
     display: inline-block;
 }
 

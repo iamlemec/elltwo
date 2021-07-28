@@ -150,6 +150,7 @@ const innerPara = `
 <button class="delete">Delete</button>
 </div>
 </div>
+<div class="lock_icon"></div>
 `;
 
 function barePara(pid, raw='') {
@@ -263,6 +264,7 @@ function rawToTextarea(para) {
     var textArea = para.children('.p_input');
     var raw = para.attr('raw');
     textArea.val(raw);
+    syntaxHL(para);
 }
 
 ///////////////// ENVS /////////

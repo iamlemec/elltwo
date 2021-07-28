@@ -748,7 +748,7 @@ locked = Multimap()
 def locked_by_sid(sid):
     return roomed.loc(sid), locked.get(sid)
 
-def trueUnlock(aid, pids):
+def trueUnlock(aid, pids, sid):
     said, spids = str(aid), [str(p) for p in pids]
     rpids = [p for p in spids if locked.pop(p) is not None]
     if len(rpids) > 0:
@@ -772,8 +772,12 @@ def lock(data):
 @socketio.on('unlock')
 @edit_decor
 def unlock(data):
-    aid, pids = data['aid'], data['pids']
-    trueUnlock(aid, pids)
+    sid = request.sid # unique client id
+    aid, pid = data['aid'], data['pid']
+    said, spid = str(aid), str(pid)
+    if locked.loc(spid) == sid:
+        locked.pop(spid)
+        socketio.emit('unlock', [spid], room=said)
 
 @socketio.on('timeout')
 @view_decor
@@ -781,8 +785,10 @@ def timeout(data):
     sid = request.sid
     app.logger.debug(f'timeout: {sid}')
     aid, pids = locked_by_sid(sid)
-    if len(pids) > 0:
-        trueUnlock(aid, pids)
+    said, spids = str(aid), [str(p) for p in pids]
+    rpids = [p for p in spids if locked.pop(p) is not None]
+    if len(rpids) > 0:
+        socketio.emit('unlock', rpids, room=said)
 
 ###
 ### image handling
