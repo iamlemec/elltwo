@@ -547,29 +547,30 @@ function activeLastPara() {
 function editShift(dir='up') {
     let top, bot;
     if (state.writeable) {
-        let input = state.active_para.children('.p_input')[0];
-        let cpos = input.selectionStart;
-        let tlen = input.value.length;
-        top = (cpos == 0);
-        bot = (cpos == tlen);
+        let input = state.active_para.children('.p_input');
+        if (input.prop('readonly')) {
+            top = true;
+            bot = true;
+        } else {
+            let cpos = input[0].selectionStart;
+            let tlen = input[0].value.length;
+            top = (cpos == 0);
+            bot = (cpos == tlen);
+        }
     } else {
         top = true;
         bot = true;
     }
 
-    if (dir == 'up') {
-        if (top) {
-            if (activePrevPara()) {
-                sendMakeEditable('end');
-                return false;
-            }
+    if (top && dir == 'up') {
+        if (activePrevPara()) {
+            sendMakeEditable('end');
+            return false;
         }
-    } else if (dir == 'down') {
-        if (bot) {
-            if (activeNextPara()) {
-                sendMakeEditable('begin');
-                return false;
-            }
+    } else if (bot && dir == 'down') {
+        if (activeNextPara()) {
+            sendMakeEditable('begin');
+            return false;
         }
     }
 }

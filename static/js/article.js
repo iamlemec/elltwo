@@ -176,14 +176,12 @@ function setSsvMode(val) {
     console.log('ssv', state.ssv_mode);
     state.ssv_mode = val;
     $('#content').toggleClass('ssv', val);
-    if (val) {
-        $('.para:not(.folder)').each(function() {
-            syntaxHL($(this));
-        });
-    }
     $('.para:not(.folded)').each(function() {
-        let input = $(this).children('.p_input');
+        let para = $(this);
+        let input = para.children('.p_input');
+        syntaxHL(para);
         resize(input[0]);
+        placeCursor('end');
     });
 }
 
