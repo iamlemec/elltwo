@@ -2,7 +2,8 @@
 
 export {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
-    unlockParas, sendMakeEditable, sendUpdatePara, placeCursor, fold
+    unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
+    fold
 }
 
 import { config, state, cache } from './state.js'
@@ -48,11 +49,13 @@ function eventEditor() {
         let meta = e.metaKey;
         let shift = e.shiftKey;
 
+        /*
         let wraps = {'i': ['*','*'],
                      'b': ['**','**'],
                      'm': ['$','$'],
                      '`': ['`','`'],
-                     'n': ['^[', ']']}
+                     'n': ['^[', ']']};
+        */
 
         if (ctrl && key == 'enter') {
             toggleHistMap();
@@ -85,6 +88,7 @@ function eventEditor() {
         }
 
         // short circuit in ssv mode
+        /*
         if (state.ssv_mode) {
             if (state.edit_mode) {
                 if (!state.active_para && key == 'enter') {
@@ -101,7 +105,20 @@ function eventEditor() {
                     return false;
                 }
             }
+            if (state.writeable) { // if we are active but not in edit mode
+                if (ctrl && key == 'a') {
+                    sendInsertPara(state.active_para, false);
+                    return false;
+                } else if (ctrl && key == 'b') {
+                    sendInsertPara(state.active_para, true);
+                    return false;
+                } else if (ctrl && shift && key == 'd') {
+                    sendDeletePara(state.active_para);
+                    return false;
+                }
+            }
         }
+        */
 
         if (!state.active_para) { // if we are inactive
             if (key == 'enter') {
@@ -145,13 +162,13 @@ function eventEditor() {
                 return false;
             }
             if (state.writeable) { // if we are active but not in edit mode
-                if (key == 'a') {
+                if (ctrl && key == 'a') {
                     sendInsertPara(state.active_para, false);
                     return false;
-                } else if (key == 'b') {
+                } else if (ctrl && key == 'b') {
                     sendInsertPara(state.active_para, true);
                     return false;
-                } else if (shift && key == 'd') {
+                } else if (ctrl && shift && key == 'd') {
                     sendDeletePara(state.active_para);
                     return false;
                 }
@@ -188,11 +205,14 @@ function eventEditor() {
                 makeUnEditable();
                 sendInsertPara(state.active_para, true);
                 return false;
+            }
+            /*
             } else if ((ctrl || meta) && key in wraps) {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
                 textWrap(state.active_para, cur, wraps[key]);
                 return false;
             }
+            */
         }
     });
 
@@ -225,7 +245,6 @@ function eventEditor() {
 
     $(document).on('mouseup', '#bg', function(e) {
         let targ = event.target.id;
-        console.log('#bg::mouseup', targ);
         if (targ == 'bg' || targ == 'content') {
             makeActive(null);
             $('.para').removeClass('copy_sel');
@@ -280,7 +299,7 @@ function storeChange(para, unlock=true) {
         // false in case of timeout (unlocked on server)
         if (unlock) {
             let pid = para.attr('pid');
-            sendUnlockPara([pid]);
+            sendUnlockPara(pid);
         }
     }
 }
@@ -378,10 +397,10 @@ function trueMakeEditable(rw=true, cursor='end') {
     if (rw) {
         text.prop('readonly', false);
         placeCursor(cursor);
+        schedTimeout();
     }
 
     syntaxHL(state.active_para);
-    schedTimeout();
 }
 
 function sendMakeEditable(cursor='end') {
@@ -395,9 +414,7 @@ function sendMakeEditable(cursor='end') {
             let pid = state.active_para.attr('pid');
             let data = {pid: pid, aid: config.aid};
             sendCommand('lock', data, function(response) {
-                if (response) {
-                    trueMakeEditable(true, cursor);
-                };
+                trueMakeEditable(response, cursor);
             });
         } else {
             trueMakeEditable(false);
@@ -424,7 +441,7 @@ function makeUnEditable(unlock=true) {
     if (state.active_para && state.rawtext) {
         state.rawtext = false;
         if (state.writeable) {
-            storeChange(state.active_para, unlock, true);
+            storeChange(state.active_para, unlock);
         }
     }
 }
@@ -439,8 +456,8 @@ function lockParas(pids) {
     });
 }
 
-function sendUnlockPara(pids) {
-    let data = {aid: config.aid, pids: pids};
+function sendUnlockPara(pid) {
+    let data = {aid: config.aid, pid: pid};
     sendCommand('unlock', data, function(response) {
         // console.log(response);
     });
@@ -448,11 +465,12 @@ function sendUnlockPara(pids) {
 
 function unlockParas(pids) {
     console.log('unlockParas');
+    let act = state.active_para?.attr('pid');
     pids.forEach(function(pid) {
         let para = getPara(pid);
         para.removeClass('locked');
-        if (para.hasClass('rawtext')) {
-            makeUnEditable(false);
+        if (pid == act && state.rawtext) {
+            sendMakeEditable();
         }
     });
 }
@@ -529,29 +547,30 @@ function activeLastPara() {
 function editShift(dir='up') {
     let top, bot;
     if (state.writeable) {
-        let input = state.active_para.children('.p_input')[0];
-        let cpos = input.selectionStart;
-        let tlen = input.value.length;
-        top = (cpos == 0);
-        bot = (cpos == tlen);
+        let input = state.active_para.children('.p_input');
+        if (input.prop('readonly')) {
+            top = true;
+            bot = true;
+        } else {
+            let cpos = input[0].selectionStart;
+            let tlen = input[0].value.length;
+            top = (cpos == 0);
+            bot = (cpos == tlen);
+        }
     } else {
         top = true;
         bot = true;
     }
 
-    if (dir == 'up') {
-        if (top) {
-            if (activePrevPara()) {
-                sendMakeEditable('end');
-                return false;
-            }
+    if (top && dir == 'up') {
+        if (activePrevPara()) {
+            sendMakeEditable('end');
+            return false;
         }
-    } else if (dir == 'down') {
-        if (bot) {
-            if (activeNextPara()) {
-                sendMakeEditable('begin');
-                return false;
-            }
+    } else if (bot && dir == 'down') {
+        if (activeNextPara()) {
+            sendMakeEditable('begin');
+            return false;
         }
     }
 }

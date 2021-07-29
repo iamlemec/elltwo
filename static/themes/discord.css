@@ -125,6 +125,10 @@ button:hover {
     background-color: var(--bg-hl-col);
 }
 
+.container:not(.ssv) .para.active {
+    box-shadow: -2px 0px var(--hl-col);
+}
+
 .para.changed {
    box-shadow: 1px 0px 0px 0px var(--hl-col);
 }

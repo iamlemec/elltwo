@@ -369,12 +369,14 @@ class ElltwoDB:
         if time is None:
             time = datetime.utcnow()
 
-        if aids is None:
-            query = self.session.query(Article).filter(arttime(time))
-            return [art.short_title for art in query.all()]
-        else:
-            query = self.session.query(Article).filter(Article.aid.in_(aids)).filter(arttime(time))
-            return {art.aid: {'title': art.title, 'url': art.short_title} for art in query.all()}
+        query = self.session.query(Article)
+        if aids is not None:
+            query = query.filter(Article.aid.in_(aids))
+        query = query.filter(arttime(time))
+
+        return {
+            art.aid: art.short_title for art in query.all()
+        }
 
     def get_arts(self, time=None, all=False):
         if time is None:

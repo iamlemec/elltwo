@@ -93,24 +93,22 @@ button:hover {
 }
 
 #logo_placeholder {
-/*    border-bottom: 1px dashed black;*/
+    /* border-bottom: 1px dashed black; */
 }
 
 ::-moz-placeholder { /* Firefox 19+ */
-  color: var(--col) !important
+    color: var(--col) !important
 }
 
 ::-webkit-input-placeholder {
-   color: var(--col) !important
+    color: var(--col) !important
 }
 
-.toc_entry{
- color: var(--font-col);
+.toc_entry {
+    color: var(--font-col);
 }
 
 /* paras */
-
-
 
 .para {
     max-width: 1000px !important;
@@ -121,48 +119,40 @@ button:hover {
 }
 
 .container.ssv.sb_content {
-     background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 58%,var(--pop-fg-col) 51%,var(--pop-fg-col) 100%); */
+    background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 58%,var(--pop-fg-col) 51%,var(--pop-fg-col) 100%); */
 }
 
 .container:not(.ssv) .para.active {
-   box-shadow: -1px 0px 0px 0px var(--hl2-col);
-   background-color: var(--pop-fg-col);
+    box-shadow: -1px 0px 0px 0px var(--hl2-col);
+    background-color: var(--pop-fg-col);
 }
 
 .container.ssv .p_input_view {
     background-color: var(--bg-col)
 }
 
-
 .container.ssv .para.active .p_input_view {
     box-shadow: -2px 0px 0px 0px var(--hl2-col);
 }
 
-.container.ssv .para.active {
-    box-shadow: -2px 0px 0px 0px var(--hl2-col);
-}
-
 .para.changed {
-       box-shadow: 2px 0px 0px 0px var(--hl-col);
-
+    box-shadow: 2px 0px 0px 0px var(--hl-col);
 }
 
 .para.hl_change {
-     box-shadow: 1px 0px 0px 0px var(--hl-col);
-
+    box-shadow: 1px 0px 0px 0px var(--hl-col);
 }
 
-
-.para.copy_sel{
+.para.copy_sel {
     background-color: var(--pop-fg-col);
 }
 
 /* text elements */
 
 .footnote > .num {
-  color: var(--hl-col);
-  font-size: 70%;
-  vertical-align: super;
+    color: var(--hl-col);
+    font-size: 70%;
+    vertical-align: super;
 }
 
 .env__heading_h1 {
@@ -171,11 +161,6 @@ button:hover {
 
 .env__heading_h2 {
     margin-top: 40px;
-}
-
-.container.ssv .para {
-    border-left: none;
-    border-right: none;
 }
 
 .container:not(.ssv) .env__proof,

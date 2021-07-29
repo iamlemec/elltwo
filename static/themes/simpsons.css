@@ -69,7 +69,6 @@ button:hover {
 }
 
 .para.active {
-    box-shadow: -4px 0px var(--hl-col) !important;
     background-color: var(--bg-hl-col);
 }
 
