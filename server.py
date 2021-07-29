@@ -464,7 +464,7 @@ def socket_disconnect():
     app.logger.debug(f'disconnect: {sid}')
     aid, pids = locked_by_sid(sid)
     if len(pids) > 0:
-        trueUnlock(aid, pids)
+        trueUnlock(aid, pids, sid)
     roomed.pop(sid)
     emit('status', 'disconnected')
 
@@ -472,11 +472,11 @@ def socket_disconnect():
 def room_join(data):
     sid = request.sid
     app.logger.debug(f'join_room: {sid}')
-    room = str(data['room'])
-    join_room(room)
-    roomed.add(room, sid)
+    said = str(data['room'])
+    join_room(said)
+    roomed.add(said, sid)
     if data.get('get_locked', False):
-        return sum([locked.get(s) for s in roomed.get(room)], [])
+        return locked_by_aid(said)
 
 @socketio.on('track_ref')
 def track_ref(data):
@@ -499,11 +499,16 @@ def track_ref(data):
 @socketio.on('update_para')
 @edit_decor
 def update_para(data):
+    sid = request.sid
     aid, pid, text = data['aid'], data['pid'], data['text']
-    edb.update_para(pid, text)
-    emit('updatePara', [pid, text], room=str(aid), include_self=False)
-    trueUnlock(aid, [pid])
-    return True
+    said, spid = str(aid), str(pid)
+    if locked.loc(spid) == sid:
+        edb.update_para(pid, text)
+        emit('updatePara', [pid, text], room=str(aid), include_self=False)
+        trueUnlock(aid, [pid], sid)
+        return True
+    else:
+        return False
 
 @socketio.on('insert_para')
 @edit_decor
@@ -560,17 +565,29 @@ def get_history(data):
 @edit_decor
 def revert_history(data):
     aid, date = data['aid'], data['date']
-    app.logger.debug(f'revert_history: {aid} {date}')
+    said = str(aid)
+    app.logger.debug(f'revert_history: {said} {date}')
+
+    # check for any locked paras
+    if len(pids := locked_by_aid(said)) > 0:
+        app.logger.debug(f'not reverting due to locked paras: {pids}')
+        return False
+
+    # compute and apply differential
     diff = edb.diff_article(aid, date)
     edb.revert_article(aid, diff=diff)
     order = order_links(diff['link_add'])
+
+    # send edits to clients
     edits = {
         'para_add': diff['para_add'],
         'para_del': diff['para_del'],
         'para_upd': diff['para_upd'],
         'position': order,
     }
-    emit('applyDiff', edits, room=str(aid))
+    emit('applyDiff', edits, room=said)
+
+    # indicated success
     return True
 
 ###
@@ -742,8 +759,11 @@ def get_link(data):
 ###
 
 # store as strings to avoid confusion
-roomed = Multimap()
-locked = Multimap()
+roomed = Multimap() # aid <-> [sid]
+locked = Multimap() # sid <-> [pid]
+
+def locked_by_aid(aid):
+    return sum([locked.get(s) for s in roomed.get(aid)], [])
 
 def locked_by_sid(sid):
     return roomed.loc(sid), locked.get(sid)
