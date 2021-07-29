@@ -142,7 +142,8 @@ function initIndex() {
     //constuct examples
     initExamples(examples);
     genExample('text');
-    setSsvMode(true);
+    //noSSV for mobile
+    setSsvMode(!config.mobile);
 
     // events
     eventRender();

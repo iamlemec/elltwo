@@ -62,10 +62,10 @@ config = {
     'timeout': 180, # paragraph lock timeout in seconds
     'max_size': 1024, # max image size in kilobytes
     'max_imgs': 50, # max number of images returned in search
-    'ssv_default': False, # start articles in ssv mode
-    'edit_default': False, # start articles in edit mode
+    'ssv_persistent': True, # start articles in ssv mode
+    'edit_persistent': True, # start articles in edit mode
     'themes': themes, # all themes by default
-    'demo_path': 'testing/howto.md', # path to demo content
+    'demo_path': 'testing/demo.md', # path to demo content
 }
 
 #config to pass to templets
@@ -164,7 +164,7 @@ def Demo():
     art_name = f'demo_{hash_tag}'
     with open(config['demo_path']) as fid:
         demo_mark = fid.read()
-    edb.import_markdown(art_name, demo_mark)
+    edb.import_markdown(art_name, demo_mark, index=False,)
     return redirect(url_for('RenderArticle', title=art_name))
 
 @app.route('/index')

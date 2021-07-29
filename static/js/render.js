@@ -145,8 +145,8 @@ const innerPara = `
 <div class="control">
 <div class="controlDots">&#9776;</div>
 <div class="controlButs">
-<button class="before">Before</button>
-<button class="after">After</button>
+<button class="before">Above</button>
+<button class="after">Below</button>
 <button class="delete">Delete</button>
 </div>
 </div>

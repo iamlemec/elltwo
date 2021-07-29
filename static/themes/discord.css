@@ -386,3 +386,7 @@ a.result {
     stroke: white;
     fill: white;
 }
+
+.header_link{
+    border-color: var(--hl-col) !important;
+}

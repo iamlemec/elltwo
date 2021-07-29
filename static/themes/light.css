@@ -105,7 +105,6 @@ button:hover {
 
 .para {
     max-width: 1000px !important;
-    border-left: .25px solid var(--bg-col);
 }
 
 .container:not(.ssv) .para.active {
@@ -122,11 +121,11 @@ button:hover {
 }
 
 .para.changed {
-    border-right: 2px solid var(--hl-col);
+    box-shadow: 2px 0px 0px 0px var(--hl-col);
 }
 
 .para.hl_change {
-    border-right: 2px solid var(--hl-col);
+    box-shadow: 2px 0px 0px 0px var(--hl-col);
 }
 
 .para.copy_sel{
@@ -149,10 +148,6 @@ button:hover {
     margin-top: 40px;
 }
 
-.container.ssv .para{
-    border-left: none;
-    border-right: none;
-}
 
 
 .container:not(.ssv) .env__proof,
@@ -161,8 +156,6 @@ button:hover {
 .container:not(.ssv) .env__definition {
     padding-top: 2px;
     padding-bottom: 4px;
-    border-left: .25px;
-    border-right: .25px;
 }
 
 
@@ -170,15 +163,15 @@ button:hover {
 .env__theorem.env_beg,
 .env__axiom.env_beg,
 .env__definition.env_beg {
-    border-top: .25px solid;
+    border-top: .5px solid;
 }
 
 .env__proof.env_end,
 .env__theorem.env_end,
 .env__axiom.env_end,
 .env__definition.env_end {
-    border-bottom: .25px solid !important;
-    margin-bottom: 20px !important;
+    border-bottom: .5px solid;
+    margin-bottom: 20px;
 }
 
 .env__proof,

@@ -48,7 +48,7 @@ Font
 
 <div id="sb_links_title">Helpful Links</div>
 <a href={{ url_for('RenderBib') }} target="_blank">Bibliography</a>
-<a href={{ url_for('RenderArticle', title='howto')}} target="_blank">Documentation</a>
+<a href={{ url_for('RenderArticleRO', title='howto')}} target="_blank">Documentation</a>
 <a href={{ url_for('Img')}} target="_blank">Image Lib</a>
 
 </div>
@@ -137,8 +137,8 @@ loadArticle({{
         'timeout': timeout,
         'max_size': max_size,
         'readonly': readonly,
-        'ssv_default': ssv_default,
-        'edit_default': edit_default,
+        'ssv_persistent': ssv_persistent,
+        'edit_persistent': edit_persistent,
     },
     'update_refs': g_ref,
     'pid': pid,
