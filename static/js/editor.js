@@ -2,7 +2,8 @@
 
 export {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
-    unlockParas, sendMakeEditable, sendUpdatePara, placeCursor, fold
+    unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
+    fold
 }
 
 import { config, state, cache } from './state.js'
@@ -440,7 +441,7 @@ function makeUnEditable(unlock=true) {
     if (state.active_para && state.rawtext) {
         state.rawtext = false;
         if (state.writeable) {
-            storeChange(state.active_para, unlock, true);
+            storeChange(state.active_para, unlock);
         }
     }
 }
@@ -464,11 +465,12 @@ function sendUnlockPara(pid) {
 
 function unlockParas(pids) {
     console.log('unlockParas');
+    let act = state.active_para?.attr('pid');
     pids.forEach(function(pid) {
         let para = getPara(pid);
         para.removeClass('locked');
-        if (para.hasClass('rawtext')) {
-            makeUnEditable(false);
+        if (pid == act && state.rawtext) {
+            sendMakeEditable();
         }
     });
 }

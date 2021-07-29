@@ -20,7 +20,7 @@ import {
 } from './render.js'
 import {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
-    unlockParas, sendMakeEditable, sendUpdatePara, placeCursor
+    unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor
 } from './editor.js'
 import { connectDrops, promptUpload, uploadImage, makeImageBlob } from './drop.js'
 import { initExport } from './export.js'
@@ -195,17 +195,21 @@ function setEditMode(ro) {
 function setWriteable() {
     let wr = !config.readonly && !state.hist_show && state.edit_mode;
 
+    let wr_old = state.writeable;
     state.writeable = wr;
     $('#bg').toggleClass('writeable', wr);
 
-    if (state.active_para) {
-        let text = state.active_para.children('.p_input');
-        text.prop('readonly', !wr);
-        if (wr) {
+    if (state.rawtext) {
+        if (wr && !wr_old) {
+            sendMakeEditable();
+        } else if (!wr && wr_old) {
+            let para = state.active_para;
+            let text = para.children('.p_input');
+            text.prop('readonly', false);
             placeCursor('end');
+            storeChange(para);
         }
-    }
-}
+    }}
 
 function connectServer() {
     let url = `http://${document.domain}:${location.port}`;
