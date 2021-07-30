@@ -148,6 +148,11 @@ button:hover {
     margin-top: 40px;
 }
 
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> 2bcfaf7f6bff6c8f9e2804eef6cad3dc37a8d90d
 .container:not(.ssv) .env__proof,
 .container:not(.ssv) .env__theorem,
 .container:not(.ssv) .env__axiom,

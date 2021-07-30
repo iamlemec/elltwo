@@ -16,6 +16,50 @@
 {% block header %}
 
 <div id="sentinal"></div>
+
+
+<div id=header_links>
+
+<a href=http://www.github.com>    
+<div id=github class=header_link>
+    <svg>
+    <use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#github"></use>
+    </svg>
+    <div class=header_link_text>GitHub</div>
+</div>
+</a>
+
+<a href=http://www.github.com>    
+<div id=github class=header_link>
+    <svg>
+    <use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#exp"></use>
+    </svg>
+    <div class=header_link_text>Download</div>
+</div>
+</a>
+
+<div id=push></div>
+
+<a href={{url_for("Demo")}}>    
+<div id=github class=header_link>
+    <svg>
+    <use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#demo"></use>
+    </svg>
+    <div class=header_link_text>Live Demo</div>
+</div>
+</a>
+
+<a href={{ url_for('RenderArticleRO', title='howto')}}>    
+<div id=github class=header_link>
+    <svg>
+    <use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#documentation"></use>
+    </svg>
+    <div class=header_link_text>Documentation</div>
+</div>
+</a>
+
+</div>
+
 <div id=head_block>
 <div id="prompt">
 <span id="title">
@@ -89,7 +133,44 @@
 </div>
 
 <div id=about>
-    blah blah
+
+<div class=about_block>
+<div class="about_icon">
+<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#network"></use></svg>  
+</div>
+<div class="about_text">
+elltwo is a python/javascript application that can be run locally or over the internet. It is ideal for small scale wiki's with lots of technical/mathematical content, writing collaborative textbooks or lecture notes, and fast (but lightweight) TeX-like formatting. Articles can be accessed/shared via URLs or exported as .tex or .md files.
+</div>
+</div>
+    
+<div class=about_block>
+<div class="about_icon">
+<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#lock"></use></svg>  
+</div>
+<div class="about_text">
+Projects can be fully ungated (wiki-like decentralized editing), require a login to edit (for public viewing; e.g., lecture notes) or require a login to view (completely private mode).
+</div>
+</div>
+
+<div class=about_block>
+<div class="about_icon">
+<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#idea"></use></svg>  
+</div>
+<div class="about_text">
+elltwo features intelligent referencing, tex macros, syntax highlighting, command completion, image and figure handling, bibliographic web search/import, integrated version control, full text indexing and search, and more.
+</div>
+</div>
+
+<div class=about_block>
+<div class="about_icon">
+<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#buddies"></use></svg>  
+</div>
+<div class="about_text">
+elltwo was a lockdown project of <a href=https://doughanley.com/>Doug Hanley</a> and <a href=https://evanpiermont.github.io>Evan Piermont</a>. It is named after Ellsworth Avenue in Pittsburgh.
+</div>
+</div>
+
+
 </div>
 {% endblock %}
 
