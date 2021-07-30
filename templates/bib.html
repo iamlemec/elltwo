@@ -17,19 +17,8 @@
 <span id=title>{{name|safe}} Bibliography</span>
 </div>
 
-<input type="text" autocomplete="off" autofocus="autofocus" name="query" id="query" placeholder="Search existing references" />
-<button id="search">Search</button>
-
-
-<label class="toggle" for="local_search_check" id="local_search">
-Web Search
-<input type="checkbox" class="toggle__input" name="local_search" id="local_search_check"/>
-<span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
-<svg width="20" height="20">
-<use xlink:href="{{ url_for('static', filename='img/toggle_button.svg') }}#svg-check"></use>
-</svg>
-</span></span></span>
-</label>
+<input type="text" autocomplete="off" autofocus="autofocus" name="query" id="query" placeholder="Filter existing references or search the web" />
+<button id="search">Web Search</button>
 {% endblock %}
 
 {% block content %}

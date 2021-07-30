@@ -119,12 +119,20 @@ function eventImage() {
         }
     });
 
-    $(document).on('keyup', '#img_search', function(e) {
+    $(document).on('keyup', '#query', function(e) {
         clearTimeout(state.timeout);
         state.timeout = setTimeout(function() {
-            let query = $('#img_search').val();
+            let query = $('#query').val();
             imageQuery(query);
         }, 300);
+    });
+
+    $(document).on('keydown', 'input#key', function(e) {
+        let key = e.key.toLowerCase()
+        let illegal = /[^a-zA-Z\d\_\-]/;
+        if(illegal.test(key)){
+            return false;
+        };
     });
 }
 
@@ -186,9 +194,11 @@ function hideDisplay() {
 
 function wordSearch(img, list) {
     let value = 0;
+    console.log(img)
     let target = img[0] + img[1];
     list.forEach(word => {
       value = value + target.includes(word);
     });
     return value;
 };
+

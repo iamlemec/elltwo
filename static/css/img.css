@@ -1,23 +1,27 @@
 @import 'home.css';
 
-#img_search {
-    position: fixed;
-    width: 49%;
-    left: 20%;
-    min-height: 40px;
-    font-size: 130%;
-    top: 20%;
-    background-color: var(--bg-hl-col);
+#prompt{
+  position: relative;
+  width: 100%;
+  min-height: 50px;
+  top: 4%;
+  text-align: center;
 }
 
-#img_submit {
-    position: fixed;
-    width: 10%;
-    right: 20%;
-    min-height: 40px;
-    font-size: 130%;
-    top: 20%;
+#title {
+   font-size: 200%;
 }
+
+#query {
+    position: fixed;
+    min-height: 40px;
+    left: 20%;
+    bottom: 65%;
+    width: 60%;
+    font-size: 90%;
+    transform: translateY(-80px);
+}
+
 
 #img_results_outer {
     position: fixed;
@@ -90,9 +94,9 @@ img {
     display: none;
     position: fixed;
     background-color: gray;
-    height: 85%;
+    height: 88%;
     width: 60%;
-    top: 5%;
+    top: 3%;
     left: 20%;
 }
 
@@ -122,7 +126,7 @@ img {
 .keywordtitle {
     position: absolute;
     width: 15%;
-    padding-top: 5spx;
+    padding-top: 10px;
     padding-right: 6px;
     left: 0%;
     text-align: right;

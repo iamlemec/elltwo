@@ -12,17 +12,15 @@
 
 {% block title %}Img{% endblock %}
 
-{% block header %}{% endblock %}
-
-{% block content %}
-
+{% block header %}
 <div id="prompt">
 <span id="title">{{name|safe}} Image Library </span>
 </div>
 
-<input type="text" autocomplete="off" autofocus="autofocus" name="img_search" id="img_search" placeholder="Search existing images">
-<button class="submit" id="img_submit">Search</button>
+<input type="text" autocomplete="off" autofocus="autofocus" name="img_search" id="query" placeholder="Filter existing images" />
+{% endblock %}
 
+{% block content %}
 <div id="img_results_outer">
     <div id="img_results">
         <div id="dropzone" class="img_cont dropzone">Drop Image or Click to Upload</div>

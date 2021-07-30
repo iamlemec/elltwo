@@ -48,22 +48,6 @@ function eventBib() {
         }
     });
 
-    $(document).on('change', '#local_search_check', function() {
-        let web = $(this).is(':checked');
-        let ph = web ? 'Search the web for references' : 'Search existing references'
-        if(web){
-            $('#search').show();
-            $('#query').addClass('search');
-            $('#local_search').addClass('search');
-        } else {
-            $('#search').hide();
-            $('#query').removeClass('search');
-            $('#local_search').removeClass('search');
-            $('.cite').show();
-        }
-        $('#query').attr('placeholder', ph)
-    });
-
     $(document).on('click', '#search', function() {
         let q = $('#query').val();
         $('#search_results').find('.cite').remove();
@@ -98,15 +82,18 @@ function eventBib() {
         if (clk_cn && clk_cr && clk_cite) {
             $('#create_wrap').hide();
             $('#search_results').hide();
+            return false;
         }
     });
 
     $(document).on('click', '#search_results > .cite', function() {
         editCite(this, 'Create');
+        return false;
     });
 
     $(document).on('click', '.update', function() {
         editCite(this);
+        return false;
     });
 
     $(document).on('click', '.delete', function() {
@@ -127,7 +114,7 @@ function eventBib() {
         let key = e.key.toLowerCase();
         let ctrl = e.ctrlKey;
         let meta = e.metaKey;
-        let web_s = $('#local_search_check').is(':checked');
+        let web_s = $('#query').is(":focus");
         let real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
         let andriod_is_fucking_stupid = e.keyCode == 229;
         if(!meta && !ctrl && key == '=') {
@@ -141,7 +128,7 @@ function eventBib() {
             $('#search_results').hide()
         } else if (key=='enter' && web_s){
             $('#search').click();
-        } else if (!web_s && (real || (key == 'backspace') || (key == 'delete') || andriod_is_fucking_stupid)) {
+        } else if ((real || (key == 'backspace') || (key == 'delete') || andriod_is_fucking_stupid)) {
             clearTimeout(state.timeout);
             state.timeout = setTimeout(runQuery, 200);
         };
@@ -150,16 +137,17 @@ function eventBib() {
 
 function runQuery() {
     let query = $('#query').val();
+    $('.cite').removeClass('dull');
     $('.hl').contents().unwrap();
     if (query.length > 2) {
         let bibs = $('.cite').toArray();
         let terms = query.toLowerCase().split(' ');
         let bib_sel = bibs.filter(bib => wordSearch(bib, terms) == 0);
         $(bib_sel).each(function(){
-            $(this).hide();
+            $(this).addClass('dull')
         })
     } else {
-        $('.cite').show();
+        $('.cite').removeClass('dull');
     };
 };
 
@@ -215,6 +203,10 @@ function generateJson(src) {
         }
     }
 }
+
+function clearQuery() {
+    $('#query').val('');
+};
 
 /// editing
 
@@ -348,4 +340,5 @@ function editCite(el, text='Update') {
     $('#search_results').hide();
     $('#create').text(text);
     $('#create_wrap').show()
+    clearQuery()
 }

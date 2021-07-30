@@ -14,44 +14,14 @@
     min-height: 40px;
     left: 20%;
     bottom: 65%;
-    width: 60%;
+    width: 49%;
     font-size: 70%;
     transform: translateY(-80px);
-}
-
-#query.search{
-    width: 49%;
-}
-
-#local_search.search{
-right: 30%;
-}
-
-#local_search {
-    position: fixed;
-    right: 20%;
-    bottom: 65%;
-    height: 30px;
-    font-size: 70%;
-    transform: translateY(-84px);
-
-}
-
-.toggle-track {
-	height: 25px;
-	width: 51px;
-}
-
-.toggle-indicator {
-	border-radius: 20px;
-	height: 20px;
-	width: 20px;
 }
 
 
 #search {
     position: fixed;
-    display: none;
     height: 40px;
     font-size: 70%;
     right: 20%;
@@ -132,7 +102,8 @@ right: 30%;
     height: 55%;
     overflow: scroll;
     scrollbar-width: none;
-
+    display: flex;
+    flex-direction: column;
 }
 
 #search_results {
@@ -163,6 +134,24 @@ right: 30%;
     width: 100%;
     text-align: center;
     color: var(--hl2-col);
+}
+
+.cite:not(.dull){
+    order: 1;
+}
+
+.dull{
+    opacity: .2;
+    order: 2;
+}
+
+.dull .control{
+    display: none;
+}
+
+.hl{
+   color: var(--hl2-col);
+   font-weight: bold;
 }
 
 .citekey {
