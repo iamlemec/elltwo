@@ -11,7 +11,9 @@ import {
 import {
     config, state, cache, updateConfig, updateState, updateCache
 } from './state.js'
-import { connect, addHandler, sendCommand, schedTimeout } from './client.js'
+import {
+    connect, addHandler, sendCommand, schedTimeout, setTimeoutHandler
+} from './client.js'
 import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
@@ -20,7 +22,8 @@ import {
 } from './render.js'
 import {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
-    unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor
+    unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
+    makeUnEditable
 } from './editor.js'
 import { connectDrops, promptUpload, uploadImage, makeImageBlob } from './drop.js'
 import { initExport } from './export.js'
@@ -198,13 +201,21 @@ function setWriteable() {
     $('#bg').toggleClass('writeable', wr);
 
     if (state.rawtext) {
+        let para = state.active_para;
+        let pid = state.active_para.attr('pid');
+        let text = para.children('.p_input');
+
         if (wr && !wr_old) {
-            sendMakeEditable();
+            let data = {pid: pid, aid: config.aid};
+            sendCommand('lock', data, function(response) {
+                if (response) {
+                    text.prop('readonly', false);
+                    placeCursor('end');
+                    schedTimeout();
+                }
+            });
         } else if (!wr && wr_old) {
-            let para = state.active_para;
-            let text = para.children('.p_input');
-            text.prop('readonly', false);
-            placeCursor('end');
+            text.prop('readonly', true);
             storeChange(para);
         }
     }}
@@ -215,6 +226,10 @@ function connectServer() {
         sendCommand('join_room', {'room': config.aid, 'get_locked': true}, (response) => {
             lockParas(response);
         });
+    });
+
+    setTimeoutHandler(function() {
+        makeUnEditable(false);
     });
 
     addHandler('updatePara', function(data) {

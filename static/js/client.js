@@ -1,4 +1,6 @@
-export { connect, addHandler, addDummy, sendCommand, schedTimeout }
+export {
+    connect, addHandler, addDummy, sendCommand, schedTimeout, setTimeoutHandler
+}
 
 import { config } from './state.js'
 import { noop } from './utils.js'
@@ -11,6 +13,7 @@ let dummy = {};
 
 // timeout state
 let timeout_id = null;
+let timeout_func = null;
 
 // takes optional connect event callback
 function connect(url, on_connect=noop) {
@@ -20,9 +23,7 @@ function connect(url, on_connect=noop) {
 
     socket.on('connect', () => {
         console.log(`socket connect: ${socket.id}`);
-        if (on_connect !== undefined) {
-            on_connect();
-        }
+        on_connect();
     });
 
     socket.on('connect_error', (error) => {
@@ -72,10 +73,17 @@ function sendCommand(cmd, data='', ack=noop) {
     }
 }
 
+function setTimeoutHandler(callback) {
+    timeout_func = callback;
+}
+
 function autoLockout() {
     console.log('timeout');
-    sendCommand('timeout');
+    if (timeout_func !== null) {
+        timeout_func();
+    }
     timeout_id = null;
+    sendCommand('timeout');
 }
 
 function schedTimeout() {

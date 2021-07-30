@@ -770,9 +770,11 @@ def locked_by_sid(sid):
 
 def trueUnlock(aid, pids, sid):
     said, spids = str(aid), [str(p) for p in pids]
-    rpids = [p for p in spids if locked.pop(p) is not None]
+    rpids = [p for p in spids if locked.loc(p) == sid]
+    for p in rpids:
+        locked.pop(p)
     if len(rpids) > 0:
-        socketio.emit('unlock', rpids, room=said)
+        socketio.emit('unlock', rpids, room=said, include_self=False)
 
 def trueLock(aid, pid, sid):
     said, spid = str(aid), str(pid)
@@ -794,10 +796,7 @@ def lock(data):
 def unlock(data):
     sid = request.sid # unique client id
     aid, pid = data['aid'], data['pid']
-    said, spid = str(aid), str(pid)
-    if locked.loc(spid) == sid:
-        locked.pop(spid)
-        socketio.emit('unlock', [spid], room=said)
+    trueUnlock(aid, [pid], sid)
 
 @socketio.on('timeout')
 @view_decor
@@ -805,10 +804,7 @@ def timeout(data):
     sid = request.sid
     app.logger.debug(f'timeout: {sid}')
     aid, pids = locked_by_sid(sid)
-    said, spids = str(aid), [str(p) for p in pids]
-    rpids = [p for p in spids if locked.pop(p) is not None]
-    if len(rpids) > 0:
-        socketio.emit('unlock', rpids, room=said)
+    trueUnlock(aid, pids, sid)
 
 ###
 ### image handling

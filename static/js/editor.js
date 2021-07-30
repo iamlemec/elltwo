@@ -3,7 +3,7 @@
 export {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
     unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
-    fold
+    fold, makeUnEditable
 }
 
 import { config, state, cache } from './state.js'
@@ -86,39 +86,6 @@ function eventEditor() {
                 return false;
             }
         }
-
-        // short circuit in ssv mode
-        /*
-        if (state.ssv_mode) {
-            if (state.edit_mode) {
-                if (!state.active_para && key == 'enter') {
-                    let foc_para = state.last_active || $('.para').first();
-                    makeActive(foc_para);
-                    sendMakeEditable('begin');
-                    return false;
-                } else if (state.active_para && key == 'escape') {
-                    makeActive(null);
-                    return false;
-                }
-            } else {
-                if (key == 'enter') {
-                    return false;
-                }
-            }
-            if (state.writeable) { // if we are active but not in edit mode
-                if (ctrl && key == 'a') {
-                    sendInsertPara(state.active_para, false);
-                    return false;
-                } else if (ctrl && key == 'b') {
-                    sendInsertPara(state.active_para, true);
-                    return false;
-                } else if (ctrl && shift && key == 'd') {
-                    sendDeletePara(state.active_para);
-                    return false;
-                }
-            }
-        }
-        */
 
         if (!state.active_para) { // if we are inactive
             if (key == 'enter') {
@@ -464,13 +431,15 @@ function sendUnlockPara(pid) {
 }
 
 function unlockParas(pids) {
-    console.log('unlockParas');
+    console.log(`unlockParas: ${pids}`);
     let act = state.active_para?.attr('pid');
     pids.forEach(function(pid) {
         let para = getPara(pid);
-        para.removeClass('locked');
-        if (pid == act && state.rawtext) {
-            sendMakeEditable();
+        if (para.hasClass('locked')) {
+            para.removeClass('locked');
+            if (pid == act && state.rawtext) {
+                sendMakeEditable();
+            }
         }
     });
 }
