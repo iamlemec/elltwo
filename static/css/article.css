@@ -1,8 +1,6 @@
 @import 'core.css';
 
-
 /* classic view paras */
-
 
 .container:not(.ssv) .para {
     position: relative;
@@ -1142,7 +1140,7 @@ circle.commit.active {
     min-height: 60px;
     left: 0;
     bottom: 40px;
-    border-radius: 0;
+    border-radius: 0 !important;
 }
 
 #export_options {
