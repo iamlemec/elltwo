@@ -39,6 +39,7 @@ function initImage(args) {
 function cacheImage() {
     cache.img = new KeyCache('img', function(key, callback) {
         if (key == '__img') {
+            console.log('cacheImage::__img');
             sendCommand('get_images', {}, callback);
         } else {
             sendCommand('get_image', {key: key}, function(ret) {
@@ -60,24 +61,24 @@ function eventImage() {
     connectDrops(function(box, data) {
         let key = data.key;
         let kws = '';
-        let div = $('<div>', {class: 'img_cont img_src', id: key});
+        let div = $('<div>', {class: 'img_cont img_src'});
         $('#dropzone').after(div);
         renderBox(div, key, kws);
     });
 
     $(document).on('click', '.img_src', function(e) {
         let img = $(this).children('img');
-        let key = img.attr('id');
         let ks = $(e.target).closest('.keyspan');
         if (ks.length > 0) {
             $('.keyspan').removeClass('copied');
             copyKey(ks);
             $(ks).addClass('copied');
         } else {
+            let key = img.attr('id');
             let src = img.attr('src');
             let kw = img.attr('kw') || '';
-            $('#display').attr('key', key)
-                         .attr('keywords', kw);
+            state.key = key;
+            state.keywords = kw;
             $('#display_img').attr('src', src);
             $('input#key').val(key);
             $('input#keywords').val(kw);
@@ -89,6 +90,7 @@ function eventImage() {
         let targ = $(e.target);
         if (targ.closest('.img_cont').length == 0 && targ.closest('#display').length == 0) {
             hideDisplay();
+            $('#query').focus();
         }
     });
 
@@ -100,8 +102,8 @@ function eventImage() {
     });
 
     $(document).on('click', '#img_update', function() {
-        let key = $('#display').attr('key');
-        let kw = $('#display').attr('keywords');
+        let key = state.key;
+        let kw = state.kw;
         let new_key = $('input#key').val();
         let new_kw = $('input#keywords').val();
         if (key != new_key || kw != new_kw) {
@@ -111,9 +113,11 @@ function eventImage() {
                     let img = $(`#${key}`);
                     img.attr('id', new_key);
                     img.attr('kw', new_kw);
-                    img.parent('.img_cont').attr('key', new_key);
                     img.siblings('.keyspan').text(new_key);
+                    cache.img.del('__img');
                     $('#display').hide();
+                    $('#query').focus();
+                    imageQuery();
                 }
             });
         }
@@ -121,24 +125,23 @@ function eventImage() {
 
     $(document).on('keyup', '#query', function(e) {
         clearTimeout(state.timeout);
-        state.timeout = setTimeout(function() {
-            let query = $('#query').val();
-            imageQuery(query);
-        }, 300);
+        state.timeout = setTimeout(imageQuery, 300);
     });
 
     $(document).on('keydown', 'input#key', function(e) {
-        let key = e.key.toLowerCase()
         let illegal = /[^a-zA-Z\d\_\-]/;
-        if(illegal.test(key)){
+        if (illegal.test(e.key)) {
             return false;
-        };
+        }
     });
 }
 
 // rendering
 
-function imageQuery(query='') {
+function imageQuery(query) {
+    if (query == undefined) {
+        query = $('#query').val();
+    }
     cache.img.get('__img', function(ret) {
         let img_sel;
         if (query.length > 0) {
@@ -194,11 +197,9 @@ function hideDisplay() {
 
 function wordSearch(img, list) {
     let value = 0;
-    console.log(img)
     let target = img[0] + img[1];
     list.forEach(word => {
       value = value + target.includes(word);
     });
     return value;
 };
-
