@@ -82,13 +82,30 @@ function eventHome() {
 function searchTitle(query, last_url) {
     sendCommand('search_title', query, function(response) {
         $('#results').empty();
+        let  q = query.toLowerCase();
+        let elltwo = `<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="normal">ℓ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\ell^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height: 0.814108em; vertical-align: 0em;"></span><span class="mord"><span class="mord">ℓ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height: 0.814108em;"><span class="" style="top: -3.063em; margin-right: 0.05em;"><span class="pstrut" style="height: 2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span>`
+        if('image library'.startsWith(q) || 'img'.startsWith(q) || 'elltwo'.startsWith(q)){
+            response.push(
+            {short: 'img',
+             blurb: `<div><div class="title">${elltwo} Image Library</div>Upload new images, or search and edit uploaded images.</div>`,})
+        };
 
+        if('bibliography'.startsWith(q) || 'elltwo'.startsWith(q)){
+            response.push(
+            {short: 'bib',
+             blurb: `<div><div class="title">${elltwo} Bibliography</div>Enter new bibliographic citations manually or via a web search; search and edit existing citations.</div>`,})
+        };
+        
         let nres = Object.keys(response).length;
         if (nres > 0) {
             for (let idx in response) {
                 let art = response[idx];
-                let short = art.short;
-                let url = `a/${short}`;
+                let url = art.short;
+                let short = url;
+                if(short != 'img' && short != 'bib'){
+                    short = url.slice(2).replace('_', " ");
+                }
+                console.log(art.blurb)
                 let btext = art.blurb || short;
                 let art_div = $('<a>', {class: 'result art_link', href: url});
                 let art_title = $('<div>', {class: 'blurb_name', text: short});

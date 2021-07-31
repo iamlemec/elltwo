@@ -627,7 +627,7 @@ def set_blurb(data):
 def search_title(data):
     results = edb.search_title(data)
     return [{
-        'short': art.short_title,
+        'short': 'a/' + art.short_title,
         'blurb': art.blurb
     } for art in results]
 
