@@ -281,7 +281,8 @@ function ensureVisible(elem) {
 
 function setCookie(key, val, age) {
     let agestr = (age === undefined) ? '' : `age=${age}; `;
-    document.cookie = `${key}=${val}; path=/; ${agestr}samesite=lax; secure`;
+    let valstr = encodeURIComponent(val);
+    document.cookie = `${key}=${valstr}; path=/; ${agestr}samesite=lax; secure`;
 }
 
 function cooks(name) {
@@ -289,7 +290,7 @@ function cooks(name) {
     let pairs = parts.map(x => x.trim().split('='));
     let select = pairs.filter(x => x[0] == name).shift();
     if (select !== undefined) {
-        let value = select[1];
+        let value = decodeURIComponent(select[1]);
         return JSON.parse(value);
     }
 };
