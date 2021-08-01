@@ -62,8 +62,8 @@ config = {
     'timeout': 180, # paragraph lock timeout in seconds
     'max_size': 1024, # max image size in kilobytes
     'max_imgs': 50, # max number of images returned in search
-    'ssv_persistent': True, # start articles in ssv mode
-    'edit_persistent': True, # start articles in edit mode
+    'ssv_persist': True, # start articles in ssv mode
+    'edit_persist': True, # start articles in edit mode
     'themes': themes, # all themes by default
     'demo_path': 'testing/demo.md', # path to demo content
 }
@@ -525,22 +525,22 @@ def insert_para(data):
         trueLock(aid, new_pid, sid)
     return new_pid
 
-@socketio.on('paste_cells')
+@socketio.on('paste_paras')
 @edit_decor
-def paste_cells(data):
+def paste_paras(data):
     aid, pid, cb = data['aid'], data['pid'], data['cb']
     if len(cb) == 0:
         return False
     pid_map = edb.paste_after(pid, cb)
-    emit('pasteCB', [pid, pid_map], room=str(aid))
+    emit('pasteParas', [pid, pid_map], room=str(aid))
     return True
 
-@socketio.on('delete_para')
+@socketio.on('delete_paras')
 @edit_decor
-def delete_para(data):
-    aid, pid = data['aid'], data['pid']
-    edb.delete_para(pid)
-    emit('deletePara', [pid], room=str(aid), include_self=False)
+def delete_paras(data):
+    aid, pids = data['aid'], data['pids']
+    edb.delete_paras(pids)
+    emit('deleteParas', pids, room=str(aid), include_self=False)
     return True
 
 @socketio.on('get_commits')

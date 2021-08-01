@@ -1,8 +1,9 @@
 /* main article entry point */
 
 export {
-    loadArticle, insertParaRaw, insertPara, updatePara, updateParas, deletePara,
-    updateRefs, toggleHistMap, toggleSidebar, ccNext, ccMake, ccRefs, textWrap
+    loadArticle, insertParaRaw, insertPara, deleteParas, updatePara,
+    updateParas, updateRefs, toggleHistMap, toggleSidebar, ccNext, ccMake,
+    ccRefs, textWrap
 }
 
 import {
@@ -41,8 +42,8 @@ let default_config = {
     timeout: 180, // para lock timeout
     max_size: 1024, // max image size
     readonly: true, // is session readonly
-    ssv_default: false, // start in ssv mode
-    edit_default: false, // start in edit mode
+    ssv_persist: false, // start in ssv mode
+    edit_persist: false, // start in edit mode
     title: null, // default article title
     aid: null, // article identifier
 };
@@ -164,8 +165,8 @@ function loadArticle(args) {
     }
 
     // update button state (persistent)
-    let ssv0 =  config.ssv_persistent && (cooks('ssv_mode') ?? false);
-    let edit0 = config.edit_persistent && (cooks('edit_mode') ?? false);
+    let ssv0 =  config.ssv_persist && (cooks('ssv_mode') ?? false);
+    let edit0 = config.edit_persist && (cooks('edit_mode') ?? false);
 
     // connect events
     eventArticle();
@@ -244,12 +245,12 @@ function connectServer() {
         insertPara(...data);
     });
 
-    addHandler('pasteCB', function(data) {
-        pasteCB(...data);
+    addHandler('pasteParas', function(data) {
+        pasteParas(...data);
     });
 
-    addHandler('deletePara', function(data) {
-        deletePara(...data);
+    addHandler('deleteParas', function(data) {
+        deleteParas(...data);
     });
 
     addHandler('applyDiff', function(data) {
@@ -407,28 +408,33 @@ function updateParas(para_dict) {
     }
 }
 
-function deletePara(pid) {
-    let para = getPara(pid);
-    let do_env = para.hasClass('env_beg') || para.hasClass('env_end') || para.hasClass('env_one');
+function deleteParas(pids) {
+    let do_env = false;
 
-    let old_id = para.attr('id');
-    if (old_id) {
-        let ref = {aid: config.aid, key: old_id};
-        sendCommand('delete_ref', ref, function(success) {
-            console.log('success: deleted ref');
+    for (const pid of pids) {
+        let para = getPara(pid);
+        do_env ||= para.hasClass('env_beg') || para.hasClass('env_end') || para.hasClass('env_one');
+
+        let fold = $(`.folded[fold_pid=${pid}]`);
+        fold.remove();
+
+        let old_id = para.attr('id');
+        if (old_id) {
+            let ref = {aid: config.aid, key: old_id};
+            sendCommand('delete_ref', ref, function(success) {
+                console.log('success: deleted ref');
+            });
+        }
+
+        let old_ref = getRefTags(para);
+        old_ref.forEach((key) => {
+            cache.track.dec(key);
         });
+
+        para.remove();
     }
 
-    let old_ref = getRefTags(para);
-    old_ref.forEach((key) => {
-        cache.track.dec(key);
-    });
-
-    para.remove();
-
     if (do_env) {
-        let fold = $(`.folded[fold_pid=${pid}]`)
-        fold.remove();
         envClasses();
     }
 };
@@ -475,7 +481,7 @@ function insertPara(pid, new_pid, raw='', after=true) {
     return new_para;
 }
 
-function pasteCB(pid, paste) {
+function pasteParas(pid, paste) {
     let para_act = null;
     paste.forEach(d => {
         const [new_pid, text] = d;

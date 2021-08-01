@@ -533,17 +533,17 @@ class ElltwoDB:
             return
 
         pid_map = []
-        for pid_add in adds:
-            if (para_add := self.get_para(pid_add, time=time)) is None:
-                continue
-            new_para = self.insert_after(pid, para_add.text, time=time, commit=False)
-            pid_map.append([new_para.pid, para_add.text])
+        pid_cur = pid
+        for raw in adds:
+            new_para = self.insert_after(pid_cur, raw, time=time, commit=False)
+            pid_map.append([new_para.pid, raw])
+            pid_cur = new_para.pid
 
         self.session.commit()
 
         return pid_map
 
-    def delete_para(self, pid, time=None):
+    def delete_para(self, pid, time=None, commit=True):
         if time is None:
             time = datetime.utcnow()
 
@@ -565,6 +565,14 @@ class ElltwoDB:
             linn1 = splice_link(linn, time, prev=lin.prev)
             self.session.add(linn1)
 
+        if commit:
+            self.session.commit()
+
+    def delete_paras(self, pids, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        for p in pids:
+            self.delete_para(p, time=time, commit=False)
         self.session.commit()
 
     ##

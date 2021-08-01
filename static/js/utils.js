@@ -1,9 +1,9 @@
 /* random utilities */
 
 export {
-    merge, mapObject, mapValues, initToggleBox, toggleBox, ensureVisible,
-    setCookie, cooks, getPara, getEnvParas, isMobile, noop, on_success,
-    KeyCache, DummyCache, RefCount, flash
+    merge, mapObject, mapValues, attrArray, initToggleBox, toggleBox,
+    ensureVisible, setCookie, cooks, getPara, getEnvParas, isMobile, noop,
+    on_success, KeyCache, DummyCache, RefCount, flash
 }
 
 // js tricks
@@ -18,6 +18,10 @@ function mapObject(obj, func) {
 
 function mapValues(obj, func) {
     return Object.fromEntries(Object.entries(obj).map(([x, y]) => [x, func(y)]));
+}
+
+function attrArray(elems, attr) {
+    return elems.map((i, x) => $(x).attr(attr)).toArray();
 }
 
 function noop() {
@@ -275,16 +279,18 @@ function ensureVisible(elem) {
 
 // get json cookies
 
-function setCookie(key, value) {
-    document.cookie = `${key}=${value}; path=/; samesite=lax; secure`;
+function setCookie(key, val, age) {
+    let agestr = (age === undefined) ? '' : `age=${age}; `;
+    document.cookie = `${key}=${val}; path=/; ${agestr}samesite=lax; secure`;
 }
 
 function cooks(name) {
-    const cookies = `; ${document.cookie}`;
-    const parts = cookies.split(`; ${name}=`);
-    if (parts.length == 2) {
-        const f = parts.pop().split(';').shift();
-        return JSON.parse(f);
+    let parts = document.cookie.split(';');
+    let pairs = parts.map(x => x.trim().split('='));
+    let select = pairs.filter(x => x[0] == name).shift();
+    if (select !== undefined) {
+        let value = select[1];
+        return JSON.parse(value);
     }
 };
 

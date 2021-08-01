@@ -7,13 +7,15 @@ export {
 }
 
 import { config, state, cache } from './state.js'
-import { ensureVisible, cooks, getPara, noop, on_success } from './utils.js'
+import {
+    ensureVisible, cooks, setCookie, getPara, attrArray, noop, on_success
+} from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import {
     rawToRender, rawToTextarea, envClasses, syntaxHL, getFoldLevel, renderFold
 } from './render.js'
 import {
-    insertParaRaw, insertPara, deletePara, updateRefs, toggleHistMap,
+    insertParaRaw, insertPara, deleteParas, updateRefs, toggleHistMap,
     toggleSidebar, ccNext, ccMake, textWrap
 } from './article.js'
 import { toggleHelp } from './help.js'
@@ -116,10 +118,10 @@ function eventEditor() {
             } else if (ctrl && key == 'end') {
                 activeLastPara(); // keep native end scroll
             } else if (ctrl && key == 'c') {
-                copyCells();
+                copyParas();
                 return false;
             } else if (ctrl && key == 'v') {
-                pasteCells();
+                pasteParas();
                 return false;
             } else if (key == 'escape') {
                 makeActive(null);
@@ -136,7 +138,8 @@ function eventEditor() {
                     sendInsertPara(state.active_para, true);
                     return false;
                 } else if (ctrl && shift && key == 'd') {
-                    sendDeletePara(state.active_para);
+                    let sel = getSelection();
+                    sendDeleteParas(sel);
                     return false;
                 }
             }
@@ -230,7 +233,7 @@ function eventEditor() {
 
     $(document).on('click', '.delete', function() {
         let para = $(this).parents('.para');
-        sendDeletePara(para);
+        sendDeleteParas(para);
     });
 
     $('#content').focus();
@@ -312,18 +315,18 @@ function sendInsertPara(para, after=true, edit=true, raw='') {
     });
 }
 
-function sendDeletePara(para) {
-    let pid = para.attr('pid');
-    let data = {aid: config.aid, pid: pid};
-    let next = getNextPara(para);
+function sendDeleteParas(paras) {
+    let pids = attrArray(paras, 'pid');
+    let data = {aid: config.aid, pids: pids};
+    let next = getNextPara(paras.last());
     if (next.length == 0) {
-        next = getPrevPara(para);
+        next = getPrevPara(paras.first());
     }
-    sendCommand('delete_para', data, on_success(() => {
+    sendCommand('delete_paras', data, on_success(() => {
         if (next) {
             makeActive(next);
         }
-        deletePara(pid);
+        deleteParas(pids);
     }));
 }
 
@@ -546,23 +549,23 @@ function editShift(dir='up') {
 
 // copy cell
 
-function copyCells() {
-    state.cb = [];
-    $('.copy_sel, .active').each(function() {
-        let para = $(this);
-        let pid = para.attr('pid');
-        state.cb.push(pid);
-    })
-    const cbcookie = JSON.stringify(state.cb);
-    document.cookie = `cb=${cbcookie}; path=/; max-age=60; samesite=lax; secure`;
+function getSelection() {
+    return $('.copy_sel, .active');
 }
 
-function pasteCells() {
+function copyParas() {
+    let paras = getSelection();
+    state.cb = attrArray(paras, 'raw');
+    let cbstr = JSON.stringify(state.cb);
+    setCookie('cb', cbstr, 60);
+}
+
+function pasteParas() {
     let pid = state.active_para.attr('pid');
     let ccb = cooks('cb') || state.cb;
     if (ccb && pid) {
         let data = {aid: config.aid, pid: pid, cb: ccb};
-        sendCommand('paste_cells', data, function(response) {
+        sendCommand('paste_paras', data, function(response) {
             // console.log(response);
         });
     }
@@ -609,7 +612,7 @@ function fold(para, init=false) {
         if (!init) {
             state.folded.push(env_pid);
             const foldcookie = JSON.stringify(state.folded);
-            document.cookie = `folded=${foldcookie}; path=/; samesite=lax; secure`;
+            setCookie('folded', foldcookie);
         }
     } else if (fold_pid) {
         const index = state.folded.indexOf(fold_pid);
@@ -627,7 +630,7 @@ function fold(para, init=false) {
         fold.attr('fold_level', l-1);
         makeActive(foldParas[1]);
         const foldcookie = JSON.stringify(state.folded);
-        document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
+        setCookie('folded', foldcookie, 604800);
     }
     renderFold();
 }
@@ -636,7 +639,7 @@ function unfold() {
     $('.para').attr('fold_level', 0);
     state.folded = [];
     const foldcookie = JSON.stringify(state.folded);
-    document.cookie = `folded=${foldcookie}; path=/; max-age=604800; samesite=lax; secure`;
+    setCookie('folded', foldcookie, 604800);
     renderFold();
 }
 
