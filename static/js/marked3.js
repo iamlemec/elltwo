@@ -1185,6 +1185,24 @@ class TexRenderer {
         }
     }
 
+    cite(args) {
+        let id = args['id'];
+        let ext = id.includes(':');
+        let format = args['format'] || args['fmt'] || args['f'] || '';
+        let c = (format == 'plain') ? '': 'c';
+        let text = args['text'] || args['txt'] || args['t'];
+        let pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
+        if(ext) {
+            let inner = (text) ? text : `<!!<${id}>!!>`;
+            let [art, key] = id.split(':');
+            return `\\href{${window.location.origin}/r/${art}\\\#${key}}{${inner}}`;
+        } else if (text) {
+            return `\\hyperref[${id}]{${text}}`;
+        } else {
+            return `\\${c}ref{${id}}`;
+        }
+    }
+
     footnote(text) {
         return `\\footnote{${text}}`;
     }

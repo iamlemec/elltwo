@@ -821,6 +821,7 @@ function refError(ref, tro) {
 }
 
 function citeEtal(authors) {
+    authors = authors.map(auth => auth.split(',')[0])
     if (authors.length == 0) {
         return '';
     } else if (authors.length == 1) {
@@ -840,7 +841,7 @@ function refCite(ref, tro) {
         citeText = text;
     } else {
         let format = ref.attr('format') || '';
-        let authors = tro.cite_author.split(',');
+        let authors = tro.cite_author.split(' and ');
         let year = tro.cite_year;
 
         citeText = citeEtal(authors);

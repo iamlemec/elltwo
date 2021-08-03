@@ -31,7 +31,8 @@ let title;
 
 function createTex() {
     title = config.title;
-    let bib = getBibRefs();
+    let bibKeys = cache.cite.keys()
+    let rawBibTex = cache.cite.values().map(bib => bib.raw).join('\n');
     let paras = [];
     $('.para:not(.folder)').each(function() {
         let raw = $(this).attr('raw');
@@ -42,7 +43,7 @@ function createTex() {
         } else {
             tex = markout.src;
         }
-        tex = replaceCites(Object.keys(bib), tex);
+        tex = replaceCites(bibKeys, tex);
         paras.push(tex);
     });
 
@@ -50,7 +51,7 @@ function createTex() {
         title: title,
         macros: texMacros(state.macros),
         envs: sEnv(s_env_spec),
-        bib: Object.values(bib).join('\n'),
+        bib: rawBibTex,
         body: paras.join('\n\n'),
     };
     let text = latexTemplate(tVars);
@@ -63,13 +64,14 @@ function createTex() {
     return dict;
 }
 
-function getBibRefs() {
-    // non-null cache entries
-    let bib = Object.fromEntries(
-        Object.entries(cache.bib).filter(([k,v]) => v)
-    );
-    return bib;
-}
+// function getBibRefs() {
+//     // non-null cache entries
+//     // let bib = Object.fromEntries(
+//     //     Object.entries(cache.cite).filter(([k,v]) => v)
+//     // );
+//     let bib = cache.cite.data
+//     return bib;
+// }
 
 function replaceCites(keys, text) {
     let ref = /\\(c)?ref\{([\w-:]+)\}/g;

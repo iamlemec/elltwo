@@ -122,6 +122,10 @@ class KeyCache {
     keys() {
         return [...this.data.keys()];
     }
+
+    values() {
+        return [...this.data.values()];
+    }
 }
 
 class DummyCache {
