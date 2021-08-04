@@ -200,8 +200,8 @@ function eventEditor() {
                 if (state.ssv_mode) {
                     if (!act) {
                         makeActive(para);
-                        sendMakeEditable(cur);
                     }
+                    sendMakeEditable(cur);
                 } else if (act) {
                     if (!state.rawtext) {
                         sendMakeEditable(cur);
@@ -324,7 +324,7 @@ function sendDeleteParas(paras) {
     }
     sendCommand('delete_paras', data, on_success(() => {
         if (next) {
-            makeActive(next);
+           makeActive(next);
         }
         deleteParas(pids);
     }));
@@ -550,7 +550,7 @@ function editShift(dir='up') {
 // copy cell
 
 function getSelection() {
-    return $('.copy_sel, .active');
+    return $('.para.copy_sel, .para.active');
 }
 
 function copyParas() {
