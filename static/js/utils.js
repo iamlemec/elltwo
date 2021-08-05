@@ -142,7 +142,7 @@ class DummyCache {
     }
 
     get(key, callback) {
-        callback(undefined);
+        callback(null);
     }
 
     del(key) {
@@ -153,7 +153,7 @@ class DummyCache {
     }
 
     many(keys) {
-        return Object.fromEntries(keys.map(k => [k, undefined]));
+        return Object.fromEntries(keys.map(k => [k, null]));
     }
 
     bulk(keys, callback) {
@@ -286,7 +286,7 @@ function ensureVisible(elem) {
 function setCookie(key, val, age) {
     let agestr = (age === undefined) ? '' : `age=${age}; `;
     let valstr = encodeURIComponent(val);
-    document.cookie = `${key}=${valstr}; path=/; ${agestr}samesite=lax; secure`;
+    document.cookie = `${key}=${valstr}; path=/; ${agestr}SameSite=Lax`;
 }
 
 function cooks(name) {

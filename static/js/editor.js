@@ -326,7 +326,7 @@ function sendDeleteParas(paras) {
     }
     sendCommand('delete_paras', data, on_success(() => {
         if (next) {
-           makeActive(next);
+            makeActive(next);
         }
         deleteParas(pids);
     }));
