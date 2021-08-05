@@ -1,0 +1,7 @@
+[vonNeumann1944theory]
+entry_type = "book"
+title = "Theory of games and economic behavior"
+author = "Von Neumann, J and Morgenstern, O"
+year = "1944"
+publisher = "Princeton University Press"
+raw = "@book{vonNeumann1944theory,\n  title={Theory of games and economic behavior},\n  author={Von Neumann, J and Morgenstern, O},\n  year={1944},\n  publisher={Princeton University Press}\n}\n"

@@ -63,6 +63,17 @@ textarea:focus, input:focus {
     background-color: var(--bg-col)
 }
 
+#flash{
+    position: fixed;
+    display: none;
+    top: 2%;
+    font-size: 70%;
+    width: 100%;
+    text-align: center;
+    color: var(--hl2-col);
+}
+
+
 .container {
     overflow-y: scroll;
     scrollbar-width: none;

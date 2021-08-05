@@ -8,7 +8,7 @@ export {
 
 import { config, state, cache } from './state.js'
 import {
-    ensureVisible, cooks, setCookie, getPara, attrArray, noop, on_success
+    ensureVisible, cooks, setCookie, getPara, attrArray, noop, on_success, flash
 } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import {
@@ -195,13 +195,15 @@ function eventEditor() {
         if (!targ) {
             if (alt) {
                 let para = $(this);
-                let cur = event.target.selectionStart || 'end'; // returns undefined if not a textarea
+                let cur = event.target.selectionStart ? [event.target.selectionStart,event.target.selectionEnd] : 'end'; // returns undefined if not a textarea
                 let act = para.hasClass('active');
                 if (state.ssv_mode) {
-                    if (!act) {
+                    if (cur[0] == cur[1]) {
+                        if(!act){
                         makeActive(para);
-                    }
+                        }
                     sendMakeEditable(cur);
+                    }
                 } else if (act) {
                     if (!state.rawtext) {
                         sendMakeEditable(cur);
@@ -344,7 +346,7 @@ function placeCursor(loc) {
             let tlen = text[0].value.length;
             text[0].setSelectionRange(tlen, tlen);
         } else {
-            text[0].setSelectionRange(loc, loc);
+            text[0].setSelectionRange(loc[0], loc[1]);
         }
     }
 }
@@ -558,6 +560,7 @@ function copyParas() {
     state.cb = attrArray(paras, 'raw');
     let cbstr = JSON.stringify(state.cb);
     setCookie('cb', cbstr, 60);
+    flash('selection copied')
 }
 
 function pasteParas() {

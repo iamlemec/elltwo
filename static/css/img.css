@@ -1,31 +1,19 @@
 @import 'home.css';
 
-#prompt {
-  position: relative;
-  width: 100%;
-  min-height: 50px;
-  top: 4%;
-  text-align: center;
-}
 
-#title {
-   font-size: 200%;
-}
+
+
 
 #query {
-    position: fixed;
-    min-height: 40px;
     left: 20%;
-    bottom: 65%;
     width: 60%;
-    font-size: 130%;
-    transform: translateY(-80px);
+    top: 120px;
 }
 
 #img_results_outer {
     position: fixed;
     left: 20%;
-    top: 30%;
+    top: 180px;
     width: 60%;
     height: 60%;
 }
@@ -40,15 +28,16 @@
     scrollbar-width: none;
     width: 100%;
     height: 100%;
+    justify-content: space-between;
 }
 
 .img_cont {
     display: flex;
     height: 150px;
-    width: 32.5%;
-    margin: 3px; /* (100-32*3)/2 */
+    width: 33%;
     border: 2px solid gray;
     cursor: pointer;
+    margin-bottom: 5px;
 }
 
 img {
@@ -149,4 +138,20 @@ img {
     right: 15%;
     height: 30px !important;
     font-size: 100%;
+}
+
+@media only screen and (max-width: 1000px) {
+
+#query{
+        top: 80px;
+}
+    
+    #img_results_outer{
+        top: 140px;
+    }
+
+.img_cont {
+    width: 49%;
+}
+    
 }

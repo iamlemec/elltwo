@@ -12,9 +12,7 @@
 
 {% endblock %}
 
-{% block header %}{% endblock %}
-
-{% block content %}
+{% block header %}
 
 {% with messages = get_flashed_messages() %}
 {% if messages %}
@@ -45,6 +43,10 @@ Full Text Search
 </label>
 
 <button class="create" id="submit">Create</button>
+
+{% endblock %}
+
+{% block content %}
 
 <div id="results_outer"><div id="results"></div></div>
 
