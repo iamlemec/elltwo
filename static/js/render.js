@@ -8,7 +8,7 @@ export {
     trackRef, untrackRef, doRenderRef
 }
 
-import { merge, cooks, getPara, RefCount } from './utils.js'
+import { merge, cooks, getPara, RefCount, DummyCache } from './utils.js'
 import {
     config, cache, state, updateConfig, updateCache, updateState
 } from './state.js'
@@ -78,22 +78,6 @@ function eventRender() {
 /// for external readonly viewing
 
 let default_callbacks = {
-    get_image: (data, ack) => {
-        console.log('dummy get_image:', data.key);
-        ack();
-    },
-    get_link: (data, ack) => {
-        console.log('dummy get_link:', data.title, data.blurb);
-        ack();
-    },
-    get_ref: (data, ack) => {
-        console.log('dummy get_ref:', data.title, data.key);
-        ack();
-    },
-    get_cite: (data, ack) => {
-        console.log('dummy get_cite:', data.keys);
-        ack();
-    },
     track_ref: (data, ack) => {
         console.log('dummy track_ref:', data.key);
         ack();
@@ -104,9 +88,13 @@ let default_callbacks = {
     },
 };
 
-function stateMarkdown() {
-    cache.img = {};
-}
+let default_cache = {
+    ext: new DummyCache('ext'), // external refs/blurbs
+    link: new DummyCache('link'), // article links/blurbs
+    cite: new DummyCache('cite'), // bibliography entries
+    img: new DummyCache('img'), // local image cache
+    list: new DummyCache('list'), // external reference completion
+};
 
 function initMarkdown(markdown) {
     let content = $('#content');
@@ -124,8 +112,8 @@ function connectCallbacks(callbacks) {
 
 function loadMarkdown(data) {
     stateRender();
-    stateMarkdown();
 
+    updateCache(default_cache);
     let callbacks = merge(default_callbacks, data.callbacks ?? {});
     connectCallbacks(callbacks);
 

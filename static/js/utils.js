@@ -142,7 +142,7 @@ class DummyCache {
     }
 
     get(key, callback) {
-        callback(undefined);
+        callback(null);
     }
 
     del(key) {
@@ -153,7 +153,7 @@ class DummyCache {
     }
 
     many(keys) {
-        return Object.fromEntries(keys.map(k => [k, undefined]));
+        return Object.fromEntries(keys.map(k => [k, null]));
     }
 
     bulk(keys, callback) {
