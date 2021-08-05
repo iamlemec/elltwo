@@ -286,7 +286,7 @@ function ensureVisible(elem) {
 function setCookie(key, val, age) {
     let agestr = (age === undefined) ? '' : `age=${age}; `;
     let valstr = encodeURIComponent(val);
-    document.cookie = `${key}=${valstr}; path=/; ${agestr}samesite=lax; secure`;
+    document.cookie = `${key}=${valstr}; path=/; ${agestr}SameSite=Lax`;
 }
 
 function cooks(name) {
