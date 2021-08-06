@@ -920,7 +920,7 @@ let ref_spec = {
  **  popup rendering
  **/
 
-function createPop(ref, html='', link=false, blurb=false) {
+function createPop(ref, html='', link=false, blurb=false,) {
     let pop = $('<div>', {id: 'pop', href: link, html: html});
     if (blurb) {
         pop.addClass('blurb_pop');
@@ -1017,6 +1017,8 @@ function popEquation(tro) {
 }
 
 function popCite(text) {
+    text = $('<div>', {html: text});
+    renderKatex(text);
     return text;
 }
 
