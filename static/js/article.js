@@ -180,7 +180,7 @@ function setSsvMode(val) {
     console.log('ssv', state.ssv_mode);
     state.ssv_mode = val;
     $('#content').toggleClass('ssv', val);
-    $('.para:not(.folded)').each(function() {
+    $('.para:not(.folded):not(.folder)').each(function() {
         let para = $(this);
         let input = para.children('.p_input');
         syntaxHL(para);
@@ -250,7 +250,7 @@ function connectServer() {
     });
 
     addHandler('deleteParas', function(data) {
-        deleteParas(...data);
+        deleteParas(data);
     });
 
     addHandler('applyDiff', function(data) {

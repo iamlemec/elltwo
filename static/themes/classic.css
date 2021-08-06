@@ -40,9 +40,14 @@
 
 /*global */
 
-#bg{
+#content{
     font-family: CM;
 }
+
+#pop{
+   font-family: CM;
+}
+
 
 
 body {

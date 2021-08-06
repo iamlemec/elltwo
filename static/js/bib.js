@@ -7,6 +7,8 @@ import { connect, addHandler, sendCommand } from './client.js'
 import { getCiteData } from './bib_search.js'
 import { renderKatex } from './math.js'
 import { KeyCache, flash } from './utils.js'
+import { divInlineLexer } from './marked3.js'
+
 
 function initBib() {
     cacheBib();
@@ -221,7 +223,8 @@ function renderBib(data) {
     sortCite('#para_holder');
     let create_new = $('<div>', {text: 'New BibTex Reference'});
     create_new.attr('id', 'create_new')
-    $('#para_holder').prepend(create_new)
+    $('#para_holder').prepend(create_new);
+    renderKatex($('#para_holder'));
     if (data.length == 1) {
         location.href = '#' + data[0].citekey;
     }
@@ -252,7 +255,7 @@ function createBibInfo(cite) {
     let vol = cite.volume ? `, ${cite.volume}` : '';
     let num = cite.number ? `, no. ${cite.number}` : '';
     let pgs = cite.pages ? `, pp. ${cite.pages}` : '';
-    let title = cite.title ? `${cite.title}` : '';
+    let title = cite.title ? `${divInlineLexer.output(cite.title)}` : '';
     let pubs = ['book', 'incollection'];
     let jns = ['article', 'techreport', 'unpublished'];
     let wild = [undefined];
@@ -271,7 +274,7 @@ function createBibInfo(cite) {
         journal = cite.journal || cite.booktitle || '';
     }
 
-    let author = `<b>${cite.author}</b>. ` || '';
+    let author = `<b>${divInlineLexer.output(cite.author)}</b>. ` || '';
     let index = (vol || num || pgs) ? `${vol + num + pgs}.` : '';
 
     return {

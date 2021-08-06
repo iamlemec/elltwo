@@ -51,13 +51,13 @@ function eventEditor() {
         let meta = e.metaKey;
         let shift = e.shiftKey;
 
-        /*
+        
         let wraps = {'i': ['*','*'],
                      'b': ['**','**'],
                      'm': ['$','$'],
                      '`': ['`','`'],
                      'n': ['^[', ']']};
-        */
+        
 
         if (ctrl && key == 'enter') {
             toggleHistMap();
@@ -131,13 +131,13 @@ function eventEditor() {
                 return false;
             }
             if (state.writeable) { // if we are active but not in edit mode
-                if (ctrl && key == 'a') {
+                if (key == 'a') {
                     sendInsertPara(state.active_para, false);
                     return false;
-                } else if (ctrl && key == 'b') {
+                } else if (key == 'b') {
                     sendInsertPara(state.active_para, true);
                     return false;
-                } else if (ctrl && shift && key == 'd') {
+                } else if (shift && key == 'd') {
                     let sel = getSelection();
                     sendDeleteParas(sel);
                     return false;
@@ -175,14 +175,12 @@ function eventEditor() {
                 makeUnEditable();
                 sendInsertPara(state.active_para, true);
                 return false;
-            }
-            /*
             } else if ((ctrl || meta) && key in wraps) {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
                 textWrap(state.active_para, cur, wraps[key]);
                 return false;
             }
-            */
+            
         }
     });
 
@@ -198,7 +196,7 @@ function eventEditor() {
                 let cur = event.target.selectionStart ? [event.target.selectionStart,event.target.selectionEnd] : 'end'; // returns undefined if not a textarea
                 let act = para.hasClass('active');
                 if (state.ssv_mode) {
-                    if (cur[0] == cur[1]) {
+                    if (cur[0] == cur[1] || cur == 'end') {
                         if(!act){
                         makeActive(para);
                         }
@@ -581,15 +579,15 @@ function getFoldParas(pid) {
     let l = para.attr('head_level');
     if (para.attr('env') == 'heading') {
         let fps = [para];
-        let nx = Object.entries(para.nextAll('.para'));
-        for (const [k, p] of nx) {
+        let nx = para.nextAll('.para:not(.folder)').toArray();
+        nx.some(p => {
             if ($(p).attr('head_level') <= l) {
-                break;
-            }
-            if (!$(p).hasClass('folder')) {
+                return true;
+             }
+             else{
                 fps.push(p);
-            }
-        }
+             }
+        });
         // what the fuck jquery, why (returns differnt object type in the two cases)
         return [$(fps), $(fps).first()[0]];
     } else {
@@ -599,6 +597,7 @@ function getFoldParas(pid) {
 }
 
 function fold(para, init=false) {
+    console.log(para)
     let env_pid = para.attr('env_pid');
     let fold_pid = para.attr('fold_pid');
     if (env_pid) {
@@ -648,8 +647,8 @@ function unfold() {
 
 function smallable_butt() {
     let small = $(window).width() < 1000;
-    let r_text = small ? '' : 'Refresh';
-    let r_tit = small ? 'Refresh' : '';
+    let r_text = small ? '' : 'Revert';
+    let r_tit = small ? 'Revert' : '';
     let e_text = small ? '' : 'Export';
     let e_tit = small ? 'Export' : '';
     let h_text = small ? '' : 'History';

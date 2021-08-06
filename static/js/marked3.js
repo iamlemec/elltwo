@@ -468,6 +468,7 @@ class Lexer {
  */
 
 let inline = {
+    special: /^(?<!\\)\\([\`\"\^\~])\{([A-z])\}/,
     escape: /^\\([\\/`*{}\[\]()#+\-.!_>\$])/,
     in_comment: /^\/\/([^\n]*?)(?:\n|$)/,
     autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
@@ -568,9 +569,21 @@ class InlineLexer {
           , tex
           , esc
           , id
+          , acc
+          , letter
           , alt;
 
         while (src) {
+
+            //special 
+            if (cap = this.rules.special.exec(src)) {
+                src = src.substring(cap[0].length);
+                acc = cap[1];
+                letter = cap[2];
+                out += this.renderer.special(acc,letter);
+                continue;
+            }
+
             // escape
             if (cap = this.rules.escape.exec(src)) {
                 src = src.substring(cap[0].length);
@@ -922,6 +935,10 @@ class DivRenderer {
         return escape(esc);
     }
 
+    special(acc, letter) {
+        return special(acc,letter);
+    }
+
     text(text) {
         return escape(text);
     }
@@ -1051,7 +1068,11 @@ class TexRenderer {
     }
 
     svg(svg) {
-        return 'SVG';
+        return 'SVG export is a to-do; sorry';
+    }
+
+    special(acc,letter) {
+        return `\\${acc}{${letter}}`
     }
 
     envbeg(text) {
@@ -1431,6 +1452,7 @@ class Parser {
  * Helpers
  */
 
+
 function escape(html, encode) {
     return html
         .replace(!encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
@@ -1450,6 +1472,24 @@ function escape_latex(tex) {
         .replace(/\$/g, '\\$')
         .replace(/_/g, '\\_')
         .replace(/\^/g,'\\textasciicircum');
+}
+
+let acc_dict = {
+    '`': {'name': 'grave', 'allowed': ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']},
+    "'": {'name': 'acute', 'allowed': ['a', 'e', 'i', 'o', 'u', 'y', 'A', 'E', 'I', 'O', 'U', 'Y']},
+    '^': {'name': 'circ', 'allowed': ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U']},
+    '"': {'name': 'uml', 'allowed': ['a', 'e', 'i', 'o', 'u', 'y', 'A', 'E', 'I', 'O', 'U', 'Y']},
+    '~': {'name': 'tilde', 'allowed': ['a', 'n', 'o', 'A', 'N', 'O']},
+}
+
+function special(acc, letter) {
+    if(acc in acc_dict){
+        let spec = acc_dict[acc];
+        if(spec.allowed.includes(letter)){
+            return `&${letter}${spec.name};`
+        }
+    }
+    return letter
 }
 
 function unescape(html) {

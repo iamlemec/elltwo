@@ -395,7 +395,7 @@ function envGlobal(outer) {
     console.log('envGlobal', outer);
     createNumbers(outer);
     renderRefText(outer);
-    renderFold();
+    renderFold(outer);
     createTOC();
 }
 
@@ -449,10 +449,13 @@ function simpleEnv(ptxt, env, head='', tail='', number=true, args={}) {
     last.append(pos);
 
     let fold = $('<div>', {class: `para folder`, html: pre_fold});
+    let fit = '<span class="syn_comment_head">//</span><span class="syn_comment">enviornment folded</span>'
+    let fold_input = $('<div>', {class: `p_input_view`, html: fit})
+    fold.append(fold_input);
     let para = first.parent();
     let env_pid = para.attr('env_pid');
     fold.attr('fold_pid', env_pid)
-        .attr('fold_level', 0);
+        .attr('fold_level', para.attr('fold_level'));
     // if (!state.folded.includes(env_pid)) {
     //     fold.addClass('folded');
     // }
@@ -510,13 +513,16 @@ function headingEnv(ptxt, args) {
     pre_fold.append([' ', fold_t]);
 
     let fold = $('<div>', {class: `para folder`, html: pre_fold});
+    let fit = '<span class="syn_comment_head">//</span><span class="syn_comment">section folded</span>'
+    let fold_input = $('<div>', {class: `p_input_view`, html: fit});
+    fold.append(fold_input);
     let para = ptxt.parent();
     let env_pid = para.attr('pid');
     para.attr('env_pid', env_pid)
         .attr('head_level', args.level);
     fold.attr('fold_pid', env_pid)
         .attr('head_level', args.level)
-        .attr('fold_level', 0);
+        .attr('fold_level', para.attr('fold_level'));
     // if (!state.folded.includes(env_pid)) {
     //     fold.addClass('folded')
     // }
@@ -839,7 +845,7 @@ function refCite(ref, tro) {
             citeText += ` (${year})`;
         }
     }
-
+    citeText = divInlineLexer.output(citeText);
     ref.html(citeText);
 
     if (tro.cite_doi) {
@@ -1393,8 +1399,12 @@ function initFold() {
     renderFold();
 }
 
-function renderFold() {
-    $('.para:not(.folder)').each(function() {
+function renderFold(outer) {
+
+    if (outer === undefined) {
+        outer = $('#content');
+    }
+    outer.find('.para:not(.folder)').each(function() {
         let para = $(this);
         let fl = getFoldLevel(para);
         if (fl > 0) {
@@ -1404,7 +1414,7 @@ function renderFold() {
         }
     });
 
-    $('.folder').each(function() {
+    outer.find('.folder').each(function() {
         let para = $(this);
         let fl = getFoldLevel(para);
         let pid = para.attr('fold_pid');

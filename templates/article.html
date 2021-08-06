@@ -101,7 +101,10 @@ Font
 </span></span></span>
 </label>
 
-<button id="revert_hist" class="foot_butt">Revert</button>
+<button id="revert_hist" class="foot_butt smallable_butt"><span id=r_text>Revert</span>
+<svg>
+<use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#revert"></use>
+</svg></button>
 {% endif %}
 
 <button id="show_hist" class="foot_butt smallable_butt"><span id=h_text>History</span>
