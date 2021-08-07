@@ -51,13 +51,11 @@ function eventEditor() {
         let meta = e.metaKey;
         let shift = e.shiftKey;
 
-        
         let wraps = {'i': ['*','*'],
                      'b': ['**','**'],
                      'm': ['$','$'],
                      '`': ['`','`'],
                      'n': ['^[', ']']};
-        
 
         if (ctrl && key == 'enter') {
             toggleHistMap();
@@ -180,7 +178,6 @@ function eventEditor() {
                 textWrap(state.active_para, cur, wraps[key]);
                 return false;
             }
-            
         }
     });
 
@@ -218,22 +215,26 @@ function eventEditor() {
         if (targ == 'bg' || targ == 'content') {
             makeActive(null);
             $('.para').removeClass('copy_sel');
+            return false;
         }
     });
 
     $(document).on('click', '.before', function() {
         let para = $(this).parents('.para');
         sendInsertPara(para, false);
+        return false;
     });
 
     $(document).on('click', '.after', function() {
         let para = $(this).parents('.para');
         sendInsertPara(para, true);
+        return false;
     });
 
     $(document).on('click', '.delete', function() {
         let para = $(this).parents('.para');
         sendDeleteParas(para);
+        return false;
     });
 
     $('#content').focus();
