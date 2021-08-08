@@ -5,11 +5,13 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="icon" type="image/svg+xml" href="/local/axiom/static/favicon/elltwo.svg">
+<link rel="icon" type="image/svg+xml" href="/local/elltwo/static/favicon/elltwo.svg">
+<link type="text/css" rel="stylesheet" href="/local/elltwo/static/css/article.css" />
+<link type="text/css" rel="stylesheet" href="/local/elltwo/static/themes/white.css" />
 
-<link type="text/css" rel="stylesheet" href="/local/axiom/static/css/article.css" />
-<link type="text/css" rel="stylesheet" href="/local/axiom/static/themes/white.css" />
-<link type="text/css" rel="stylesheet" href="/local/axiom/static/katex/dist/katex.min.css" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" type="text/javascript"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css" integrity="sha384-RZU/ijkSsFbcmivfdRBQDtwuwVqK7GMOw6IMvKyeWL2K5UAlyp6WonmB8m7Jd0Hn" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.js" integrity="sha384-pK1WpvzWVBQiP0/GjnvRxV4mOb0oxFuyRxJlk6vVw146n3egcN5C925NCP7a7BY8" crossorigin="anonymous"></script>
 
 <title>External</title>
 
@@ -21,34 +23,11 @@
 <div id="content" class="container"></div>
 </div>
 
-<script src="/local/axiom/static/libs/jquery-3.5.0.min.js" type="text/javascript"> </script>
-<script src="/local/axiom/static/katex/dist/katex.min.js" type="text/javascript"></script>
-
 <script type="module">
-import { loadMarkdown } from '/local/axiom/static/js/render.js'
-
-let md = String.raw`
-#! External Test
-
-Hello world $x^2$
-
-$$ [test] \int_0^{\infty} \exp(-x^2) dx
-
-See @[test] for more info
-
-! [so_long_snake|caption=So long *Snake*...|width=100]
-
-!svg [id=box|caption=It's a box|width=100]
-<rect x="10" y="10" width="80" height="80" stroke="grey" stroke-width="0.5" fill="rgba(255,0,0,0.5)" />
-
-See the box at @[box] or @[box1]. Also [[other]] and @[test:world].
-
-I am the MEC
-`.trim();
-
-loadMarkdown({
-    markdown: md,
-});
+import { loadMarkdown } from '/local/elltwo/static/js/render.js'
+let urlParams = new URLSearchParams(window.location.search);
+let src = urlParams.get('src');
+loadMarkdown({url: src});
 </script>
 
 </body>

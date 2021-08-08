@@ -111,9 +111,17 @@ function connectCallbacks(callbacks) {
 }
 
 function loadMarkdown(data) {
-    stateRender();
+    if (data.url !== undefined) {
+        $.get(data.url, function(md) {
+            let data1 = {...data, url: undefined, markdown: md};
+            loadMarkdown(data1);
+        });
+        return;
+    }
 
+    stateRender();
     updateCache(default_cache);
+
     let callbacks = merge(default_callbacks, data.callbacks ?? {});
     connectCallbacks(callbacks);
 
