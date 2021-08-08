@@ -1038,20 +1038,11 @@ function hideHistPreview() {
 
 function toggleHistMap() {
     $('#hist').toggle();
+    $('#bg').toggleClass('history');
     if (state.hist_show) {
         hideHistPreview();
-        $('#prog_bar').show();
-        $('#ssv_text').show();
-        $('#ssv_label').show();
-        $('#edit_text').show();
-        $('#edit_label').show();
     } else {
         launchHistMap();
-        $('#prog_bar').hide();
-        $('#ssv_text').hide();
-        $('#ssv_label').hide();
-        $('#edit_text').hide();
-        $('#edit_label').hide();
     }
     state.hist_show = !state.hist_show;
     setWriteable();

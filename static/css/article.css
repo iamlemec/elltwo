@@ -848,6 +848,15 @@ button {
     display: none;
 }
 
+#bg.history #prog_bar,
+#bg.history #ssv_text,
+#bg.history #ssv_label,
+#bg.history #edit_text,
+#bg.history #edit_label
+{
+    display: none;
+}
+
 .hist_pop {
     position: absolute;
     text-align: center;
