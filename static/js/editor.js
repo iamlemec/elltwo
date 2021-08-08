@@ -98,28 +98,15 @@ function eventEditor() {
                 sendMakeEditable();
                 return false;
             } else if (key == 'arrowup') {
-                if (shift) {
-                    state.active_para.addClass('copy_sel');
-                } else {
-                    $('.para').removeClass('copy_sel');
-                }
-                return !activePrevPara();
+                return !activePrevPara(shift);
             } else if (key == 'arrowdown') {
-                if (shift) {
-                    state.active_para.addClass('copy_sel');
-                } else {
-                    $('.para').removeClass('copy_sel');
-                }
-                return !activeNextPara();
+                return !activeNextPara(shift);
             } else if (ctrl && key == 'home') {
                 activeFirstPara(); // keep native home scroll
             } else if (ctrl && key == 'end') {
                 activeLastPara(); // keep native end scroll
             } else if (ctrl && key == 'c') {
                 copyParas();
-                return false;
-            } else if (ctrl && key == 'v') {
-                pasteParas();
                 return false;
             } else if (key == 'escape') {
                 makeActive(null);
@@ -134,6 +121,9 @@ function eventEditor() {
                     return false;
                 } else if (key == 'b') {
                     sendInsertPara(state.active_para, true);
+                    return false;
+                } else if (ctrl && key == 'v') {
+                    pasteParas();
                     return false;
                 } else if (shift && key == 'd') {
                     let sel = getSelection();
@@ -450,10 +440,12 @@ function unlockParas(pids) {
 
 /// active para tracking
 
-function makeActive(para, scroll=true) {
+function makeActive(para, scroll=true, select=false) {
     makeUnEditable();
     if (!para) {
         $('#bg').removeClass('active');
+    }
+    if (!select) {
         $('.para').removeClass('copy_sel');
     }
     $('.para.active').removeClass('active');
@@ -463,6 +455,7 @@ function makeActive(para, scroll=true) {
     state.active_para = para;
     if (state.active_para) {
         para.addClass('active');
+        para.addClass('copy_sel');
         $('#bg').addClass('active');
         if (scroll) {
             ensureVisible(state.active_para);
@@ -479,11 +472,11 @@ function getPrevPara(para) {
 }
 
 // next para
-function activeNextPara() {
+function activeNextPara(select=false) {
     if (state.active_para) {
         let next = getNextPara();
         if (next.length > 0) {
-            makeActive(next);
+            makeActive(next, true, select);
             return true;
         } else {
             return false;
@@ -491,11 +484,11 @@ function activeNextPara() {
     }
 }
 
-function activePrevPara() {
+function activePrevPara(select=false) {
     if (state.active_para) {
         let prev = getPrevPara();
         if (prev.length > 0) {
-            makeActive(prev);
+            makeActive(prev, true, select);
             return true;
         } else {
             return false;
@@ -551,7 +544,7 @@ function editShift(dir='up') {
 // copy cell
 
 function getSelection() {
-    return $('.para.copy_sel, .para.active');
+    return $('.para.copy_sel');
 }
 
 function copyParas() {
