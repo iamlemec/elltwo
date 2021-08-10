@@ -8,7 +8,9 @@
 
 Try the live editing demo at: [dohan.io/elltwo_demo](http://dohan.io/elltwo_demo). Here's a quick preview below
 
-![preview gif](static/adverts/ad.gif)
+<div align="center">
+<img src="static/adverts/ad.gif" alt="preview gif"></img>
+</div>
 
 ## Setup
 
