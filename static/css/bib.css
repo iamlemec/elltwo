@@ -1,7 +1,6 @@
 @import 'home.css';
 
 #query {
-    top: 120px;
 }
 
 #search {
@@ -10,7 +9,7 @@
     font-size: 100%;
     right: 20%;
     width: 10%;
-    top: 120px;
+    top: 160px;
 }
 
 #create_wrap {
@@ -26,7 +25,7 @@
     min-height: 40px;
     line-height: 40px;
     position: fixed;
-    top: 200px;
+    top: 220px;
     width: 60%;
     left: 20%;
     cursor: pointer;
@@ -37,7 +36,7 @@
     resize: none;
     width: 60%;
     left: 20%;
-    height: 222px;
+    height: 242px;
     top: 20px;
     border: 1px dashed var(--hl-col);
     color: var(--font-color);
@@ -50,7 +49,7 @@
 #search_button_wrap {
     position: fixed;
     width: 60%;
-    right: 20%;
+    right: 21%;
     top: 221px;
     text-align: right;
     z-index: 3;
@@ -59,11 +58,11 @@
 #search_button_wrap > button {
     display: inline-block;
     width: unset;
-    height: 20px;
+    height: 30px;
     flex-grow: 1;
     width: 25%;
-    border-bottom: 1px dashed var(--hl-col);
-    border-right: 1px dashed var(--hl-col);
+    border: 1px solid var(--hl-col);
+    border-radius: 3px;
 }
 
 
@@ -82,8 +81,8 @@
     font-size: 80%;
     width: 100%;
     left: 0%;
-    top: 260px;
-    height: calc(100% - 300px);
+    top: 280px;
+    height: calc(100% - 320px);
     overflow: scroll;
     scrollbar-width: none;
     display: flex;
@@ -96,8 +95,8 @@
     font-size: 80%;
     width: 80%;
     left: 10%;
-    top: 27%;
-    height: 70%;
+    top: 200px;
+    height: calc(100% - 250px);
     overflow: scroll;
     scrollbar-width: none;
     background-color: var(--bg-hl2-col);
@@ -196,6 +195,8 @@
 
 #para_holder {
  font-size: 90%;
+ top: 200px;
+ height: calc(100% - 240px);
 }
     
 #query{
@@ -206,11 +207,13 @@
  width: 15%;
  right: 10%;
  font-size: 90%;
+ top: 85px;
 }
     
 #create_new{
         width: 80%;
         left: 10%;
+        top: 140px;
     }
 
 .cite {
@@ -224,12 +227,12 @@
     width: 100%;
     left: 0;
     top: 0;
-    height: 242px;
+    height: 182px;
     padding: 10px;
 }
 
 #search_button_wrap {
-    top: 190px;
+    top: 140px;
     right: 20px;
 }
 
