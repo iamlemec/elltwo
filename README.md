@@ -1,4 +1,4 @@
-# elltwo
+# ![elltwo logo](static/favicon/elltwo.svg) elltwo
 
 **elltwo** (ℓ²) is a browser based platform for decentralized and collaborative technical documents. It has a wiki like structure with an emphasis on typesetting and intelligent referencing. Articles are written in a simple markup language borrowing elements of [Markdown](https://en.wikipedia.org/wiki/Markdown) and [LaTeX](https://www.latex-project.org/).
 
