@@ -8,9 +8,7 @@
 
 Try the live editing demo at: [dohan.io/elltwo_demo](http://dohan.io/elltwo_demo). Here's a quick preview below
 
-<video>
-<source src="static/adverts/ad.mp4" type="video/mp4">
-</video>
+![preview gif](static/adverts/ad.gif)
 
 ## Setup
 
