@@ -569,14 +569,15 @@ function imgEnv(ptxt, args) {
     figEnv(ptxt, args);
 
     let fig = ptxt.find('.fig_cont');
+    let key = args.img || args.key || ptxt.parent().attr('id');
     let img = $('<img>', {class: 'env_add'});
+    img.attr('refkey', key);
     let upd = $('<div>', {class: 'env_add img_update', text: 'Update'});
     fig.append(img);
     fig.append(upd);
 
-    let key = ptxt.parent().attr('id');
     cache.img.get(key, function(url) {
-        if (url === undefined) {
+        if (!url) {
             let msg = `Error: image "${key}" not found`;
             let err = $('<span>', {class: 'img_err env_add', text: msg});
             fig.empty();

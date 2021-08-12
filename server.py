@@ -852,6 +852,15 @@ def update_img_key(data):
     found = edb.update_image_key(key=key, new_key=new_key, new_kw=new_kw)
     return found
 
+@socketio.on('delete_image')
+@edit_decor
+def delete_image(data):
+    key = data['key']
+    edb.delete_image(key)
+    socketio.emit('invalidateRef', ['list', '__img'])
+    socketio.emit('invalidateRef', ['img', key])
+    return True
+
 ##
 ## run that babeee
 ##

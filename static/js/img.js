@@ -123,6 +123,19 @@ function eventImage() {
         }
     });
 
+    $(document).on('click', '#img_delete', function() {
+        let key = state.key;
+        sendCommand('delete_image', {'key': key}, (ret) => {
+                if (ret) {
+                    let img = $(`#${key}`);
+                    cache.img.del('__img');
+                    img.parent('.img_cont').remove();
+                    $('#display').hide();
+                    $('#query').focus();
+                }
+        });
+    });
+
     $(document).on('keyup', '#query', function(e) {
         clearTimeout(state.timeout);
         state.timeout = setTimeout(imageQuery, 300);

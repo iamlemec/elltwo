@@ -37,7 +37,7 @@
 }
 
 .img_cont:nth-child(3n+1):nth-last-child(-n+3) ~ .img_cont {
-      margin-left:calc(31% * .110);
+      margin-left:calc(1% * .5);
       margin-right: auto;
 }
 
@@ -93,6 +93,7 @@ img {
     position: absolute;
     bottom: 0;
     width: 100%;
+    font-size: 70%;
 }
 
 #display_update > input {
@@ -101,7 +102,7 @@ img {
     color: var(--font-col-int);
     min-height: 30px;
     margin-bottom: 10px;
-    left: 15%;
+    left: 12%;
     font-size: 100%;
 }
 
@@ -114,12 +115,11 @@ img {
 
 .keywordtitle {
     position: absolute;
-    width: 15%;
+    width: 12%;
     padding-top: 10px;
     padding-right: 6px;
     left: 0%;
     text-align: right;
-    font-size: 70%;
 }
 
 #key {
@@ -127,18 +127,25 @@ img {
 }
 
 #keywords {
-    width: 70%;
+    width: 76%;
 }
 
-#img_update {
+#display button {
     position: absolute;
     bottom: 0;
     top: unset;
     margin-bottom: 10px;
-    width: 18%;
-    right: 15%;
+    width: 12%;
     height: 30px !important;
-    font-size: 100%;
+    font-size: 80%;
+}
+
+#img_update {
+    right: 25%;
+}
+
+#img_delete {
+    right: 12%;
 }
 
 @media only screen and (max-width: 1000px) {

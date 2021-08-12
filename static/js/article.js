@@ -531,7 +531,7 @@ function invalidateRef(type, refkey) {
     } else if (type == 'cite') {
         cache.cite.del(refkey);
     } else if (type == 'img') {
-        cache.img.del(img);
+        cache.img.del(refkey);
     } else if (type == 'list') {
         cache.list.del(refkey);
     }
@@ -542,6 +542,12 @@ function invalidateRef(type, refkey) {
         refs.each(function() {
             let r = $(this);
             doRenderRef(r);
+        });
+    } else if (type == 'img') {
+        let imgs = $(`img[refkey=${refkey}]`);
+        imgs.each(function() {
+            let r = $(this).closest('.para');
+            rawToRender(r, false, false, null);
         });
     }
 }
@@ -1178,6 +1184,9 @@ function ccMake() {
     if(iter){
         let view = para.children('.p_input_view');
         ccRefs(view, raw, l);
+    }
+    if (state.ssv_mode) {
+            rawToRender(para, false, false, raw);
     }
 }
 
