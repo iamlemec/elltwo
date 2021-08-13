@@ -344,11 +344,12 @@ function eventArticle() {
         let key = para.attr('id');
         promptUpload(function(files) {
             let file = files[0];
-            console.log(key, file);
             let ret = uploadImage(file, key, function(data) {
+                cache.img.del(key);
                 rawToRender(para, false);
             });
         });
+        return false;
     });
 
     // syntax highlighting and brace matching
@@ -544,10 +545,10 @@ function invalidateRef(type, refkey) {
             doRenderRef(r);
         });
     } else if (type == 'img') {
-        let imgs = $(`img[refkey=${refkey}]`);
+        let imgs = $(`.para[env=imagelocal][id=${refkey}]`);
         imgs.each(function() {
-            let r = $(this).closest('.para');
-            rawToRender(r, false, false, null);
+            let par = $(this);
+            rawToRender(par, false, false, null);
         });
     }
 }

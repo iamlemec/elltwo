@@ -571,8 +571,9 @@ function imgEnv(ptxt, args) {
     let fig = ptxt.find('.fig_cont');
     let key = args.img || args.key || ptxt.parent().attr('id');
     let img = $('<img>', {class: 'env_add'});
-    img.attr('refkey', key);
-    let upd = $('<div>', {class: 'env_add img_update', text: 'Update'});
+    let upd = $('<div>', {class: 'env_add img_update'});
+    let ico = $('<svg><use xlink:href="/static/img/icons.svg#upload"></use></svg>');
+    upd.append(ico);
     fig.append(img);
     fig.append(upd);
 
@@ -1454,10 +1455,17 @@ function refTag(ref) {
 }
 
 function getRefTags(para) {
-    return para.find('.reference[type!=int]').map(function() {
+    let refs = para.find('.reference[type!=int]').map(function() {
         let ref = $(this);
         return refTag(ref);
     }).toArray();
+    if (para.attr('env') == 'imagelocal') {
+        let id = para.attr('id');
+        if (id !== undefined) {
+            refs.push(`![${id}]`);
+        }
+    }
+    return refs;
 }
 
 function trackRef(tag) {

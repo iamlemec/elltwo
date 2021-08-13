@@ -400,22 +400,22 @@ button {
     justify-content: center;
     text-align: center;
     position: absolute;
-    top: 30%;
+    top: 20px;
     left: 10%;
-    height: 40%;
-    width: 80%;
+    height: 25px;
+    width: 25px;
     color: var(--pop-fg-col);
-    background-color: rgba(0,0,0,.2);
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 4px;
     padding: 5px;
-    padding-bottom: 10px;
+    margin: 5px;
     font-size: 20px;
     cursor: default;
 }
 
 .fig_cont > .img_update:hover {
-        background-color: rgba(0,0,0,.5);
-        color: var(--hl2-col);
-        cursor: pointer;
+    background-color: lightgray;
 }
 
 .fig_cont > .img_err {
