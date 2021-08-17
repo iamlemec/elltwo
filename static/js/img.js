@@ -5,9 +5,9 @@ export { initImage }
 import {
     config, state, cache, updateConfig, updateState, updateCache
 } from './state.js'
-import { connect, sendCommand } from './client.js'
+import { connect, sendCommand, addHandler } from './client.js'
 import { renderKatex } from './math.js'
-import { connectDrops, makeImageBlob } from './drop.js'
+import { connectDrops, makeImageBlob, promptUpload, uploadImage } from './drop.js'
 import { KeyCache } from './utils.js'
 
 // config
@@ -55,6 +55,15 @@ function connectImage() {
     connect(url, () => {
         sendCommand('join_room', {'room': '__img'});
     });
+
+    addHandler('invalidateRef', function(data) {
+        let [type, refkey] = data;
+        if (type == 'img') {
+            cache.img.del('__img');
+            cache.img.del(refkey);
+            imageQuery();
+        }
+    });
 }
 
 function eventImage() {
@@ -79,7 +88,7 @@ function eventImage() {
             let kw = img.attr('kw') || '';
             state.key = key;
             state.keywords = kw;
-            $('#display_img').attr('src', src);
+            $('#display_image').attr('src', src);
             $('input#key').val(key);
             $('input#keywords').val(kw);
             $('#display').show();
@@ -126,13 +135,28 @@ function eventImage() {
     $(document).on('click', '#img_delete', function() {
         let key = state.key;
         sendCommand('delete_image', {'key': key}, (ret) => {
-                if (ret) {
-                    let img = $(`#${key}`);
-                    cache.img.del('__img');
-                    img.parent('.img_cont').remove();
-                    $('#display').hide();
-                    $('#query').focus();
-                }
+            if (ret) {
+                let img = $(`#${key}`);
+                cache.img.del('__img');
+                img.parent('.img_cont').remove();
+                $('#display').hide();
+                $('#query').focus();
+            }
+        });
+    });
+
+    $(document).on('click', '#display_upload', function() {
+        let key = state.key;
+        let img = $(`#${key}`);
+        promptUpload(function(files) {
+            let file = files[0];
+            let ret = uploadImage(file, key, function(data) {
+                cache.img.del(key);
+                cache.img.get(key, function(ret) {
+                    $('#display_image').attr('src', ret);
+                    $(`#${key}`).attr('src', ret);
+                });
+            });
         });
     });
 
