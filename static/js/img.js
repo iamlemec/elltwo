@@ -20,6 +20,7 @@ let default_config = {
 
 let default_state = {
     timeout: null,
+    edit_mode: true,
 };
 
 // initialize

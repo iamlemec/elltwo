@@ -327,15 +327,16 @@ function eventArticle() {
     });
 
     // drop to upload
-    connectDrops(function(box, data) {
+    connectDrops(function(box, ret) {
         let para = box.closest('.para');
-        let key = data.key;
-        let raw = `! [id=${key}|caption=none]`;
-        para.attr('raw', raw);
-        para.addClass('changed');
-        rawToTextarea(para);
-        rawToRender(para, false);
-        sendUpdatePara(para, raw);
+        let pid = para.attr('pid');
+        let data = {pid: pid, aid: config.aid};
+        sendCommand('lock', data, on_success(function() {
+            let raw = `! [id=${ret.key}|caption=none]`;
+            para.attr('raw', raw);
+            rawToTextarea(para);
+            storeChange(para, true, true);
+        }));
     });
 
     // upload replacement image

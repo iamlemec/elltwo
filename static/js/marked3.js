@@ -575,7 +575,7 @@ class InlineLexer {
 
         while (src) {
 
-            //special 
+            //special
             if (cap = this.rules.special.exec(src)) {
                 src = src.substring(cap[0].length);
                 acc = cap[1];
@@ -994,8 +994,9 @@ class DivRenderer {
     }
 
     upload(args) {
-        const img_id = args.id ? `img_id=${args.id}`: '';
-        return `<div ${img_id} class="dropzone">Drop Image or Click to Upload</div>`;
+        const img = args.image || args.img;
+        const key = img ? `key="${img}"`: '';
+        return `<div ${key} class="dropzone">Drop Image or Click to Upload</div>`;
     }
 
     figure(ftype, tag, title, body) {

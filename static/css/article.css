@@ -390,7 +390,7 @@ button {
     width: 80%;
 }
 
-#bg.active.writeable .fig_cont:hover > .img_update {
+#bg.active.writeable .para:not(.locked) .fig_cont:hover > .img_update {
     display: flex;
 }
 
@@ -462,6 +462,7 @@ button {
     border: 1px dashed var(--hl-col);
     text-align: center;
     padding: 20px;
+    margin: 0% 20%;
     font-family: fira;
     cursor: default;
 }
