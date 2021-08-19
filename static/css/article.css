@@ -444,7 +444,8 @@ button {
 }
 
 .theme_col{
-    stroke: var(--font-col)
+    stroke: var(--font-col);
+    fill: var(--font-col);
 }
 
 #pop .theme_col{
