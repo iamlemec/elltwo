@@ -328,6 +328,7 @@ function eventArticle() {
 
     // drop to upload
     connectDrops(function(box, ret) {
+        console.log(ret)
         let para = box.closest('.para');
         let pid = para.attr('pid');
         let data = {pid: pid, aid: config.aid};

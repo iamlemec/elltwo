@@ -884,7 +884,7 @@ class ElltwoDB:
         self.session.add(img)
         self.session.commit()
 
-        return create
+        return img
 
     def delete_image(self, key, time=None):
         if time is None:

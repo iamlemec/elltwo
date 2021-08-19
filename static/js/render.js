@@ -595,6 +595,7 @@ let s_env_spec = {
     theorem: {head: 'Theorem', tail: '--', number: true},
     lemma: {head: 'Lemma', tail: '--', number: true},
     axiom: {head: 'Axiom', tail: '--', number: true},
+    remark: {head: 'Remark', tail: '--', number: false},
     definition: {head: 'Definition', tail: '--', number: false},
     example: {head: 'Example', tail: `<span class='qed'>&#8718;</span>`, number: true},
     proof: {head: 'Proof', tail: `<span class='qed'>&#8718;</span>`, number: false},
@@ -668,12 +669,13 @@ function createTOC(outer) {
     outer.find('.env__heading').not('.folder .env__heading').each(function() {
         let head = $(this).children('.p_text');
         let level = $(this).attr('head_level');
-        let text = head.text();
+        let text = head.html();
+        console.log("toc", text)
         let id = $(this).attr('id');
 
         let sec = id
-            ? $('<a>', {class: `toc_entry head_level${level}`, href: '#'+id, text: text})
-            : $('<span>', {class: `toc_entry head_level${level}`, text: text});
+            ? $('<a>', {class: `toc_entry head_level${level}`, href: '#'+id, html: text})
+            : $('<span>', {class: `toc_entry head_level${level}`, html: text});
         toc.append(sec);
     });
 }

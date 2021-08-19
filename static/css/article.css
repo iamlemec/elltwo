@@ -343,8 +343,12 @@ button {
     font-weight: bold;
 }
 
-.theorem_header, .axiom_header, .definition_header {
+.theorem_header, .axiom_header, .definition_header, .remark_header{
     font-weight: bold;
+}
+
+.example_header, .proof_header{
+    font-style: italic;
 }
 
 .theorem_name, .axiom_name {
@@ -359,9 +363,6 @@ button {
     content: ")";
 }
 
-.proof_header {
-    font-weight: bold;
-}
 
 .error_footer {
     color: var(--hl2-col);
@@ -445,6 +446,9 @@ button {
 
 .theme_col{
     stroke: var(--font-col);
+}
+
+.theme_fill{
     fill: var(--font-col);
 }
 
