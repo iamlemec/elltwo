@@ -30,8 +30,11 @@ Image Library
     </div>
 </div>
 
-<div id=display>
-    <img id="display_img"></img>
+<div id="display">
+    <img id="display_image"></img>
+    <div id="display_upload">
+        <svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#upload"></use></svg>
+    </div>
     <div id="display_update">
         <div class="keywordtitle">Keywords: </div><input type="text" autocomplete="off" autofocus="autofocus" name="keywords" id="keywords" placeholder=""><br>
         <div class="keywordtitle">Image Key: </div><input type="text" autocomplete="off" autofocus="autofocus" name="key" id="key" placeholder="">

@@ -244,7 +244,7 @@ function resize(textarea) {
 /// rendering and storage
 
 // store a change locally or server side, if no change also unlock server side
-function storeChange(para, unlock=true) {
+function storeChange(para, unlock=true, force=false) {
     // get old and new text
     let text = para.children('.p_input').val();
     let raw = para.attr('raw');
@@ -253,7 +253,7 @@ function storeChange(para, unlock=true) {
     rawToRender(para, false, true, text); // local changes only
 
     // update server as needed
-    if (text != raw) {
+    if (force || text != raw) {
         $(para).addClass('changed');
         sendUpdatePara(para, text);
     } else {

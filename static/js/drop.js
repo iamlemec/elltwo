@@ -2,7 +2,7 @@
 
 export { connectDrops, promptUpload, makeImageBlob, uploadImage }
 
-import { config, cache } from './state.js'
+import { config, state, cache } from './state.js'
 import { sendCommand } from './client.js'
 
 /// handle images
@@ -62,6 +62,14 @@ function promptUpload(callback) {
     input.trigger('click');
 }
 
+function checkLocked(box) {
+    let para = box.closest('.para');
+    if (para.length == 0) {
+        return false; // in img lib
+    }
+    return !state.edit_mode || para.hasClass('locked');
+}
+
 function connectDrops(callback) {
     $(document).on('dragover', '.dropzone', function(e) {
         $(this).addClass('dragover');
@@ -77,14 +85,21 @@ function connectDrops(callback) {
         let box = $(this);
         let key = box.attr('key');
         let files = e.originalEvent.dataTransfer.files;
+        if (checkLocked(box)) {
+            return false;
+        }
         handleDrop(box, files, key, callback);
         return false;
     });
 
     $(document).on('click', '.dropzone', function(e) {
         let box = $(this);
+        let key = box.attr('key');
+        if (checkLocked(box)) {
+            return false;
+        }
         promptUpload(function(files) {
-            handleDrop(box, files, null, callback);
+            handleDrop(box, files, key, callback);
         });
         return false;
     });

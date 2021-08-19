@@ -327,15 +327,16 @@ function eventArticle() {
     });
 
     // drop to upload
-    connectDrops(function(box, data) {
+    connectDrops(function(box, ret) {
         let para = box.closest('.para');
-        let key = data.key;
-        let raw = `! [id=${key}|caption=none]`;
-        para.attr('raw', raw);
-        para.addClass('changed');
-        rawToTextarea(para);
-        rawToRender(para, false);
-        sendUpdatePara(para, raw);
+        let pid = para.attr('pid');
+        let data = {pid: pid, aid: config.aid};
+        sendCommand('lock', data, on_success(function() {
+            let raw = `! [id=${ret.key}|caption=none]`;
+            para.attr('raw', raw);
+            rawToTextarea(para);
+            storeChange(para, true, true);
+        }));
     });
 
     // upload replacement image
@@ -344,11 +345,12 @@ function eventArticle() {
         let key = para.attr('id');
         promptUpload(function(files) {
             let file = files[0];
-            console.log(key, file);
             let ret = uploadImage(file, key, function(data) {
+                cache.img.del(key);
                 rawToRender(para, false);
             });
         });
+        return false;
     });
 
     // syntax highlighting and brace matching
@@ -544,10 +546,10 @@ function invalidateRef(type, refkey) {
             doRenderRef(r);
         });
     } else if (type == 'img') {
-        let imgs = $(`img[refkey=${refkey}]`);
+        let imgs = $(`.para[env=imagelocal][id=${refkey}]`);
         imgs.each(function() {
-            let r = $(this).closest('.para');
-            rawToRender(r, false, false, null);
+            let par = $(this);
+            rawToRender(par, false, false, null);
         });
     }
 }

@@ -569,10 +569,11 @@ function imgEnv(ptxt, args) {
     figEnv(ptxt, args);
 
     let fig = ptxt.find('.fig_cont');
-    let key = args.img || args.key || ptxt.parent().attr('id');
+    let key = args.image || args.img || ptxt.parent().attr('id');
     let img = $('<img>', {class: 'env_add'});
-    img.attr('refkey', key);
-    let upd = $('<div>', {class: 'env_add img_update', text: 'Update'});
+    let upd = $('<div>', {class: 'env_add img_update'});
+    let ico = $('<svg><use xlink:href="/static/img/icons.svg#upload"></use></svg>');
+    upd.append(ico);
     fig.append(img);
     fig.append(upd);
 
@@ -1200,7 +1201,7 @@ let block = {
     code: /^``((?: |\n)?)/,
     comment: /^\/\/( ?)/,
     equation: /^\$\$((?:\*&|&\*|\*|&)?)( *)(?:refargs)?(\s*)/,
-    image: /^!(\*)?( *)(?:refargs)?( *)(\()?([\w-:#/.&%=]*)(\))?(\s*)$/,
+    image: /^(!{1,2})(\*)?( *)(?:refargs)?( *)(\()?([\w-:#/.&%=]*)(\))?(\s*)$/,
     svg: /^\!svg(\*)?( *)(?:refargs)?/,
     envbeg: /^\>\>(\!)?( *)([\w-]+)(\*)?( *)(?:refargs)?/,
     envend: /^\<\<( ?)/,
@@ -1267,12 +1268,13 @@ function syntaxParseBlock(raw) {
     }
 
     if (cap = block.image.exec(raw)) {
-        let star = cap[1] ? s('*', 'hl') : '';
-        let id = cap[3] ? s(fArgs(cap[3]), 'ref'): '';
-        let l = cap[5] ? s('(', 'delimit') : '';
-        let href = cap[6] ? s(cap[6], 'hl') : '';
-        let r = cap[7] ? s(')', 'delimit') : '';
-        return s('!', 'hl') + star + cap[2] + id + cap[4] + l + href + r + cap[8];
+        let excl = cap[1] ? s(cap[1], 'hl') : '';
+        let star = cap[2] ? s('*', 'hl') : '';
+        let id = cap[4] ? s(fArgs(cap[4]), 'ref'): '';
+        let l = cap[6] ? s('(', 'delimit') : '';
+        let href = cap[7] ? s(cap[7], 'hl') : '';
+        let r = cap[8] ? s(')', 'delimit') : '';
+        return excl + star + cap[3] + id + cap[5] + l + href + r + cap[9];
     }
 
     if (cap = block.svg.exec(raw)) {
@@ -1454,10 +1456,17 @@ function refTag(ref) {
 }
 
 function getRefTags(para) {
-    return para.find('.reference[type!=int]').map(function() {
+    let refs = para.find('.reference[type!=int]').map(function() {
         let ref = $(this);
         return refTag(ref);
     }).toArray();
+    if (para.attr('env') == 'imagelocal') {
+        let id = para.attr('id');
+        if (id !== undefined) {
+            refs.push(`![${id}]`);
+        }
+    }
+    return refs;
 }
 
 function trackRef(tag) {
