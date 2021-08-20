@@ -876,9 +876,6 @@ class ElltwoDB:
         if (img0 := self.get_image(key, time=time)) is not None:
             img0.delete_time = time
             self.session.add(img0)
-            create = False
-        else:
-            create = True
 
         img = Image(key=key, mime=mime, data=data, create_time=time)
         self.session.add(img)

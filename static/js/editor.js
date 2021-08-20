@@ -180,14 +180,18 @@ function eventEditor() {
         if (!targ) {
             if (alt) {
                 let para = $(this);
-                let cur = event.target.selectionStart ? [event.target.selectionStart,event.target.selectionEnd] : 'end'; // returns undefined if not a textarea
+                let cur = event.target.selectionStart
+                    ? [event.target.selectionStart, event.target.selectionEnd]
+                    : 'end'; // returns undefined if not a textarea
                 let act = para.hasClass('active');
                 if (state.ssv_mode) {
                     if (cur[0] == cur[1] || cur == 'end') {
-                        if(!act){
-                        makeActive(para);
+                        if (!act) {
+                            makeActive(para);
                         }
-                    sendMakeEditable(cur);
+                        if (!state.rawtext) {
+                            sendMakeEditable(cur);
+                        }
                     }
                 } else if (act) {
                     if (!state.rawtext) {
