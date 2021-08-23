@@ -98,7 +98,7 @@ let dummy_cache = {
 
 function initMarkdown(markdown) {
     let content = $('#content');
-    markdown.split(/\n{2,}/).forEach((raw, pid) => {
+    markdown.trim().split(/\n{2,}/).forEach((raw, pid) => {
         let para = barePara(pid, raw);
         content.append(para);
     });
