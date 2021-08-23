@@ -14,3 +14,5 @@ See @[test] for more info
 See the box at @[box] or @[box1]. Also [[other]] and @[test:world].
 
 I am the MEC
+
+$$* \fr{x}{y}

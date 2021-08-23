@@ -556,7 +556,7 @@ function copyParas() {
     state.cb = attrArray(paras, 'raw');
     let cbstr = JSON.stringify(state.cb);
     setCookie('cb', cbstr, 60);
-    flash('selection copied')
+    flash('selection copied');
 }
 
 function pasteParas() {

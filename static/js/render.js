@@ -21,9 +21,16 @@ import { fold } from './editor.js'
 
 function stateRender() {
     config.macros = {}; // external katex macros
+
     state.title = null; // document title
     state.macros = {}; // internal katex macros
     state.folded = []; // current folded pids
+
+    cache.ext = new DummyCache('ext'); // external refs/blurbs
+    cache.link = new DummyCache('link'); // article links/blurbs
+    cache.cite = new DummyCache('cite'); // bibliography entries
+    cache.img = new DummyCache('img'); // local image cache
+    cache.list = new DummyCache('list'); // external reference completion
     cache.track = new RefCount(trackRef, untrackRef); // reference counting
 }
 
@@ -88,14 +95,6 @@ let default_callbacks = {
     },
 };
 
-let default_cache = {
-    ext: new DummyCache('ext'), // external refs/blurbs
-    link: new DummyCache('link'), // article links/blurbs
-    cite: new DummyCache('cite'), // bibliography entries
-    img: new DummyCache('img'), // local image cache
-    list: new DummyCache('list'), // external reference completion
-};
-
 function initMarkdown(markdown) {
     let content = $('#content');
     markdown.split(/\n{2,}/).forEach((raw, pid) => {
@@ -110,22 +109,22 @@ function connectCallbacks(callbacks) {
     }
 }
 
-function loadMarkdown(data) {
-    if (data.url !== undefined) {
-        $.get(data.url, function(md) {
-            let data1 = {...data, url: undefined, markdown: md};
-            loadMarkdown(data1);
+function loadMarkdown(args) {
+    if (args.url !== undefined) {
+        $.get(args.url, function(md) {
+            let args1 = {...args, url: undefined, markdown: md};
+            loadMarkdown(args1);
         });
         return;
     }
 
     stateRender();
-    updateCache(default_cache);
+    config.macros = args.macros ?? {};
 
-    let callbacks = merge(default_callbacks, data.callbacks ?? {});
+    let callbacks = merge(default_callbacks, args.callbacks ?? {});
     connectCallbacks(callbacks);
 
-    initMarkdown(data.markdown ?? '');
+    initMarkdown(args.markdown ?? '');
     initRender();
 
     eventRender();
