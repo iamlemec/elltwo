@@ -103,6 +103,7 @@ function cacheArticle() {
 
     // image cache
     cache.img = new KeyCache('img', function(key, callback) {
+        console.log('get_image', key);
         sendCommand('get_image', {key: key}, function(ret) {
             let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : null;
             callback(url);

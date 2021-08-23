@@ -21,16 +21,9 @@ import { fold } from './editor.js'
 
 function stateRender() {
     config.macros = {}; // external katex macros
-
     state.title = null; // document title
     state.macros = {}; // internal katex macros
     state.folded = []; // current folded pids
-
-    cache.ext = new DummyCache('ext'); // external refs/blurbs
-    cache.link = new DummyCache('link'); // article links/blurbs
-    cache.cite = new DummyCache('cite'); // bibliography entries
-    cache.img = new DummyCache('img'); // local image cache
-    cache.list = new DummyCache('list'); // external reference completion
     cache.track = new RefCount(trackRef, untrackRef); // reference counting
 }
 
@@ -95,6 +88,14 @@ let default_callbacks = {
     },
 };
 
+let dummy_cache = {
+    ext: new DummyCache('ext'), // external refs/blurbs
+    link: new DummyCache('link'), // article links/blurbs
+    cite: new DummyCache('cite'), // bibliography entries
+    img: new DummyCache('img'), // local image cache
+    list: new DummyCache('list'), // external reference completion
+};
+
 function initMarkdown(markdown) {
     let content = $('#content');
     markdown.split(/\n{2,}/).forEach((raw, pid) => {
@@ -120,6 +121,7 @@ function loadMarkdown(args) {
 
     stateRender();
     config.macros = args.macros ?? {};
+    updateCache(dummy_cache);
 
     let callbacks = merge(default_callbacks, args.callbacks ?? {});
     connectCallbacks(callbacks);
@@ -669,7 +671,6 @@ function createTOC(outer) {
         let head = $(this).children('.p_text');
         let level = $(this).attr('head_level');
         let text = head.html();
-        console.log("toc", text)
         let id = $(this).attr('id');
 
         let sec = id

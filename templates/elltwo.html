@@ -10,16 +10,16 @@
     {% block head %}
 
     <link rel="apple-touch-icon" sizes="180x180" href={{ url_for('static', filename='favicon/apple-touch-icon.png') }}>
-    <link rel="icon" type="image/svg+xml" href="/static/favicon/elltwo.svg">
+    <link rel="icon" href="/static/favicon/elltwo.svg">
     <link rel="manifest" href={{ url_for('static', filename='favicon/site.webmanifest') }}>
 
     {% if theme %}
     <link id="theme" type="text/css" rel="stylesheet" href="{{ url_for('static', filename='themes/'+theme+'.css') }}" />
     {% endif %}
-    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='katex/dist/katex.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='katex/katex.min.css') }}" />
 
     <script src="{{ url_for('static', filename='libs/jquery-3.5.0.min.js') }}"> </script>
-    <script src="{{ url_for('static', filename='katex/dist/katex.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='katex/katex.min.js') }}"></script>
 
     {% endblock %}
 
