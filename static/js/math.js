@@ -7,32 +7,37 @@ function renderKatex(para, macros) {
         para = $('body');
     }
     para.find('span.latex').each(function() {
-        var tex = $(this);
-        var src = tex.text();
+        let tex = $(this);
+        let src = tex.text();
         tex.empty();
         try {
-            katex.render(src, tex[0], {macros: macros,
-            throwOnError: false,
+            katex.render(src, tex[0], {
+                macros: macros,
+                throwOnError: true,
             });
         } catch (e) {
-            console.log(para.text());
-            console.log(src);
-            console.log(e);
+            let espan = $('<span>', {class: 'katex_inline_error', text: src});
+            tex.append(espan);
         }
     });
     para.find('div.latex').each(function() {
-        var tex = $(this);
-        var src = tex.text();
-        $(this).empty();
+        let tex = $(this);
+        let src = tex.text();
+        tex.empty();
         try {
-            katex.render(src, tex[0], {displayMode: true,
+            katex.render(src, tex[0], {
+                displayMode: true,
                 macros: macros,
-                throwOnError: false,
+                throwOnError: true,
             });
         } catch (e) {
-            console.log(para.text());
-            console.log(src);
-            console.log(e);
+            let msg = e.message;
+            let odiv = $('<div>', {class: 'katex_display_error'});
+            let tdiv = $('<div>', {class: 'katex_error_source', text: src});
+            let ediv = $('<div>', {class: 'katex_error_message', text: msg});
+            odiv.append(tdiv);
+            odiv.append(ediv);
+            tex.append(odiv);
         }
     });
 }

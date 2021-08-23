@@ -1088,6 +1088,30 @@ circle.commit.active {
     border-bottom-right-radius: 5px;
 }
 
+/* latex errors */
+
+.katex_inline_error {
+    color: #C44;
+}
+
+.katex_display_error {
+    border-radius: 5px;
+    border: 1px solid #C44;
+}
+
+.katex_error_source {
+    font-family: 'monospace';
+    font-size: 90%;
+    padding: 5px;
+}
+
+.katex_error_message {
+    color: white;
+    background-color: #C44;
+    font-size: 90%;
+    padding: 5px;
+}
+
 /*  NARROW CSS */
 
 @media only screen and (max-width: 1000px) {
