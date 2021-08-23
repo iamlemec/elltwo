@@ -4,10 +4,10 @@
 
 {{ super() }}
 
-<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/index.css') }} />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}" />
 
-<script src="{{ url_for('static', filename='libs/socket.io.min.js') }}" type="text/javascript"></script>
-<script src="{{ url_for('static', filename='libs/d3.v5.min.js') }}" type="text/javascript"></script>
+<script src="{{ url_for('static', filename='libs/socket.io.min.js') }}"></script>
+<script src="{{ url_for('static', filename='libs/d3.min.js') }}"></script>
 
 {% endblock %}
 
@@ -18,49 +18,49 @@
 <div id="sentinal"></div>
 
 
-<div id=header_links>
+<div id="header_links">
 
-<a href=https://github.com/iamlemec/elltwo>    
-<div id=github class=header_link>
+<a href="https://github.com/iamlemec/elltwo">
+<div id="github" class="header_link">
     <svg>
     <use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#github"></use>
     </svg>
-    <div class=header_link_text>GitHub</div>
+    <div class="header_link_text">GitHub</div>
 </div>
 </a>
 
-<a href=http://www.github.com>    
-<div id=github class=header_link>
+<a href="http://www.github.com">
+<div id="github" class="header_link">
     <svg>
     <use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#exp"></use>
     </svg>
-    <div class=header_link_text>Download</div>
+    <div class="header_link_text">Download</div>
 </div>
 </a>
 
-<div id=push></div>
+<div id="push"></div>
 
-<a href={{url_for("Demo")}}>    
-<div id=github class=header_link>
+<a href="{{ url_for('Demo') }}">
+<div id="github" class="header_link">
     <svg>
     <use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#demo"></use>
     </svg>
-    <div class=header_link_text>Live Demo</div>
+    <div class="header_link_text">Live Demo</div>
 </div>
 </a>
 
-<a href={{ url_for('RenderArticleRO', title='howto')}}>    
-<div id=github class=header_link>
+<a href="{{ url_for('RenderArticleRO', title='howto') }}">
+<div id="github" class="header_link">
     <svg>
     <use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#documentation"></use>
     </svg>
-    <div class=header_link_text>Documentation</div>
+    <div class="header_link_text">Documentation</div>
 </div>
 </a>
 
 </div>
 
-<div id=head_block>
+<div id="head_block">
 <div id="prompt">
 <span id="title">
 {{name|safe}}
@@ -70,9 +70,11 @@
 </div>
 </div>
 
-<!-- <div id=info_block>
-    Click a tab for examples...
-</div> -->
+<!--
+<div id="info_block">
+Click a tab for examples...
+</div>
+-->
 
 <div id="example_options">
 <span id="ssv_text">Side-by-Side View</span>
@@ -92,81 +94,81 @@
 {% endblock %}
 
 {% block post_content %}
-<div id=features>
-    <div id=vid_wrap>
-        <video id=ad_vid feature=equations>
+<div id="features">
+    <div id="vid_wrap">
+        <video id="ad_vid" feature="equations">
             <source src="{{ url_for('static', filename='adverts/elltwo.mp4') }}" type="video/mp4">
      </video>
     </div>
-    <div id=feature_wrap>
-    <div class=feature feature=syntax tb=0 te=3>
-        <div class=fname>Simple Math and Text Styling</div>
+    <div id="feature_wrap">
+    <div class="feature" feature="syntax" tb="0" te="3">
+        <div class="fname">Simple Math and Text Styling</div>
         <br><br>
-        Use LaTeX and Markdown syntax to style text and add math, equations, lists and more. Export articles to <span class=code>.tex</span> or <span class=code>.md</span>. elltwo features syntax highlighting, command completion, macros and more.
+        Use LaTeX and Markdown syntax to style text and add math, equations, lists and more. Export articles to <span class="code">.tex</span> or <span class="code">.md</span>. elltwo features syntax highlighting, command completion, macros and more.
     </div>
-    <div class=feature feature=env tb=3 te=7>
-        <div class=fname>Customizable Enviroments</div>
+    <div class="feature" feature="env" tb="3" te="7">
+        <div class="fname">Customizable Enviroments</div>
         <br><br>
         Customizable latex like environments make formatting easy. Environments can be custom styled and referenced from other cells or other articles. elltwo handels both text based enviorments as well as images, HTML5 SVG elements, and figures.
     </div>
-    <div class=feature feature=ref tb=7 te=10>
-        <div class=fname>Intelligent Referencing</div>
+    <div class="feature" feature="ref" tb="7" te="10">
+        <div class="fname">Intelligent Referencing</div>
         <br><br>
         Easily create references to equations, figures, environments and other articles. elltwo will generate popup style links to help readers parse reference heavy documents without leaving the page.
     </div>
-    <div class=feature feature=cite tb=11 te=16>
-        <div class=fname>Biblograpic Managment</div>
+    <div class="feature" feature="cite" tb="11" te="16">
+        <div class="fname">Biblograpic Managment</div>
         <br><br>
         Manage a bibliographic database, search the web for articles, and import citations. Reference within articles using a citeKey a la bibTeX.
     </div>
-    <div class=feature feature=search tb=17 te=18.5>
-        <div class=fname>Full Text Search</div>
+    <div class="feature" feature="search" tb="17" te="18.5">
+        <div class="fname">Full Text Search</div>
         <br><br>
         Articles are fully indexed to allow users to search the full text. Search using math/latex notation to find formula and equations.
     </div>
-    <div class=feature feature=search tb=19 te=24>
-        <div class=fname>Themes</div>
+    <div class="feature" feature="search" tb="19" te="24">
+        <div class="fname">Themes</div>
         <br><br>
         We have a Simpson's theme. What else could you need?
     </div>
 </div>
 </div>
 
-<div id=about>
+<div id="about">
 
-<div class=about_block>
+<div class="about_block">
 <div class="about_icon">
-<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#network"></use></svg>  
+<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#network"></use></svg>
 </div>
 <div class="about_text">
 elltwo is a python/javascript application that can be run locally or over the internet. It is ideal for small scale wiki's with lots of technical/mathematical content, writing collaborative textbooks or lecture notes, and fast (but lightweight) TeX-like formatting. Articles can be accessed/shared via URLs or exported as .tex or .md files.
 </div>
 </div>
-    
-<div class=about_block>
+
+<div class="about_block">
 <div class="about_icon">
-<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#lock"></use></svg>  
+<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#lock"></use></svg>
 </div>
 <div class="about_text">
 Projects can be fully ungated (wiki-like decentralized editing), require a login to edit (for public viewing; e.g., lecture notes) or require a login to view (completely private mode).
 </div>
 </div>
 
-<div class=about_block>
+<div class="about_block">
 <div class="about_icon">
-<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#idea"></use></svg>  
+<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#idea"></use></svg>
 </div>
 <div class="about_text">
 elltwo features intelligent referencing, tex macros, syntax highlighting, command completion, image and figure handling, bibliographic web search/import, integrated version control, full text indexing and search, and more.
 </div>
 </div>
 
-<div class=about_block>
+<div class="about_block">
 <div class="about_icon">
-<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#buddies"></use></svg>  
+<svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#buddies"></use></svg>
 </div>
 <div class="about_text">
-elltwo was a lockdown project of <a href=https://doughanley.com/>Doug Hanley</a> and <a href=https://evanpiermont.github.io>Evan Piermont</a>. It is named after Ellsworth Avenue in Pittsburgh.
+elltwo was a lockdown project of <a href="https://doughanley.com">Doug Hanley</a> and <a href="https://evanpiermont.github.io">Evan Piermont</a>. It is named after Ellsworth Avenue in Pittsburgh.
 </div>
 </div>
 
@@ -178,8 +180,11 @@ elltwo was a lockdown project of <a href=https://doughanley.com/>Doug Hanley</a>
 {% block init %}
 
 <script type="module">
-import {initIndex} from '{{ url_for('static', filename='js/index.js') }}';
+
+import { initIndex } from '{{ url_for('static', filename='js/index.js') }}';
+
 initIndex();
+
 </script>
 
 {% endblock %}
