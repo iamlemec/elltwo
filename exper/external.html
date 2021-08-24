@@ -5,13 +5,14 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="icon" type="image/svg+xml" href="/local/elltwo/static/favicon/elltwo.svg">
-<link type="text/css" rel="stylesheet" href="/local/elltwo/static/css/article.css" />
-<link type="text/css" rel="stylesheet" href="/local/elltwo/static/themes/white.css" />
+<link rel="icon" href="/elltwo/static/favicon/elltwo.svg" />
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js" type="text/javascript"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.css" integrity="sha384-RZU/ijkSsFbcmivfdRBQDtwuwVqK7GMOw6IMvKyeWL2K5UAlyp6WonmB8m7Jd0Hn" crossorigin="anonymous">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.13.13/dist/katex.min.js" integrity="sha384-pK1WpvzWVBQiP0/GjnvRxV4mOb0oxFuyRxJlk6vVw146n3egcN5C925NCP7a7BY8" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="/elltwo/static/css/article.css" />
+<link rel="stylesheet" href="/elltwo/static/themes/discord.css" />
+<link rel="stylesheet" href="/elltwo/static/katex/katex.min.css" />
+
+<script src="/elltwo/static/libs/jquery.min.js" ></script>
+<script src="/elltwo/static/katex/katex.min.js"></script>
 
 <title>External</title>
 
@@ -24,10 +25,21 @@
 </div>
 
 <script type="module">
-import { loadMarkdown } from '/local/elltwo/static/js/render.js'
+
+import { loadMarkdown } from '/elltwo/static/js/render.js'
+
 let urlParams = new URLSearchParams(window.location.search);
 let src = urlParams.get('src');
-loadMarkdown({url: src});
+
+if (src !== null) {
+    loadMarkdown({
+        url: src,
+        macros: {
+            '\\fr': '\\frac{#1}{#2}',
+        },
+    });
+}
+
 </script>
 
 </body>

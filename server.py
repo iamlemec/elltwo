@@ -823,8 +823,8 @@ def UploadImage():
 
     img = edb.create_image(img_key, img_mime, val)
 
-    socketio.emit('invalidateRef', ['img', img_key], to='__img')
-    socketio.emit('invalidateRef', ['img', img_key], to=f'![{img_key}]', include_self=True)
+    socketio.emit('invalidateRef', ['img', img.key], to='__img')
+    socketio.emit('invalidateRef', ['img', img.key], to=f'![{img.key}]', include_self=True)
 
     return {'mime': img.mime, 'key': img.key}
 

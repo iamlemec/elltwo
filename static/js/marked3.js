@@ -1,9 +1,7 @@
 /**
- * marked - a markdown parser
- * Copyright (c) 2011-2014, Christopher Jeffrey. (MIT Licensed)
- * https://github.com/chjj/marked
  *
- * heavily modified for elltwo (2020)
+ * marked3 - a markdown+ parser
+ * based on marked - https://github.com/chjj/marked
  *
  */
 
@@ -575,7 +573,7 @@ class InlineLexer {
 
         while (src) {
 
-            //special
+            // special
             if (cap = this.rules.special.exec(src)) {
                 src = src.substring(cap[0].length);
                 acc = cap[1];
