@@ -404,11 +404,21 @@ function envClasses(paras) {
 
 // numbering, referencing, folding, TOC
 function envGlobal(outer) {
-    console.log('envGlobal', outer);
+    let time0 = Date.now();
     createNumbers(outer);
+    let time1 = Date.now();
     renderRefText(outer);
+    let time2 = Date.now();
     renderFold(outer);
+    let time3 = Date.now();
     createTOC();
+    let time4 = Date.now();
+
+    console.log('envGlobal', outer);
+    console.log('createNumbers', time1-time0);
+    console.log('renderRefText', time2-time1);
+    console.log('renderFold', time3-time2);
+    console.log('createTOC', time4-time3);
 }
 
 function envFormat(ptxt, env, args) {
@@ -1414,10 +1424,10 @@ function initFold() {
 }
 
 function renderFold(outer) {
-
     if (outer === undefined) {
         outer = $('#content');
     }
+
     outer.find('.para:not(.folder)').each(function() {
         let para = $(this);
         let fl = getFoldLevel(para);
