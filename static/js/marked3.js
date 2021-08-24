@@ -661,7 +661,7 @@ class InlineLexer {
                 src = src.substring(cap[0].length);
                 text = cap[1];
                 href = text;
-                out += this.renderer.link(href, null, this.output(text));
+                out += this.renderer.link(href, null, text);
                 continue;
             }
 

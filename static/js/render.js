@@ -540,8 +540,8 @@ function headingEnv(ptxt, args) {
 function equationEnv(ptxt, args) {
     let error = ptxt.children('.latex_error').length > 0;
     if (args.number && !error) {
-        var num = makeCounter('equation');
-        var div = $('<div>', {class: 'env_add eqnum'});
+        let num = makeCounter('equation');
+        let div = $('<div>', {class: 'env_add eqnum'});
         div.append(num);
         ptxt.append(div);
     }
