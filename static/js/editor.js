@@ -405,6 +405,7 @@ function makeUnEditable(unlock=true) {
 
     if (state.active_para && state.rawtext) {
         state.rawtext = false;
+        state.active_para.addClass('copy_sel');
         if (state.writeable) {
             storeChange(state.active_para, unlock);
         }
