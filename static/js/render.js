@@ -271,8 +271,6 @@ function selectEnvs(index, css) {
 }
 
 function stripEnvs(paras) {
-    console.log('stripEnvs', paras);
-
     // remove old env classes
     paras.removeClass(selectEnvs);
     paras.children('.p_text').removeClass(selectEnvs);
