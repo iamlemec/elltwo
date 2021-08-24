@@ -573,7 +573,7 @@ class InlineLexer {
 
         while (src) {
 
-            //special
+            // special
             if (cap = this.rules.special.exec(src)) {
                 src = src.substring(cap[0].length);
                 acc = cap[1];

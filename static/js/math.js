@@ -10,6 +10,7 @@ function renderKatex(para, macros) {
         let tex = $(this);
         let src = tex.text();
         tex.empty();
+        tex.removeClass('latex_error');
         try {
             katex.render(src, tex[0], {
                 macros: macros,
@@ -18,12 +19,14 @@ function renderKatex(para, macros) {
         } catch (e) {
             let espan = $('<span>', {class: 'katex_inline_error', text: src});
             tex.append(espan);
+            tex.addClass('latex_error');
         }
     });
     para.find('div.latex').each(function() {
         let tex = $(this);
         let src = tex.text();
         tex.empty();
+        tex.removeClass('latex_error');
         try {
             katex.render(src, tex[0], {
                 displayMode: true,
@@ -38,6 +41,7 @@ function renderKatex(para, macros) {
             odiv.append(tdiv);
             odiv.append(ediv);
             tex.append(odiv);
+            tex.addClass('latex_error');
         }
     });
 }

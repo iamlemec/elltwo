@@ -266,11 +266,16 @@ function rawToTextarea(para) {
 
 ///////////////// ENVS /////////
 
+function selectEnvs(index, css) {
+    return (css.match(/(^|\s)env__\S+/g) || []).join(' ');
+}
+
 function stripEnvs(paras) {
+    console.log('stripEnvs', paras);
+
     // remove old env classes
-    paras.removeClass(function(index, css) {
-        return (css.match(/(^|\s)env__\S+/g) || []).join(' ');
-    });
+    paras.removeClass(selectEnvs);
+    paras.children('.p_text').removeClass(selectEnvs);
 
     // remove env markers
     paras.removeClass('env')
@@ -465,16 +470,13 @@ function simpleEnv(ptxt, env, head='', tail='', number=true, args={}) {
     let env_pid = para.attr('env_pid');
     fold.attr('fold_pid', env_pid)
         .attr('fold_level', para.attr('fold_level'));
-    // if (!state.folded.includes(env_pid)) {
-    //     fold.addClass('folded');
-    // }
     para.before(fold);
 }
 
 // we probably want to pass targ as an argument
 function errorEnv(ptxt, args) {
-    var mesg;
-    var targ;
+    let mesg;
+    let targ;
 
     if (args.code == 'undef') {
         mesg = `Error: environment "${args.env}" is not defined.`;
@@ -532,14 +534,12 @@ function headingEnv(ptxt, args) {
     fold.attr('fold_pid', env_pid)
         .attr('head_level', args.level)
         .attr('fold_level', para.attr('fold_level'));
-    // if (!state.folded.includes(env_pid)) {
-    //     fold.addClass('folded')
-    // }
     para.before(fold);
 }
 
 function equationEnv(ptxt, args) {
-    if (args.number) {
+    let error = ptxt.children('.latex_error').length > 0;
+    if (args.number && !error) {
         var num = makeCounter('equation');
         var div = $('<div>', {class: 'env_add eqnum'});
         div.append(num);
@@ -668,8 +668,9 @@ function createTOC(outer) {
     toc.find('.toc_entry').remove();
 
     outer.find('.env__heading').not('.folder .env__heading').each(function() {
-        let head = $(this).children('.p_text');
-        let level = $(this).attr('head_level');
+        let para = $(this);
+        let head = para.children('.p_text');
+        let level = para.attr('head_level');
         let text = head.html();
         let id = $(this).attr('id');
 
