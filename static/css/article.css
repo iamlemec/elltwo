@@ -456,6 +456,10 @@ button {
     stroke: var(--pop-fg-col)
 }
 
+#pop .theme_fill{
+    fill: var(--pop-fg-col)
+}
+
 .fig_cap {
     position: relative;
     padding: 0px 20px 20px 20px;
