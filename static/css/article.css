@@ -254,6 +254,15 @@ button {
     margin-right: 10px;
 }
 
+.katex_error_outer {
+    display: flex;
+    align-items: center;
+}
+
+.katex_error_source {
+    flex: 1;
+}
+
 .eqn_cite {
     font-family: monospace;
     font-size: 90%;

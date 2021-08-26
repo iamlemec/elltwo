@@ -546,12 +546,18 @@ function headingEnv(ptxt, args) {
 }
 
 function equationEnv(ptxt, args) {
-    let error = ptxt.children('.latex_error').length > 0;
-    if (args.number && !error) {
+    if (args.number) {
         let num = makeCounter('equation');
         let div = $('<div>', {class: 'env_add eqnum'});
         div.append(num);
-        ptxt.append(div);
+
+        let error = ptxt.children('.latex_error');
+        if (error.length > 0) {
+            let esrc = error.find('.katex_error_outer');
+            esrc.append(div);
+        } else {
+            ptxt.append(div);
+        }
     }
 }
 

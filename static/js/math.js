@@ -14,7 +14,7 @@ function renderKatex(para, macros) {
         try {
             katex.render(src, tex[0], {
                 macros: macros,
-                throwOnError: true,
+                throwOnError: false,
             });
         } catch (e) {
             let espan = $('<span>', {class: 'katex_inline_error', text: src});
@@ -27,20 +27,23 @@ function renderKatex(para, macros) {
         let src = tex.text();
         tex.empty();
         tex.removeClass('latex_error');
-        try {
-            katex.render(src, tex[0], {
-                displayMode: true,
-                macros: macros,
-                throwOnError: true,
-            });
-        } catch (e) {
-            let msg = e.message;
-            let odiv = $('<div>', {class: 'katex_display_error'});
-            let tdiv = $('<div>', {class: 'katex_error_source', text: src});
+        katex.render(src, tex[0], {
+            displayMode: true,
+            macros: macros,
+            throwOnError: false,
+        });
+        let err = tex.children('.katex-error');
+        if (err.length > 0) {
+            let msg = err.attr('title');
+            let ddiv = $('<div>', {class: 'katex_display_error'});
+            let odiv = $('<div>', {class: 'katex_error_outer'});
+            let tdiv = $('<pre>', {class: 'katex_error_source', text: src});
             let ediv = $('<div>', {class: 'katex_error_message', text: msg});
+            tex.empty();
             odiv.append(tdiv);
-            odiv.append(ediv);
-            tex.append(odiv);
+            ddiv.append(odiv);
+            ddiv.append(ediv);
+            tex.append(ddiv);
             tex.addClass('latex_error');
         }
     });

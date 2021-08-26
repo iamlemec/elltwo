@@ -947,9 +947,9 @@ class DivRenderer {
 
     equation(tex, multi) {
         if (multi) {
-            tex = `\\begin{aligned}\n${tex}\n\\end{aligned}`;
+            tex = `\\begin{aligned}\n${tex}\\end{aligned}`;
         }
-        return `<div class="latex">\n${tex}\n</div>\n\n`;
+        return `<div class="latex">${tex}</div>\n\n`;
     }
 
     ref(args, text) {
