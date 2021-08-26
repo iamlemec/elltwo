@@ -103,8 +103,10 @@ function eventEditor() {
                 return !activeNextPara(shift);
             } else if (ctrl && key == 'home') {
                 activeFirstPara(); // keep native home scroll
+                return false;
             } else if (ctrl && key == 'end') {
                 activeLastPara(); // keep native end scroll
+                return false;
             } else if (ctrl && key == 'c') {
                 copyParas();
                 return false;
@@ -150,8 +152,10 @@ function eventEditor() {
                 if (state.cc) {
                     state.cc = false;
                     $('#cc_pop').remove();
+                    return false;
                 } else {
                     makeUnEditable();
+                    return false;
                 }
                 return false;
             } else if (!shift && key == 'enter') {
@@ -405,6 +409,7 @@ function makeUnEditable(unlock=true) {
 
     if (state.active_para && state.rawtext) {
         state.rawtext = false;
+        state.active_para.addClass('copy_sel');
         if (state.writeable) {
             storeChange(state.active_para, unlock);
         }
@@ -537,7 +542,8 @@ function editShift(dir='up') {
             sendMakeEditable('end');
             return false;
         }
-    } else if (bot && dir == 'down') {
+    }
+    if (bot && dir == 'down') {
         if (activeNextPara()) {
             sendMakeEditable('begin');
             return false;
@@ -595,7 +601,6 @@ function getFoldParas(pid) {
 }
 
 function fold(para, init=false) {
-    console.log(para)
     let env_pid = para.attr('env_pid');
     let fold_pid = para.attr('fold_pid');
     if (env_pid) {

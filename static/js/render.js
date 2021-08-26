@@ -271,8 +271,6 @@ function selectEnvs(index, css) {
 }
 
 function stripEnvs(paras) {
-    console.log('stripEnvs', paras);
-
     // remove old env classes
     paras.removeClass(selectEnvs);
     paras.children('.p_text').removeClass(selectEnvs);
@@ -406,11 +404,21 @@ function envClasses(paras) {
 
 // numbering, referencing, folding, TOC
 function envGlobal(outer) {
-    console.log('envGlobal', outer);
+    let time0 = Date.now();
     createNumbers(outer);
+    let time1 = Date.now();
     renderRefText(outer);
+    let time2 = Date.now();
     renderFold(outer);
+    let time3 = Date.now();
     createTOC();
+    let time4 = Date.now();
+
+    console.log('envGlobal', outer);
+    console.log('createNumbers', time1-time0);
+    console.log('renderRefText', time2-time1);
+    console.log('renderFold', time3-time2);
+    console.log('createTOC', time4-time3);
 }
 
 function envFormat(ptxt, env, args) {
@@ -538,12 +546,18 @@ function headingEnv(ptxt, args) {
 }
 
 function equationEnv(ptxt, args) {
-    let error = ptxt.children('.latex_error').length > 0;
-    if (args.number && !error) {
-        var num = makeCounter('equation');
-        var div = $('<div>', {class: 'env_add eqnum'});
+    if (args.number) {
+        let num = makeCounter('equation');
+        let div = $('<div>', {class: 'env_add eqnum'});
         div.append(num);
-        ptxt.append(div);
+
+        let error = ptxt.children('.latex_error');
+        if (error.length > 0) {
+            let esrc = error.find('.katex_error_outer');
+            esrc.append(div);
+        } else {
+            ptxt.append(div);
+        }
     }
 }
 
@@ -1416,10 +1430,10 @@ function initFold() {
 }
 
 function renderFold(outer) {
-
     if (outer === undefined) {
         outer = $('#content');
     }
+
     outer.find('.para:not(.folder)').each(function() {
         let para = $(this);
         let fl = getFoldLevel(para);

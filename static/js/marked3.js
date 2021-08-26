@@ -661,7 +661,7 @@ class InlineLexer {
                 src = src.substring(cap[0].length);
                 text = cap[1];
                 href = text;
-                out += this.renderer.link(href, null, this.output(text));
+                out += this.renderer.link(href, null, text);
                 continue;
             }
 
@@ -947,9 +947,9 @@ class DivRenderer {
 
     equation(tex, multi) {
         if (multi) {
-            tex = `\\begin{aligned}\n${tex}\n\\end{aligned}`;
+            tex = `\\begin{aligned}\n${tex}\\end{aligned}`;
         }
-        return `<div class="latex">\n${tex}\n</div>\n\n`;
+        return `<div class="latex">${tex}</div>\n\n`;
     }
 
     ref(args, text) {

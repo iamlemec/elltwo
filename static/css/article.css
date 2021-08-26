@@ -1103,10 +1103,16 @@ circle.commit.active {
     border: 1px solid #C44;
 }
 
+.katex_error_outer {
+    display: flex;
+    align-items: center;
+    padding: 10px 0px 10px 10px;
+}
+
 .katex_error_source {
+    flex: 1;
     font-family: 'monospace';
     font-size: 90%;
-    padding: 5px;
 }
 
 .katex_error_message {
