@@ -476,8 +476,9 @@ function simpleEnv(ptxt, env, head='', tail='', number=true, args={}) {
     fold.append(fold_input);
     let para = first.parent();
     let env_pid = para.attr('env_pid');
+    let l = para.attr('folder_level') || 0;
     fold.attr('fold_pid', env_pid)
-        .attr('fold_level', para.attr('fold_level'));
+        .attr('fold_level', l);
     para.before(fold);
 }
 
@@ -1448,7 +1449,7 @@ function renderFold(outer) {
         let para = $(this);
         let fl = getFoldLevel(para);
         let pid = para.attr('fold_pid');
-        let p = getPara(pid);
+        let p = para.next('.para');//getPara(pid);
         let flp = getFoldLevel(p);
         if (fl > 0 && flp == 1) {
             para.removeClass('folded');
@@ -1456,6 +1457,7 @@ function renderFold(outer) {
             para.addClass('folded');
         }
     });
+
 }
 
 ////// Reference registering //////

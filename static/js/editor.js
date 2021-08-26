@@ -103,10 +103,8 @@ function eventEditor() {
                 return !activeNextPara(shift);
             } else if (ctrl && key == 'home') {
                 activeFirstPara(); // keep native home scroll
-                return false;
             } else if (ctrl && key == 'end') {
                 activeLastPara(); // keep native end scroll
-                return false;
             } else if (ctrl && key == 'c') {
                 copyParas();
                 return false;
@@ -152,10 +150,8 @@ function eventEditor() {
                 if (state.cc) {
                     state.cc = false;
                     $('#cc_pop').remove();
-                    return false;
                 } else {
                     makeUnEditable();
-                    return false;
                 }
                 return false;
             } else if (!shift && key == 'enter') {
@@ -184,18 +180,14 @@ function eventEditor() {
         if (!targ) {
             if (alt) {
                 let para = $(this);
-                let cur = event.target.selectionStart
-                    ? [event.target.selectionStart, event.target.selectionEnd]
-                    : 'end'; // returns undefined if not a textarea
+                let cur = event.target.selectionStart ? [event.target.selectionStart,event.target.selectionEnd] : 'end'; // returns undefined if not a textarea
                 let act = para.hasClass('active');
                 if (state.ssv_mode) {
                     if (cur[0] == cur[1] || cur == 'end') {
-                        if (!act) {
-                            makeActive(para);
+                        if(!act){
+                        makeActive(para);
                         }
-                        if (!state.rawtext) {
-                            sendMakeEditable(cur);
-                        }
+                    sendMakeEditable(cur);
                     }
                 } else if (act) {
                     if (!state.rawtext) {
@@ -252,7 +244,7 @@ function resize(textarea) {
 /// rendering and storage
 
 // store a change locally or server side, if no change also unlock server side
-function storeChange(para, unlock=true, force=false) {
+function storeChange(para, unlock=true) {
     // get old and new text
     let text = para.children('.p_input').val();
     let raw = para.attr('raw');
@@ -261,7 +253,7 @@ function storeChange(para, unlock=true, force=false) {
     rawToRender(para, false, true, text); // local changes only
 
     // update server as needed
-    if (force || text != raw) {
+    if (text != raw) {
         $(para).addClass('changed');
         sendUpdatePara(para, text);
     } else {
@@ -409,7 +401,6 @@ function makeUnEditable(unlock=true) {
 
     if (state.active_para && state.rawtext) {
         state.rawtext = false;
-        state.active_para.addClass('copy_sel');
         if (state.writeable) {
             storeChange(state.active_para, unlock);
         }
@@ -542,8 +533,7 @@ function editShift(dir='up') {
             sendMakeEditable('end');
             return false;
         }
-    }
-    if (bot && dir == 'down') {
+    } else if (bot && dir == 'down') {
         if (activeNextPara()) {
             sendMakeEditable('begin');
             return false;
@@ -562,7 +552,7 @@ function copyParas() {
     state.cb = attrArray(paras, 'raw');
     let cbstr = JSON.stringify(state.cb);
     setCookie('cb', cbstr, 60);
-    flash('selection copied');
+    flash('selection copied')
 }
 
 function pasteParas() {
@@ -601,6 +591,7 @@ function getFoldParas(pid) {
 }
 
 function fold(para, init=false) {
+    console.log(para)
     let env_pid = para.attr('env_pid');
     let fold_pid = para.attr('fold_pid');
     if (env_pid) {
@@ -613,6 +604,7 @@ function fold(para, init=false) {
         const fold = $(`[fold_pid=${env_pid}]`).first();
         const l = getFoldLevel(fold);
         fold.attr('fold_level', l+1);
+        para.attr('folder_level', l+1);
         makeActive(fold);
         if (!init) {
             state.folded.push(env_pid);
@@ -633,6 +625,7 @@ function fold(para, init=false) {
         const fold = $(`[fold_pid=${fold_pid}]`).first();
         const l = getFoldLevel(fold);
         fold.attr('fold_level', l-1);
+        fold.next('.para').attr('folder_level', l-1);
         makeActive(foldParas[1]);
         const foldcookie = JSON.stringify(state.folded);
         setCookie('folded', foldcookie, 604800);
