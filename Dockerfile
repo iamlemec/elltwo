@@ -21,7 +21,7 @@ COPY static/css static/css
 COPY static/favicon static/favicon
 COPY static/img static/img
 COPY static/js static/js
-COPY static/katex/dist static/katex/dist
+COPY static/katex static/katex
 COPY static/libs static/libs
 COPY static/themes static/themes
 COPY templates templates
