@@ -181,18 +181,34 @@ function eventIndex() {
         genExample(ex);
     });
 
-    $(document).on('click', '.para', function() {
+    $(document).on('click', '.para', function(event) {
         let para = $(this);
         let act = para.hasClass('active');
         let edit = para.hasClass('rawtext');
-        let cur = event.target.selectionStart || 'end'; // returns undefined if not a textarea
-        if ((state.ssv_mode && !edit) || (!state.ssv_mode && act && !edit)) {
-            makeActive(para);
-            sendMakeEditable(cur);
-            return false;
-        } else if (!state.ssv_mode && !act) {
-            makeActive(para);
-        }
+        let targ = event.target.href; // if link, follow link
+        if (!targ) {
+                let para = $(this);
+                let cur = (event.target.selectionStart !== undefined)
+                    ? [event.target.selectionStart, event.target.selectionEnd]
+                    : 'end'; // returns undefined if not a textarea
+                let act = para.hasClass('active');
+                if (state.ssv_mode) {
+                    if (cur[0] == cur[1] || cur == 'end') {
+                        if (!act) {
+                            makeActive(para);
+                        }
+                        if (!state.rawtext) {
+                            sendMakeEditable(cur);
+                        }
+                    }
+                } else if (act) {
+                    if (!state.rawtext) {
+                        sendMakeEditable(cur);
+                    }
+                } else {
+                    makeActive(para);
+                }
+            }
     });
 
     $(document).on('click', '#bg', function(e) {
