@@ -170,7 +170,7 @@ function wordSearch(bib, list) {
 };
 
 function connectBib() {
-    let url = `https://${document.domain}:${location.port}`;
+    let url = `//${document.domain}:${location.port}`;
     connect(url, () => { fetchBib([]); });
 
     addHandler('invalidateRef', function(data) {

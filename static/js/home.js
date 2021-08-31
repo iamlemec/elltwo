@@ -21,7 +21,7 @@ function initHome(args) {
 }
 
 function connectHome() {
-    let url = `https://${document.domain}:${location.port}`;
+    let url = `//${document.domain}:${location.port}`;
     connect(url, () => {
         sendCommand('join_room', {'room': '__home'}, (response) => {
             // console.log(response);

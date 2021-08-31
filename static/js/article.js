@@ -223,7 +223,7 @@ function setWriteable() {
     }}
 
 function connectServer() {
-    let url = `https://${document.domain}:${location.port}`;
+    let url = `//${document.domain}:${location.port}`;
     connect(url, () => {
         sendCommand('join_room', {'room': config.aid, 'get_locked': true}, (response) => {
             lockParas(response);
