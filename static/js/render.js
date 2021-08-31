@@ -436,7 +436,6 @@ function envFormat(ptxt, env, args) {
 //// ENV formatting
 
 function makeCounter(env, inc=1, tag=null) {
-    console.log('tag', tag)
     return $('<span>', {class: 'num', counter: env, inc: inc, tag: tag});
 }
 
