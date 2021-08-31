@@ -103,7 +103,6 @@ function cacheArticle() {
 
     // image cache
     cache.img = new KeyCache('img', function(key, callback) {
-        console.log('get_image', key);
         sendCommand('get_image', {key: key}, function(ret) {
             let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : null;
             callback(url);
@@ -329,7 +328,6 @@ function eventArticle() {
 
     // drop to upload
     connectDrops(function(box, ret) {
-        console.log(ret)
         let para = box.closest('.para');
         let pid = para.attr('pid');
         let data = {pid: pid, aid: config.aid};

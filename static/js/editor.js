@@ -167,6 +167,11 @@ function eventEditor() {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
                 textWrap(state.active_para, cur, wraps[key]);
                 return false;
+            } else if ((ctrl || meta) && key == '\\') {
+                if(e.target.selectionStart == e.target.selectionEnd){
+                    splitParas(e.target.selectionStart)
+                }
+                return false;
             }
         }
     });
@@ -286,7 +291,7 @@ function sendUpdatePara(para, text) {
     }));
 }
 
-function sendInsertPara(para, after=true, edit=true, raw='') {
+function sendInsertPara(para, after=true, edit=true, raw='', cur='end') {
     let fold_pid = para.attr('fold_pid');
     let head;
     if (fold_pid) {
@@ -302,7 +307,7 @@ function sendInsertPara(para, after=true, edit=true, raw='') {
             let new_para = insertParaRaw(pid, new_pid, raw, after);
             makeActive(new_para);
             if (edit) {
-                trueMakeEditable();
+                trueMakeEditable(true, cur);
             } else {
                 rawToRender(new_para);
             }
@@ -568,6 +573,16 @@ function pasteParas() {
             // console.log(response);
         });
     }
+}
+
+function splitParas(cur) {
+    let para = state.active_para;
+    let raw = para.children('.p_input').val();
+    raw = [raw.substring(0, cur), raw.substring(cur)];
+    para.children('.p_input').val(raw[0]);
+    syntaxHL(para);
+    makeUnEditable(para);
+    sendInsertPara(para, true, true, raw[1], 'begin');
 }
 
 // folding (editing)

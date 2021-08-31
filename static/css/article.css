@@ -453,6 +453,10 @@ button {
     stroke: var(--font-col);
 }
 
+.theme_hl{
+    stroke: var(--hl-col);
+}
+
 .theme_fill{
     fill: var(--font-col);
 }
