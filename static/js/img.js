@@ -52,7 +52,7 @@ function cacheImage() {
 }
 
 function connectImage() {
-    let url = `http://${document.domain}:${location.port}`;
+    let url = `https://${document.domain}:${location.port}`;
     connect(url, () => {
         sendCommand('join_room', {'room': '__img'});
     });
