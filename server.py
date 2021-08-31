@@ -13,8 +13,9 @@ from datetime import datetime
 from collections import namedtuple
 from random import getrandbits
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from werkzeug.utils import secure_filename
 
+from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from itsdangerous import URLSafeTimedSerializer
@@ -44,6 +45,7 @@ parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 parser.add_argument('--login', action='store_true', help='Require login for editing')
 parser.add_argument('--private', action='store_true', help='Require login for viewing/editing')
 parser.add_argument('--reindex', action='store_true', help='reindex search database on load')
+parser.add_argument('--demo', action='store_true', help='Go to index by default')
 parser.add_argument('--conf', type=str, default=None, help='path to configuation file')
 parser.add_argument('--auth', type=str, default=None, help='user authorization config')
 parser.add_argument('--mail', type=str, default=None, help='mail authorization config')
@@ -120,6 +122,7 @@ login = LoginManager(app)
 
 # create socketio
 socketio = SocketIO(app)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
 # initialize tables
 @app.before_first_request
@@ -144,7 +147,10 @@ def inject_dict_for_all_templates():
 @view_decor
 def Home():
     style = getStyle(request)
-    return render_template('home.html', **style, **chtml)
+    if args.demo:
+        return render_template('index.html', **style, **chtml, login=False)
+    else:
+        return render_template('home.html', **style, **chtml)
 
 @app.route('/create', methods=['POST'])
 @edit_decor

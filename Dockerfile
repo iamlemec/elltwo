@@ -25,4 +25,4 @@ COPY testing testing
 RUN ["python", "console", "backup", "load", "testing"]
 
 # Run when the container launches
-CMD ["python", "-u", "server.py", "--ip=0.0.0.0", "--port=80", "--auth=auth.toml", "--theme=white", "--reindex"]
+CMD ["python", "-u", "server.py", "--ip=0.0.0.0", "--port=80", "--auth=auth.toml", "--theme=white", "--reindex", "--demo"]
