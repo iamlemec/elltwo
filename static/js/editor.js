@@ -591,7 +591,6 @@ function getFoldParas(pid) {
 }
 
 function fold(para, init=false) {
-    console.log(para)
     let env_pid = para.attr('env_pid');
     let fold_pid = para.attr('fold_pid');
     if (env_pid) {

@@ -435,8 +435,9 @@ function envFormat(ptxt, env, args) {
 
 //// ENV formatting
 
-function makeCounter(env, inc=1) {
-    return $('<span>', {class: 'num', counter: env, inc: inc});
+function makeCounter(env, inc=1, tag=null) {
+    console.log('tag', tag)
+    return $('<span>', {class: 'num', counter: env, inc: inc, tag: tag});
 }
 
 function simpleEnv(ptxt, env, head='', tail='', number=true, args={}) {
@@ -547,7 +548,20 @@ function headingEnv(ptxt, args) {
 }
 
 function equationEnv(ptxt, args) {
-    if (args.number) {
+    if(args.tag){
+        let num = makeCounter('eq_tag', 0, args.tag);
+        let div = $('<div>', {class: 'env_add eqnum eq_tag'});
+        div.append(num);
+
+        let error = ptxt.children('.latex_error');
+        if (error.length > 0) {
+            let esrc = error.find('.katex_error_outer');
+            esrc.append(div);
+        } else {
+            ptxt.append(div);
+        }
+
+    } else if (args.number) {
         let num = makeCounter('equation');
         let div = $('<div>', {class: 'env_add eqnum'});
         div.append(num);
@@ -659,6 +673,13 @@ function createNumbers(outer) {
     outer.find('.num').each(function() {
         let num = $(this);
         let counter = num.attr('counter');
+        let tag = num.attr('tag');
+        if(tag){
+            tag = divInlineLexer.output(tag);
+            num.html(tag);
+            renderKatex(num);
+            return true;
+        }
         let inc = parseInt(num.attr('inc'));
 
         nums[counter] = nums[counter] || 0;
@@ -885,8 +906,8 @@ function refCite(ref, tro) {
 }
 
 function refEquation(ref, tro) {
-    let num = tro.tro.find('.num').first().text();
-    let citebox = $('<span>', {class: 'eqn_cite', text: num});
+    let num = tro.tro.find('.num').first().html();
+    let citebox = $('<span>', {class: 'eqn_cite', html: num});
     let text = ref.data('text');
 
     if (text) {
@@ -895,7 +916,7 @@ function refEquation(ref, tro) {
         ref.empty();
         ref.append(citebox);
         if (tro.ext_title) {
-            let txt = $('<span>', {class: 'eqn_cite_ext', text: `[${tro.ext_title}]`});
+            let txt = $('<span>', {class: 'eqn_cite_ext', html: `[${tro.ext_title}]`});
             ref.append(txt);
         }
     }

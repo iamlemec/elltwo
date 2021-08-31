@@ -248,10 +248,15 @@ button {
     font-family: monospace;
     color: var(--font-col);
     border: 1px solid var(--font-col);
-    width: 25px;
+    min-width: 25px;
     height: 25px;
     border-radius: 2px;
     margin-right: 10px;
+    padding: 3px;
+}
+
+.eq_tag{
+    height: unset;
 }
 
 .eqn_cite {
