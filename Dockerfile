@@ -1,11 +1,8 @@
 # Use an official Python runtime as a parent image
-FROM python:3.9-alpine
+FROM python:3.9-slim
 
 # Set the working directory
 WORKDIR /opt/elltwo
-
-# Install base packages
-RUN apk --update add bash git make gcc g++ musl-dev
 
 # Install any needed packages specified in requirements.txt
 COPY requirements.txt .
@@ -17,13 +14,7 @@ EXPOSE 80
 # Copy application code
 COPY *.py .
 COPY console .
-COPY static/css static/css
-COPY static/favicon static/favicon
-COPY static/img static/img
-COPY static/js static/js
-COPY static/katex static/katex
-COPY static/libs static/libs
-COPY static/themes static/themes
+COPY static static
 COPY templates templates
 
 # Load in cookie secret (SECRET_KEY and SECURITY_PASSWORD_SALT)
