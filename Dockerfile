@@ -17,12 +17,9 @@ COPY console .
 COPY static static
 COPY templates templates
 
-# Load in cookie secret (SECRET_KEY and SECURITY_PASSWORD_SALT)
-COPY auth.toml .
-
 # Load in sample content
 COPY testing testing
 RUN ["python", "console", "backup", "load", "testing"]
 
 # Run when the container launches
-CMD ["python", "-u", "server.py", "--ip=0.0.0.0", "--auth=auth.toml", "--theme=white", "--reindex", "--demo"]
+CMD ["python", "-u", "server.py", "--ip=0.0.0.0", "--theme=white", "--demo"]
