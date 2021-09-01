@@ -305,6 +305,7 @@ def LoginUser():
         flash('Please check your login details and try again.')
         return redirect(url_for('Login'))
     if not user.confirmed:
+        print(user)
         rs = url_for('Resend', email=email)
         msg = Markup(f'Activate your account. <br> <a href={rs} class="alert-link">Click here to resend a confirmation email.</a>')
         flash(msg)

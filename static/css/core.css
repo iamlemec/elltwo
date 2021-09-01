@@ -132,7 +132,7 @@ a.reference {
 }
 
 #toggle_ll {
-   width: 120px;
+   width: 130px;
 }
 
 .foot_butt {
@@ -141,8 +141,8 @@ a.reference {
     margin-left: 5px;
     margin-right: 5px;
     top: 0;
-    padding-bottom: 3px;
-    max-width: 90px;
+    padding: 1px 5px 2px 5px;
+    max-width: 110px;
     margin-bottom: 2px;
     line-height: 17px;
 }
