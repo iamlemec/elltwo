@@ -6,6 +6,8 @@ max_size = 1024 # max image size in kilobytes
 max_imgs = 50 # max number of images returned in search
 ssv_persist = true # start articles in ssv mode
 edit_persist = true # start articles in edit mode
+ssv_init = false # whether to start in ssv mode
+edit_init = true # whether to start in edit mode
 
 [html]
 name = '<span class=latex>\ell^2</span>' # header name

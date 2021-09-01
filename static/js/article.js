@@ -165,8 +165,8 @@ function loadArticle(args) {
     }
 
     // update button state (persistent)
-    let ssv0 =  config.ssv_persist && (cooks('ssv_mode') ?? false);
-    let edit0 = config.edit_persist && (cooks('edit_mode') ?? false);
+    let ssv0 =  config.ssv_persist && (cooks('ssv_mode') ?? config.ssv_init);
+    let edit0 = config.edit_persist && (cooks('edit_mode') ?? config.edit_init);
 
     // connect events
     eventArticle();
