@@ -80,6 +80,8 @@ class User:
             name, _ = email.split('@')
         if password is None:
             password = getpass.getpass()
+        else:
+            password = str(password)
         self.edb.add_user(email, name, password, confirm=confirm)
 
     def delete(self, email):
