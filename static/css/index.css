@@ -1,6 +1,5 @@
 @import 'core.css';
 
-
 #bg {
     height: unset;
     position: absolute;
@@ -14,7 +13,6 @@
   right: 0;
 }
 
-
 #head_block {
     background-color: var(--bg-hl-col);
     position: sticky;
@@ -27,7 +25,7 @@
     transform: translateY(-20px);
 }
 
-#head_block.stuck{
+#head_block.stuck {
     border-bottom: 2px solid var(--font-col-int)
 }
 
@@ -40,9 +38,9 @@
     text-align: center;
 }
 
-#head_block.stuck #prompt{
- font-size: 70%;
- top: 20px;
+#head_block.stuck #prompt {
+    font-size: 70%;
+    top: 20px;
 }
 
 #title {
@@ -74,10 +72,10 @@
     top: 0px;
     width: 100%;
     z-index: 3;
-    
+
 }
 
-.header_link{
+.header_link {
     padding: 4px;
     border: 1px solid var(--bg-hl2-col);
     border-radius: 10px;
@@ -85,11 +83,11 @@
     margin-left: 50px;
 }
 
-#push{
+#push {
     width: 400px;
 }
 
-.header_link svg{
+.header_link svg {
     height: 20px;
     width: 20px;
     position: absolute;
@@ -97,14 +95,13 @@
     transform: translateX(4px)
 }
 
-.header_link_text{
+.header_link_text {
     display: inline-block;
     line-height: 20px;
     margin-left: 35px;
     margin-right: 10px;
 
 }
-
 
 #ssv_text {
     display: flex;
@@ -120,7 +117,7 @@
     padding-top: 100px;
 }
 
-.about_block{
+.about_block {
     position: relative;
     left: 15%;
     width: 70%;
@@ -130,12 +127,11 @@
     align-items: center;
 }
 
-.about_block svg{
+.about_block svg {
     height: 50px;
     width: 100px;
     fill: var(--hl-col);
 }
-
 
 #features {
     background-color: var(--bg-hl2-col);
@@ -164,7 +160,6 @@
 
 }
 
-
 #vid_wrap {
     position: sticky;
     height: 100vh;
@@ -177,7 +172,6 @@
     height: 25vw;
     padding-left: 55%;
 }
-
 
 .container:not(.ssv) .para {
     position: relative;
@@ -245,7 +239,6 @@
 .container.ssv {
     background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 50%,var(--bg-hl-col) 50%,var(--bg-hl-col) 100%);
 }
-
 
 .container.ssv .para {
     position: relative;
@@ -383,7 +376,6 @@ button {
     display: none;
 }
 
-
 /* DIV renderer stylying */
 
 .comment {
@@ -433,7 +425,7 @@ button {
     display: none;
 }
 
-.ft_content{
+.ft_content {
     display: none;
 }
 
@@ -703,8 +695,6 @@ button {
     right: 5px;
 }
 
-
-
 /* drop down */
 
 .center {
@@ -758,7 +748,6 @@ button {
     border-color: var(--hl2-col);
 }
 
-
 .custom-select.opened .custom-select-trigger:after {
     margin-top: 3px;
     transform: rotate(-135deg) translateY(-50%);
@@ -798,8 +787,6 @@ button {
     border-bottom: 0;
 }
 
-
-
 /* tables */
 
 .table {
@@ -828,40 +815,70 @@ button {
     padding: 3px 10px;
 }
 
-/* SLIM CSS */
-@media only screen and (max-width: 1000px) {
-    
-    #sentinal{
-        height: 0px;
-    }
-    
-    #head_block{
-        top: 10px;
-        height: 150px;
-        z-index: 3;
-    }
-    
-    #header_links{
-        position: sticky;
-        width: 100vw;
-        top: -100px;
-        overflow: hidden;
-        height: 80px;
-        transform: translateY(160px);
-        z-index: 4;
+/* latex errors */
 
-    }
-    
-    
-    .header_link{
-        width: 22vw;
-        margin: 1vw;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-    
-.header_link svg{
+.katex_inline_error {
+    color: #C44;
+}
+
+.katex_display_error {
+    border-radius: 5px;
+    border: 1px solid #C44;
+}
+
+.katex_error_outer {
+    display: flex;
+    align-items: center;
+    padding: 10px 0px 10px 10px;
+}
+
+.katex_error_source {
+    flex: 1;
+    font-family: 'monospace';
+    font-size: 90%;
+}
+
+.katex_error_message {
+    color: white;
+    background-color: #C44;
+    font-size: 90%;
+    padding: 5px;
+}
+
+/* SLIM CSS */
+
+@media only screen and (max-width: 1000px) {
+
+#sentinal {
+    height: 0px;
+}
+
+#head_block {
+    top: 10px;
+    height: 150px;
+    z-index: 3;
+}
+
+#header_links {
+    position: sticky;
+    width: 100vw;
+    top: -100px;
+    overflow: hidden;
+    height: 80px;
+    transform: translateY(160px);
+    z-index: 4;
+
+}
+
+.header_link {
+    width: 22vw;
+    margin: 1vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header_link svg {
     height: 15px;
     width: 15px;
     position: unset;
@@ -872,7 +889,7 @@ button {
     transform: unset;
 }
 
-.header_link_text{
+.header_link_text {
     position: unset;
     display: block;
     margin-left: 0px;
@@ -881,16 +898,14 @@ button {
     line-height: 12px;
 
 }
-    
-    #push{
-        display: none;
-    }
-   
-    #example_options{
-        font-size: 80%;
-    }
-     
-    
+
+#push {
+    display: none;
+}
+
+#example_options {
+    font-size: 80%;
+}
 
 #features {
     background-color: var(--bg-hl2-col);
@@ -910,10 +925,10 @@ button {
     font-size: 90%;
     line-height: 150%;
 }
-    
-.feature:last-of-type{
-        padding-bottom: 50vh;
-    }
+
+.feature:last-of-type {
+    padding-bottom: 50vh;
+}
 
 .fname {
     font-size: 110%;
@@ -939,7 +954,7 @@ button {
     padding-left: 0;
     bottom: 40px;
 }
-    
+
 #about {
     background-color: var(--bg-col);
     padding-top: 100px;
@@ -947,7 +962,7 @@ button {
     transform: translateY(-40px);
 }
 
-.about_block{
+.about_block {
     position: relative;
     left: 5%;
     width: 85%;
@@ -955,7 +970,7 @@ button {
     font-size: 70%;
 }
 
-.about_block svg{
+.about_block svg {
     height: 50px;
     width: 40px;
     fill: var(--hl-col);
@@ -967,9 +982,9 @@ button {
 /*  MOBILE CSS */
 
 @media only screen and (max-width: 1000px) and (max-device-width: 1000px) {
-    
-#ssv_label, #ssv_text{
-        display: none;
+
+#ssv_label, #ssv_text {
+    display: none;
 }
 
 .para {
@@ -991,6 +1006,5 @@ button {
     bottom: 40px;
     border-radius: 0;
 }
-
 
 }
