@@ -8,8 +8,8 @@ WORKDIR /opt/elltwo
 COPY requirements.txt .
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
-# Make port 80 available to the world outside this container
-EXPOSE 80
+# Make port 5000 available to the world outside this container
+EXPOSE 5000
 
 # Copy application code
 COPY *.py .
@@ -25,4 +25,4 @@ COPY testing testing
 RUN ["python", "console", "backup", "load", "testing"]
 
 # Run when the container launches
-CMD ["python", "-u", "server.py", "--ip=0.0.0.0", "--port=80", "--auth=auth.toml", "--theme=white", "--reindex", "--demo"]
+CMD ["python", "-u", "server.py", "--ip=0.0.0.0", "--auth=auth.toml", "--theme=white", "--reindex", "--demo"]
