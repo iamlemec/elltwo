@@ -168,8 +168,8 @@ function eventEditor() {
                 textWrap(state.active_para, cur, wraps[key]);
                 return false;
             } else if ((ctrl || meta) && key == '\\') {
-                if(e.target.selectionStart == e.target.selectionEnd){
-                    splitParas(e.target.selectionStart)
+                if (e.target.selectionStart == e.target.selectionEnd) {
+                    splitParas(e.target.selectionStart);
                 }
                 return false;
             }
@@ -410,6 +410,7 @@ function makeUnEditable(unlock=true) {
 
     if (state.active_para && state.rawtext) {
         state.rawtext = false;
+        para.addClass('copy_sel');
         if (state.writeable) {
             storeChange(state.active_para, unlock);
         }
@@ -578,11 +579,11 @@ function pasteParas() {
 function splitParas(cur) {
     let para = state.active_para;
     let raw = para.children('.p_input').val();
-    raw = [raw.substring(0, cur), raw.substring(cur)];
-    para.children('.p_input').val(raw[0]);
+    let [raw0, raw1] = [raw.substring(0, cur), raw.substring(cur)];
+    para.children('.p_input').val(raw0);
     syntaxHL(para);
     makeUnEditable(para);
-    sendInsertPara(para, true, true, raw[1], 'begin');
+    sendInsertPara(para, true, true, raw1, 'begin');
 }
 
 // folding (editing)
