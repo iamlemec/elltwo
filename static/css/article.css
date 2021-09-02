@@ -567,8 +567,8 @@ button {
     cursor: pointer;
 }
 
-.cc_row:hover{
-    font-weight: bold; 
+.cc_row:hover {
+    font-weight: bold;
 }
 
 .cc_row:nth-child(-n+5) {
@@ -1111,6 +1111,11 @@ circle.commit.active {
 }
 
 /* latex errors */
+
+.katex-error {
+    font-family: 'monospace';
+    font-size: 90%;
+}
 
 .katex_inline_error {
     color: #C44;
