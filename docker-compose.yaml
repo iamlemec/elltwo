@@ -4,3 +4,8 @@ services:
     image: iamlemec/elltwo
     ports:
       - "5000:5000"
+    volumes:
+      - "elltwo:/opt/data"
+
+volumes:
+    elltwo:

@@ -22,4 +22,4 @@ COPY testing testing
 RUN ["python", "console", "backup", "load", "testing"]
 
 # Run when the container launches
-CMD ["python", "-u", "server.py", "--ip=0.0.0.0", "--theme=white", "--demo"]
+CMD ["python", "-u", "server.py", "--demo", "--path=/opt/data/elltwo.db", "--ip=0.0.0.0", "--theme=white"]
