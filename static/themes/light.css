@@ -135,9 +135,12 @@ button:hover {
 /* text elements */
 
 .footnote > .num {
-  color: var(--hl-col);
+  color: var(--pop-fg-col);
   font-size: 70%;
   vertical-align: super;
+  background-color: var(--pop-bg-col);
+  padding: 0px 3px 0px 3px;
+  border-radius: 3px;
 }
 
 .env__heading_h1 {
