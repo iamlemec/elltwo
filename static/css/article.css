@@ -564,6 +564,11 @@ button {
 
 .cc_row {
     display: none;
+    cursor: pointer;
+}
+
+.cc_row:hover{
+    font-weight: bold; 
 }
 
 .cc_row:nth-child(-n+5) {
