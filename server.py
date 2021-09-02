@@ -64,8 +64,10 @@ config = {
     'timeout': 180, # paragraph lock timeout in seconds
     'max_size': 1024, # max image size in kilobytes
     'max_imgs': 50, # max number of images returned in search
-    'ssv_persist': True, # start articles in ssv mode
-    'edit_persist': True, # start articles in edit mode
+    'ssv_persist': True, # persistent ssv mode in cookie
+    'edit_persist': True, # persistent edit mode in cookie
+    'ssv_init': False, # whether to start in ssv mode
+    'edit_init': True, # whether to start in edit mode
     'themes': themes, # all themes by default
     'demo_path': 'testing/demo.md', # path to demo content
 }
@@ -303,7 +305,6 @@ def LoginUser():
         flash('Please check your login details and try again.')
         return redirect(url_for('Login'))
     if not user.confirmed:
-        print(user)
         rs = url_for('Resend', email=email)
         msg = Markup(f'Activate your account. <br> <a href={rs} class="alert-link">Click here to resend a confirmation email.</a>')
         flash(msg)
@@ -376,16 +377,9 @@ def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
     if art:
         paras = edb.get_paras(art.aid)
         return render_template(
-            'article.html',
-            aid=art.aid,
-            title=art.title,
-            theme=theme,
-            font=font,
-            g_ref=art.g_ref,
-            pid=pid,
-            paras=paras,
-            readonly=not edit,
-            **config
+            'article.html', aid=art.aid, title=art.title,
+            theme=theme, font=font, g_ref=art.g_ref, pid=pid,
+            paras=paras, readonly=not edit, **config
         )
     else:
         flash(f'Article "{title}" does not exist.')
