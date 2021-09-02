@@ -152,12 +152,17 @@ button:hover {
 }
 
 .footnote {
-  color: var(--delimit-col);
 }
 
 .footnote > .num {
-   color: var(--font-col);
-
+    color: white;
+    background-color: var(--code-bg-col);
+    border: 1px solid #555;
+    border-radius: 2px;
+    font-family: monospace;
+    font-size: 60%;
+    padding: 1px 4px 0px 3px;
+    vertical-align: super;
 }
 
 .empty {
@@ -186,12 +191,6 @@ button:hover {
 .code {
     font-size: 80%;
     padding: 3px;
-}
-
-.footnote > .num{
-  color: var(--hl-col);
-  font-size: 70%;
-  vertical-align: super;
 }
 
 .ref_error {

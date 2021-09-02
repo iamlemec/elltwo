@@ -133,7 +133,7 @@ button:hover {
 
 .footnote > .num {
     background-color: lightgray;
-    border: 1px solid var(--faint-gray);
+    border: 1px solid #666;
     border-radius: 2px;
     font-family: monospace;
     font-size: 60%;
