@@ -132,14 +132,13 @@ button:hover {
 }
 
 .footnote > .num {
-    color: var(--bg-col);
-    background-color: var(--neon-blue);
+    background-color: lightgray;
     border: 1px solid var(--faint-gray);
     border-radius: 2px;
     font-family: monospace;
-    font-size: 90%;
-    padding: 0 5px;
-    margin: 0 1px;
+    font-size: 60%;
+    padding: 1px 3px 0px 3px;
+    vertical-align: super;
 }
 
 .empty {

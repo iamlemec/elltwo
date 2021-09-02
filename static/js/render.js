@@ -1161,7 +1161,7 @@ function syntaxParseInline(raw) {
     );
 
     html = html.replace(inline.ftnt, (a, b) =>
-        s('^[', 'delimit') + b.replace('|', s('|', 'hl')) + s(']', 'delimit')
+        s('^[', 'delimit') + b + s(']', 'delimit')
     );
 
     html = html.replace(inline.math, (a, b) =>
