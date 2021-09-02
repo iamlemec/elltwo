@@ -1245,9 +1245,11 @@ function ccRefs(view, raw, cur) {
                     ccSearch(ret, search, p);
                 });
             } else if (cap[2] && cap[3]) {
+                console.log('oddman')
                 let title = cap[2];
+                let search = cap[4] || "";
                 cache.list.get(title, function(ret) {
-                    ccSearch(ret, '', p);
+                    ccSearch(ret, search, p);
                 });
             } else {
                 let search = cap[4] || cap[2] || '';

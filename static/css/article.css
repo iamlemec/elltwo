@@ -461,6 +461,10 @@ button {
     fill: var(--font-col);
 }
 
+.theme_fill_hl{
+    fill: var(--hl-col);
+}
+
 #pop .theme_col{
     stroke: var(--pop-fg-col)
 }
