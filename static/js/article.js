@@ -1120,8 +1120,10 @@ function ccNext(dir) {
     }
 }
 
-function ccMake() {
-    let cctxt = $('.cc_row').first().text();
+function ccMake(cctxt=null) {
+    if (cctxt===null){
+        cctxt = $('.cc_row').first().text();
+    }
     let para = state.active_para;
     let input = para.children('.p_input');
     let raw = input.val();
@@ -1190,6 +1192,7 @@ function ccMake() {
     if (state.ssv_mode) {
             rawToRender(para, false, false, raw);
     }
+    return l;
 }
 
 /// command completion
@@ -1246,8 +1249,9 @@ function ccRefs(view, raw, cur) {
                 });
             } else if (cap[2] && cap[3]) {
                 let title = cap[2];
+                let search = cap[4] || "";
                 cache.list.get(title, function(ret) {
-                    ccSearch(ret, '', p);
+                    ccSearch(ret, search, p);
                 });
             } else {
                 let search = cap[4] || cap[2] || '';

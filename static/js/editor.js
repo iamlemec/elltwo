@@ -236,6 +236,15 @@ function eventEditor() {
         return false;
     });
 
+    $(document).on('click', '.cc_row', function() {
+        let cctxt = $(this).text();
+        let l = ccMake(cctxt);
+        let input = state.active_para.children('.p_input');
+        input.focus();
+        input[0].setSelectionRange(l, l);
+        return false
+    });
+
     $('#content').focus();
 }
 
