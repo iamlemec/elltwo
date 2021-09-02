@@ -400,7 +400,9 @@ def getStyle(request):
 def RenderArticle(title):
     style = getStyle(request)
     pid = request.args.get('pid')
-    if current_user.is_authenticated or not args.login:
+    howto = args.demo and urlify(title) == 'howto' # hacky
+    permit = current_user.is_authenticated or not args.login
+    if permit and not howto:
         return GetArtData(title, edit=True, pid=pid, **style)
     else:
         return redirect(url_for('RenderArticleRO', title=title))

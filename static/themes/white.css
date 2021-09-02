@@ -181,8 +181,12 @@ button:hover {
 #pop {
     color: var(--pop-fg-col);
     background-color: var(--pop-bg-col);
-    opacity: .95;
+    opacity: 0.95;
     border-radius: 5px;
+}
+
+#pop .code {
+    background-color: var(--pop-bg-col);
 }
 
 #cc_pop {
