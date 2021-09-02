@@ -22,7 +22,7 @@ from itsdangerous import URLSafeTimedSerializer
 
 # import db tools
 from db_setup import Article, Paragraph, Paralink, Bib, User
-from db_query import ElltwoDB, order_links
+from db_query import ElltwoDB, order_links, urlify
 
 # other tools
 from tools import Multimap, gen_auth
