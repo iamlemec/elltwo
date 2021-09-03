@@ -44,16 +44,16 @@ The editor has two top-level states that can be toggled in the status bar at the
 
 ## Console
 
-There is a command line console available to inspect and manipulate data on the backend, in the form of the `console` file. For instance, to list all articles, simply run
+There is a command line console available to inspect and manipulate data on the backend, in the form of the `console.py` file. For instance, to list all articles, simply run
 
 ```
-./console art list
+./console.py art list
 ```
 
 This also exposes backup/restore facilities. To load markdown files from a directory (for instance the `testing` directory in this repo) run
 
 ```
-./console backup load testing --db testing.db
+./console.py backup load testing --db=testing.db
 ```
 
 To save, use the `backup save` sub-command. Note that one can also provide a zip file for both load and save.
