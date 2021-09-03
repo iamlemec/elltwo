@@ -38,7 +38,7 @@ Payload.max_decode_packets = 50
 
 parser = argparse.ArgumentParser(description='Elltwo server.')
 parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
-parser.add_argument('--path', type=str, default='elltwo.db', help='Path to sqlite database file')
+parser.add_argument('--db', type=str, default='elltwo.db', help='Path to sqlite database file')
 parser.add_argument('--ip', type=str, default='127.0.0.1', help='IP address to serve on')
 parser.add_argument('--port', type=int, default=5000, help='Main port to serve on')
 parser.add_argument('--debug', action='store_true', help='Run in debug mode')
@@ -96,7 +96,7 @@ view_decor = login_required if args.private else (lambda f: f)
 # create flask app
 app = Flask(__name__)
 app.config['DEBUG'] = args.debug
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.path}'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.db}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 # load user security config
@@ -614,7 +614,7 @@ def set_title(data):
     socketio.emit('invalidateRef', ['link', short], to=f'[[{short}]]')
 
 @socketio.on('set_blurb')
-@edit_decor
+@view_decor
 def set_blurb(data):
     aid, blurb = data['aid'], data['blurb']
     edb.set_blurb(aid, blurb)

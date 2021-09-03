@@ -153,9 +153,7 @@ function loadArticle(args) {
     };
 
     // send blurb back to server
-    if (!config.readonly) {
-        setBlurb();
-    }
+    setBlurb();
 
     // jump to pid if specified
     let pid = args.pid ?? null;

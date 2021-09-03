@@ -14,12 +14,10 @@ EXPOSE 5000
 # Copy application code
 COPY *.py .
 COPY console .
+COPY demo.sh .
 COPY static static
 COPY templates templates
-
-# Load in sample content
 COPY testing testing
-RUN ["python", "console", "backup", "load", "testing"]
 
-# Run when the container launches
-CMD ["python", "-u", "server.py", "--demo", "--path=/opt/data/elltwo.db", "--ip=0.0.0.0", "--theme=white"]
+# Demo entry point
+CMD ["bash", "demo.sh"]
