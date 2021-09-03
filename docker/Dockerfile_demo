@@ -12,12 +12,13 @@ RUN pip install --trusted-host pypi.python.org -r requirements.txt
 EXPOSE 5000
 
 # Copy application code
-COPY *.py .
-COPY console .
-COPY demo.sh .
+COPY server.py .
+COPY console.py .
+COPY elltwo elltwo
 COPY static static
 COPY templates templates
 COPY testing testing
 
 # Demo entry point
+COPY docker/demo.sh demo.sh
 CMD ["bash", "demo.sh"]

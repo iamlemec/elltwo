@@ -8,6 +8,8 @@ ssv_persist = true # start articles in ssv mode
 edit_persist = true # start articles in edit mode
 ssv_init = false # whether to start in ssv mode
 edit_init = true # whether to start in edit mode
+default_theme = 'white' # default theme
+default_font = 'default' # default font
 
 [html]
 name = '<span class=latex>\ell^2</span>' # header name

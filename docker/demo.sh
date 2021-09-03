@@ -3,7 +3,6 @@
 # global options
 E2DB="/opt/data/elltwo.db"
 ADDR="0.0.0.0"
-THEME="white"
 
 # create database if needed
 if [ ! -f "${E2DB}" ]; then
@@ -11,4 +10,4 @@ if [ ! -f "${E2DB}" ]; then
 fi
 
 # start server
-python -u server.py --db="${E2DB}" --ip="${ADDR}" --theme="${THEME}" --demo
+python -u server.py --db="${E2DB}" --ip="${ADDR}" --demo

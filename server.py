@@ -1,14 +1,6 @@
-from flask import (
-    Flask, Markup, make_response,
-    request, redirect, url_for, render_template,
-    jsonify, flash, send_from_directory, send_file
-)
-from flask_socketio import SocketIO, send, emit, join_room, leave_room
-from flask_sqlalchemy import SQLAlchemy, BaseQuery
-from flask_mail import Mail, Message
-
 import os, sys, re, json, argparse, toml, secrets
 from io import BytesIO
+from pathlib import Path
 from datetime import datetime
 from collections import namedtuple
 from random import getrandbits
@@ -17,16 +9,22 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from werkzeug.utils import secure_filename
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash
-from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from itsdangerous import URLSafeTimedSerializer
 
-# import db tools
-from db_setup import Article, Paragraph, Paralink, Bib, User
-from db_query import ElltwoDB, order_links, urlify
+from flask import (
+    Flask, Markup, make_response,
+    request, redirect, url_for, render_template,
+    jsonify, flash, send_from_directory, send_file
+)
+from flask_socketio import SocketIO, send, emit, join_room, leave_room
+from flask_sqlalchemy import SQLAlchemy, BaseQuery
+from flask_mail import Mail, Message
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 
-# other tools
-from tools import Multimap, gen_auth
-from pathlib import Path
+# import db tools
+from elltwo.tools import Multimap, gen_auth
+from elltwo.schema import Article, Paragraph, Paralink, Bib, User
+from elltwo.query import ElltwoDB, order_links, urlify
 
 # necessary hack
 from engineio.payload import Payload
@@ -37,7 +35,6 @@ Payload.max_decode_packets = 50
 ###
 
 parser = argparse.ArgumentParser(description='Elltwo server.')
-parser.add_argument('--theme', type=str, default='classic', help='Theme CSS to use (if any)')
 parser.add_argument('--db', type=str, default='elltwo.db', help='Path to sqlite database file')
 parser.add_argument('--ip', type=str, default='127.0.0.1', help='IP address to serve on')
 parser.add_argument('--port', type=int, default=5000, help='Main port to serve on')
@@ -68,8 +65,10 @@ config = {
     'edit_persist': True, # persistent edit mode in cookie
     'ssv_init': False, # whether to start in ssv mode
     'edit_init': True, # whether to start in edit mode
-    'themes': themes, # all themes by default
+    'default_theme': 'white', # default theme
+    'default_font': 'default', # default font
     'demo_path': 'testing/demo.md', # path to demo content
+    'themes': themes, # all themes by default
 }
 
 #config to pass to templets
@@ -371,7 +370,7 @@ def confirm_token(token, expiration=3600):
 ### Article
 ###
 
-def GetArtData(title, edit, theme=args.theme, font='default', pid=None):
+def GetArtData(title, edit, pid=None, theme=config['default_theme'], font=config['default_font']):
     app.logger.debug(f'article [{pid}]: {title}')
     art = edb.get_art_short(title)
     if art:
@@ -391,8 +390,8 @@ def ErrorPage(title='Error', message=''):
 
 def getStyle(request):
     return {
-        'theme': request.args.get('theme') or request.cookies.get('theme') or args.theme,
-        'font': request.args.get('font') or request.cookies.get('font') or 'default',
+        'theme': request.args.get('theme') or request.cookies.get('theme') or config.default_theme,
+        'font': request.args.get('font') or request.cookies.get('font') or config.default_font,
     }
 
 @app.route('/a/<title>', methods=['GET'])

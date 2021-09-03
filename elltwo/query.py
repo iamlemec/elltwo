@@ -12,8 +12,8 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker, Query
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from db_setup import Base, Article, Paragraph, Paralink, Bib, ExtRef, Image, User, TextShard
-from tools import Multimap
+from .schema import Base, Article, Paragraph, Paralink, Bib, ExtRef, Image, User, TextShard
+from .tools import Multimap
 
 ##
 ## image mime data
