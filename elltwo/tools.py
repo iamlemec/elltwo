@@ -1,3 +1,4 @@
+import os
 from collections import defaultdict
 from secrets import token_hex
 
@@ -46,3 +47,12 @@ def gen_auth():
         'SECRET_KEY': token_hex(16),
         'SECURITY_PASSWORD_SALT': token_hex(16),
     }
+
+def get_secret(name):
+    if os.path.exists(path := f'/run/secrets/{name}'):
+        with open(path) as fid:
+            return fid.read()
+
+def secret_dict(keys):
+    vals = [get_secret(k) for k in keys]
+    return {k: v for k, v in zip(keys, vals) if v is not None}

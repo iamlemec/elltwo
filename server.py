@@ -1,29 +1,25 @@
-import os, sys, re, json, argparse, toml, secrets
+import os, argparse, toml, secrets
 from io import BytesIO
 from pathlib import Path
-from datetime import datetime
 from collections import namedtuple
-from random import getrandbits
-from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from werkzeug.utils import secure_filename
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash
 from itsdangerous import URLSafeTimedSerializer
 
 from flask import (
-    Flask, Markup, make_response,
-    request, redirect, url_for, render_template,
-    jsonify, flash, send_from_directory, send_file
+    Flask, Markup, make_response, request, redirect, url_for, render_template,
+    flash, send_file
 )
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
-from flask_sqlalchemy import SQLAlchemy, BaseQuery
+from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
-from flask_login import LoginManager, current_user, login_user, logout_user, login_required
+from flask_login import (
+    LoginManager, current_user, login_user, logout_user, login_required
+)
 
 # import db tools
-from elltwo.tools import Multimap, gen_auth
-from elltwo.schema import Article, Paragraph, Paralink, Bib, User
+from elltwo.tools import Multimap, gen_auth, secret_dict
 from elltwo.query import ElltwoDB, order_links, urlify
 
 # necessary hack
@@ -108,6 +104,9 @@ app.config.update(auth)
 # load mail security config
 if args.mail is not None:
     mail_auth = toml.load(args.mail)
+    mail_auth |= secret_dict([
+        'MAIL_USERNAME', 'MAIL_PASSWORD', 'MAIL_DEFAULT_SENDER'
+    ])
     app.config.update(mail_auth)
     mail = Mail(app)
 else:
