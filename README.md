@@ -6,7 +6,7 @@
 
 **elltwo** (ℓ²) is a browser based platform for decentralized and collaborative technical documents. It has a wiki like structure with an emphasis on typesetting and intelligent referencing. Articles are written in a simple markup language borrowing elements of [Markdown](https://en.wikipedia.org/wiki/Markdown) and [LaTeX](https://www.latex-project.org/).
 
-Try the live editing demo at: [dohan.io/elltwo_demo](http://dohan.io/elltwo_demo). Here's a quick preview below
+Try the live editing demo at: [elltwo.io/demo](http://elltwo.io/demo). Here's a quick preview below
 
 <div align="center">
 <img src="static/adverts/ad.gif" alt="preview gif"></img>
