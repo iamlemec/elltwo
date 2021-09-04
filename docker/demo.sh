@@ -6,7 +6,7 @@ ADDR="0.0.0.0"
 
 # create database if needed
 if [ ! -f "${E2DB}" ]; then
-    python -u console --db="${E2DB}" backup load testing
+    python -u console.py --db="${E2DB}" backup load testing
 fi
 
 # start server
