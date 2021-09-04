@@ -195,8 +195,9 @@
 .container.ssv .control {
     display: none;
     position: absolute;
-    width: 15%;
-    right: 215%;
+    height: 100%;
+    width: 32px;
+    right: 214.4%;
     top: 0%;
     text-align: right;
     padding-right: 8px;
@@ -211,13 +212,13 @@
     z-index: -1;
 }
 
-.controlButs {
+.container:not(.ssv) .controlButs {
     display: none;
 }
 
-/* .para:hover .controlButs, */
-.controlZone:hover + .controlButs,
-.controlButs:hover
+/* .container:not(.ssv) .para:hover .controlButs, */
+.container:not(.ssv) .controlZone:hover + .controlButs,
+.container:not(.ssv) .controlButs:hover
 {
     display: block;
 }
