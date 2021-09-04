@@ -345,11 +345,6 @@ a.result {
 
 /* dropdown */
 
-.custom-select-wrapper {
-    position: absolute !important;
-    right: 5px;
-}
-
 .custom-select-trigger:after {
     border-bottom: 2px solid;
     border-right: 2px solid;
@@ -389,4 +384,12 @@ a.result {
 
 .header_link {
     border-color: var(--hl-col) !important;
+}
+
+@media only screen and (max-width: 1000px) and (max-device-width: 1000px) {
+
+.container:not(.ssv) .controlButs > .controlBut {
+    background-color: var(--code-bg-col);
+}
+
 }

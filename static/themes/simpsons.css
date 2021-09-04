@@ -1,6 +1,7 @@
 :root {
     --font-col: black;
     --bg-hl-col: rgba(217, 121, 4, .4); /* popup text color */
+    --side-col: rgb(255, 140, 4); /* opaque version */
     --bg-hl2-col: rgb(205, 205, 205); /* popup text color */
     --bg-col: #F2B90F;
     --font-col-int: #056CF2; /* border color */
@@ -60,7 +61,7 @@ button:hover {
 /* other elements */
 
 #sidebar {
-    background-color: var(--bg-hl-col)
+    background-color: var(--side-col);
 }
 
 #logo_placeholder {

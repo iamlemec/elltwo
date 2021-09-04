@@ -475,6 +475,11 @@ a.result {
    color: var(--bg-col);
 }
 
-@media only screen and (max-width: 1000px) {
+@media only screen and (max-width: 1000px) and (max-device-width: 1000px) {
+
+.container:not(.ssv) .controlButs > .controlBut {
+    color: var(--fg-col);
+    background-color: var(--bg-col);
+}
 
 }

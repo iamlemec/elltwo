@@ -255,6 +255,18 @@
     border-bottom-right-radius: 3px;
 }
 
+.controlBut.before::before {
+    content: '🠅';
+}
+
+.controlBut.after::before {
+    content: '🠇';
+}
+
+.controlBut.delete::before {
+    content: '✕';
+}
+
 button {
     font-size: 70%;
     padding: 1px 3px;
@@ -296,7 +308,7 @@ button {
     padding: 3px;
 }
 
-.eq_tag{
+.eq_tag {
     height: unset;
 }
 
@@ -1237,28 +1249,35 @@ circle.commit.active {
 }
 
 .container:not(.ssv) .controlButs {
-    padding-top: 5px;
+    padding: 5px;
     display: flex;
-    width: 100%;
+    flex-direction: row;
     justify-content: center;
 }
 
-.container:not(.ssv) .controlButs > button {
-    display: inline-block;
+.container:not(.ssv) .controlButs > .controlBut {
     width: unset;
     height: 25px;
     margin: 3px;
     flex-basis: 10px;
     flex-grow: 1;
-    border: 1px solid var(--delimit-col)
+    border-radius: 3px;
+}
+
+.controlBut.before::before {
+    content: "Before";
+}
+
+.controlBut.after::before {
+    content: "After";
+}
+
+.controlBut.delete::before {
+    content: "Delete";
 }
 
 .control:hover .controlButs {
     display: flex;
-}
-
-.controlDots {
-    display: none;
 }
 
 #pop {

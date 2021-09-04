@@ -142,9 +142,9 @@ const innerPara = `
 <div class="control">
 <div class="controlZone"></div>
 <div class="controlButs">
-<div class="before controlBut">🠅</div>
-<div class="after controlBut">🠇</div>
-<div class="delete controlBut">✕</div>
+<div class="before controlBut"></div>
+<div class="after controlBut"></div>
+<div class="delete controlBut"></div>
 </div>
 </div>
 <div class="lock_icon"></div>
