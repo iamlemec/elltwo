@@ -51,11 +51,10 @@ button:hover {
 .controlBut {
     background-color: var(--bg-hl-col);
     color: var(--pop-bg-col);
-    border-radius: 3px;
 }
 
 .controlBut:hover {
-    background-color: darkgray;
+    opacity: 0.7;
 }
 
 /* other elements */
@@ -137,7 +136,7 @@ button:hover {
     background-color: var(--bg-hl-col);
 }
 
-.active .code {
+.para.active .code {
     background-color: var(--bg-hl2-col);
 }
 

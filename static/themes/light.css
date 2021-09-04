@@ -80,8 +80,8 @@ button:hover {
 }
 
 .controlBut {
-    background-color: var(--pop-bg-col);
     color: var(--pop-fg-col);
+    background-color: var(--pop-bg-col);
 }
 
 .controlBut:hover {
@@ -208,7 +208,6 @@ button:hover {
 .env__definition.env_end {
     border-color: var(--delimit-col);
 }
-
 
 .empty {
     color: var(--comment-col);

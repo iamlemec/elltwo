@@ -72,8 +72,8 @@ button:hover {
 }
 
 .controlBut {
-    background-color: var(--bg-hl-col);
     color: var(--pop-bg-col);
+    background-color: var(--bg-hl-col);
 }
 
 .controlBut:hover {

@@ -83,15 +83,6 @@ button {
     background-color: darkgray;
 }
 
-.container:not(.ssv) .control {
-    width: 28px;
-    left: -31px;
-}
-
-.container.ssv .control {
-    right: 214.8%;
-}
-
 .controlBut {
     color: #333;
     background-color: #BBB;

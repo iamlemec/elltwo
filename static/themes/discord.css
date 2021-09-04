@@ -85,20 +85,10 @@ button:hover {
 .controlBut {
     color: white;
     background-color: var(--bg-hl2-col);
-    padding-top: 6px;
 }
 
 .controlBut:hover {
     background-color: gray;
-}
-
-.container:not(.ssv) .control {
-    width: 28px;
-    left: -30px;
-}
-
-.container.ssv .control {
-    right: 214.6%;
 }
 
 #export_options {
