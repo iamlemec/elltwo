@@ -93,12 +93,11 @@ button {
 }
 
 .controlBut {
-    color: white;
-    background-color: var(--hl-col);
+    background-color: #BBB;
 }
 
 .controlBut:hover {
-    opacity: 0.65;
+    background-color: #999;
 }
 
 /* other elements */
