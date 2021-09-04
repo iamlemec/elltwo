@@ -389,8 +389,8 @@ def ErrorPage(title='Error', message=''):
 
 def getStyle(request):
     return {
-        'theme': request.args.get('theme') or request.cookies.get('theme') or config.default_theme,
-        'font': request.args.get('font') or request.cookies.get('font') or config.default_font,
+        'theme': request.args.get('theme') or request.cookies.get('theme') or config['default_theme'],
+        'font': request.args.get('font') or request.cookies.get('font') or config['default_font'],
     }
 
 @app.route('/a/<title>', methods=['GET'])

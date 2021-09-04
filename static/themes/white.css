@@ -88,6 +88,10 @@ button {
     left: -31px;
 }
 
+.container.ssv .control {
+    right: 214.8%;
+}
+
 .controlBut {
     color: white;
     background-color: var(--hl-col);
@@ -123,6 +127,10 @@ button {
 }
 
 .container:not(.ssv) .para.active {
+    box-shadow: -4px 0px var(--hl-col);
+}
+
+.container.ssv .para.active .p_input_view {
     box-shadow: -4px 0px var(--hl-col);
 }
 

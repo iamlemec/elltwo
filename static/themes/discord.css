@@ -97,6 +97,10 @@ button:hover {
     left: -30px;
 }
 
+.container.ssv .control {
+    right: 214.6%;
+}
+
 #export_options {
     border-radius: 2px;
 }
@@ -133,6 +137,10 @@ button:hover {
 }
 
 .container:not(.ssv) .para.active {
+    box-shadow: -3px 0px var(--hl-col);
+}
+
+.container.ssv .para.active .p_input_view {
     box-shadow: -3px 0px var(--hl-col);
 }
 

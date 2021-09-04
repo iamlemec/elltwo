@@ -212,11 +212,16 @@
     z-index: -1;
 }
 
-.container:not(.ssv) .controlButs {
+.controlButs {
     display: none;
 }
 
-/* .container:not(.ssv) .para:hover .controlButs, */
+.container.ssv .para:hover .controlButs,
+.container.ssv .controlButs:hover {
+    display: block;
+}
+
+.container:not(.ssv) .para:hover .controlButs,
 .container:not(.ssv) .controlZone:hover + .controlButs,
 .container:not(.ssv) .controlButs:hover
 {
