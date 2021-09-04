@@ -69,15 +69,32 @@ body {
 }
 
 button {
-    background-color: var(--bg-hl-col);
-    color: var(--pop-bg-col);
     border: none;
-    display:inline-block;
-    cursor:pointer;
+    display: inline-block;
+    cursor: pointer;
 }
 
-button:hover {
-    background-color:darkgray;
+.foot_butt {
+    background-color: var(--bg-hl-col);
+    color: var(--pop-bg-col);
+}
+
+.foot_butt:hover {
+    background-color: darkgray;
+}
+
+.container:not(.ssv) .control {
+    width: 28px;
+    left: -31px;
+}
+
+.controlBut {
+    color: white;
+    background-color: var(--hl-col);
+}
+
+.controlBut:hover {
+    opacity: 0.65;
 }
 
 /* other elements */

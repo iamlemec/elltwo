@@ -40,11 +40,21 @@ button {
     background-color: var(--bg-hl-col);
     color: var(--pop-bg-col);
     border: none;
-    display:inline-block;
-    cursor:pointer;
+    display: inline-block;
+    cursor: pointer;
 }
 
 button:hover {
+    background-color: darkgray;
+}
+
+.controlBut {
+    background-color: var(--bg-hl-col);
+    color: var(--pop-bg-col);
+    border-radius: 3px;
+}
+
+.controlBut:hover {
     background-color: darkgray;
 }
 
@@ -93,7 +103,11 @@ button:hover {
 
 .footnote {
     color: var(--hl2-col);
-    font-size: 80%;
+    background-color: lightgray;
+    border: 1px solid #666;
+    border-radius: 2px;
+    font-size: 70%;
+    padding: 3px 3px 0px 3px;
     vertical-align: super;
 }
 
@@ -154,6 +168,10 @@ button:hover {
     color: var(--pop-fg-col);
 }
 
+#pop .code {
+    color: var(--pop-fg-col);
+    background-color: var(--pop-bg-col);
+}
 
 #cc_pop {
     color: black;

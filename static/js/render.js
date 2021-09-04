@@ -140,11 +140,11 @@ const innerPara = `
 <div class="p_input_view"></div>
 <textarea readonly class="p_input"></textarea>
 <div class="control">
-<div class="controlDots">&#9776;</div>
+<div class="controlZone"></div>
 <div class="controlButs">
-<button class="before">Above</button>
-<button class="after">Below</button>
-<button class="delete">Delete</button>
+<div class="before controlBut">🠅</div>
+<div class="after controlBut">🠇</div>
+<div class="delete controlBut">✕</div>
 </div>
 </div>
 <div class="lock_icon"></div>

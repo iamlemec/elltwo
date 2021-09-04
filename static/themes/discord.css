@@ -74,7 +74,7 @@ button {
     border-radius: 2px;
 }
 
-.foot_butt svg{
+.foot_butt svg {
     fill: var(--butt-fg-col);
 }
 
@@ -82,11 +82,23 @@ button:hover {
     background-color: rgb(101, 101, 101) !important;
 }
 
-#export_options {
-    border-radius: 2px;
+.controlBut {
+    color: white;
+    background-color: var(--bg-hl2-col);
+    padding-top: 6px;
 }
 
-.para {
+.controlBut:hover {
+    background-color: gray;
+}
+
+.container:not(.ssv) .control {
+    width: 28px;
+    left: -30px;
+}
+
+#export_options {
+    border-radius: 2px;
 }
 
 .p_text {
@@ -126,7 +138,7 @@ button:hover {
 }
 
 .container:not(.ssv) .para.active {
-    box-shadow: -2px 0px var(--hl-col);
+    box-shadow: -3px 0px var(--hl-col);
 }
 
 .para.changed {
@@ -137,12 +149,8 @@ button:hover {
    box-shadow: 1px 0px 0px 0px var(--dc-blue-col);
 }
 
-.para.copy_sel{
+.para.copy_sel {
     background-color: var(--bg-hl-col);
-}
-
-.controlDots {
-    color: var(--pop-bg-col);
 }
 
 /* text elements */

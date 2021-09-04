@@ -220,6 +220,7 @@ function eventEditor() {
 
     $(document).on('click', '.before', function() {
         let para = $(this).parents('.para');
+        console.log('before', para);
         sendInsertPara(para, false);
         return false;
     });

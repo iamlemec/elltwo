@@ -86,6 +86,15 @@ button:hover {
     background-color:darkgray;
 }
 
+.controlBut {
+    background-color: var(--pop-bg-col);
+    color: var(--pop-fg-col);
+}
+
+.controlBut:hover {
+    background-color: darkgray;
+}
+
 /* other elements */
 
 #sidebar {
@@ -151,8 +160,16 @@ button:hover {
 
 .footnote > .num {
     color: var(--hl-col);
+    background-color: var(--pop-fg-col);
+    border: 1px solid #555;
     font-size: 70%;
+    padding: 0px 5px 1px 5px;
+    border-radius: 3px;
     vertical-align: super;
+}
+
+.para.active .footnote > .num {
+    background-color: var(--bg-col);
 }
 
 .env__heading_h1 {
@@ -228,15 +245,17 @@ button:hover {
 }
 
 .code {
-  font-family: Fira;
-  font-size: 90%;
-  color: var(--hl-col);
-  padding-left: 5px;
-  background-color: var(--pop-fg-col)!important;
+    font-family: Fira;
+    font-size: 90%;
+    color: var(--hl-col);
+    padding-left: 3px;
+    padding-right: 3px;
+    background-color: var(--pop-fg-col);
+    border-radius: 4px;
 }
 
 .para.active .code {
-  background-color: var(--bg-col)!important;
+    background-color: var(--bg-col);
 }
 
 .ref_error {
@@ -263,6 +282,10 @@ button:hover {
 
 #pop a {
     color: teal;
+}
+
+#pop .code {
+    background-color: var(--pop-bg-col);
 }
 
 #cc_pop {
@@ -347,13 +370,6 @@ button:hover {
 
 .result {
   background-color: var(--bg-hl-col);
-}
-
-.code {
-   background-color: var(--bg-col);
-   padding-left: 3px;
-   padding-right: 3px;
-   border-radius: 4px;
 }
 
 a.result {

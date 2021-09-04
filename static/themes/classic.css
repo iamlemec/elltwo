@@ -40,15 +40,13 @@
 
 /*global */
 
-#content{
+#content {
     font-family: CM;
 }
 
-#pop{
+#pop {
    font-family: CM;
 }
-
-
 
 body {
     font-weight: 300;
@@ -66,13 +64,21 @@ button {
 }
 
 button:hover {
-    background-color:darkgray;
+    background-color: darkgray;
 }
 
-.foot_butt{
+.foot_butt {
     border: .5px solid black;
 }
 
+.controlBut {
+    background-color: var(--bg-hl-col);
+    color: var(--pop-bg-col);
+}
+
+.controlBut:hover {
+    background-color: darkgray;
+}
 
 /* other elements */
 
@@ -168,18 +174,17 @@ button:hover {
 .eqn_cite {
     font-family: cm;
     border: none;
-    color: var(--hl-col);
+    color: var(--hl2-col);
     padding: 0;
 }
 
 .footnote {
-    color: var(--hl2-col);
     font-size: 80%;
     vertical-align: super;
 }
 
 .footnote > .num {
-    color: var(--font-col);
+    color: var(--hl2-col);
 }
 
 .empty {
@@ -255,6 +260,10 @@ button:hover {
 
 #pop a {
     color: teal;
+}
+
+#pop .code {
+    background-color: var(--pop-bg-col);
 }
 
 /* syntax highlighting */
