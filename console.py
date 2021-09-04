@@ -7,9 +7,9 @@ import getpass
 import fire
 import toml
 
-from tools import gen_auth
-import db_query as dbq
-import db_setup as dbs
+from elltwo.tools import gen_auth
+import elltwo.query as dbq
+import elltwo.schema as dbs
 
 def confirm_request(question):
     prompt = '[y/N]'
