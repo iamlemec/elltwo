@@ -243,6 +243,7 @@
     height: 25px;
     cursor: default;
     margin-right: 5px;
+    padding: 6px;
 }
 
 .controlBut:first-child {
@@ -255,16 +256,9 @@
     border-bottom-right-radius: 3px;
 }
 
-.controlBut.before::before {
-    content: '🠅';
-}
-
-.controlBut.after::before {
-    content: '🠇';
-}
-
-.controlBut.delete::before {
-    content: '✕';
+.controlBut svg {
+    width: 100%;
+    height: 100%;
 }
 
 button {

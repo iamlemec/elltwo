@@ -87,12 +87,16 @@ button:hover {
 }
 
 .controlBut {
-    color: var(--pop-fg-col);
     background-color: var(--pop-bg-col);
 }
 
 .controlBut:hover {
     background-color: darkgray;
+}
+
+.controlBut svg {
+    fill: var(--pop-fg-col);
+    stroke: var(--pop-fg-col);
 }
 
 /* other elements */

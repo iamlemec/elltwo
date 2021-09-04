@@ -51,11 +51,15 @@ button:hover {
 
 .controlBut {
     background-color: var(--bg-hl-col);
-    color: var(--pop-bg-col);
 }
 
 .controlBut:hover {
-    opacity: 0.7;
+    background-color: var(--side-col);
+}
+
+.controlBut svg {
+    fill: var(--font-col);
+    stroke: var(--font-col);
 }
 
 /* other elements */

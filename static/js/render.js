@@ -142,9 +142,15 @@ const innerPara = `
 <div class="control">
 <div class="controlZone"></div>
 <div class="controlButs">
-<div class="before controlBut"></div>
-<div class="after controlBut"></div>
-<div class="delete controlBut"></div>
+<div class="before controlBut"><svg>
+<use xlink:href="/static/img/icons.svg#control_before"></use>
+</svg></div>
+<div class="after controlBut"><svg>
+<use xlink:href="/static/img/icons.svg#control_after"></use>
+</svg></div>
+<div class="delete controlBut"><svg>
+<use xlink:href="/static/img/icons.svg#control_delete"></use>
+</svg></div>
 </div>
 </div>
 <div class="lock_icon"></div>

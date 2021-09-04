@@ -83,12 +83,16 @@ button:hover {
 }
 
 .controlBut {
-    color: white;
     background-color: var(--bg-hl2-col);
 }
 
 .controlBut:hover {
-    background-color: gray;
+    background-color: #555;
+}
+
+.controlBut svg {
+    fill: #AAA;
+    stroke: #AAA;
 }
 
 #export_options {
@@ -220,7 +224,6 @@ button:hover {
     color: teal;
 }
 
-
 #cc_pop {
     color: var(--hl-col);
     background-color: var(--pop-bg-col);
@@ -338,7 +341,7 @@ a.result {
     color: var(--hl-col)
 }
 
-.hl{
+.hl {
     font-weight: bold;
     color: var(--hl2-col);
 }
