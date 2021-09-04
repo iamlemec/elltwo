@@ -95,19 +95,18 @@ button:hover {
 }
 
 #logo_placeholder {
-/*    border-bottom: 1px dashed black;*/
 }
 
 ::-moz-placeholder { /* Firefox 19+ */
-  color: var(--col) !important
+    color: var(--col) !important;
 }
 
 ::-webkit-input-placeholder {
-   color: var(--col) !important
+    color: var(--col) !important;
 }
 
-.toc_entry{
- color: var(--font-col);
+.toc_entry {
+    color: var(--font-col);
 }
 
 /* paras */
@@ -320,7 +319,7 @@ button:hover {
 }
 
 .syn_code {
-   background-color: var(--brace-col)!important;
+   background-color: var(--brace-col) !important;
    border-radius: 3px;
 }
 
@@ -435,40 +434,37 @@ a.result {
     border-top: 2px solid var(--pop-fg-col) !important;;
 }
 
-.foot_butt{
-    background-color:  var(--bg-col);
-    border: none;
+.foot_butt {
     color: var(--font-col-int);
+    background-color: var(--bg-col);
+    border: none;
     border-radius: 10px;
     font-family: fira;
-    padding-bottom: 6px;
 }
 
-.foot_butt svg{
+.foot_butt svg {
     fill: var(--font-col-int);
-    transform: translateY(4px);
-    margin-left: 0px;
 }
 
-.login-button{
-  background-color:  var(--font-col-int);
+.login-button {
+    background-color:  var(--font-col-int);
 }
 
-#locallogin > a, .notification > a{
+#locallogin > a, .notification > a {
     color: var(--hl-col)
 }
 
-.export_butt{
-    background-color: var(--font-col-int) !important;
+.export_butt {
+    background-color: var(--font-col-int);
     border-radius: 10px;
     font-family: fira;
 }
 
-.export_butt:hover{
-    background-color: darkgray !important;
+.export_butt:hover {
+    background-color: darkgray;
 }
 
-.box{
+.box {
    color: var(--bg-col);
 }
 

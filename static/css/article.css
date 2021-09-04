@@ -961,8 +961,8 @@ circle.commit.active {
     display: none;
     position: absolute;
     width: 80px;
-    bottom: 150%;
-    right: 5px;
+    bottom: 130%;
+    right: 20px;
     background-color: var(--bg-hl2-col);
     padding: 0px 5px 0px 5px
 }
@@ -988,7 +988,6 @@ circle.commit.active {
 }
 
 #edit_text {
-    min-width: 60px;
     text-align: right;
 }
 

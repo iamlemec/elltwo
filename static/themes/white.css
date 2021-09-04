@@ -270,7 +270,7 @@ button {
 }
 
 .syn_code {
-   background-color: var(--bg-hl2-col)!important;
+   background-color: var(--bg-hl2-col);
    border-radius: 3px;
 }
 
@@ -367,4 +367,11 @@ a.result {
 
 .custom-option:hover {
     background-color: var(--bg-hl2-col);
+}
+
+.export_butt {
+}
+
+.export_butt:hover {
+    background-color: lightgray;
 }

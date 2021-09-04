@@ -136,22 +136,23 @@ a.reference {
 }
 
 .foot_butt {
-    display: inline;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
     font-size: 90%;
     margin-left: 5px;
     margin-right: 5px;
     top: 0;
-    padding: 1px 5px 2px 5px;
-    max-width: 110px;
+    padding: 3px 5px 3px 5px;
+    max-width: 100px;
     margin-bottom: 2px;
     line-height: 17px;
 }
 
-.foot_butt svg{
-    height: 18px;
-    width: 18px;
-    transform: translateY(4px);
-    margin-left: 4px;
+.foot_butt svg {
+    height: 16px;
+    width: 16px;
+    margin-left: 8px;
 }
 
 .push {

@@ -79,7 +79,7 @@ button {
 }
 
 button:hover {
-    background-color: rgb(101, 101, 101) !important;
+    background-color: rgb(101, 101, 101);
 }
 
 .controlBut {
@@ -101,10 +101,6 @@ button:hover {
     border-radius: 2px;
 }
 
-.p_text {
-    text-align: left !important;
-}
-
 /* other elements */
 
 #sidebar {
@@ -121,7 +117,6 @@ button:hover {
 
 #toc_title {
     font-size: 20px;
-/*     border-bottom: 1px solid rgb(61, 61, 61); */
 }
 
 .toc_entry {
@@ -353,10 +348,6 @@ a.result {
 /* dropdown */
 
 .custom-select-wrapper {
-    /*
-    float: right;
-    margin-right: 5px;
-    */
     position: absolute !important;
     right: 5px;
 }
@@ -398,6 +389,6 @@ a.result {
     fill: white;
 }
 
-.header_link{
+.header_link {
     border-color: var(--hl-col) !important;
 }

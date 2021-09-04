@@ -106,11 +106,11 @@ button:hover {
 }
 
 ::-moz-placeholder { /* Firefox 19+ */
-    color: var(--col) !important
+    color: var(--col) !important;
 }
 
 ::-webkit-input-placeholder {
-    color: var(--col) !important
+    color: var(--col) !important;
 }
 
 .toc_entry {
@@ -413,32 +413,31 @@ a.result {
 }
 
 
-.custom-select-trigger:after{
+.custom-select-trigger:after {
     border-bottom: 2px solid;
     border-right: 2px solid;
     border-color: var(--hl2-col);
 }
 
-.custom-select-trigger{
-        background: var(--pop-bg-col);
+.custom-select-trigger {
+    background: var(--pop-bg-col);
     color: var(--pop-fg-col);
 }
 
-.custom-options{
+.custom-options {
     background: var(--bg-col);
 }
 
-.custom-option{
+.custom-option {
     border-bottom: 1px solid var(--pop-bg-col);
 }
 
-.custom-option{
+.custom-option {
     background-color: var(--delimit-col);
-        color: var(--pop-fg-col);
-
+    color: var(--pop-fg-col);
 }
 
-.custom-option:hover{
+.custom-option:hover {
     background-color: var(--pop-bg-col);
 }
 
@@ -452,30 +451,27 @@ a.result {
     border-top: 2px solid var(--pop-fg-col) !important;;
 }
 
-.foot_butt{
+.foot_butt {
+    color: var(--font-col-int);
     background-color:  var(--bg-col);
     border: none;
-    color: var(--font-col-int);
     border-radius: 10px;
     font-family: fira;
-    padding-bottom: 6px;
 }
 
-.foot_butt svg{
+.foot_butt svg {
     fill: var(--font-col-int);
-    transform: translateY(4px);
-    margin-left: 0px;
 }
 
-.login-button{
-  background-color:  var(--font-col-int);
+.login-button {
+    background-color: var(--font-col-int);
 }
 
-#locallogin > a, .notification > a{
+#locallogin > a, .notification > a {
     color: var(--hl-col)
 }
 
-.box{
+.box {
    color: var(--bg-col);
 }
 
