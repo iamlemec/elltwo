@@ -82,6 +82,10 @@ button:hover {
     background-color: rgb(101, 101, 101);
 }
 
+.control {
+    padding-right: 3px;
+}
+
 .controlBut {
     background-color: var(--bg-hl2-col);
 }

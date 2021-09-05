@@ -83,6 +83,10 @@ button {
     background-color: darkgray;
 }
 
+.control {
+    padding-right: 4px;
+}
+
 .controlBut {
     background-color: #BBB;
 }
