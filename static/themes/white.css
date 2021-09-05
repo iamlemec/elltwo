@@ -88,16 +88,16 @@ button {
 }
 
 .controlBut {
-    background-color: #BBB;
+    background-color: #DDD;
 }
 
 .controlBut:hover {
-    background-color: #999;
+    background-color: #BBB;
 }
 
 .controlBut svg {
-    fill: #333;
-    stroke: #333;
+    fill: #444;
+    stroke: #444;
 }
 
 /* other elements */
