@@ -1,5 +1,9 @@
 @import 'core.css';
 
+:root{
+    --sb_off: 180px;
+}
+
 /* classic view paras */
 
 .container:not(.ssv) .para {
@@ -14,8 +18,16 @@
     border-right: 2px solid rgba(0, 0, 0, 0);
 }
 
-.container.sb_content .para {
-    transform: translateX(-90px);
+.container.sb_content:not(.ssv) {
+    transform: translateX(calc(.5 * var(--sb_off)));
+}
+
+.container.sb_content.ssv {
+    transform: translateX(calc(.5 * var(--sb_off) - 40px));
+}
+
+.container.ssv.sb_content .p_input_view, .container.ssv.sb_content .p_input, .container.ssv.sb_content .control {
+    transform: translateX(calc(.5 * var(--sb_off) - 30px));
 }
 
 .container:not(.ssv) .para.active {
@@ -76,7 +88,7 @@
 }
 
 .container.ssv.sb_content {
-     background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 58%,var(--bg-hl-col) 51%,var(--bg-hl-col) 100%); */
+    background:  linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) calc(47.5% - 25px),var(--bg-hl-col) calc(47.5% - 25px),var(--bg-hl-col) 100%); */
 }
 
 .container.ssv .para {
@@ -88,13 +100,6 @@
     margin-bottom: 20px;
     padding-left: 5px;
     border-right: 2px solid rgba(0, 0, 0, 0);
-}
-
-.container.ssv.sb_content .para {
-    left: 50%;
-}
-
-.container.ssv .para.active {
 }
 
 .container.ssv .para.active .p_input_view {
@@ -131,10 +136,6 @@
     border: none;
 }
 
-.container.ssv.sb_content .p_input_view, .container.ssv.sb_content .p_input {
-    right: 105%;
-}
-
 .container.ssv .p_input {
     color: inherit;
     background-color: inherit;
@@ -151,11 +152,6 @@
     display: inline-block;
     background-color: rgba(0,0,0,.03);
     line-height: 20px;
-}
-
-.container.sb_content {
-    position: absolute;
-    left: 180px;
 }
 
 #bg.writeable .para.active > .control {
@@ -686,7 +682,7 @@ button {
     font-size: 90%;
     left: 0;
     top: 0;
-    width: 180px;
+    width: var(--sb_off);
     height: 100%;
     padding-bottom: 10px;
     z-index: 1;
@@ -713,7 +709,6 @@ button {
 .option {
     margin-top: 20px;
     white-space: nowrap;
-    right: 5px;
 }
 
 #toc_wrap {
@@ -811,7 +806,7 @@ button {
     user-select: none;
     position: absolute !important;
     right: 10px;
-    font-size: 90%;
+    font-size: 85%;
 }
 
 .custom-select-wrapper select {
@@ -826,7 +821,7 @@ button {
 .custom-select-trigger {
     position: relative;
     display: block;
-    width: 100px;
+    width: 90px;
     padding: 0 50% 0 5%;
     line-height: 160%;
     border-radius: 0px;
@@ -1203,6 +1198,28 @@ circle.commit.active {
 }
 
 /*  NARROW CSS */
+
+@media only screen and (max-width: 1200px) {
+
+
+:root{
+    --sb_off: 170px;
+}
+    
+.container.sb_content.ssv .control{
+    padding-right: 0px;
+}
+    
+   
+
+.container.sb_content.ssv .controlBut {
+    width: 15px;
+    height: 15px;
+    padding: 3px;
+}
+
+    
+}
 
 @media only screen and (max-width: 1000px) {
 
