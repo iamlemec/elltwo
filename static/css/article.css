@@ -700,6 +700,15 @@ button {
     border-bottom: 2px dashed black;
 }
 
+#sb_links_title,
+#sb_links > a {
+    white-space: nowrap;
+}
+
+.toc_entry {
+    width: var(--sb_off);
+}
+
 .options {
     padding-left: 10px;
     margin-top: 50px;
@@ -719,7 +728,7 @@ button {
     white-space: normal;
 }
 
-#toc{
+#toc {
     height: auto;
     padding-bottom: 45px;
     width: 100%;
@@ -732,7 +741,7 @@ button {
     border-top: 2px solid var(--font-col-int);
 }
 
-#sb_links{
+#sb_links {
     margin-bottom: 20px;
 }
 
@@ -1205,12 +1214,12 @@ circle.commit.active {
 :root{
     --sb_off: 170px;
 }
-    
+
 .container.sb_content.ssv .control{
     padding-right: 0px;
 }
-    
-   
+
+
 
 .container.sb_content.ssv .controlBut {
     width: 15px;
@@ -1218,7 +1227,7 @@ circle.commit.active {
     padding: 3px;
 }
 
-    
+
 }
 
 @media only screen and (max-width: 1000px) {
