@@ -43,7 +43,7 @@
     color: rgba(0, 0, 0, 0);
     background-color: rgba(0, 0, 0, 0);
     padding-right: 5px;
-
+    overflow-wrap: anywhere;
 }
 
 .container:not(.ssv) .p_input_view {
@@ -57,6 +57,7 @@
     border: none;
     font-family: monospace;
     padding-right: 5px;
+    overflow-wrap: anywhere;
 }
 
 .container:not(.ssv) > .para.rawtext > .p_text {

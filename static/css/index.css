@@ -48,7 +48,7 @@
 }
 
 .container {
-    padding-top: 80px;
+    padding-top: 60px;
     width: 100%;
     min-height: 500px;
     background-color: var(--bg-col);
@@ -109,6 +109,11 @@
     font-size: 70%;
     min-width: 110px;
     justify-content: right;
+    margin-right: 10px;
+}
+
+#ssv_label {
+    margin-right: 10px;
 }
 
 #about {
@@ -209,7 +214,7 @@
     color: rgba(0, 0, 0, 0);
     background-color: rgba(0, 0, 0, 0);
     padding-right: 5px;
-
+    overflow-wrap: anywhere;
 }
 
 .container:not(.ssv) .p_input_view {
@@ -223,6 +228,7 @@
     border: none;
     font-family: monospace;
     padding-right: 5px;
+    overflow-wrap: anywhere;
 }
 
 .container:not(.ssv) > .para.rawtext > .p_text {
@@ -982,6 +988,10 @@ button {
 /*  MOBILE CSS */
 
 @media only screen and (max-width: 1000px) and (max-device-width: 1000px) {
+
+.container {
+    padding-top: 50px;
+}
 
 #ssv_label, #ssv_text {
     display: none;

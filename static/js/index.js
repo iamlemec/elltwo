@@ -97,8 +97,9 @@ let examples = {
         "elltwo articles are written in a simple markup language borrowing elements of [Markdown](https://en.wikipedia.org/wiki/Markdown) and [LaTeX](https://www.latex-project.org/)."
     ],
     'equations': [
-        "$$ [eq_geo] \\sum_{i=0}^{\\infty} \\frac1{2^n} = 1",
-        "Equation @[eq_geo] states"
+        "$$ [eq_geo] \\sum_{n=1}^{\\infty} \\frac1{2^n} = 1",
+        "Equation @[eq_geo] states a geometric sum and can be generalized for values $a > 1$ to",
+        "$$* \\sum_{n=1}^{\\infty} \\frac{1}{a^n} = \\frac{1}{a-1}",
     ],
     'environments': [
         ">> theorem [thm_BC|name=rt=Borel Cantelli] If the sum of the probabilities of the events $\\{E_n\\}_{n\\in \\mathbb{N}}$ is finite, then",
@@ -112,8 +113,6 @@ let examples = {
     ],
 };
 
-
-
 function initIndex() {
     renderKatex();
 
@@ -122,8 +121,6 @@ function initIndex() {
 
     updateState(default_state);
     updateCache(default_cache);
-
-    window.state = state; // debug
     state.writeable = true;
 
     // init dummy server commandss
@@ -226,9 +223,7 @@ function eventIndex() {
         $('#ssv_text').text(text);
         setSsvMode(val);
     });
-
 }
-
 
 function genExample(example) {
     $(`.ex_butt`).removeClass('clicked');
@@ -274,7 +269,6 @@ let vid_options = {
 }
 
 let obVid = new IntersectionObserver(vid_callback, vid_options);
-
 
 const paus = function(){
     if(this.currentTime >= state.vid) {
