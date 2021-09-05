@@ -179,33 +179,39 @@ function eventEditor() {
     /// mouse interface
 
     $(document).on('click', '.para', function(e) {
-        let alt = state.edit_mode || e.altKey || config.mobile;
-        let cmd = e.metaKey;
-        let targ = event.target.href; // if link, follow link
-        if (!targ) {
-            if (alt) {
-                let para = $(this);
-                let cur = (event.target.selectionStart !== undefined)
-                    ? [event.target.selectionStart, event.target.selectionEnd]
-                    : 'end'; // returns undefined if not a textarea
-                let act = para.hasClass('active');
-                if (state.ssv_mode) {
-                    if (cur[0] == cur[1] || cur == 'end') {
-                        if (!act) {
-                            makeActive(para);
-                        }
-                        if (!state.rawtext) {
-                            sendMakeEditable(cur);
-                        }
-                    }
-                } else if (act) {
-                    if (!state.rawtext) {
-                        sendMakeEditable(cur);
-                    }
-                } else {
+        // we should have a real event
+        if (!(state.edit_mode || e.altKey || config.mobile)) {
+            return;
+        }
+
+        // if link, follow it
+        if (event.target.href !== undefined) {
+            return;
+        }
+
+        // get situation details
+        let para = $(this);
+        let cur = (event.target.selectionStart !== undefined)
+            ? [event.target.selectionStart, event.target.selectionEnd]
+            : 'end'; // returns undefined if not a textarea
+        let act = para.hasClass('active');
+
+        // step up one level
+        if (state.ssv_mode) {
+            if (cur[0] == cur[1] || cur == 'end') {
+                if (!act) {
                     makeActive(para);
                 }
+                if (!state.rawtext) {
+                    sendMakeEditable(cur);
+                }
             }
+        } else if (act) {
+            if (!state.rawtext) {
+                sendMakeEditable(cur);
+            }
+        } else {
+            makeActive(para);
         }
     });
 
@@ -213,9 +219,13 @@ function eventEditor() {
         let targ = event.target.id;
         if (targ == 'bg' || targ == 'content') {
             makeActive(null);
-            $('.para').removeClass('copy_sel');
             return false;
         }
+    });
+
+    $(document).on('click', '.controlZone', function() {
+        makeActive(null);
+        return false;
     });
 
     $(document).on('click', '.before', function() {
