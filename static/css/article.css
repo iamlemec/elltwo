@@ -964,9 +964,9 @@ circle.commit.active {
 
 #prog_bar {
     position: absolute;
-    top:-1px;
-    left:-1px;
-    width:0%;
+    top: -1px;
+    left: -1px;
+    width: 0%;
     height: 1px;
     background-color: var(--font-col-int);
 }
@@ -976,7 +976,7 @@ circle.commit.active {
   position: absolute;
   right: 0px;
   top: .5px;
-  transform:translate(50%,-50%);
+  transform: translate(50%,-50%);
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -990,17 +990,22 @@ circle.commit.active {
     bottom: 130%;
     right: 20px;
     background-color: var(--bg-hl2-col);
-    padding: 0px 5px 0px 5px
+    padding: 5px 5px 5px 5px;
 }
 
 .export_butt {
     width: 100%;
     min-height: 20px;
     font-size: 110%;
-    margin: 5px 0px 5px 0px;
+    margin-top: 0;
+    margin-bottom: 5px;
     background-color: var(--bg-hl-col);
     border: 1px solid var(--delimit-col);
     font-size: 90%;
+}
+
+.export_butt:last-child {
+    margin-bottom: 0;
 }
 
 #export_options:after {

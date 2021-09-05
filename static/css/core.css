@@ -209,7 +209,7 @@ a.reference {
 
 .toggle-track {
 	background: var(--bg-col);
-	border: 1px solid black;
+	border: 1px solid darkgray;
 	border-radius: 100px;
 	cursor: pointer;
 	display: flex;

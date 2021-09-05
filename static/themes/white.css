@@ -76,11 +76,20 @@ button {
 
 .foot_butt {
     background-color: var(--bg-hl-col);
-    color: var(--pop-bg-col);
+    color: #222;
+}
+
+.foot_butt > svg {
+    fill: #222;
 }
 
 .foot_butt:hover {
     background-color: darkgray;
+}
+
+button,
+#export_options {
+    border-radius: 2px;
 }
 
 .control {
@@ -299,10 +308,6 @@ button {
   color: var(--font-col);
 }
 
-.foot_butt {
-    border: .5px solid black;
-}
-
 .result {
   background-color: var(--bg-hl-col);
 }
@@ -377,8 +382,10 @@ a.result {
 }
 
 .export_butt {
+    color: #222;
+    border: 0;
 }
 
 .export_butt:hover {
-    background-color: lightgray;
+    background-color: darkgray;
 }
