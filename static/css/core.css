@@ -214,8 +214,6 @@ a.reference {
 	cursor: pointer;
 	display: flex;
 	height: 30px;
-	margin-right: 20px;
-    margin-left: 5px;
 	position: relative;
 	width: 56px;
 }

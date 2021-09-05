@@ -35,6 +35,11 @@
     right: 31%;
     top: 160px;
     height: 40px;
+    margin-right: 10px;
+}
+
+.toggle-track {
+    margin-left: 10px;
 }
 
 #submit {
@@ -156,8 +161,8 @@
 #title {
     font-size: 30px;
 }
-    
-#desc{
+
+#desc {
     line-height: 60px;
     display: inline-block;
     justify-content: middle;
@@ -173,7 +178,7 @@
 
 #submit {
     width: 100px;
-    right: 10%;
+    right: calc(10% + 5px);
     height: 25px;
     top: 130px;
     font-size: 100%;
@@ -184,11 +189,10 @@
 
 #full_text {
     position: fixed;
-    right: calc(10% + 110px);
+    left: calc(10% + 5px);
     height: 25px;
     top: 130px;
 }
-
 
 #results_outer {
     position: fixed;
@@ -198,8 +202,6 @@
     width: 80%;
     height: calc(100% - 210px);
 }
-
-
 
 .blurb {
     margin-top: 10px;
@@ -215,10 +217,10 @@
     padding: 15px;
     padding-top: 15px;
 }
-    
-   
+
 .toggle-track {
 	height: 25px;
+    margin-left: 5px;
 }
 
 .toggle-indicator {
@@ -230,15 +232,4 @@
 }
 
 @media only screen and (max-width: 600px) and (max-device-width: 800px) {
-/*  #query:focus{
-  top: 10px;   
-}
-    
-#query:focus ~ #full_text, #query:focus ~ #submit  {
-    top: 60px
-}
-    
-#query:focus ~ #prompt  {
-    display: none;
-}   */
 }

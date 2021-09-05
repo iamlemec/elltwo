@@ -1008,8 +1008,24 @@ circle.commit.active {
     left: 40%;
 }
 
+#ssv_text {
+    text-align: right;
+    min-width: 60px;
+    margin-right: 5px;
+}
+
+#ssv_label {
+    margin-right: 10px;
+}
+
 #edit_text {
     text-align: right;
+    min-width: 60px;
+    margin-right: 5px;
+}
+
+#edit_label {
+    margin-right: 15px;
 }
 
 .toggle-track {
@@ -1250,18 +1266,6 @@ circle.commit.active {
     flex-basis: 10px;
     flex-grow: 1;
     border-radius: 3px;
-}
-
-.controlBut.before::before {
-    content: "Before";
-}
-
-.controlBut.after::before {
-    content: "After";
-}
-
-.controlBut.delete::before {
-    content: "Delete";
 }
 
 .control:hover .controlButs {
