@@ -166,7 +166,7 @@ def Create():
 @app.route('/demo')
 @view_decor
 def Demo():
-    hash_tag = secrets.token_urlsafe(16)
+    hash_tag = secrets.token_hex(4)
     art_name = f'demo_{hash_tag}'
     with open(config['demo_path']) as fid:
         demo_mark = fid.read()
