@@ -9,7 +9,7 @@
 Try the live editing demo at: [elltwo.io/demo](http://elltwo.io/demo). Here's a quick preview below
 
 <div align="center">
-<img src="static/adverts/ad.gif" alt="preview gif"></img>
+<img src="static/features/elltwo.gif" alt="preview gif"></img>
 </div>
 
 ## Setup
