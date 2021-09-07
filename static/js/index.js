@@ -254,10 +254,12 @@ let vid_callback = function (es) {
     es.forEach(function (e) {
         // entry.isIntersecting true if in viewport
         if(e.isIntersecting){
+            let f = $(e.target).attr('feature');
             let tb = $(e.target).attr('tb');
             let te = $(e.target).attr('te');
-            let vid = document.getElementById('ad_vid')
-            playPause(vid, tb, te)
+            // let vid = document.getElementById('feature_gif')
+            //playPause(vid, tb, te)
+            playPause(f)
         }
     });
 };
@@ -270,18 +272,24 @@ let vid_options = {
 
 let obVid = new IntersectionObserver(vid_callback, vid_options);
 
-const paus = function(){
-    if(this.currentTime >= state.vid) {
-        this.pause();
-        this.removeEventListener("timeupdate",paus);
-    }
-};
+// const paus = function(){
+//     if(this.currentTime >= state.vid) {
+//         this.pause();
+//         this.removeEventListener("timeupdate",paus);
+//     }
+// };
 
-let playPause  = function(vid, tb, te){
-    vid.currentTime = tb;
-    vid.play();
-    state.vid = te;
-    vid.addEventListener("timeupdate", paus);
+let playPause  = function(f){
+    // vid.currentTime = tb;
+    // vid.play();
+    // state.vid = te;
+    // vid.addEventListener("timeupdate", paus);
+    f = f + ".gif"
+    let gif = $('#feature_gif');
+    let src = gif.attr('src').split('/');
+    src.splice(-1,1,f)
+    src = src.join('/');
+    gif.attr('src', src);
 }
 
 function controlVid(timeStamps) {

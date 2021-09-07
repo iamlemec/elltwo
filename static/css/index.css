@@ -145,7 +145,7 @@
 
 #feature_wrap {
     position: relative;
-    margin-top: -65vh;
+    margin-top: -80vh;
 }
 
 .feature {
@@ -925,6 +925,61 @@ button {
 
 .feature {
     position: relative;
+    width: 50%;
+    padding: 30px;
+    padding-bottom: 35vh;
+    font-size: 90%;
+}
+
+.feature:last-of-type {
+    padding-bottom: 50vh;
+}
+
+
+#vid_wrap > img,#vid_wrap > video {
+    position: absolute;
+    height: 35vw;
+    padding-left: 50%;
+}
+
+#about {
+    background-color: var(--bg-col);
+    padding-top: 120px;
+}
+
+.about_block {
+    position: relative;
+    left: 5%;
+    width: 85%;
+    margin-bottom: 60px;
+    font-size: 70%;
+}
+
+.about_block svg {
+    height: 50px;
+    width: 40px;
+    fill: var(--hl-col);
+    margin-right: 10px;
+}
+
+}
+
+/*  slim browser CSS */
+
+@media only screen and (max-width: 550px){
+    
+  #features {
+    background-color: var(--bg-hl2-col);
+    height: calc(auto - 6vh);
+}
+
+#feature_wrap {
+    position: relative;
+    margin-top: -75vh;
+}
+
+.feature {
+    position: relative;
     width: 100%;
     padding: 30px;
     padding-bottom: 25vh;
@@ -959,30 +1014,7 @@ button {
     width: 100vw;
     padding-left: 0;
     bottom: 40px;
-}
-
-#about {
-    background-color: var(--bg-col);
-    padding-top: 100px;
-    padding-bottom: 40px;
-    transform: translateY(-40px);
-}
-
-.about_block {
-    position: relative;
-    left: 5%;
-    width: 85%;
-    margin-bottom: 60px;
-    font-size: 70%;
-}
-
-.about_block svg {
-    height: 50px;
-    width: 40px;
-    fill: var(--hl-col);
-    margin-right: 10px;
-}
-
+}  
 }
 
 /*  MOBILE CSS */
