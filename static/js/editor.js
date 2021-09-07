@@ -189,29 +189,38 @@ function eventEditor() {
             return;
         }
 
-        // get situation details
-        let para = $(this);
+        // handle readonly selection
+        let sel = window.getSelection();
+        if (sel.baseNode != sel.extentNode || sel.baseOffset != sel.extentOffset) {
+            return;
+        }
+
+        // handle textarea selection
         let cur = (event.target.selectionStart !== undefined)
             ? [event.target.selectionStart, event.target.selectionEnd]
             : 'end'; // returns undefined if not a textarea
+        if (cur != 'end' && cur[0] != cur[1]) {
+            return;
+        }
+
+        // get situation details
+        let para = $(this);
         let act = para.hasClass('active');
 
         // step up one level
         if (state.ssv_mode) {
-            if (cur[0] == cur[1] || cur == 'end') {
-                if (!act) {
-                    makeActive(para);
-                }
-                if (!state.rawtext) {
-                    sendMakeEditable(cur);
-                }
+            if (!act) {
+                makeActive(para);
             }
-        } else if (act) {
             if (!state.rawtext) {
                 sendMakeEditable(cur);
             }
         } else {
-            makeActive(para);
+            if (!act) {
+                makeActive(para);
+            } else if (!state.rawtext) {
+                sendMakeEditable(cur);
+            }
         }
     });
 
@@ -219,7 +228,6 @@ function eventEditor() {
         let targ = event.target.id;
         if (targ == 'bg' || targ == 'content') {
             makeActive(null);
-            return false;
         }
     });
 
