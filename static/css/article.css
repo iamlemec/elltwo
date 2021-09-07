@@ -175,6 +175,20 @@
     content: "env folded, [ ⇧ + f ] to unfold";
 }
 
+/* cursor lag hack for firefox */
+
+@-moz-document url-prefix() {
+    .container.ssv .p_input,
+    .container:not(.ssv) .p_input
+    {
+        color: rgba(0, 0, 0, 0.01);
+    }
+
+    {
+        color: rgba(0, 0, 0, 0.01);
+    }
+}
+
 /* control buttons */
 
 .control {
