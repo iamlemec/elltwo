@@ -163,11 +163,11 @@ button:hover {
 /* text elements */
 
 .footnote > .num {
-    color: var(--hl-col);
-    background-color: var(--pop-fg-col);
-    border: 1px solid #555;
+    color: var(--pop-fg-col);
+    background-color: var(--pop-bg-col);
+    border: 1px solid var(--font-col);
     font-size: 70%;
-    padding: 0px 5px 1px 5px;
+    padding: 3px 3px 0px 3px;
     border-radius: 3px;
     vertical-align: super;
 }

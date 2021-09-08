@@ -151,7 +151,7 @@ button:hover {
     background-color: var(--bg-hl-col);
     border: 1px solid #AAA;
     font-size: 70%;
-    padding: 0px 5px 0px 5px;
+    padding: 3px 4px 1px 4px;
     border-radius: 3px;
     vertical-align: super;
 }
