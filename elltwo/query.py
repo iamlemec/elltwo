@@ -249,7 +249,7 @@ class ElltwoDB:
 
         for art in self.get_arts(all=all):
             name = f'{art.short_title}.md'
-            text = self.get_art_text(art.aid)
+            text = self.get_art_text(art.aid, strip=True)
             writer(name, text)
 
         if image:
@@ -403,11 +403,13 @@ class ElltwoDB:
             query = query.filter(arttime(time))
         return query.one_or_none()
 
-    def get_art_text(self, aid, time=None):
+    def get_art_text(self, aid, time=None, strip=False):
         if time is None:
             time = datetime.utcnow()
-        paras = self.get_paras(aid, time=time)
-        return '\n\n'.join([p.text for p in paras])
+        paras = [p.text for p in self.get_paras(aid, time=time)]
+        if strip:
+            paras = [re.sub('\n{2,}', '\n', p).strip('\n') for p in paras]
+        return '\n\n'.join(paras)
 
     def get_para(self, pid, time=None):
         if time is None:
@@ -690,7 +692,7 @@ class ElltwoDB:
         art = self.create_article(title, short_title=short_title, init=False, time=time, g_ref=True, index=index)
         aid = art.aid
 
-        paras = re.sub(r'\n{3,}', '\n\n', mark).strip().split('\n\n')
+        paras = re.sub(r'\n{3,}', '\n\n', mark).strip('\n').split('\n\n')
         n_par, max_pid = len(paras), self.create_pid()
         pids = list(range(max_pid, max_pid + n_par))
 

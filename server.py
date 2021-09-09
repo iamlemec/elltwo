@@ -206,14 +206,14 @@ def CreateUser():
 
     if user is not None: # if a user is found, we want to redirect back to signup page so user can try again
         lg = url_for('Login')
-        msg = Markup(f'An account with this email already exists. <br> <a href={lg} class="alert-link">Click here to log in.</a>')
+        msg = Markup(f'An account with this email already exists. <br> <a href="{lg}" class="alert-link">Click here to log in.</a>')
         flash(msg)
         return redirect(url_for('Signup'))
 
     edb.add_user(email, name, password)
     send_confirmation_email(email)
     rs = url_for('Resend', email=email)
-    msg = Markup(f'Check your email to activate your account. <br> <a href={rs} class="alert-link">Resend.</a>')
+    msg = Markup(f'Check your email to activate your account. <br> <a href="{rs}" class="alert-link">Resend.</a>')
     flash(msg)
     return redirect(url_for('Login'))
 
