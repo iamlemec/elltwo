@@ -483,7 +483,7 @@ let inline = {
     math: /^\$((?:\\\$|[\s\S])+?)\$/,
     ref: /^@\[([^\]]+)\]/,
     cite: /^@@\[([^\]]+)\]/,
-    footnote: /^\^\[(inside)\]/,
+    footnote: /^\^(\!)?\[(inside)\]/,
 };
 
 inline._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
@@ -627,7 +627,11 @@ class InlineLexer {
             // footnote
             if (cap = this.rules.footnote.exec(src)) {
                 src = src.substring(cap[0].length);
-                out += this.renderer.footnote(this.output(cap[1]));
+                if(cap[1]){
+                out += this.renderer.sidenote(this.output(cap[2]));
+                } else {
+                out += this.renderer.footnote(this.output(cap[2]));
+                }
                 continue;
             }
 
@@ -983,6 +987,10 @@ class DivRenderer {
         return `<span class="footnote pop_anchor" reftype="self"><span class="num" counter="footnote" inc="1"></span><span class="ft_content">${text}</span></span>`;
     }
 
+    sidenote(text) {
+        return `<div class="sidenote">${text}</div>`;
+    }
+
     image(href) {
         return `<div class="fig_cont"><img src="${href}"></div>`;
     }
@@ -1224,6 +1232,10 @@ class TexRenderer {
     }
 
     footnote(text) {
+        return `\\footnote{${text}}`;
+    }
+
+    sidenote(text) {
         return `\\footnote{${text}}`;
     }
 

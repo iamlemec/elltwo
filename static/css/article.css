@@ -435,6 +435,19 @@ button {
     cursor: pointer;
 }
 
+.sidenote{
+    background-color: var(--bg-hl-col);
+    border-left: 1px solid var(--bg-hl2-col);
+    position: absolute;
+    left: calc(100% + 15px);
+    width: auto;
+    max-width: 150px;
+    top: 0;
+    padding: 5px;
+    font-family: monospace;
+    font-size: 60%;
+}
+
 .fig_cont {
     position: relative;
     margin: auto;
