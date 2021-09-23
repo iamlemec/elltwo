@@ -62,8 +62,10 @@ function eventRender() {
         $(document).on({
             mouseenter: function() {
                 let ref = $(this);
-                ref.data('show_pop', true);
-                let html = getTro(ref, renderPop);
+                if(!ref.hasClass('sidenote')){
+                    ref.data('show_pop', true);
+                    let html = getTro(ref, renderPop);
+                }
             },
             mouseleave: function() {
                 let ref = $(this);
@@ -491,27 +493,28 @@ function simpleEnv(ptxt, env, head='', tail='', number=true, args={}) {
 // we probably want to pass targ as an argument
 function errorEnv(ptxt, args) {
     let mesg;
-    let targ;
+    //let targ;
 
     if (args.code == 'undef') {
         mesg = `Error: environment "${args.env}" is not defined.`;
-        targ = ptxt.first();
+        //targ = ptxt.first();
     } else if (args.code == 'open') {
         mesg = `Error: environment "${args.env}" not closed at new environment "${args.new_env}".`;
-        targ = ptxt.first();
+        //targ = ptxt.first();
     } else if (args.code == 'heading') {
         mesg = `Error: environment "${args.env}" not closed at end of section.`;
-        targ = ptxt.first();
+        //targ = ptxt.first();
     } else if (args.code == 'eof') {
         mesg = `Error: environment "${args.env}" not closed at end of document.`;
-        targ = ptxt.last();
+        //targ = ptxt.last();
     } else if (args.code == 'ending') {
         mesg = `Error: environment ending when not in environment.`;
-        targ = ptxt.first();
+        //targ = ptxt.first();
     }
 
     var pre = $('<div>', {class: 'env_add error_footer', html: mesg});
     ptxt.append(pre);
+    ptxt.first().attr('env_pid', 'err');
 }
 
 function titleEnv(ptxt, args) {
@@ -1138,7 +1141,7 @@ let inline = {
     url: /(https?):\/\/([^\s<]+[^<.,:;"')\]\s])/g,
     comment: /\/\/([^\n]*?)(\n|$)/g,
     code: /(`+)([\s\S\$]*?[^`])\1(?!`)/g,
-    ftnt: /\^\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/g,
+    ftnt: /\^(\!)?\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/g,
     math: /\$((?:\\\$|[\s\S])+?)\$/g,
     ref: /@(\[([^\]]+)\])/g,
     cite: /@@(\[([^\]]+)\])/g,
@@ -1166,9 +1169,13 @@ function syntaxParseInline(raw) {
         s(b, 'comment_head') + s(c, 'code') + s(b, 'comment_head')
     );
 
-    html = html.replace(inline.ftnt, (a, b) =>
-        s('^[', 'delimit') + b + s(']', 'delimit')
-    );
+    html = html.replace(inline.ftnt, (a, b,c) =>{
+        if(b){
+            return s('^!', 'hl') + s('[', 'delimit') + c + s(']', 'delimit')
+        } else {
+            return s('^[', 'delimit') + c + s(']', 'delimit')
+        }
+    });
 
     html = html.replace(inline.math, (a, b) =>
         s('$', 'delimit') + s(b, 'math') + s('$', 'delimit')
@@ -1241,10 +1248,10 @@ function fArgs(argsraw, set=true) {
 
 let block = {
     title: /^#!( *)(?:refargs)?(\s*)([^\n]*)(\s*)/,
-    heading: /^(#{1,6})(\*?)( *)(?:refargs)?( *)([^\n]+?)$/,
+    heading: /^(#{1,6})(\*?)( *)(?:refargs)?(\s*)([^\n]*)$/,
     code: /^``((?: |\n)?)/,
     comment: /^\/\/( ?)/,
-    equation: /^\$\$((?:\*&|&\*|\*|&)?)( *)(?:refargs)?(\s*)/,
+    equation: /^\$\$(\*?)( *)(?:refargs)?(\s*)/,
     image: /^(!{1,2})(\*)?( *)(?:refargs)?( *)(\()?([\w-:#/.&%=]*)(\))?(\s*)$/,
     svg: /^\!svg(\*)?( *)(?:refargs)?/,
     envbeg: /^\>\>(\!)?( *)([\w-]+)(\*)?( *)(?:refargs)?/,

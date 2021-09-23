@@ -160,6 +160,10 @@ function eventEditor() {
                     return false;
                 }
             } else if (shift && key == 'enter') {
+                if (state.cc) {
+                    ccMake(null,true);
+                    return false;
+                }
                 makeUnEditable();
                 sendInsertPara(state.active_para, true);
                 return false;

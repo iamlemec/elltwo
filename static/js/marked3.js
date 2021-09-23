@@ -988,7 +988,8 @@ class DivRenderer {
     }
 
     sidenote(text) {
-        return `<div class="sidenote">${text}</div>`;
+        return `<span class="sidenote pop_anchor" reftype="self"><span class=sn_skinny>*</span><span class="ft_content">${text}</span></span>`;
+        //return `<div class="sidenote">${text}</div>`;
     }
 
     image(href) {

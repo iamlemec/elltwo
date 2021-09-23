@@ -1118,7 +1118,7 @@ function ccNext(dir) {
     }
 }
 
-function ccMake(cctxt=null) {
+function ccMake(cctxt=null,addText=false) {
     if (cctxt===null){
         cctxt = $('.cc_row').first().text();
     }
@@ -1131,6 +1131,10 @@ function ccMake(cctxt=null) {
 
     let cap, l;
     let iter = false //true iterates the process (for ext art refs)
+    let at = "";
+    if (addText){
+        at = '|text=';
+    };
     if (cap = open_ref.exec(raw)) {
         l = cap.index;
         let space = cap[5] || '';
@@ -1143,19 +1147,19 @@ function ccMake(cctxt=null) {
             });
         } else if (cap[2] && cap[3]) { // ref on ext page
             raw = raw.replace(open_ref, function() {
-                const out = `@[${cap[2]}:${cctxt}]${space}`;
+                const out = `@[${cap[2]}:${cctxt}${at}]${space}`;
                 l += out.length - space.length;
                 return out;
             });
         } else if (cap[1] == '@') { // external citation
             raw = raw.replace(open_ref, function() {
-                const out = `@@[${cctxt}]${space}`;
+                const out = `@@[${cctxt}${at}]${space}`;
                 l += out.length - space.length;
                 return out;
             });
         } else { // internal reference
             raw = raw.replace(open_ref, function() {
-                const out = `@[${cctxt}]${space}`;
+                const out = `@[${cctxt}${at}]${space}`;
                 l += out.length - space.length;
                 return out;
             });
@@ -1164,7 +1168,7 @@ function ccMake(cctxt=null) {
         l = cap.index;
         let space = cap[2] || '';
         raw = raw.replace(open_i_link, function() {
-            const out = `[[${cctxt}]]${space}`;
+            const out = `[[${cctxt}${at}]]${space}`;
             l += out.length - space.length;
             return out;
         });
@@ -1172,7 +1176,7 @@ function ccMake(cctxt=null) {
         l = cap.index;
         let space = cap[2] || '';
         raw = raw.replace(open_img, function() {
-            const out = `![${cctxt}]${space}`;
+            const out = `![${cctxt}${at}]${space}`;
             l += out.length - space.length;
             return out;
         });
@@ -1182,6 +1186,9 @@ function ccMake(cctxt=null) {
     syntaxHL(state.active_para);
     state.cc = false;
     $('#cc_pop').remove();
+    if(addText && !iter){
+        l -= 1;
+    }
     input[0].setSelectionRange(l, l);
     if(iter){
         let view = para.children('.p_input_view');

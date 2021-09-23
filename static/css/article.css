@@ -331,11 +331,16 @@ button {
     text-align: center;
 }
 
-#pop .eqnum {
+
+.ft_content{
     display: none;
 }
 
-.ft_content{
+.sidenote .ft_content{
+    display: block;
+}
+
+.sn_skinny{
     display: none;
 }
 
@@ -436,6 +441,11 @@ button {
 }
 
 .sidenote{
+    display: none;
+}
+
+.para .sidenote{
+    display: block;
     background-color: var(--bg-hl-col);
     border-left: 1px solid var(--bg-hl2-col);
     position: absolute;
@@ -445,8 +455,9 @@ button {
     top: 0;
     padding: 5px;
     font-family: monospace;
-    font-size: 60%;
+    font-size: 12px;
 }
+
 
 .fig_cont {
     position: relative;
@@ -684,6 +695,15 @@ button {
 
 #pop .env__heading_h1 {
     font-size: 20px;
+}
+
+#pop  .eqn_cite{
+   border: 1px solid var(--pop-fg-col);
+   color: var(--pop-fg-col);
+}
+
+#pop .eqnum {
+    display: none;
 }
 
 /* sidebar */
@@ -1252,13 +1272,19 @@ circle.commit.active {
 }
 
 
-
 .container.sb_content.ssv .controlBut {
     width: 15px;
     height: 15px;
     padding: 3px;
 }
 
+.container.ssv .sidenote .ft_content{
+        display: none;
+}
+    
+.container.ssv .sn_skinny{
+        display: block;
+}
 
 }
 
@@ -1283,6 +1309,19 @@ circle.commit.active {
 
 .custom-select-wrapper {
     right: 15%;
+}
+    
+}
+    
+@media only screen and (max-width: 600px) {
+
+    
+.sidenote .ft_content{
+        display: none;
+}
+    
+.sn_skinny{
+        display: block;
 }
 
 }
@@ -1341,6 +1380,14 @@ circle.commit.active {
     left: 0;
     bottom: 40px;
     border-radius: 0 !important;
+}
+    
+.sidenote .ft_content{
+      display: none;
+}
+    
+.sn_skinny{
+        display: block;
 }
 
 #export_options {
