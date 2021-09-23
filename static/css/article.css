@@ -616,6 +616,10 @@ button {
     max-width: 400px;
 }
 
+#pop.ext_pop{
+    padding-top:20px;
+}
+
 #pop:after {
 	top: 100%;
 	left: 50%;
@@ -627,6 +631,21 @@ button {
 	pointer-events: none;
 	border-width: 10px;
 	margin-left: -10px;
+}
+
+#pop_ext_title{
+    position: absolute;
+    top: 0;
+    width: calc(100% - 10px);
+    right: 5px;
+    font-family: monospace;
+    font-size: 9px;
+    color: var(--hl-col);
+    opacity: .7;
+    text-align: right;
+    line-height: 10px;
+    padding: 5px 5px 4px 0px;
+    border-bottom: .1px solid var(--hl-col);
 }
 
 #cc_pop {

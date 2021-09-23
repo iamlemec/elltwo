@@ -977,12 +977,20 @@ let ref_spec = {
  **  popup rendering
  **/
 
-function createPop(ref, html='', link=false, blurb=false,) {
+function createPop(ref, html='', link=false, blurb=false,ext_title=undefined) {
     let pop = $('<div>', {id: 'pop', href: link, html: html});
+    if(ext_title){
+        let et = $('<div>', {id: 'pop_ext_title', html: ext_title});
+        pop.append(et);
+        pop.addClass('ext_pop')
+    }
+
     if (blurb) {
         pop.addClass('blurb_pop');
     }
     $('#bg').append(pop);
+
+
 
     let h = pop.outerHeight();
     let w = pop.outerWidth();
@@ -1042,7 +1050,8 @@ function renderPop(ref, tro) {
     let pop = popText(tro);
     let link = config.mobile ? ref.attr('href') : false;
     let blurb = tro.cite_type == 'link';
-    createPop(ref, pop, link, blurb);
+    let ext_title = tro.ext_title;
+    createPop(ref, pop, link, blurb, ext_title);
 }
 
 function popError(err) {
