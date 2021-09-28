@@ -793,7 +793,7 @@ class ElltwoDB:
         if time is None:
             time = datetime.utcnow()
         query = self.session.query(ExtRef).filter_by(aid=aid).filter(reftime(time))
-        return [r.key for r in query.all()]
+        return [[r.key , r.cite_env] for r in query.all()]
 
     def get_ref(self, key, aid, time=None):
         if time is None:

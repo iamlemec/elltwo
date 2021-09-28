@@ -708,7 +708,8 @@ def get_ref(data):
 def get_refs(data):
     title = data['title']
     if (art := edb.get_art_short(title)) is not None:
-        return edb.get_ref_keys(art.aid)
+        x = edb.get_ref_keys(art.aid)
+        return x
     else:
         return []
 

@@ -5,7 +5,7 @@ export {
     rawToTextarea, envClasses, envGlobal, renderRefText, createTOC, getTro,
     troFromKey, popText, renderPop, syntaxHL, s_env_spec, getFoldLevel,
     renderFold, braceMatch, barePara, makePara, connectCallbacks, getRefTags,
-    trackRef, untrackRef, doRenderRef
+    trackRef, untrackRef, doRenderRef,
 }
 
 import { merge, cooks, getPara, RefCount, DummyCache } from './utils.js'

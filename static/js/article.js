@@ -1120,7 +1120,7 @@ function ccNext(dir) {
 
 function ccMake(cctxt=null,addText=false) {
     if (cctxt===null){
-        cctxt = $('.cc_row').first().text();
+        cctxt = $('.cc_row').first().attr('ref');
     }
     let para = state.active_para;
     let input = para.children('.p_input');
@@ -1203,17 +1203,48 @@ function ccMake(cctxt=null,addText=false) {
 /// command completion
 
 function getInternalRefs() {
-    return $('.para:not(.folder):is(.env_beg,.env_one)[id]').map((i, x) => x.id).toArray();
+    return $('.para:not(.folder):is(.env_beg,.env_one)[id]').toArray().map(x => [x.id, x.getAttribute("env")]);
 }
 
-function ccSearch(list, search, placement) {
+function env_display_text(env) {
+    let env_dict = {
+        'equation': `<span class="syn_math">$$</span>`,
+        'theorem': `<span class="syn_hl">>thm</span>`,
+        'definition': `<span class="syn_hl">>def</span>`,
+        'example': `<span class="syn_hl">>>ex</span>`,
+        'proof': `<span class="syn_hl">>>prf</span>`,
+        'axiom': `<span class="syn_hl">>ax</span>`,
+        'heading': `<span class="syn_delimit">##</span>`,
+        'imagelocal': `<span class="syn_ref">!img</span>`,
+        'svg': `<span class="syn_ref">!svg</span>`,
+        'title': `<span class="syn_delimit">#</span><span class="syn_hl">!</span>`,
+        'image': `<span class="syn_hl">!!</span>`,
+        'bib': `<span class="syn_ref">@@</span>`,
+
+
+    }
+    return env_dict[env] || ''
+}
+
+function ccSearch(list, search, placement, env_display=false) {
+    if(env_display){
+    list = list.filter(el => el[0].includes(search));
+    } else {
     list = list.filter(el => el.includes(search));
-    if (list.length > 0) {
+    } if (list.length > 0) {
         state.cc = true;
         let pop = $('<div>', {id: 'cc_pop'});
         list.forEach(r => {
             let cc_row = $('<div>', {class: 'cc_row'});
-            cc_row.text(r);
+            if(env_display){
+                cc_row.text(r[0]).attr('ref', r[0]);
+                let env_disp = $('<div>', {class: 'env_disp'});
+                env_disp.html(env_display_text(r[1]));
+                cc_row.prepend(env_disp)
+            } else {
+                cc_row.text(r).attr('ref', r);
+            };
+            
             pop.append(cc_row);
         });
         $('#bg').append(pop);
@@ -1245,23 +1276,25 @@ function ccRefs(view, raw, cur) {
             if (cap[1] == '@') { // bib search
                 let search = cap[2] || '';
                 cache.list.get('__bib', function(ret) {
-                    ccSearch(ret, search, p);
+                    ret = ret.map(x => [x, 'bib'])
+                    ccSearch(ret, search, p, true);
                 });
             } else if (cap[3] && !cap[2]) { // searching for ext page
                 let search = cap[4] || '';
                 cache.list.get('__art', function(ret) {
-                    ccSearch(ret, search, p);
+                    ret = ret.map(x => [x, 'title'])
+                    ccSearch(ret, search, p, true);
                 });
             } else if (cap[2] && cap[3]) {
                 let title = cap[2];
                 let search = cap[4] || "";
                 cache.list.get(title, function(ret) {
-                    ccSearch(ret, search, p);
+                    ccSearch(ret, search, p, true);
                 });
             } else {
                 let search = cap[4] || cap[2] || '';
                 let in_refs = getInternalRefs();
-                ccSearch(in_refs, search, p);
+                ccSearch(in_refs, search, p, true);
             }
         }
     } else if (cap = open_i_link.exec(raw)) {
@@ -1274,7 +1307,8 @@ function ccRefs(view, raw, cur) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let search = cap[4] || '';
             let ex_keys = cache.list.get('__art', function(ret) {
-                ccSearch(ret, search, p);
+                ret = ret.map(x => [x, 'title'])
+                ccSearch(ret, search, p, true);
             });
         }
     } else if (cap = open_img.exec(raw)) {
@@ -1287,7 +1321,8 @@ function ccRefs(view, raw, cur) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let search = cap[2] || '';
             let ex_keys = cache.list.get('__img', function(ret) {
-                ccSearch(ret, search, p);
+                ret = ret.map(x => [x, 'image'])
+                ccSearch(ret, search, p, true);
             });
         }
     }

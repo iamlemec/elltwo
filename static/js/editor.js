@@ -260,7 +260,7 @@ function eventEditor() {
     });
 
     $(document).on('click', '.cc_row', function() {
-        let cctxt = $(this).text();
+        let cctxt = $(this).attr('ref');
         let l = ccMake(cctxt);
         let input = state.active_para.children('.p_input');
         input.focus();
