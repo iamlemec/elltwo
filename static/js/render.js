@@ -627,6 +627,17 @@ function imgEnv(ptxt, args) {
     });
 }
 
+function quoteEnv(ptxt, args) {
+    
+    if (args.by != 'none') {
+        var div = $('<div>', {class: 'env_add quote_by'});
+        div.text(args.by)
+        ptxt.last().append(div);
+        renderKatex(ptxt.children('.quote_by'));
+    }
+
+}
+
 // simple envs for user creation and simpler setup
 // number is if number is defult (can be overidden with *)
 let s_env_spec = {
@@ -646,6 +657,7 @@ let env_spec = {
     svg: figEnv,
     image: figEnv,
     table: figEnv,
+    quote: quoteEnv,
     imagelocal: imgEnv,
     error: errorEnv,
 };

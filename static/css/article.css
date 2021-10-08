@@ -331,6 +331,31 @@ button {
     text-align: center;
 }
 
+.env__quote .p_text{
+    padding: 0 30px 0 30px;
+    font-size: 90%
+}
+
+.env__quote .quote_by{
+    text-align: right;
+}
+
+.env__quote.env_end .quote_by:before{
+    content: "\2014  "
+}
+
+.env__quote.env_beg:before{
+content: "\201c";
+display: block;
+font-size: 52px;
+line-height: 1;
+position: absolute;
+top: -5px;
+left: 5px;
+font-family: mono;
+color: var(--delimit-col);
+}
+
 
 .ft_content{
     display: none;
