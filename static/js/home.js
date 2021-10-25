@@ -18,6 +18,7 @@ function initHome(args) {
     eventHome();
     renderKatex();
     initUser();
+    searchRecent();
 }
 
 function connectHome() {
@@ -84,9 +85,8 @@ let blurb_bib = `<div><div class="title">${elltwo} Bibliography</div>Enter new b
 
 function searchTitle(query, last_url) {
     sendCommand('search_title', query, function(response) {
-        $('#results').empty();
-
-        let  q = query.toLowerCase();
+       let title_text = "Search Results (Title)"
+       let  q = query.toLowerCase();
         if ('image library'.startsWith(q) || 'img'.startsWith(q) || 'elltwo'.startsWith(q)) {
             response.push({
                 short: 'img',
@@ -99,41 +99,24 @@ function searchTitle(query, last_url) {
                 blurb: blurb_bib,
             });
         };
+       buildBlurbs(response, last_url, title_text);
+    });
+}
 
-        let nres = Object.keys(response).length;
-        if (nres > 0) {
-            for (let idx in response) {
-                let art = response[idx];
-                let url = art.short;
-                let short = url;
-                if (short != 'img' && short != 'bib') {
-                    short = url.slice(2).replace('_', ' ');
-                }
-                let btext = art.blurb || short;
-                let art_div = $('<a>', {class: 'result art_link', href: url});
-                let art_title = $('<div>', {class: 'blurb_name', text: short});
-                let art_blurb = $('<div>', {class: 'blurb', html: btext});
-                art_div.append([art_title, art_blurb]);
-                $('#results').append(art_div);
-            }
-
-            let sel;
-            if (last_url == undefined) {
-                sel = $('.art_link').first();
-            } else {
-                sel = $(`.art_link[href="${last_url}"]`);
-                if (sel.length == 0) {
-                    sel = $('.art_link').first();
-                }
-            }
-            sel.addClass('selected');
-        }
+function searchRecent(last_url) {
+    sendCommand('recent_arts', null,  function(response, last_url) {
+       if(response.length > 0){
+            let title_text = "Recently Edited Articles"
+            buildBlurbs(response, last_url, title_text);
+        };
     });
 }
 
 function searchText(query, last_pid) {
     sendCommand('search_text', query, function(response) {
         $('#results').empty();
+        let res_title = $('<div>', {class: 'res_title', text: 'Search Results (Full Text)'});
+        $('#results').append(res_title);
         let nres = Object.keys(response).length;
         if (nres > 0) {
             for (let idx in response) {
@@ -169,6 +152,41 @@ function searchText(query, last_pid) {
     });
 }
 
+function buildBlurbs(response, last_url, title_text){
+     $('#results').empty();
+        let res_title = $('<div>', {class: 'res_title', text: title_text});
+        $('#results').append(res_title);
+
+        let nres = Object.keys(response).length;
+        if (nres > 0) {
+            for (let idx in response) {
+                let art = response[idx];
+                let url = art.short;
+                let short = url;
+                if (short != 'img' && short != 'bib') {
+                    short = url.slice(2).replace('_', ' ');
+                }
+                let btext = art.blurb || short;
+                let art_div = $('<a>', {class: 'result art_link', href: url});
+                let art_title = $('<div>', {class: 'blurb_name', text: short});
+                let art_blurb = $('<div>', {class: 'blurb', html: btext});
+                art_div.append([art_title, art_blurb]);
+                $('#results').append(art_div);
+            }
+
+            let sel;
+            if (last_url == undefined) {
+                sel = $('.art_link').first();
+            } else {
+                sel = $(`.art_link[href="${last_url}"]`);
+                if (sel.length == 0) {
+                    sel = $('.art_link').first();
+                }
+            }
+            sel.addClass('selected');
+        }
+};
+
 function runQuery() {
     let active = $('.result.selected').first();
     let last_url = active.attr('href');
@@ -183,7 +201,8 @@ function runQuery() {
             searchTitle(query, last_pid);
         }
     } else {
-        $('#results').empty();
+        searchRecent(last_url);
+        //$('#results').empty();
     }
 }
 

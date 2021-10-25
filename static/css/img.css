@@ -1,5 +1,5 @@
 @import 'home.css';
-
+@import 'SVGEdit.css';
 
 #query {
     left: 20%;
@@ -85,7 +85,8 @@ img {
 #display {
     display: none;
     position: fixed;
-    background-color: gray;
+    background-color: var(--bg-col);
+    border: 2px solid var(--hl-col);
     height: 88%;
     width: 60%;
     top: 3%;
@@ -113,7 +114,7 @@ img {
     position: absolute;
     width: 0%;
     left: 0%;
-    max-height: 85%;
+    max-height: 65%;
 }
 
 #display_upload {

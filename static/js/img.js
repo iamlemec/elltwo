@@ -9,6 +9,8 @@ import { connect, sendCommand, addHandler } from './client.js'
 import { renderKatex } from './math.js'
 import { connectDrops, makeImageBlob, promptUpload, uploadImage } from './drop.js'
 import { KeyCache } from './utils.js'
+import { initSVGEditor, parseSVG} from './svgEdit.js'
+
 
 // config
 
@@ -21,6 +23,7 @@ let default_config = {
 let default_state = {
     timeout: null,
     edit_mode: true,
+    svgEditor: false,
 };
 
 // initialize
@@ -44,8 +47,12 @@ function cacheImage() {
             sendCommand('get_images', {}, callback);
         } else {
             sendCommand('get_image', {key: key}, function(ret) {
-                let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : undefined;
-                callback(url);
+                if(ret.israwSVG){
+                    callback(ret.raw)
+                }else{
+                    let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : undefined;
+                    callback(url);
+                }
             });
         }
     });
@@ -77,31 +84,44 @@ function eventImage() {
     });
 
     $(document).on('click', '.img_src', function(e) {
-        let img = $(this).children('img');
-        let ks = $(e.target).closest('.keyspan');
-        if (ks.length > 0) {
-            $('.keyspan').removeClass('copied');
-            copyKey(ks);
-            $(ks).addClass('copied');
-        } else {
-            let key = img.attr('id');
-            let src = img.attr('src');
-            let kw = img.attr('kw') || '';
-            state.key = key;
-            state.keywords = kw;
-            $('#display_image').attr('src', src);
-            $('input#key').val(key);
-            $('input#keywords').val(kw);
-            $('#display').show();
+        let img = $(this);
+        let key = img.attr('id');
+        let kw = img.attr('kw') || '';
+        
+        if(img.hasClass('rawSVG')){
+            let raw = img.children('svg').html()
+            initSVGEditor($('#bg'), raw, key);
+        }else{
+            let ks = $(e.target).closest('.keyspan');
+            if (ks.length > 0) {
+                $('.keyspan').removeClass('copied');
+                copyKey(ks);
+                $(ks).addClass('copied');
+            } else {
+                let src = img.children('img').attr('src');
+                state.key = key;
+                state.keywords = kw;
+                $('#display_image').attr('src', src);
+                $('input#key').val(key);
+                $('input#keywords').val(kw);
+                $('#display').show();
+            }
         }
     });
 
     $(document).on('click', '#bg', function(e) {
         let targ = $(e.target);
-        if (targ.closest('.img_cont').length == 0 && targ.closest('#display').length == 0) {
+        if (targ.closest('.img_cont').length == 0 
+                && targ.closest('#display').length == 0
+                && targ.closest('#SVGEditorBox').length == 0) {
             hideDisplay();
+            $('#SVGEditorBox').hide()
             $('#query').focus();
         }
+    });
+
+    $(document).on('click', '#open_svg_editor', function() {
+        initSVGEditor($('#bg'));
     });
 
     $(document).on('keyup', function(e) {
@@ -196,23 +216,33 @@ function renderImages(img_list) {
     $('.img_src').remove();
     let imgs_n = img_list.slice(0, config.max_imgs);
     imgs_n.forEach(img => {
-        let [key, kws] = img;
+        let [key, kws, israwSVG] = img;
         let img_cont = $('<div>', {class: 'img_cont img_src'});
         $('#img_results').append(img_cont);
-        renderBox(img_cont, key, kws);
+        renderBox(img_cont, key, kws, israwSVG);
     });
 };
 
-function renderBox(elem, key, kws) {
-    let img = $('<img>', {id: key, kw: kws});
-    elem.append(img);
+function renderBox(elem, key, kws, israwSVG) {
 
+    elem.attr('id', key).attr('kw', kws);
     let keyspan = $('<div>', {class: 'keyspan', text: key});
     elem.append(keyspan);
-
-    cache.img.get(key, function(ret) {
-        img.attr('src', ret);
-    });
+    
+    if(israwSVG){
+        cache.img.get(key, function(ret) {
+            let out = parseSVG(ret)
+            elem.html(out);
+            elem.addClass('rawSVG')
+        });
+    }else{
+        let img = $('<img>') // {id: key, kw: kws});
+        elem.append(img);
+        
+        cache.img.get(key, function(ret) {
+            img.attr('src', ret);
+        });
+    };
  }
 
 function copyKey(keyspan) {
