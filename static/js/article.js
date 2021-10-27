@@ -7,7 +7,7 @@ export {
 }
 
 import {
-    mapValues, on_success, setCookie, cooks, getPara, getEnvParas, KeyCache
+    mapValues, on_success, setCookie, cooks, getPara, getEnvParas, KeyCache, merge
 } from './utils.js'
 import {
     config, state, cache, updateConfig, updateState, updateCache
@@ -1244,7 +1244,7 @@ function ccSearch(list, search, placement, env_display=false) {
             } else {
                 cc_row.text(r).attr('ref', r);
             };
-            
+
             pop.append(cc_row);
         });
         $('#bg').append(pop);
