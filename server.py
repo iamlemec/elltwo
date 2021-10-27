@@ -633,6 +633,15 @@ def search_title(data):
         'blurb': art.blurb
     } for art in results]
 
+@socketio.on('recent_arts')
+@view_decor
+def recent_arts(data):
+    results = edb.get_recent_arts(n=5)
+    return [{
+        'short': 'a/' + art.short_title,
+        'blurb': art.blurb
+    } for art in results]
+
 @socketio.on('search_text')
 @view_decor
 def search_text(data):
@@ -831,10 +840,24 @@ def UploadImage():
 
     return {'mime': img.mime, 'key': img.key}
 
+@socketio.on('saveSVG')
+@edit_decor
+def saveSVG(data):
+    img_key = data['key']
+    raw = data['raw']
+    print('key:', img_key, type(img_key))
+
+    img = edb.create_image(img_key, mime="image/svg", data=None, israwSVG=True, raw=raw)
+
+    socketio.emit('invalidateRef', ['img', img.key], to='__img')
+    socketio.emit('invalidateRef', ['img', img.key], to=f'![{img.key}]', include_self=True)
+
+    return {'key': img.key}
+
 @socketio.on('get_images')
 @view_decor
 def get_images(data):
-    return [(i.key, i.keywords) for i in edb.get_images()]
+    return [(i.key, i.keywords, i.israwSVG) for i in edb.get_images()]
 
 @socketio.on('get_imgs')
 @view_decor
@@ -846,7 +869,7 @@ def get_imgs(data):
 def get_image(data):
     key = data['key']
     if (img := edb.get_image(key)) is not None:
-        return {'mime': img.mime, 'data': img.data, 'kw': img.keywords}
+        return {'mime': img.mime, 'data': img.data, 'kw': img.keywords, 'israwSVG': img.israwSVG, 'raw':img.raw}
 
 @socketio.on('update_image_key')
 @edit_decor

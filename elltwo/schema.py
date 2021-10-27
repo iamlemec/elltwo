@@ -13,6 +13,7 @@ class Article(Base):
     short_title = Column(Text, nullable=False)
     blurb = Column(Text)
     g_ref = Column(Boolean, nullable=False, default=False)
+    last_edit = Column(DateTime, nullable=True)
     create_time = Column(DateTime, default=datetime.utcnow)
     delete_time = Column(DateTime)
 
@@ -93,12 +94,15 @@ class Image(Base):
     key = Column(Text, nullable=False)
     keywords = Column(Text)
     mime = Column(Text, nullable=False)
-    data = Column(LargeBinary, nullable=False)
+    data = Column(LargeBinary) #change to nullable=False once SVGs get saved, or split tables?
+    israwSVG = Column(Boolean, nullable=False, default=False)
+    raw = Column(Text)
     create_time = Column(DateTime, default=datetime.utcnow)
     delete_time = Column(DateTime)
 
     def __repr__(self):
         return f'{self.key} ({self.mime}) [{self.create_time} → {self.delete_time}]'
+
 
 # user management
 class User(UserMixin, Base):

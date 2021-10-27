@@ -85,6 +85,14 @@
     height: 100%;
 }
 
+.res_title{
+    padding: 4px;
+    font-size: 75%;
+    text-align: center;
+    border-bottom: 1px solid var(--font-col);
+    margin-bottom: 10px;
+}
+
 .blurb {
     margin-top: 5px;
     font-size: 60%;

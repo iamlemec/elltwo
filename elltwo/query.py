@@ -386,6 +386,16 @@ class ElltwoDB:
             query = query.filter(arttime(time))
         return query.all()
 
+    def get_recent_arts(self, time=None, n=1):
+        if time is None:
+            time = datetime.utcnow()
+        query = (self.session.query(Article)
+            .filter(arttime(time))
+            .filter(Article.last_edit.is_not(None))
+            .order_by(Article.last_edit.desc())
+            .limit(n))
+        return query.all()
+
     def get_art(self, aid, time=None, all=False):
         if time is None:
             time = datetime.utcnow()
@@ -454,6 +464,9 @@ class ElltwoDB:
             return
 
         par.delete_time = time
+
+        art = self.get_art(par.aid)
+        art.last_edit = time
 
         par1 = Paragraph(aid=par.aid, pid=par.pid, create_time=time, text=text)
         self.session.add(par1)
@@ -869,17 +882,18 @@ class ElltwoDB:
             query = query.filter(imgtime(time))
         return query.all()
 
-    def create_image(self, key, mime, data, time=None):
+    def create_image(self, key, mime, data, israwSVG=False, raw=None, time=None):
         if time is None:
             time = datetime.utcnow()
 
+        print('key:', key, type(key))
         key = urlify(key)
 
         if (img0 := self.get_image(key, time=time)) is not None:
             img0.delete_time = time
             self.session.add(img0)
 
-        img = Image(key=key, mime=mime, data=data, create_time=time)
+        img = Image(key=key, mime=mime, israwSVG=israwSVG, data=data, raw=raw, create_time=time)
         self.session.add(img)
         self.session.commit()
 
@@ -901,6 +915,7 @@ class ElltwoDB:
             for img in imgs:
                 self.session.delete(img)
             self.session.commit()
+
 
     ##
     ## getting differentials
