@@ -65,6 +65,7 @@ config = {
     'default_font': 'default', # default font
     'demo_path': 'testing/demo.md', # path to demo content
     'themes': themes, # all themes by default
+    'macros': {}, # no latex macros by default
 }
 
 #config to pass to templets

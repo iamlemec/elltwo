@@ -20,7 +20,6 @@ import { fold } from './editor.js'
 // main rendering entry point (for all cases)
 
 function stateRender() {
-    config.macros = {}; // external katex macros
     state.title = null; // document title
     state.macros = {}; // internal katex macros
     state.folded = []; // current folded pids
@@ -628,7 +627,6 @@ function imgEnv(ptxt, args) {
 }
 
 function quoteEnv(ptxt, args) {
-    
     if (args.by != 'none') {
         var div = $('<div>', {class: 'env_add quote_by'});
         div.text(args.by)
