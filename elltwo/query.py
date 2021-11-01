@@ -424,26 +424,50 @@ class ElltwoDB:
     def get_para(self, pid, time=None):
         if time is None:
             time = datetime.utcnow()
-        return self.session.query(Paragraph).filter_by(pid=pid).filter(partime(time)).one_or_none()
+        return (self.session
+            .query(Paragraph)
+            .filter_by(pid=pid)
+            .filter(partime(time))
+            .one_or_none()
+        )
 
     def get_link(self, pid, time=None):
         if time is None:
             time = datetime.utcnow()
-        return self.session.query(Paralink).filter_by(pid=pid).filter(lintime(time)).one_or_none()
+        return (self.session
+            .query(Paralink)
+            .filter_by(pid=pid)
+            .filter(lintime(time))
+            .one_or_none()
+        )
 
     def get_lid(self, lid):
         return self.session.query(Paralink).filter_by(lid=lid).one_or_none()
 
     def search_title(self, words, thresh=0.25):
         now = datetime.utcnow()
-        match = [i for i, s in self.search_index(words, dtype='title') if s > thresh]
-        arts = self.session.query(Article).filter(Article.aid.in_(match)).filter(arttime(now)).all()
+        match = [
+            i for i, s in self.search_index(words, dtype='title') if s > thresh
+        ]
+        arts = (self.session
+            .query(Article)
+            .filter(Article.aid.in_(match))
+            .filter(arttime(now))
+            .all()
+        )
         return sorted(arts, key=lambda a: match.index(a.aid))
 
     def search_text(self, words, thresh=0.25):
         now = datetime.utcnow()
-        match = [i for i, s in self.search_index(words, dtype='para') if s > thresh]
-        paras = self.session.query(Paragraph).filter(Paragraph.pid.in_(match)).filter(partime(now)).all()
+        match = [
+            i for i, s in self.search_index(words, dtype='para') if s > thresh
+        ]
+        paras = (self.session
+            .query(Paragraph)
+            .filter(Paragraph.pid.in_(match))
+            .filter(partime(now))
+            .all()
+        )
         return sorted(paras, key=lambda a: match.index(a.pid))
 
     ##
@@ -451,10 +475,8 @@ class ElltwoDB:
     ##
 
     def create_pid(self):
-        if (pmax := self.session.query(func.max(Paragraph.pid)).scalar()) != None:
-            return pmax + 1
-        else:
-            return 0
+        pmax = self.session.query(func.max(Paragraph.pid)).scalar()
+        return pmax + 1 if pmax is not None else 0
 
     def update_para(self, pid, text, time=None):
         if time is None:
@@ -702,7 +724,9 @@ class ElltwoDB:
             else:
                 title = short_title.replace('_', ' ').title()
 
-        art = self.create_article(title, short_title=short_title, init=False, time=time, g_ref=True, index=index)
+        art = self.create_article(
+            title, short_title=short_title, init=False, time=time, g_ref=True, index=index
+        )
         aid = art.aid
 
         paras = re.sub(r'\n{3,}', '\n\n', mark).strip('\n').split('\n\n')
@@ -805,13 +829,23 @@ class ElltwoDB:
     def get_ref_keys(self, aid, time=None):
         if time is None:
             time = datetime.utcnow()
-        query = self.session.query(ExtRef).filter_by(aid=aid).filter(reftime(time))
+        query = (self.session
+            .query(ExtRef)
+            .filter_by(aid=aid)
+            .filter(reftime(time))
+        )
         return [[r.key , r.cite_env] for r in query.all()]
 
     def get_ref(self, key, aid, time=None):
         if time is None:
             time = datetime.utcnow()
-        return self.session.query(ExtRef).filter_by(aid=aid).filter_by(key=key).filter(reftime(time)).one_or_none()
+        return (self.session
+            .query(ExtRef)
+            .filter_by(aid=aid)
+            .filter_by(key=key)
+            .filter(reftime(time))
+            .one_or_none()
+        )
 
     def create_ref(self, aid, key, cite_type, cite_env, text, ref_text, time=None):
         if time is None:
@@ -824,7 +858,10 @@ class ElltwoDB:
         else:
             create = True
 
-        ref = ExtRef(key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text, ref_text=ref_text, create_time=time)
+        ref = ExtRef(
+            key=key, aid=aid, cite_type=cite_type, cite_env=cite_env, text=text,
+            ref_text=ref_text, create_time=time
+        )
         self.session.add(ref)
         self.session.commit()
 
@@ -885,8 +922,6 @@ class ElltwoDB:
     def create_image(self, key, mime, data, israwSVG=False, raw=None, time=None):
         if time is None:
             time = datetime.utcnow()
-
-        print('key:', key, type(key))
         key = urlify(key)
 
         if (img0 := self.get_image(key, time=time)) is not None:
