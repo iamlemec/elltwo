@@ -4,10 +4,7 @@ export { initSVGEditor, parseSVG }
 
 import { state } from './state.js'
 import { sendCommand } from './client.js'
-import {
-    range, Context, Element, Container, Group, SVG,
-    Frame, HStack, VStack, Ray, Rect
- } from '../gum.js/gum.js'
+import { Gum, SVG, Element } from '../gum.js/gum.js'
 
 function createIcon(id) {
     return `<svg>
@@ -91,6 +88,7 @@ function initSVGEditor(el, raw='', key='') {
 }
 
 let prec = 2;
+let gums = Gum.map(g => g.name);
 
 function inputToParse(src=null) {
         if (src === null) {
@@ -99,7 +97,8 @@ function inputToParse(src=null) {
 
         let out;
         try {
-            out = eval(src);
+            let e = new Function(gums, src);
+            out = e(...Gum);
         } catch (e) {
             return;
         }
