@@ -49,8 +49,8 @@
     padding: 10px;
     font-size: 75%;
     overflow: scroll;
-    border: none;
     background: white;
+    scrollbar-width: none;
 }
 
 textarea::-moz-placeholder,
