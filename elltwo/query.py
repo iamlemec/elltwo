@@ -391,7 +391,7 @@ class ElltwoDB:
             time = datetime.utcnow()
         query = (self.session.query(Article)
             .filter(arttime(time))
-            .filter(Article.last_edit.is_not(None))
+            .filter(Article.last_edit.isnot(None))
             .order_by(Article.last_edit.desc())
             .limit(n))
         return query.all()

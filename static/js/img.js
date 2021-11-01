@@ -87,7 +87,7 @@ function eventImage() {
         let img = $(this);
         let key = img.attr('id');
         let kw = img.attr('kw') || '';
-        
+
         if(img.hasClass('rawSVG')){
             let raw = img.children('svg').html()
             initSVGEditor($('#bg'), raw, key);
@@ -111,11 +111,11 @@ function eventImage() {
 
     $(document).on('click', '#bg', function(e) {
         let targ = $(e.target);
-        if (targ.closest('.img_cont').length == 0 
+        if (targ.closest('.img_cont').length == 0
                 && targ.closest('#display').length == 0
-                && targ.closest('#SVGEditorBox').length == 0) {
+                && targ.closest('#SVGEditorOuter').length == 0) {
             hideDisplay();
-            $('#SVGEditorBox').hide()
+            $('#SVGEditorOuter').hide();
             $('#query').focus();
         }
     });
@@ -224,25 +224,23 @@ function renderImages(img_list) {
 };
 
 function renderBox(elem, key, kws, israwSVG) {
-
     elem.attr('id', key).attr('kw', kws);
     let keyspan = $('<div>', {class: 'keyspan', text: key});
     elem.append(keyspan);
-    
-    if(israwSVG){
+
+    if (israwSVG) {
         cache.img.get(key, function(ret) {
-            let out = parseSVG(ret)
+            let out = parseSVG(ret);
             elem.html(out);
-            elem.addClass('rawSVG')
+            elem.addClass('rawSVG');
         });
-    }else{
-        let img = $('<img>') // {id: key, kw: kws});
+    } else {
+        let img = $('<img>'); // {id: key, kw: kws});
         elem.append(img);
-        
         cache.img.get(key, function(ret) {
             img.attr('src', ret);
         });
-    };
+    }
  }
 
 function copyKey(keyspan) {

@@ -1,3 +1,6 @@
 [submodule "katex"]
 	path = katex
 	url = https://github.com/KaTeX/KaTeX
+[submodule "gum.js"]
+	path = static/gum.js
+	url = https://github.com/iamlemec/gum.js
