@@ -14,6 +14,7 @@
     /* border colors for active and changed classes, also syn hl*/
     --hl2-col: #859900; /* highlight color, for changed, syntax hl  */
     --hl-col: #dc322f ; /* highlight color */
+    --hl3-col: #2aa198;  
     /* pop ups */
     --pop-fg-col:  	#002b36; /* popup text color */
     --pop-bg-col: #93a1a1; /* popup background color */
@@ -326,6 +327,10 @@ button:hover {
 
 .syn_ref {
     color: var(--delimit-col);
+}
+
+.syn_jschars     {
+    color: var(--hl3-col);
 }
 
 .syn_delimit {

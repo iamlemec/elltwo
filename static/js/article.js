@@ -1226,8 +1226,6 @@ function env_display_text(env) {
         'title': `<span class="syn_delimit">#</span><span class="syn_hl">!</span>`,
         'image': `<span class="syn_hl">!!</span>`,
         'bib': `<span class="syn_ref">@@</span>`,
-
-
     }
     return env_dict[env] || ''
 }

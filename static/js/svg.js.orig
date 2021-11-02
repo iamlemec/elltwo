@@ -52,12 +52,19 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         outerBox.append(navBar);
         el.append(outerBox);
 
+<<<<<<< HEAD:static/js/svgEdit.js
         if (raw) {
             $('#SVGEditorInput').val(raw);
             $('#SVGEditorTag').val(key);
         }
         svgSyntaxHL()
+        inputToParse();
+=======
+        // fill in data
+        $('#SVGEditorInput').val(raw);
+        $('#SVGEditorTag').val(key);
         renderInput();
+>>>>>>> 8e804af1f57bee01b2353ec026c7aae8a1990be0:static/js/svg.js
 
         state.SVGEditor = true;
     }
@@ -66,9 +73,14 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         hideSVGEditor();
     });
 
+<<<<<<< HEAD:static/js/svgEdit.js
     $(document).on('input', '#SVGEditorInput', function(e) {
         svgSyntaxHL();
-        renderInput();
+        inputToParse();
+=======
+    $(document).on('input', '#SVGEditorInput', function() {
+        renderInput()
+>>>>>>> 8e804af1f57bee01b2353ec026c7aae8a1990be0:static/js/svg.js
     });
 
     $(document).on('keyup', '#SVGEditorInput', function(e) {
@@ -104,6 +116,21 @@ let prec = 2;
 let gums = Gum.map(g => g.name);
 let mako = Gum.map(g => function(...args) { return new g(...args); });
 
+<<<<<<< HEAD:static/js/svgEdit.js
+function inputToParse(src=null) {
+        if (src === null) {
+            src = $('#SVGEditorInput').val();
+        }
+        let out;
+        try {
+            let e = new Function(gums, src);
+            out = e(...Gum);
+            //console.log(out)
+        } catch (e) {
+            console.log("---GUM PARSE ERROR---", e)
+            return;
+        }
+=======
 function renderInput(src) {
     if (src == null) {
         src = $('#SVGEditorInput').val();
@@ -112,6 +139,8 @@ function renderInput(src) {
     let right = $('#SVGEditorOutput');
     let [vw, vh] = [right.innerHeight(), right.innerWidth()];
     let size = 0.8*Math.min(vw, vh);
+>>>>>>> 8e804af1f57bee01b2353ec026c7aae8a1990be0:static/js/svg.js
+
     let svg = parseGum(src, size);
     if (svg == null) {
         return;

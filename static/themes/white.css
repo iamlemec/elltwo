@@ -2,6 +2,7 @@
     --font-col: black;
     --hl-col: rgb(31, 111, 241);
     --hl2-col: rgb(255, 13, 87);
+    --hl3-col: mediumseagreen;
     --bg-col: white;
     --bg-hl-col: whitesmoke;
     --bg-hl2-col: rgb(200,200,200);
@@ -268,6 +269,11 @@ button,
 .syn_math {
     color: var(--hl-col);
 }
+
+.syn_jschars {
+    color: var(--hl3-col);
+}
+
 
 .syn_ref {
     color: var(--font-col-int);
