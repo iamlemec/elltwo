@@ -108,6 +108,10 @@ function renderInput(src) {
 }
 
 function parseGum(src, size) {
+    if (src.length == 0) {
+        return '';
+    }
+
     let out;
     try {
         let e = new Function(gums, src);
