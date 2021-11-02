@@ -42,7 +42,6 @@
 #open_svg_editor {
     text-align: center;
     font-family: fira;
-    /* border: 1px dashed var(--font-col); */
 }
 
 .img_cont:nth-child(3n+1):nth-last-child(-n+3) ~ .img_cont {
