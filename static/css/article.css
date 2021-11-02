@@ -469,7 +469,7 @@ color: var(--delimit-col);
     display: none;
 }
 
-.para .sidenote{
+.para .sidenote {
     display: block;
     background-color: var(--bg-hl-col);
     border-left: 1px solid var(--bg-hl2-col);
@@ -500,6 +500,11 @@ color: var(--delimit-col);
     width: 100%;
     display: flex;
     justify-content: center;
+}
+
+.svg_hodl > svg {
+    fill: none;
+    stroke: var(--font-col);
 }
 
 #bg.active.writeable .para:not(.locked) .fig_cont:hover > .img_update {
