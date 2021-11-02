@@ -919,7 +919,7 @@ class ElltwoDB:
             query = query.filter(imgtime(time))
         return query.all()
 
-    def create_image(self, key, mime, data, israwSVG=False, raw=None, time=None):
+    def create_image(self, key, mime, data, time=None):
         if time is None:
             time = datetime.utcnow()
         key = urlify(key)
@@ -928,7 +928,7 @@ class ElltwoDB:
             img0.delete_time = time
             self.session.add(img0)
 
-        img = Image(key=key, mime=mime, israwSVG=israwSVG, data=data, raw=raw, create_time=time)
+        img = Image(key=key, mime=mime, data=data, create_time=time)
         self.session.add(img)
         self.session.commit()
 

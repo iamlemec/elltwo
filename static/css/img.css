@@ -1,5 +1,5 @@
 @import 'home.css';
-@import 'SVGEdit.css';
+@import 'svg.css';
 
 #query {
     left: 20%;
@@ -30,11 +30,19 @@
 .img_cont {
     display: flex;
     position: relative;
+    justify-content: center;
+    align-items: center;
     height: 150px;
     width: 33%;
-    border: 2px solid gray;
+    border: 1px solid gray;
     cursor: pointer;
     margin-bottom: 5px;
+}
+
+#open_svg_editor {
+    text-align: center;
+    font-family: fira;
+    /* border: 1px dashed var(--font-col); */
 }
 
 .img_cont:nth-child(3n+1):nth-last-child(-n+3) ~ .img_cont {

@@ -84,6 +84,9 @@ input::-webkit-input-placeholder {
 }
 
 #SVGEditorOutput {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     height: calc(100% - 40px);
     width: 100%;
 }

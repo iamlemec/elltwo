@@ -94,9 +94,7 @@ class Image(Base):
     key = Column(Text, nullable=False)
     keywords = Column(Text)
     mime = Column(Text, nullable=False)
-    data = Column(LargeBinary) #change to nullable=False once SVGs get saved, or split tables?
-    israwSVG = Column(Boolean, nullable=False, default=False)
-    raw = Column(Text)
+    data = Column(LargeBinary)
     create_time = Column(DateTime, default=datetime.utcnow)
     delete_time = Column(DateTime)
 

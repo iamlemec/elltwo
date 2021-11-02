@@ -2,15 +2,12 @@
 
 export { initImage }
 
-import {
-    config, state, cache, updateConfig, updateState, updateCache
-} from './state.js'
+import { config, state, cache, updateConfig, updateState, updateCache } from './state.js'
 import { connect, sendCommand, addHandler } from './client.js'
 import { renderKatex } from './math.js'
 import { connectDrops, makeImageBlob, promptUpload, uploadImage } from './drop.js'
 import { KeyCache } from './utils.js'
-import { initSVGEditor, parseSVG} from './svgEdit.js'
-
+import { initSVGEditor, hideSVGEditor, parseSVG } from './svg.js'
 
 // config
 
@@ -47,10 +44,10 @@ function cacheImage() {
             sendCommand('get_images', {}, callback);
         } else {
             sendCommand('get_image', {key: key}, function(ret) {
-                if(ret.israwSVG){
-                    callback(ret.raw)
-                }else{
-                    let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : undefined;
+                if (ret.mime == 'text/svg+gum') {
+                    callback(ret.data);
+                } else {
+                    let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : null;
                     callback(url);
                 }
             });
@@ -88,10 +85,12 @@ function eventImage() {
         let key = img.attr('id');
         let kw = img.attr('kw') || '';
 
-        if(img.hasClass('rawSVG')){
-            let raw = img.children('svg').html()
-            initSVGEditor($('#bg'), raw, key);
-        }else{
+        if (img.hasClass('svg')) {
+            let mime = img.attr('mime');
+            let raw = img.attr('raw');
+            let mode = mime.replace(/text\/svg\+(.+)/, '$1');
+            initSVGEditor($('#bg'), raw, key, mode == 'gum');
+        } else {
             let ks = $(e.target).closest('.keyspan');
             if (ks.length > 0) {
                 $('.keyspan').removeClass('copied');
@@ -128,6 +127,7 @@ function eventImage() {
         let key = e.key.toLowerCase();
         if (key == 'escape') {
             hideDisplay();
+            hideSVGEditor();
         }
     });
 
@@ -216,26 +216,30 @@ function renderImages(img_list) {
     $('.img_src').remove();
     let imgs_n = img_list.slice(0, config.max_imgs);
     imgs_n.forEach(img => {
-        let [key, kws, israwSVG] = img;
+        let [key, kws, mime] = img;
         let img_cont = $('<div>', {class: 'img_cont img_src'});
         $('#img_results').append(img_cont);
-        renderBox(img_cont, key, kws, israwSVG);
+        renderBox(img_cont, key, kws, mime);
     });
 };
 
-function renderBox(elem, key, kws, israwSVG) {
-    elem.attr('id', key).attr('kw', kws);
+function renderBox(elem, key, kws, mime) {
+    elem.attr('id', key);
+    elem.attr('kw', kws);
     let keyspan = $('<div>', {class: 'keyspan', text: key});
     elem.append(keyspan);
 
-    if (israwSVG) {
+    if (mime.startsWith('text/svg')) {
         cache.img.get(key, function(ret) {
-            let out = parseSVG(ret);
+            let size = elem.height();
+            let out = parseSVG(mime, ret, size);
             elem.html(out);
-            elem.addClass('rawSVG');
+            elem.addClass('svg');
+            elem.attr('mime', mime);
+            elem.attr('raw', ret);
         });
     } else {
-        let img = $('<img>'); // {id: key, kw: kws});
+        let img = $('<img>');
         elem.append(img);
         cache.img.get(key, function(ret) {
             img.attr('src', ret);
