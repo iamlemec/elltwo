@@ -5,7 +5,7 @@ export {
     rawToTextarea, envClasses, envGlobal, renderRefText, createTOC, getTro,
     troFromKey, popText, renderPop, syntaxHL, s_env_spec, getFoldLevel,
     renderFold, braceMatch, barePara, makePara, connectCallbacks, getRefTags,
-    trackRef, untrackRef, doRenderRef,
+    trackRef, untrackRef, doRenderRef, s, esc_html, esc_md
 }
 
 import { merge, cooks, getPara, RefCount, DummyCache } from './utils.js'
@@ -1147,8 +1147,8 @@ function esc_md(raw) {
 function esc_html(raw) {
     return raw.replace(/\</g, '&lt;')
               .replace(/\>/g, '&gt;')
-              .replace('&!L&', '<span class="brace">')
-              .replace('&!R&', '</span>');
+              .replace(/&!L&/g, '<span class="brace">')
+              .replace(/&!R&/g, '</span>');
 }
 
 function s(text, cls) {
@@ -1375,7 +1375,7 @@ function syntaxParseBlock(raw) {
     return syntaxParseInline(raw);
 }
 
-function braceMatch(textarea, para) {
+function braceMatch(textarea, para, parser=syntaxParseBlock, callback=syntaxHL) {
     let delimit = {'(': ')', '[': ']', '{': '}'};
     let rev_delimit = {')': '(', ']': '[', '}': '{'};
 
@@ -1389,22 +1389,22 @@ function braceMatch(textarea, para) {
         let pos = getBracePos(text, after, delimit[after], cpos);
         if (pos) {
             let v = $(textarea).siblings('.p_input_view');
-            braceHL(v, text, pos, para);
+            braceHL(v, text, pos, para, parser, callback);
         }
     } else if (before in delimit) {
         let pos = getBracePos(text, before, delimit[before], cpos-1);
         if (pos) {
             let v = $(textarea).siblings('.p_input_view');
-            braceHL(v, text, pos, para);
+            braceHL(v, text, pos, para, parser, callback);
         }
     } else if (before in rev_delimit) {
         let pos = getBracePos(text, before, rev_delimit[before], cpos, true);
         let v = $(textarea).siblings('.p_input_view');
-        braceHL(v, text, pos, para);
+        braceHL(v, text, pos, para, parser, callback);
     } else if (after in rev_delimit) {
         let pos = getBracePos(text, after, rev_delimit[after], cpos+1, true);
         let v = $(textarea).siblings('.p_input_view');
-        braceHL(v, text, pos, para);
+        braceHL(v, text, pos, para, parser, callback);
     } else {
         $('.brace').contents().unwrap();
     }
@@ -1449,7 +1449,7 @@ function getBracePos(text, brace, match, cpos, rev=false) {
     }
 }
 
-function braceHL(view, text, pos, para) {
+function braceHL(view, text, pos, para, parser, callback) {
     let new_text = [
         text.slice(0, pos['l']),
         `\&\!L\&`,
@@ -1458,12 +1458,12 @@ function braceHL(view, text, pos, para) {
         text.slice(pos['r']+1)
     ].join('');
 
-    let syn = syntaxParseBlock(new_text);
+    let syn = parser(new_text);
     view.html(syn);
 
     setTimeout(function() {
         $('.brace').contents().unwrap();
-        syntaxHL(para);
+        callback(para);
     }, 800);
 }
 
