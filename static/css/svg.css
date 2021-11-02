@@ -42,26 +42,39 @@
     min-height: 50px;
 }
 
-#SVGEditorInput, #SVGEditorInputView{
+#SVGEditorInputText, #SVGEditorInputView {
     white-space: pre-wrap;
     position: absolute;
     font-family: monospace;
-    width: 50%;
-    height: calc(100% - 40px);
-    padding: 10px;
     font-size: 75%;
+    height: 50%;
+    width: 50%;
+    padding: 10px;
+}
+
+#SVGEditorInputBox {
+    height: 100%;
     overflow: scroll;
     scrollbar-width: none;
 }
 
-#SVGEditorInputView{
+#SVGEditorInputView {
     background-color: var(--bg-col);
 }
 
-#SVGEditorInput{
+#SVGEditorInputText {
     color: rgba(0,0,0,0);
     background-color: rgba(0,0,0,0);
     z-index: 2;
+}
+
+#SVGEditorParsed {
+    border-top: 1px solid gray;
+    position: absolute;
+    top: 50%;
+    width: 50%;
+    height: calc(50% - 40px);
+    padding: 10px;
 }
 
 textarea::-moz-placeholder,
@@ -110,4 +123,12 @@ input::-webkit-input-placeholder {
 
 .input_err {
     border: 1px solid var(--hl2-col);
+}
+
+/* cursor lag hack for firefox */
+
+@-moz-document url-prefix() {
+    #SVGEditorInputText {
+        color: rgba(0, 0, 0, 0.01);
+    }
 }

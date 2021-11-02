@@ -28,15 +28,19 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         // editor panes
         let left = $('<div>', {id: 'SVGEditorBoxLeft'});
         let right = $('<div>', {id: 'SVGEditorBoxRight'});
-        let input = $('<textarea>', {id: 'SVGEditorInput'});
-        let input_view = $('<div>', {id: 'SVGEditorInputView', class: 'p_input_view'});
-        input.attr('placeholder',  'Add SVG code here.')
+        let inputBox = $('<div>', {id: 'SVGEditorInputBox'});
+        let inputText = $('<textarea>', {id: 'SVGEditorInputText'});
+        let inputView = $('<div>', {id: 'SVGEditorInputView', class: 'p_input_view'});
+        let parsed = $('<textarea>', {id: 'SVGEditorParsed'});
+        parsed.prop('readonly', true);
+        inputText.attr('placeholder',  'Add SVG code here.')
         let output = $('<div>', {id: 'SVGEditorOutput'});
         let tag = $('<input>', {id: 'SVGEditorTag'});
         tag.attr('placeholder',  'Image Tag (Required).');
         right.append(output);
         right.append(tag);
-        left.append(input).append(input_view)
+        inputBox.append(inputText).append(inputView);
+        left.append(inputBox).append(parsed);
         editBox.append(left).append(right);
 
         // navbar
@@ -66,12 +70,12 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         hideSVGEditor();
     });
 
-    $(document).on('input', '#SVGEditorInput', function(e) {
+    $(document).on('input', '#SVGEditorInputText', function(e) {
         svgSyntaxHL();
         renderInput();
     });
 
-    $(document).on('keyup', '#SVGEditorInput', function(e) {
+    $(document).on('keyup', '#SVGEditorInputText', function(e) {
         let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
         if (arrs.includes(e.keyCode)) {
             braceMatch(this, null, svgSyntaxHL, svgSyntaxHL);
@@ -106,17 +110,21 @@ let mako = Gum.map(g => function(...args) { return new g(...args); });
 
 function renderInput(src) {
     if (src == null) {
-        src = $('#SVGEditorInput').val();
+        src = $('#SVGEditorInputText').val();
     }
 
     let right = $('#SVGEditorOutput');
+    let parsed = $('#SVGEditorParsed');
+
     let [vw, vh] = [right.innerHeight(), right.innerWidth()];
     let size = 0.8*Math.min(vw, vh);
     let svg = parseGum(src, size);
     if (svg == null) {
         return;
     }
+
     right.html(svg);
+    parsed.text(svg);
 }
 
 function parseGum(src, size) {
@@ -167,7 +175,7 @@ let jskeys = ['await', 'break', 'catch', 'class', 'const',
 
 let boolean = ['true', 'false', 'null', 'undefined', 'new']
 
-let jschars = `\\|\\&\\>\\<\\!\\;\\.\\=\\:\\,\\(\\)\\{\\}\\[\\]` 
+let jschars = `\\|\\&\\>\\<\\!\\;\\.\\=\\:\\,\\(\\)\\{\\}\\[\\]`
 
 
 let rules = {
@@ -255,7 +263,7 @@ class GumLexer {
             }
 
             // js keywords
-            if (cap = this.rules.jskey.exec(src) 
+            if (cap = this.rules.jskey.exec(src)
                 || this.rules.func.exec(src)) {
                 src = src.substring(cap[0].length);
                 key = cap[0];
@@ -272,7 +280,7 @@ class GumLexer {
             }
 
             //tokens to do nothing with
-            if (cap = this.rules.text.exec(src) 
+            if (cap = this.rules.text.exec(src)
                 || this.rules.space.exec(src)) {
                 src = src.substring(cap[0].length);
                 out += this.renderer.nothing(cap[0]);
@@ -316,12 +324,11 @@ class GumRenderer {
 
 function svgSyntaxHL(src=null) {
     if (src === null) {
-            src = $('#SVGEditorInput').val();
+            src = $('#SVGEditorInputText').val();
     }
     let renderer = new GumRenderer();
     let lexer = new GumLexer(renderer);
     let out = lexer.output(src);
     $('#SVGEditorInputView').html(out);
-    
-};
 
+};
