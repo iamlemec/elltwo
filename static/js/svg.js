@@ -1,7 +1,8 @@
 /* random utilities */
 
-export { initSVGEditor, parseSVG }
+export { initSVGEditor, hideSVGEditor, parseSVG }
 
+import { on_success } from './utils.js'
 import { state } from './state.js'
 import { sendCommand } from './client.js'
 import { Gum, SVG, Element } from '../gum.js/gum.js'
@@ -12,12 +13,12 @@ function createIcon(id) {
             </svg>`;
 }
 
-function initSVGEditor(el, raw='', key='') {
+function initSVGEditor(el, raw='', key='', gum=true) {
     if (state.SVGEditor) {
         $('#SVGEditorInput').val(raw);
         $('#SVGEditorTag').val(key);
-        inputToParse();
         $('#SVGEditorOuter').show();
+        renderInput();
     } else {
         let outerBox = $('<div>', {id: 'SVGEditorOuter'});
         let editBox = $('<div>', {id: 'SVGEditorBox'});
@@ -48,24 +49,20 @@ function initSVGEditor(el, raw='', key='') {
         outerBox.append(navBar);
         el.append(outerBox);
 
-        if (raw) {
-            $('#SVGEditorInput').val(raw);
-            $('#SVGEditorTag').val(key);
-        }
+        // fill in data
+        $('#SVGEditorInput').val(raw);
+        $('#SVGEditorTag').val(key);
+        renderInput();
 
-        inputToParse();
-
-        if (!state.SVGEditor) {
-            state.SVGEditor = true;
-        }
+        state.SVGEditor = true;
     }
 
     $(document).on('click', '#SVGEditorExit', function() {
-        $('#SVGEditorOuter').hide();
+        hideSVGEditor();
     });
 
-    $(document).on('input', '#SVGEditorInput', function(e) {
-        inputToParse();
+    $(document).on('input', '#SVGEditorInput', function() {
+        renderInput()
     });
 
     $(document).on('focus', '#SVGEditorTag', function(e) {
@@ -75,56 +72,73 @@ function initSVGEditor(el, raw='', key='') {
     $(document).on('click', '#SVGEditorCommit', function(e) {
         if (key = $('#SVGEditorTag').val()) {
             let raw = $('#SVGEditorInput').val();
-            let data = {'key': key, 'raw': raw};
-            sendCommand('saveSVG', data, (ret) => {
-                if (ret) {
-                    console.log(ret);
-                };
-            });
+            let data = {'key': key, 'mime': 'text/svg+gum', 'raw': raw};
+            sendCommand('save_svg', data);
         } else {
             $('#SVGEditorTag').addClass('input_err');
         }
     });
 }
 
-let prec = 2;
-let gums = Gum.map(g => g.name);
-
-function inputToParse(src=null) {
-        if (src === null) {
-            src = $('#SVGEditorInput').val();
-        }
-
-        let out;
-        try {
-            let e = new Function(gums, src);
-            out = e(...Gum);
-        } catch (e) {
-            return;
-        }
-
-        let right = $('#SVGEditorOutput');
-        let [vw, vh] = [right.innerHeight(), right.innerWidth()];
-        let size;
-
-        let svg;
-        if (out instanceof Element) {
-            out = (out instanceof SVG) ? out : new SVG([out]);
-            size = 0.8*Math.min(vw, vh);
-            svg = out.svg({size: size, prec: prec});
-        } else {
-            return;
-        }
-        right.html(svg);
-
-        let view = right.children('svg');
-        view.css('margin-left', 0.5*(vw-size));
-        view.css('margin-top', 0.5*(vh-size));
+function hideSVGEditor() {
+    $('#SVGEditorOuter').hide();
 }
 
-function parseSVG(raw) {
-        if (!raw.startsWith('<svg ')) {
-            raw = `<svg viewBox="0 0 100 100">\n${raw}\n</svg>`;
+// hard-coded options
+let prec = 2;
+
+// gum.js interface mapper
+let gums = Gum.map(g => g.name);
+let mako = Gum.map(g => function(...args) { return new g(...args); });
+
+function renderInput(src) {
+    if (src == null) {
+        src = $('#SVGEditorInput').val();
+    }
+
+    let right = $('#SVGEditorOutput');
+    let [vw, vh] = [right.innerHeight(), right.innerWidth()];
+    let size = 0.8*Math.min(vw, vh);
+
+    let svg = parseGum(src, size);
+    if (svg == null) {
+        return;
+    }
+    right.html(svg);
+}
+
+function parseGum(src, size) {
+    let out;
+    try {
+        let e = new Function(gums, src);
+        out = e(...mako);
+    } catch {
+        return;
+    }
+
+    let svg;
+    if (out instanceof Element) {
+        out = (out instanceof SVG) ? out : new SVG([out]);
+        svg = out.svg({size: size, prec: prec});
+    } else {
+        return;
+    }
+
+    return svg;
+}
+
+function parseSVG(mime, src, size) {
+    if (typeof(size) == 'number') {
+        size = [size, size];
+    }
+    if (mime == 'text/svg+gum') {
+        return parseGum(src, size);
+    } else {
+        if (raw.match(/ *<svg( |>)/) == null) {
+            let [w, h] = size;
+            return `<svg viewBox="0 0 ${w} ${h}">\n${src}\n</svg>`;
+        } else {
+            return src;
         }
-        return raw;
+    }
 }

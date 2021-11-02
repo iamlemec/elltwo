@@ -104,8 +104,14 @@ function cacheArticle() {
     // image cache
     cache.img = new KeyCache('img', function(key, callback) {
         sendCommand('get_image', {key: key}, function(ret) {
-            let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : null;
-            callback(url);
+            if (ret === undefined) {
+                callback(null);
+            } else if (ret.mime == 'text/svg+gum') {
+                callback({mime: ret.mime, data: ret.data});
+            } else {
+                let url = makeImageBlob(ret.mime, ret.data);
+                callback({mime: ret.mime, data: url});
+            }
         });
     });
 

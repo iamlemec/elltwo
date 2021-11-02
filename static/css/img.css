@@ -1,5 +1,5 @@
 @import 'home.css';
-@import 'SVGEdit.css';
+@import 'svg.css';
 
 #query {
     left: 20%;
@@ -30,6 +30,7 @@
 .img_cont {
     display: flex;
     position: relative;
+    justify-content: center;
     height: 150px;
     width: 33%;
     border: 2px solid gray;

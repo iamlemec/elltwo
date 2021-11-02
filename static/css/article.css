@@ -483,7 +483,6 @@ color: var(--delimit-col);
     font-size: 12px;
 }
 
-
 .fig_cont {
     position: relative;
     margin: auto;
@@ -495,6 +494,12 @@ color: var(--delimit-col);
     position: relative;
     left: 10%;
     width: 80%;
+}
+
+.svg_hodl {
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
 
 #bg.active.writeable .para:not(.locked) .fig_cont:hover > .img_update {
@@ -1340,7 +1345,7 @@ circle.commit.active {
 .container.ssv .sidenote .ft_content{
         display: none;
 }
-    
+
 .container.ssv .sn_skinny{
         display: block;
 }
@@ -1369,16 +1374,16 @@ circle.commit.active {
 .custom-select-wrapper {
     right: 15%;
 }
-    
+
 }
-    
+
 @media only screen and (max-width: 600px) {
 
-    
+
 .sidenote .ft_content{
         display: none;
 }
-    
+
 .sn_skinny{
         display: block;
 }
@@ -1440,11 +1445,11 @@ circle.commit.active {
     bottom: 40px;
     border-radius: 0 !important;
 }
-    
+
 .sidenote .ft_content{
       display: none;
 }
-    
+
 .sn_skinny{
         display: block;
 }

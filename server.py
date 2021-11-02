@@ -840,14 +840,14 @@ def UploadImage():
 
     return {'mime': img.mime, 'key': img.key}
 
-@socketio.on('saveSVG')
+@socketio.on('save_svg')
 @edit_decor
-def saveSVG(data):
-    img_key = data['key']
+def save_svg(data):
+    key = data['key']
+    mime = data['mime']
     raw = data['raw']
-    print('key:', img_key, type(img_key))
 
-    img = edb.create_image(img_key, mime="image/svg", data=None, israwSVG=True, raw=raw)
+    img = edb.create_image(key, mime=mime, data=raw.encode())
 
     socketio.emit('invalidateRef', ['img', img.key], to='__img')
     socketio.emit('invalidateRef', ['img', img.key], to=f'![{img.key}]', include_self=True)
@@ -857,7 +857,7 @@ def saveSVG(data):
 @socketio.on('get_images')
 @view_decor
 def get_images(data):
-    return [(i.key, i.keywords, i.israwSVG) for i in edb.get_images()]
+    return [(i.key, i.keywords, i.mime) for i in edb.get_images()]
 
 @socketio.on('get_imgs')
 @view_decor
@@ -869,7 +869,8 @@ def get_imgs(data):
 def get_image(data):
     key = data['key']
     if (img := edb.get_image(key)) is not None:
-        return {'mime': img.mime, 'data': img.data, 'kw': img.keywords, 'israwSVG': img.israwSVG, 'raw':img.raw}
+        raw = img.data.decode() if img.mime.startswith('text/svg') else img.data
+        return {'mime': img.mime, 'data': raw, 'kw': img.keywords}
 
 @socketio.on('update_image_key')
 @edit_decor

@@ -16,6 +16,7 @@ import { sendCommand, schedTimeout, addDummy } from './client.js'
 import { renderKatex } from './math.js'
 import { markthree, replace, divInlineLexer } from './marked3.js'
 import { fold } from './editor.js'
+import { parseSVG } from './svg.js'
 
 // main rendering entry point (for all cases)
 
@@ -607,21 +608,23 @@ function imgEnv(ptxt, args) {
 
     let fig = ptxt.find('.fig_cont');
     let key = args.image || args.img || ptxt.parent().attr('id');
-    let img = $('<img>', {class: 'env_add'});
-    let upd = $('<div>', {class: 'env_add img_update'});
-    let ico = $('<svg><use xlink:href="/static/img/icons.svg#upload"></use></svg>');
-    upd.append(ico);
-    fig.append(img);
-    fig.append(upd);
 
-    cache.img.get(key, function(url) {
-        if (!url) {
+    cache.img.get(key, function(ret) {
+        if (ret == null) {
             let msg = `Error: image "${key}" not found`;
             let err = $('<span>', {class: 'img_err env_add', text: msg});
-            fig.empty();
             fig.append(err);
+        } else if (ret.mime.startsWith('text/svg')) {
+            let svg = parseSVG(ret.mime, ret.data, 250);
+            let hdl = $('<div>', {class: 'env_add svg_hodl', html: svg});
+            fig.append(hdl);
         } else {
-            img.attr('src', url);
+            let upd = $('<div>', {class: 'env_add img_update'});
+            let img = $('<img>', {class: 'env_add', src: ret.data});
+            let ico = $('<svg><use xlink:href="/static/img/icons.svg#upload"></use></svg>');
+            upd.append(ico);
+            fig.append(upd);
+            fig.append(img);
         }
     });
 }
