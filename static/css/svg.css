@@ -30,6 +30,8 @@
 }
 
 #SVGEditorTag {
+    background-color: var(--bg-hl-col);
+    color: var(--font-col);
     width: 60%;
     margin-right: 5px;
     flex-grow: 2;
@@ -73,6 +75,8 @@
 }
 
 #SVGEditorParsed {
+    background-color: var(--bg-col);
+    color: var(--font-col);
     border-top: 1px solid gray;
     position: absolute;
     top: 50%;
