@@ -39,6 +39,10 @@
     margin-bottom: 5px;
 }
 
+.img_cont svg {
+    height: 100%;
+}
+
 #open_svg_editor {
     text-align: center;
     font-family: fira;
