@@ -6,18 +6,16 @@
 
 <link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/bib.css') }} />
 
+
 {% endblock %}
 
 {% block title %}Bib{% endblock %}
 
 {% block header %}
-
-
-<div id=prompt>
-<span id="title">{{name|safe}}</span>
-<div id=desc>
-Bibliography
-</div></div>
+<div id="prompt">
+<a href="/"><span id="title">{{name|safe}}</span></a>
+<div id="desc">Bibliography</div>
+</div>
 
 <input type="text" autocomplete="off" autofocus="autofocus" name="query" id="query" placeholder="Filter existing references or search the web" />
 <button id="search">Web Search</button>

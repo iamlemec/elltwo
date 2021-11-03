@@ -13,10 +13,8 @@
 
 {% block header %}
 <div id="prompt">
-<span id="title">{{name|safe}}</span>
-<div id=desc>
-Image Library
-</div>
+<a href="/"><span id="title">{{name|safe}}</span></a>
+<div id="desc">Image Library</div>
 </div>
 
 <input type="text" autocomplete="off" autofocus="autofocus" name="img_search" id="query" placeholder="Filter existing images" />

@@ -84,7 +84,6 @@ function eventBib() {
         if (clk_cn && clk_cr && clk_cite) {
             $('#create_wrap').hide();
             $('#search_results').hide();
-            return false;
         }
     });
 

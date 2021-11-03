@@ -17,9 +17,13 @@ function createIcon(id) {
 
 function initSVGEditor(el, raw='', key='', gum=true) {
     if (state.SVGEditor) {
-        $('#SVGEditorInput').val(raw);
+        console.log(key, raw.slice(0, 10));
+        $('#SVGEditorInputText').val(raw);
+        $('#SVGEditorInputView').text(raw);
+        $('#SVGEditorOutput').empty();
         $('#SVGEditorTag').val(key);
         $('#SVGEditorOuter').show();
+        svgSyntaxHL();
         renderInput();
     } else {
         let outerBox = $('<div>', {id: 'SVGEditorOuter'});
@@ -37,11 +41,7 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         let output = $('<div>', {id: 'SVGEditorOutput'});
         let tag = $('<input>', {id: 'SVGEditorTag'});
         tag.attr('placeholder',  'Image Tag (Required).');
-        right.append(output);
-        right.append(tag);
         inputBox.append(inputText).append(inputView);
-        left.append(inputBox).append(parsed);
-        editBox.append(left).append(right);
 
         // navbar
         let navBar = $('<div>', {id: 'SVGEditorNav'});
@@ -49,20 +49,26 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         let commit = $('<button>', {id: 'SVGEditorCommit', text: 'Commit', class: 'foot_butt'});
         exit.append(createIcon('hist'));
         commit.append(createIcon('exp'));
-        navBar.append(commit).append(exit);
+        navBar.append(tag).append(commit).append(exit);
 
         // high level
+        left.append(inputBox).append(parsed);
+        right.append(output).append(navBar);
+        editBox.append(left).append(right);
         outerBox.append(editBox);
-        outerBox.append(navBar);
         el.append(outerBox);
 
-        if (raw) {
-            $('#SVGEditorInput').val(raw);
+        // load in data
+        if (key) {
             $('#SVGEditorTag').val(key);
         }
-        svgSyntaxHL()
+        if (raw) {
+            $('#SVGEditorInputText').val(raw);
+        }
+        svgSyntaxHL();
         renderInput();
 
+        // mark constructed
         state.SVGEditor = true;
     }
 
@@ -88,7 +94,7 @@ function initSVGEditor(el, raw='', key='', gum=true) {
 
     $(document).on('click', '#SVGEditorCommit', function(e) {
         if (key = $('#SVGEditorTag').val()) {
-            let raw = $('#SVGEditorInput').val();
+            let raw = $('#SVGEditorInputText').val();
             let data = {'key': key, 'mime': 'text/svg+gum', 'raw': raw};
             sendCommand('save_svg', data);
         } else {
@@ -105,8 +111,8 @@ function hideSVGEditor() {
 let prec = 2;
 
 // gum.js interface mapper
-let gums = Gum.map(g => g.name);
-let mako = Gum.map(g => function(...args) { return new g(...args); });
+let gums = ['log', ...Gum.map(g => g.name)];
+let mako = [console.log, ...Gum.map(g => function(...args) { return new g(...args); })];
 
 function renderInput(src) {
     if (src == null) {
@@ -118,26 +124,31 @@ function renderInput(src) {
 
     let [vw, vh] = [right.innerHeight(), right.innerWidth()];
     let size = 0.8*Math.min(vw, vh);
-    let svg = parseGum(src, size);
-    if (svg == null) {
-        return;
-    }
+    let ret = parseGum(src, size);
 
-    right.html(svg);
-    parsed.text(svg);
+    if (ret.success) {
+        right.html(ret.svg);
+        parsed.text(ret.svg);
+    } else {
+        parsed.text(`parse error, line ${ret.line}: ${ret.message}`);
+    }
 }
 
 function parseGum(src, size) {
     if (src.length == 0) {
-        return '';
+        return {success: true, svg: ''};
     }
 
     let out;
     try {
         let e = new Function(gums, src);
         out = e(...mako);
-    } catch {
-        return;
+    } catch (e) {
+        return {success: false, message: e.message, line: e.lineNumber};
+    }
+
+    if (out == null) {
+        return {success: false, message: 'no return value', line: 0};
     }
 
     let svg;
@@ -145,21 +156,18 @@ function parseGum(src, size) {
         out = (out instanceof SVG) ? out : new SVG([out]);
         svg = out.svg({size: size, prec: prec});
     } else {
-        return;
+        return {success: false, message: 'did not return gum element', line: 0};
     }
 
-    return svg;
+    return {success: true, svg: svg};
 }
 
 function parseSVG(mime, src, size) {
-    if (typeof(size) == 'number') {
-        size = [size, size];
-    }
     if (mime == 'text/svg+gum') {
         return parseGum(src, size);
     } else {
         if (raw.match(/ *<svg( |>)/) == null) {
-            let [w, h] = size;
+            let [w, h] = (typeof(size) == 'number') ? [size, size] : size;
             return `<svg viewBox="0 0 ${w} ${h}">\n${src}\n</svg>`;
         } else {
             return src;
@@ -167,16 +175,18 @@ function parseSVG(mime, src, size) {
     }
 }
 
-/// snytax hl
-let jskeys = ['await', 'break', 'catch', 'class', 'const',
- 'continue', 'do', 'else', 'eval', 'export', 'for',
- 'function', 'if', 'import', 'let', 'return', 'switch',
- 'throw', 'try', 'while', 'with', 'yield']
+/* snytax hl */
 
-let boolean = ['true', 'false', 'null', 'undefined', 'new']
+let jskeys = [
+    'await', 'break', 'catch', 'class', 'const',
+    'continue', 'do', 'else', 'eval', 'export', 'for',
+    'function', 'if', 'import', 'let', 'return', 'switch',
+    'throw', 'try', 'while', 'with', 'yield'
+];
 
-let jschars = `\\|\\&\\>\\<\\!\\;\\.\\=\\:\\,\\(\\)\\{\\}\\[\\]`
+let boolean = ['true', 'false', 'null', 'undefined', 'new'];
 
+let jschars = `\\|\\&\\>\\<\\!\\;\\.\\=\\:\\,\\(\\)\\{\\}\\[\\]`;
 
 let rules = {
     brace: /^&!(R|L)&/,
@@ -231,7 +241,6 @@ class GumLexer {
             text
 
         while (src) {
-
             // brace match (for hl, not blocks)
             if (cap = this.rules.brace.exec(src)) {
                 src = src.substring(cap[0].length);
@@ -239,7 +248,7 @@ class GumLexer {
                 continue;
             }
 
-            //strings
+            // strings
             if (cap = this.rules.string.exec(src)) {
                 src = src.substring(cap[0].length);
                 out += this.renderer.basic(cap[0], 'delimit');
@@ -271,7 +280,7 @@ class GumLexer {
                 continue;
             }
 
-            //js chars, like = () {} etc
+            // js chars, like = () {} etc
             if (cap = this.rules.jschars.exec(src)) {
                 src = src.substring(cap[1].length);
                 key = cap[1];
@@ -279,7 +288,7 @@ class GumLexer {
                 continue;
             }
 
-            //tokens to do nothing with
+            // tokens to do nothing with
             if (cap = this.rules.text.exec(src)
                 || this.rules.space.exec(src)) {
                 src = src.substring(cap[0].length);
@@ -287,16 +296,13 @@ class GumLexer {
                 continue;
             }
 
-
             if (src) {
                 throw new Error('Infinite loop on byte: ' + src.charCodeAt(0));
             }
         }
-        //console.log(out)
+
         return out;
     }
-
-
 }
 
 class GumRenderer {
@@ -304,31 +310,29 @@ class GumRenderer {
         this.options = options ?? {};
     }
 
-    brace(text, left){
-        if(left){
+    brace(text, left) {
+        if (left) {
             return'<span class="brace">';
-        }else{
+        } else {
             return'</span>'
         }
     }
 
-    basic(text, klass){
+    basic(text, klass) {
         return s(text,klass);
     }
 
     nothing(text) {
         return text;
     }
-
 }
 
 function svgSyntaxHL(src=null) {
     if (src === null) {
-            src = $('#SVGEditorInputText').val();
+        src = $('#SVGEditorInputText').val();
     }
     let renderer = new GumRenderer();
     let lexer = new GumLexer(renderer);
     let out = lexer.output(src);
     $('#SVGEditorInputView').html(out);
-
-};
+}

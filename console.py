@@ -29,10 +29,10 @@ def para_summary(para, time=False):
         return f'{para.pid}: {para.text}'
 
 def img_summary(img, time=False):
+    ret = f'{img.key} ({img.mime}): {len(img.data)} bytes'
     if time:
-        return f'{img.key} ({img.mime}) [{img.create_time} → {img.delete_time}]'
-    else:
-        return f'{img.key} ({img.mime})'
+        ret += f' [{img.create_time} → {img.delete_time}]'
+    return ret
 
 def bib_summary(bib, full=False, time=False):
     if time:
@@ -206,6 +206,14 @@ class Image:
         else:
             imgs = self.edb.get_images()
             print('\n'.join([img_summary(i) for i in imgs]))
+
+    def show(self, key):
+        if (img := self.edb.get_image(key)) is None:
+            print(f'Image "{key}" not found')
+        else:
+            print(img_summary(img))
+            if img.mime.startswith('text/svg'):
+                print(img.data.decode())
 
     def delete(self, key):
         if (img := self.edb.get_image(key)) is None:

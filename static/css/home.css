@@ -9,6 +9,10 @@
   font-size: 20px;
 }
 
+#prompt a {
+    color: var(--font-col);
+}
+
 .notification {
     position: relative;
     width: 100%;
