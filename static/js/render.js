@@ -556,7 +556,7 @@ function headingEnv(ptxt, args) {
 }
 
 function equationEnv(ptxt, args) {
-    if(args.tag){
+    if (args.tag) {
         let num = makeCounter('eq_tag', 0, args.tag);
         let div = $('<div>', {class: 'env_add eqnum eq_tag'});
         div.append(num);
@@ -568,7 +568,6 @@ function equationEnv(ptxt, args) {
         } else {
             ptxt.append(div);
         }
-
     } else if (args.number) {
         let num = makeCounter('equation');
         let div = $('<div>', {class: 'env_add eqnum'});
@@ -629,6 +628,15 @@ function imgEnv(ptxt, args) {
     });
 }
 
+function svgEnv(ptxt, args) {
+    figEnv(ptxt, args);
+    let fig = ptxt.find('.fig_cont');
+    let mim = {svg: 'text/svg+xml', gum: 'text/svg+gum'}[args.mime];
+    let svg = parseSVG(mim, args.svg, 100);
+    let hdl = $('<div>', {class: 'env_add svg_hodl', html: svg});
+    fig.append(hdl);
+}
+
 function quoteEnv(ptxt, args) {
     if (args.by != 'none') {
         var div = $('<div>', {class: 'env_add quote_by'});
@@ -655,7 +663,7 @@ let env_spec = {
     heading: headingEnv,
     equation: equationEnv,
     title: titleEnv,
-    svg: figEnv,
+    svg: svgEnv,
     image: figEnv,
     table: figEnv,
     quote: quoteEnv,
@@ -1275,7 +1283,7 @@ let block = {
     comment: /^\/\/( ?)/,
     equation: /^\$\$(\*?)( *)(?:refargs)?(\s*)/,
     image: /^(!{1,2})(\*)?( *)(?:refargs)?( *)(\()?([\w-:#/.&%=]*)(\))?(\s*)$/,
-    svg: /^\!svg(\*)?( *)(?:refargs)?/,
+    svg: /^\!(svg|gum)(\*)?( *)(?:refargs)?/,
     envbeg: /^\>\>(\!)?( *)([\w-]+)(\*)?( *)(?:refargs)?/,
     envend: /^\<\<( ?)/,
 };
@@ -1351,11 +1359,12 @@ function syntaxParseBlock(raw) {
     }
 
     if (cap = block.svg.exec(raw)) {
-        let star = cap[1] ? s('*', 'hl') : '';
-        let id = cap[3] ? s(fArgs(cap[3]), 'ref'): '';
+        let mime = cap[1];
+        let star = cap[2] ? s('*', 'hl') : '';
+        let id = cap[4] ? s(fArgs(cap[4]), 'ref'): '';
         let rest = raw.slice(cap[0].length);
         let text = syntaxParseInline(rest);
-        return s('!', 'hl') + s('svg', 'delimit') + star + cap[2] + id + text;
+        return s('!', 'hl') + s(mime, 'delimit') + star + cap[3] + id + text;
     }
 
     if (cap = block.envbeg.exec(raw)) {

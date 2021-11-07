@@ -232,10 +232,8 @@ function renderBox(elem, key, kws, mime) {
     if (mime.startsWith('text/svg')) {
         cache.img.get(key, function(ret) {
             let size = elem.height();
-            let out = parseSVG(mime, ret, size);
-            if (out.success) {
-                elem.html(out.svg);
-            }
+            let svg = parseSVG(mime, ret, size);
+            elem.html(svg);
             elem.addClass('svg');
             elem.attr('mime', mime);
             elem.attr('raw', ret);

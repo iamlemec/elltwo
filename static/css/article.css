@@ -499,6 +499,8 @@ color: var(--delimit-col);
 }
 
 .svg_hodl > svg {
+    max-width: 100%;
+    max-height: 300px;
     fill: none;
     stroke: var(--font-col);
 }

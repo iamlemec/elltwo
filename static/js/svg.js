@@ -7,7 +7,7 @@ import { state } from './state.js'
 import { sendCommand } from './client.js'
 import { s, esc_html, braceMatch} from './render.js'
 import {replace } from './marked3.js'
-import { Gum, SVG, Element } from '../gum.js/gum.js'
+import { Gum, SVG, Element } from '../gum.js/lib/gum.js'
 
 function createIcon(id) {
     return `<svg>
@@ -17,7 +17,6 @@ function createIcon(id) {
 
 function initSVGEditor(el, raw='', key='', gum=true) {
     if (state.SVGEditor) {
-        console.log(key, raw.slice(0, 10));
         $('#SVGEditorInputText').val(raw);
         $('#SVGEditorInputView').text(raw);
         $('#SVGEditorOutput').empty();
@@ -37,10 +36,10 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         let inputView = $('<div>', {id: 'SVGEditorInputView', class: 'p_input_view'});
         let parsed = $('<textarea>', {id: 'SVGEditorParsed'});
         parsed.prop('readonly', true);
-        inputText.attr('placeholder',  'Add SVG code here.')
+        inputText.attr('placeholder',  'Add SVG code here')
         let output = $('<div>', {id: 'SVGEditorOutput'});
         let tag = $('<input>', {id: 'SVGEditorTag'});
-        tag.attr('placeholder',  'Image Tag (Required).');
+        tag.attr('placeholder',  'Image tag (required)');
         inputBox.append(inputText).append(inputView);
 
         // navbar
@@ -164,9 +163,10 @@ function parseGum(src, size) {
 
 function parseSVG(mime, src, size) {
     if (mime == 'text/svg+gum') {
-        return parseGum(src, size);
+        let ret = parseGum(src, size);
+        return ret.svg;
     } else {
-        if (raw.match(/ *<svg( |>)/) == null) {
+        if (src.match(/ *<svg( |>)/) == null) {
             let [w, h] = (typeof(size) == 'number') ? [size, size] : size;
             return `<svg viewBox="0 0 ${w} ${h}">\n${src}\n</svg>`;
         } else {

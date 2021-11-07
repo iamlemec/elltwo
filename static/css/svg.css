@@ -85,8 +85,8 @@
     padding: 10px;
 }
 
-textarea::placeholder,
-input::placeholder {
+#SVGEditorOuter textarea::placeholder,
+#SVGEditorOuter input::placeholder {
     font-size: 100%;
 }
 

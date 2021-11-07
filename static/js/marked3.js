@@ -22,7 +22,7 @@ let block = {
     equation: /^\$\$(\*&|&\*|\*|&)? *(?:refargs)?\s*/,
     title: /^#! *(?:refargs)?\s*([^\n]*)\s*/,
     upload: /^!! *(?:refargs)?\s*$/,
-    svg: /^\!svg(\*)? *(?:refargs)?\s*/,
+    svg: /^\!(svg|gum)(\*)? *(?:refargs)?\s*/,
     image: /^!(\*)? *(?:refargs)? *\(href\)\s*$/,
     imagelocal: /^!(\*)? *(?:refargs)\s*$/,
     // biblio: /^@@ *(?:refid)\s*/,
@@ -370,14 +370,14 @@ class Lexer {
 
           // svg
           if (cap = this.rules.svg.exec(src)) {
-              number = cap[1] == undefined;
-              argsraw = cap[2] || '';
+              number = cap[2] != '*';
+              argsraw = cap[3] || '';
               args = parseArgs(argsraw, number);
-              text = src.slice(cap[0].length);
+              args.mime = cap[1];
+              args.svg = src.slice(cap[0].length);
               return {
                   type: 'svg',
-                  args: args,
-                  svg: text
+                  args: args
               };
           }
 
@@ -848,11 +848,8 @@ class DivRenderer {
         return text;
     }
 
-    svg(svg) {
-        if (!svg.startsWith('<svg ')) {
-            svg = `<svg viewBox="0 0 100 100">\n${svg}\n</svg>`;
-        }
-        return `<div class="fig_cont">\n${svg}\n</div>`;
+    svg() {
+        return `<div class="fig_cont"></div>`;
     }
 
     envbeg(text) {
@@ -996,7 +993,7 @@ class DivRenderer {
         return `<div class="fig_cont"><img src="${href}"></div>`;
     }
 
-    imagelocal(key) {
+    imagelocal() {
         return `<div class="fig_cont"></div>`;
     }
 
@@ -1352,7 +1349,7 @@ class Parser {
                     env: 'svg',
                     args: this.token.args
                 }
-                return this.renderer.svg(this.token.svg);
+                return this.renderer.svg();
             }
             case 'heading': {
                 this.env = {
