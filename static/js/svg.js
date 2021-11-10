@@ -2,20 +2,29 @@
 
 export { initSVGEditor, hideSVGEditor, parseSVG }
 
-import { on_success } from './utils.js'
+import { on_success, createIcon, createToggle, smallable_butt } from './utils.js'
 import { state } from './state.js'
 import { sendCommand } from './client.js'
 import { s, esc_html, braceMatch} from './render.js'
 import {replace } from './marked3.js'
 import { Gum, SVG, Element } from '../gum.js/lib/gum.js'
 
-function createIcon(id) {
-    return `<svg>
-            <use xlink:href="/static/img/icons.svg#${id}"></use>
-            </svg>`;
+let svg_butts = {};
+
+function createButton(id, text, iconName=null){
+    if(iconName==null){
+        iconName = id.toLowerCase();
+    }
+    let but = $('<button>', {id: `SVGEditor${id}`, class: 'foot_butt smallable_butt'});
+    let t = $('<span>', {id: `${id}_text`});
+    but.append(t);
+    but.append(createIcon(iconName));
+    svg_butts[`#${id}_text`] = text;
+    return but
 }
 
 function initSVGEditor(el, raw='', key='', gum=true) {
+    $('#hoot').html(`[201p // iamlamec ${s('// gum.js editor','math')}]`)
     if (state.SVGEditor) {
         $('#SVGEditorInputText').val(raw);
         $('#SVGEditorInputView').text(raw);
@@ -40,15 +49,25 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         let output = $('<div>', {id: 'SVGEditorOutput'});
         let tag = $('<input>', {id: 'SVGEditorTag'});
         tag.attr('placeholder',  'Image tag (required)');
+        let kw = $('<input>', {id: 'SVGEditorKW'});
+        kw.attr('placeholder',  'Keywords');
+        let tog = createToggle('svgShow', "Show SVG")
         inputBox.append(inputText).append(inputView);
 
         // navbar
         let navBar = $('<div>', {id: 'SVGEditorNav'});
-        let exit = $('<button>', {id: 'SVGEditorExit', text: 'Exit Editor', class: 'foot_butt'});
-        let commit = $('<button>', {id: 'SVGEditorCommit', text: 'Commit', class: 'foot_butt'});
-        exit.append(createIcon('hist'));
-        commit.append(createIcon('exp'));
-        navBar.append(tag).append(commit).append(exit);
+        let navBarUp = $('<div>', {id: 'SVGEditorNavUp'});
+        let navBarDown = $('<div>', {id: 'SVGEditorNavDown'});
+        let exit = createButton('Exit', 'Exit')
+        let del = createButton('Delete', 'Delete')
+        let commit = createButton('Commit', 'Commit', 'exp')
+        navBarUp.append(kw)
+              .append(tog)
+        navBarDown.append(tag)
+                  .append(commit)
+                  .append(del)
+                  .append(exit);
+        navBar.append(navBarUp).append(navBarDown);
 
         // high level
         left.append(inputBox).append(parsed);
@@ -66,6 +85,7 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         }
         svgSyntaxHL();
         renderInput();
+        smallable_butt(svg_butts)
 
         // mark constructed
         state.SVGEditor = true;
@@ -73,6 +93,23 @@ function initSVGEditor(el, raw='', key='', gum=true) {
 
     $(document).on('click', '#SVGEditorExit', function() {
         hideSVGEditor();
+    });
+
+    window.onresize = () => {
+        smallable_butt(svg_butts);
+    };
+
+    $(document).on('change', '#svgShow_check', function() {
+        let check = $(this);
+        let val = check.is(':checked');
+        console.log(val)
+        if(val){
+            $('#SVGEditorParsed').show()
+            $('#SVGEditorInputBox').removeClass('fullsize')
+        } else{
+            $('#SVGEditorParsed').hide()
+            $('#SVGEditorInputBox').addClass('fullsize')
+        }
     });
 
     $(document).on('input', '#SVGEditorInputText', function(e) {
@@ -103,6 +140,7 @@ function initSVGEditor(el, raw='', key='', gum=true) {
 }
 
 function hideSVGEditor() {
+    $('#hoot').html('[201p // iamlemec]')
     $('#SVGEditorOuter').hide();
 }
 
@@ -143,7 +181,8 @@ function parseGum(src, size) {
         let e = new Function(gums, src);
         out = e(...mako);
     } catch (e) {
-        return {success: false, message: e.message, line: e.lineNumber};
+        //the n-2 is to match internal line numbers, there must be a header on e.lines
+        return {success: false, message: e.message, line: e.lineNumber - 2}; 
     }
 
     if (out == null) {
@@ -190,6 +229,7 @@ let jschars = `\\|\\&\\>\\<\\!\\;\\.\\=\\:\\,\\(\\)\\{\\}\\[\\]`;
 
 let rules = {
     brace: /^&!(R|L)&/,
+    newline: /^(\n)/,
     string: /^(['|"]+)\s*([\s\S]*?[^'"])\s*\1(?!['|"])/,
     jskey: /^(squish)(?=\s|[jschars]|$)/,
     bool: /^(squish)(?=\s|[jschars]|$)/,
@@ -240,11 +280,20 @@ class GumLexer {
             cap,
             text
 
+        let l1 = this.renderer.newline("")
+
         while (src) {
             // brace match (for hl, not blocks)
             if (cap = this.rules.brace.exec(src)) {
                 src = src.substring(cap[0].length);
                 out += this.renderer.brace(cap[0], (cap[1]=='L'));
+                continue;
+            }
+
+            // newline (for line numbers)
+            if (cap = this.rules.newline.exec(src)) {
+                src = src.substring(cap[0].length);
+                out += this.renderer.newline(cap[0]);
                 continue;
             }
 
@@ -301,7 +350,7 @@ class GumLexer {
             }
         }
 
-        return out;
+        return l1 + out;
     }
 }
 
@@ -320,6 +369,10 @@ class GumRenderer {
 
     basic(text, klass) {
         return s(text,klass);
+    }
+
+    newline(text) {
+        return text+'<div class=linenum></div>';
     }
 
     nothing(text) {

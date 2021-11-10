@@ -3,12 +3,12 @@
 export {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
     unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
-    fold, makeUnEditable
+    fold, makeUnEditable, 
 }
 
 import { config, state, cache } from './state.js'
 import {
-    ensureVisible, cooks, setCookie, getPara, attrArray, noop, on_success, flash
+    ensureVisible, cooks, setCookie, getPara, attrArray, noop, on_success, flash, smallable_butt
 } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import {
@@ -22,8 +22,14 @@ import { toggleHelp } from './help.js'
 
 /// initialization
 
+let s_butts = {
+    '#r_text': 'Revert',
+    '#e_text': 'Export',
+    '#h_text': 'History',
+}
+
 function initEditor() {
-    smallable_butt();
+    smallable_butt(s_butts);
 }
 
 function stateEditor() {
@@ -40,7 +46,7 @@ function eventEditor() {
             let inp = state.active_para.children('.p_input');
             resize(inp[0]);
         }
-        smallable_butt();
+        smallable_butt(s_butts);
     };
 
     // keyboard interface
@@ -692,15 +698,3 @@ function unfold() {
     renderFold();
 }
 
-function smallable_butt() {
-    let small = $(window).width() < 1000;
-    let r_text = small ? '' : 'Revert';
-    let r_tit = small ? 'Revert' : '';
-    let e_text = small ? '' : 'Export';
-    let e_tit = small ? 'Export' : '';
-    let h_text = small ? '' : 'History';
-    let h_tit = small ? 'History' : '';
-    $('#r_text').text(r_text).parent().attr('title', r_tit);
-    $('#e_text').text(e_text).parent().attr('title', e_tit);
-    $('#h_text').text(h_text).parent().attr('title', h_tit);
-}

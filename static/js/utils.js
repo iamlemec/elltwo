@@ -3,7 +3,7 @@
 export {
     merge, mapObject, mapValues, attrArray, initToggleBox, toggleBox,
     ensureVisible, setCookie, cooks, getPara, getEnvParas, isMobile, noop,
-    on_success, KeyCache, DummyCache, RefCount, flash
+    on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle, smallable_butt
 }
 
 // js tricks
@@ -202,6 +202,30 @@ class RefCount {
     }
 }
 
+// html constructors 
+
+function createIcon(id) {
+    return `<svg>
+            <use xlink:href="/static/img/icons.svg#${id}"></use>
+            </svg>`;
+}
+
+function createToggle(id, text, checked=true){
+
+    checked = checked ? 'checked' : "";
+
+    return `
+        <label class="toggle" for="${id}_check" id="${id}_label">
+        <span> ${text} </span>
+        <input type="checkbox" class="toggle__input" id="${id}_check" ${checked}/>
+        <span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
+        ${createIcon('svg-check')}
+        </span></span></span>
+        </label>`
+}
+
+
+
 // para tools
 
 function getPara(pid) {
@@ -244,6 +268,19 @@ function initToggleBox(button, box) {
             }
         }
     });
+};
+
+//button smalling
+
+function smallable_butt(butts, threshold=1000) {
+    let small = $(window).width() < threshold;
+
+    for (const [id, text] of Object.entries(butts)) {
+        let txt = small ? '' : text;
+        let tit = small ? text : '';
+        $(id).text(txt).parent().attr('title', tit);
+
+    };
 };
 
 // scrolling

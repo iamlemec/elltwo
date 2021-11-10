@@ -20,8 +20,9 @@
     bottom: 0px;
     background: var(--bg-hl2-col);
     width: 100%;
-    height: 40px;
+    height: 100px;
     display: flex;
+    flex-direction: column;
     padding: 5px 0px 5px 5px;
     font-size: 80%;
     background-color: var(--bg-hl2-col);
@@ -29,12 +30,27 @@
     justify-content: flex-end;
 }
 
-#SVGEditorTag {
+#SVGEditorNavUp,#SVGEditorNavDown {
+    background: var(--bg-hl2-col);
+    width: 100%;
+    display: flex;
+    padding: 5px 0px 5px 5px;
+    font-size: 80%;
+}
+
+
+#SVGEditorTag, #SVGEditorKW {
     background-color: var(--bg-hl-col);
     color: var(--font-col);
     width: 60%;
     margin-right: 5px;
     flex-grow: 2;
+    height: 35px;
+}
+
+.toggle{
+    font-size: 100%;
+    margin: 0 10px 0 10px;
 }
 
 #SVGEditorNav .foot_butt {
@@ -53,25 +69,48 @@
     position: absolute;
     font-family: monospace;
     font-size: 75%;
-    height: 50%;
+    height: 100%;
     width: 50%;
     padding: 10px;
+    padding-left: 30px;
 }
 
 #SVGEditorInputBox {
-    height: 100%;
+    position: absolute;
+    height: 50%;
+    width: 100%;
     overflow: scroll;
     scrollbar-width: none;
 }
 
+#SVGEditorInputBox.fullsize{
+    height: 100%;
+}
+
 #SVGEditorInputView {
     background-color: var(--bg-col);
+    counter-reset: line;
+    -webkit-box-shadow:inset 25px 0px 0px 0px rgba(0,0,0,.15);
 }
 
 #SVGEditorInputText {
     color: rgba(0,0,0,0);
     background-color: rgba(0,0,0,0);
     z-index: 2;
+}
+
+.linenum{
+    position: absolute;
+    text-align: right;
+    width: 20px;
+    left: 0;
+    font-size: 100%;
+    opacity: .3;
+}
+
+.linenum:before{
+  counter-increment: line;
+  content: counter(line);
 }
 
 #SVGEditorParsed {
@@ -83,11 +122,19 @@
     width: 50%;
     height: 50%;
     padding: 10px;
+    padding-left: 30px;
+    -webkit-box-shadow:inset 25px 0px 0px 0px rgba(0,0,0,.15);
+
 }
 
 #SVGEditorOuter textarea::placeholder,
 #SVGEditorOuter input::placeholder {
     font-size: 100%;
+}
+
+.checkMark svg{
+    width: 20px;
+    height: 20px;
 }
 
 /* RIGHT  */
