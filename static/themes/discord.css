@@ -267,6 +267,10 @@ button:hover {
     color: var(--dollar-col);
 }
 
+.syn_jschars{
+   color: var(--bor-col);
+}
+
 .syn_comment_head {
     color: var(--font-col-int);
 }

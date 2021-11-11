@@ -614,8 +614,34 @@ color: var(--delimit-col);
 }
 
 .code > pre {
+    margin-left: 0px;
     padding-left: 5px;
     white-space: pre-wrap;
+    counter-reset: line;
+    border-radius: 0;
+    background-color: inherit;
+}
+
+.code.numbered > pre {
+    margin-left: 20px;
+}
+
+.code.numbered {
+   -webkit-box-shadow:inset 25px 0px 0px 0px rgba(0,0,0,.1);
+}
+
+.linenum{
+    position: absolute;
+    text-align: right;
+    width: 25px;
+    left: 0;
+    font-size: 100%;
+    opacity: .4;
+}
+
+.code.numbered .linenum:before{
+  counter-increment: line;
+  content: counter(line);
 }
 
 #bib_block {

@@ -1,6 +1,6 @@
 /* random utilities */
 
-export { initSVGEditor, hideSVGEditor, parseSVG }
+export { initSVGEditor, hideSVGEditor, parseSVG, jsHL }
 
 import { on_success, createIcon, createToggle, smallable_butt } from './utils.js'
 import { state } from './state.js'
@@ -278,7 +278,8 @@ class GumLexer {
     output(src) {
         let out = '',
             cap,
-            text
+            text,
+            key
 
         let l1 = this.renderer.newline("")
 
@@ -380,12 +381,16 @@ class GumRenderer {
     }
 }
 
+function jsHL(src){
+    let renderer = new GumRenderer();
+    let lexer = new GumLexer(renderer);
+    return lexer.output(src);
+}
+
 function svgSyntaxHL(src=null) {
     if (src === null) {
         src = $('#SVGEditorInputText').val();
     }
-    let renderer = new GumRenderer();
-    let lexer = new GumLexer(renderer);
-    let out = lexer.output(src);
+    let out = jsHL(src)
     $('#SVGEditorInputView').html(out);
 }

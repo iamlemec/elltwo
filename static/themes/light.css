@@ -9,7 +9,7 @@
     --pop-bg-col: #073642; /* popup background color */
     --bg-font: 15px; /* popup background color */
     --font-col: #073642;
-    --font-col-int: #6c71c4;
+    --font-col-int: #b58900;
     --delimit-col: #859900;
     --brace-col: rgba(0,0,0,.2);
     --comment-col: rgb(120, 120, 120); /* comment text color */
@@ -232,7 +232,7 @@ button:hover {
 .code {
     font-family: Fira;
     font-size: 90%;
-    color: var(--hl-col);
+    color: var(--bor-col);
     padding-left: 3px;
     padding-right: 3px;
     border-radius: 4px;
@@ -240,7 +240,7 @@ button:hover {
 }
 
 .para.active .code {
-    background-color: var(--bg-col);
+/*     background-color: var(--bg-col); */
 }
 
 .ref_error {
@@ -320,6 +320,11 @@ button:hover {
 .syn_comment {
     color: var(--bg-hl2-col);
 }
+
+.syn_jschars {
+    color: var(--hl-col);
+}
+
 
 .syn_code {
    background-color: var(--brace-col) !important;

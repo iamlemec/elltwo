@@ -5,7 +5,9 @@
  *
  */
 
-export { markthree, replace, divInlineLexer }
+export { markthree, replace, divInlineLexer, }
+
+import {jsHL} from'./svg.js'
 
 /**
  * Block-Level Grammar
@@ -18,7 +20,7 @@ let block = {
     heading: /^(#{1,6})(\*?) *(?:refargs)? *([^\n]+?)$/,
     lheading: /^([^\n]+)\n *(=|-){2,}\s*$/,
     blockquote: /^q*> ?\n?/,
-    code: /^``(?: |\n)?/,
+    code: /^``(\*)? *(?:refargs)?(?:\n)?(?: |\n)?/,
     equation: /^\$\$(\*&|&\*|\*|&)? *(?:refargs)?\s*/,
     title: /^#! *(?:refargs)?\s*([^\n]*)\s*/,
     upload: /^!! *(?:refargs)?\s*$/,
@@ -60,6 +62,10 @@ block.heading = replace(block.heading)
     ();
 
 block.equation = replace(block.equation)
+    ('refargs', block._refargs)
+    ();
+
+block.code = replace(block.code)
     ('refargs', block._refargs)
     ();
 
@@ -348,17 +354,23 @@ class Lexer {
 
           // code
           if (cap = this.rules.code.exec(src)) {
+              vargs = cap[1] || '';
+              argsraw = cap[2] || '';
+              number = !vargs.includes('*');
+              args = parseArgs(argsraw);
               text = src.slice(cap[0].length);
               return {
                   type: 'code',
-                  text: text
+                  text: text,
+                  args: args,
+                  ln: number,
               };
           }
 
           // title
           if (cap = this.rules.title.exec(src)) {
               argsraw = cap[1] || '';
-              args = parseArgs(argsraw, number);
+              args = parseArgs(argsraw);
               text = src.slice(cap[0].length);
               return {
                   type: 'title',
@@ -817,7 +829,7 @@ class DivRenderer {
         return '';
     }
 
-    code(code, lang, escaped) {
+    code(code, lang, escaped, args, ln) {
         if (this.options.highlight) {
             let out = this.options.highlight(code, lang);
             if (out != null && out !== code) {
@@ -826,10 +838,27 @@ class DivRenderer {
             }
         }
 
-        code = escaped ? code : escape(code, true);
-        lang = lang ? (this.options.langPrefix + escape(lang, true)) : '';
+        console.log(args, ln)
 
-        return `<div class="code ${lang}"><pre>\n${code}\n</pre></div>\n\n`;
+        ln = ln && (args.ln!='false');
+        let js = args.lang=='js' || args.lang=='javascript' || args.lang=='gum'
+
+        //code = escaped ? code : escape(code, true);
+        //lang = lang ? (this.options.langPrefix + escape(lang, true)) : '';
+
+        let numbered = ln ? "numbered" : "";
+        
+        if(js){
+            code = jsHL(code);
+        }else{
+            code = `<div class="linenum"></div>` + code.replace(/\n/g, `\n<div class=linenum></div>`)
+        }
+
+        if(ln){
+            numbered = " numbered"
+        }
+
+        return `<div class="code ${lang} ${numbered}"><pre>\n${code}\n</pre></div>\n\n`;
     }
 
     blockquote(quote) {
@@ -1396,7 +1425,9 @@ class Parser {
                 return this.renderer.code(
                     this.token.text,
                     this.token.lang,
-                    this.token.escaped
+                    this.token.escaped,
+                    this.token.args,
+                    this.token.ln
                 );
             }
             case 'table': {
@@ -1594,6 +1625,7 @@ function markthree(src, output) {
         let html = parser.parse(tokens);
         return html;
     } catch (e) {
+        console.log(e)
         return {
             src: `<p>marked3 error [marked3.js:${e.lineNumber}] → ${e.message}</p>`
         };

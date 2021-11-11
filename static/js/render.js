@@ -1279,7 +1279,7 @@ function fArgs(argsraw, set=true) {
 let block = {
     title: /^#!( *)(?:refargs)?(\s*)([^\n]*)(\s*)/,
     heading: /^(#{1,6})(\*?)( *)(?:refargs)?(\s*)([^\n]*)$/,
-    code: /^``((?: |\n)?)/,
+    code: /^``(\*)?( *)(?:refargs)?(\n)?((?: |\n)?)/,
     comment: /^\/\/( ?)/,
     equation: /^\$\$(\*?)( *)(?:refargs)?(\s*)/,
     image: /^(!{1,2})(\*)?( *)(?:refargs)?( *)(\()?([\w-:#/.&%=]*)(\))?(\s*)$/,
@@ -1297,6 +1297,9 @@ block.heading = replace(block.heading)
   ('refargs', block._refargs)
   ();
 block.equation = replace(block.equation)
+  ('refargs', block._refargs)
+  ();
+block.code = replace(block.code)
   ('refargs', block._refargs)
   ();
 block.image = replace(block.image)
@@ -1328,10 +1331,11 @@ function syntaxParseBlock(raw) {
     }
 
     if (cap = block.code.exec(raw)) {
-        let space = cap[1] || '';
+        let star = cap[1] ? s(cap[1], 'hl') : '';
+        let id = cap[3] ? s(fArgs(cap[3]), 'ref') : '';
         let rest = raw.slice(cap[0].length);
         let text = esc_html(rest);
-        return s('``', 'hl') + space + s(text, 'code');
+        return s('``', 'delimit') + star + cap[2] + id + cap[4] + s(text, 'code');
     }
 
     if (cap = block.comment.exec(raw)) {
