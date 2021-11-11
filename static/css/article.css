@@ -764,13 +764,17 @@ color: var(--delimit-col);
     font-size: 20px;
 }
 
-#pop  .eqn_cite{
+#pop .eqn_cite {
    border: 1px solid var(--pop-fg-col);
    color: var(--pop-fg-col);
 }
 
 #pop .eqnum {
     display: none;
+}
+
+#pop svg {
+    stroke: var(--pop-fg-col);
 }
 
 /* sidebar */
