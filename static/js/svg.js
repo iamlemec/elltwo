@@ -41,10 +41,9 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         let left = $('<div>', {id: 'SVGEditorBoxLeft'});
         let right = $('<div>', {id: 'SVGEditorBoxRight'});
         let inputBox = $('<div>', {id: 'SVGEditorInputBox'});
-        let inputText = $('<textarea>', {id: 'SVGEditorInputText'});
+        let inputText = $('<textarea>', {id: 'SVGEditorInputText', spellcheck: false});
         let inputView = $('<div>', {id: 'SVGEditorInputView', class: 'p_input_view'});
-        let parsed = $('<textarea>', {id: 'SVGEditorParsed'});
-        parsed.prop('readonly', true);
+        let parsed = $('<textarea>', {id: 'SVGEditorParsed', readonly: true});
         inputText.attr('placeholder',  'Add SVG code here')
         let output = $('<div>', {id: 'SVGEditorOutput'});
         let tag = $('<input>', {id: 'SVGEditorTag'});
