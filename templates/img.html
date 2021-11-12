@@ -12,15 +12,18 @@
 {% block title %}Img{% endblock %}
 
 {% block header %}
+
 <div id="prompt">
 <a href="/"><span id="title">{{name|safe}}</span></a>
 <div id="desc">Image Library</div>
 </div>
 
 <input type="text" autocomplete="off" autofocus="autofocus" name="img_search" id="query" placeholder="Filter existing images" />
+
 {% endblock %}
 
 {% block content %}
+
 <div id="img_results_outer">
     <div id="img_results">
         <div id="dropzone" class="img_cont dropzone">Drop Image or Click to Upload</div>
@@ -42,12 +45,37 @@
     <button id="img_delete">Delete</button>
 </div>
 
+<div id="SVGEditorOuter">
+<div id="SVGEditorBox">
+
+<div id="SVGEditorBoxLeft">
+<div id="SVGEditorInputBox">
+<textarea id="SVGEditorInputText" spellcheck="false"></textarea>
+<div id="SVGEditorInputView" class="p_input_view"></div>
+</div>
+<textarea id="SVGEditorParsed" readonly="true" placeholder="Add SVG code here"></textarea>
+</div>
+
+<div id="SVGEditorBoxRight">
+<div id="SVGEditorOutput"></div>
+<div id="SVGEditorNav">
+<div id="SVGEditorNavUp">
+<input id="SVGEditorKW" placeholder="Keywords"></input>
+</div>
+<div id="SVGEditorNavDown">
+<input id="SVGEditorTag" placeholder="Image tag (required)"></input>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
 {% endblock %}
 
 {% block foot %}
 
 <span class="push"></span>
-
 
 {% endblock %}
 

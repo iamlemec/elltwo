@@ -6,13 +6,13 @@ import { on_success, createIcon, createToggle, smallable_butt } from './utils.js
 import { state } from './state.js'
 import { sendCommand } from './client.js'
 import { s, esc_html, braceMatch} from './render.js'
-import {replace } from './marked3.js'
+import { replace } from './marked3.js'
 import { Gum, SVG, Element } from '../gum.js/lib/gum.js'
 
 let svg_butts = {};
 
-function createButton(id, text, iconName=null){
-    if(iconName==null){
+function createButton(id, text, iconName) {
+    if (iconName == null) {
         iconName = id.toLowerCase();
     }
     let but = $('<button>', {id: `SVGEditor${id}`, class: 'foot_butt smallable_butt'});
@@ -20,7 +20,7 @@ function createButton(id, text, iconName=null){
     but.append(t);
     but.append(createIcon(iconName));
     svg_butts[`#${id}_text`] = text;
-    return but
+    return but;
 }
 
 function initSVGEditor(el, raw='', key='', gum=true) {
@@ -34,46 +34,13 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         svgSyntaxHL();
         renderInput();
     } else {
-        let outerBox = $('<div>', {id: 'SVGEditorOuter'});
-        let editBox = $('<div>', {id: 'SVGEditorBox'});
-
-        // editor panes
-        let left = $('<div>', {id: 'SVGEditorBoxLeft'});
-        let right = $('<div>', {id: 'SVGEditorBoxRight'});
-        let inputBox = $('<div>', {id: 'SVGEditorInputBox'});
-        let inputText = $('<textarea>', {id: 'SVGEditorInputText', spellcheck: false});
-        let inputView = $('<div>', {id: 'SVGEditorInputView', class: 'p_input_view'});
-        let parsed = $('<textarea>', {id: 'SVGEditorParsed', readonly: true});
-        inputText.attr('placeholder',  'Add SVG code here')
-        let output = $('<div>', {id: 'SVGEditorOutput'});
-        let tag = $('<input>', {id: 'SVGEditorTag'});
-        tag.attr('placeholder',  'Image tag (required)');
-        let kw = $('<input>', {id: 'SVGEditorKW'});
-        kw.attr('placeholder',  'Keywords');
-        let tog = createToggle('svgShow', "Show SVG")
-        inputBox.append(inputText).append(inputView);
-
-        // navbar
-        let navBar = $('<div>', {id: 'SVGEditorNav'});
-        let navBarUp = $('<div>', {id: 'SVGEditorNavUp'});
-        let navBarDown = $('<div>', {id: 'SVGEditorNavDown'});
-        let exit = createButton('Exit', 'Exit')
-        let del = createButton('Delete', 'Delete')
-        let commit = createButton('Commit', 'Commit', 'exp')
-        navBarUp.append(kw)
-              .append(tog)
-        navBarDown.append(tag)
-                  .append(commit)
-                  .append(del)
-                  .append(exit);
-        navBar.append(navBarUp).append(navBarDown);
-
-        // high level
-        left.append(inputBox).append(parsed);
-        right.append(output).append(navBar);
-        editBox.append(left).append(right);
-        outerBox.append(editBox);
-        el.append(outerBox);
+        // custom buttons and toggles
+        let tog = createToggle('svgShow', 'Show SVG');
+        let commit = createButton('Commit', 'Commit', 'exp');
+        let del = createButton('Delete', 'Delete');
+        let exit = createButton('Exit', 'Exit');
+        $('#SVGEditorNavUp').append(tog);
+        $('#SVGEditorNavDown').append(commit).append(del).append(exit);
 
         // load in data
         if (key) {
@@ -82,9 +49,12 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         if (raw) {
             $('#SVGEditorInputText').val(raw);
         }
+
+        // render all
         svgSyntaxHL();
         renderInput();
-        smallable_butt(svg_butts)
+        smallable_butt(svg_butts);
+        $('#SVGEditorOuter').css('visibility', 'unset');
 
         // mark constructed
         state.SVGEditor = true;
@@ -139,12 +109,13 @@ function initSVGEditor(el, raw='', key='', gum=true) {
 }
 
 function hideSVGEditor() {
-    $('#hoot').html('[201p // iamlemec]')
+    $('#hoot').html('[201p // iamlemec]');
     $('#SVGEditorOuter').hide();
 }
 
 // hard-coded options
 let prec = 2;
+let size = 500;
 
 // gum.js interface mapper
 let gums = ['log', ...Gum.map(g => g.name)];
@@ -158,10 +129,7 @@ function renderInput(src) {
     let right = $('#SVGEditorOutput');
     let parsed = $('#SVGEditorParsed');
 
-    let [vw, vh] = [right.innerHeight(), right.innerWidth()];
-    let size = 0.8*Math.min(vw, vh);
     let ret = parseGum(src, size);
-
     if (ret.success) {
         right.html(ret.svg);
         parsed.text(ret.svg);
@@ -278,9 +246,9 @@ class GumLexer {
         let out = '',
             cap,
             text,
-            key
+            key;
 
-        let l1 = this.renderer.newline("")
+        let l1 = this.renderer.newline('');
 
         while (src) {
             // brace match (for hl, not blocks)
@@ -363,12 +331,12 @@ class GumRenderer {
         if (left) {
             return'<span class="brace">';
         } else {
-            return'</span>'
+            return'</span>';
         }
     }
 
     basic(text, klass) {
-        return s(text,klass);
+        return s(text, klass);
     }
 
     newline(text) {
@@ -390,6 +358,6 @@ function svgSyntaxHL(src=null) {
     if (src === null) {
         src = $('#SVGEditorInputText').val();
     }
-    let out = jsHL(src)
+    let out = jsHL(src);
     $('#SVGEditorInputView').html(out);
 }

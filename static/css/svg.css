@@ -1,6 +1,7 @@
 #SVGEditorOuter {
     position: fixed;
     display: flex;
+    visibility: hidden;
     flex-direction: column;
     background: var(--bg-hl-col);
     width: 100%;
