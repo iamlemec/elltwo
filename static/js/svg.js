@@ -24,7 +24,7 @@ function createButton(id, text, iconName=null){
 }
 
 function initSVGEditor(el, raw='', key='', gum=true) {
-    $('#hoot').html(`[201p // iamlamec ${s('// gum.js editor','math')}]`)
+    $('#hoot').html(`[201p // iamlemec ${s('// gum.js editor','math')}]`)
     if (state.SVGEditor) {
         $('#SVGEditorInputText').val(raw);
         $('#SVGEditorInputView').text(raw);
@@ -182,7 +182,7 @@ function parseGum(src, size) {
         out = e(...mako);
     } catch (e) {
         //the n-2 is to match internal line numbers, there must be a header on e.lines
-        return {success: false, message: e.message, line: e.lineNumber - 2}; 
+        return {success: false, message: e.message, line: e.lineNumber - 2};
     }
 
     if (out == null) {
