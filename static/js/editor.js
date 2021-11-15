@@ -12,7 +12,7 @@ import {
 } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import {
-    rawToRender, rawToTextarea, envClasses, syntaxHL, getFoldLevel, renderFold
+    rawToRender, rawToTextarea, envClasses, elltwoHL, getFoldLevel, renderFold
 } from './render.js'
 import {
     insertParaRaw, insertPara, deleteParas, updateRefs, toggleHistMap,
@@ -408,7 +408,7 @@ function trueMakeEditable(rw=true, cursor='end') {
         schedTimeout();
     }
 
-    syntaxHL(state.active_para);
+    elltwoHL(state.active_para);
 }
 
 function sendMakeEditable(cursor='end') {
@@ -619,7 +619,7 @@ function splitParas(cur) {
     let raw = para.children('.p_input').val();
     let [raw0, raw1] = [raw.substring(0, cur), raw.substring(cur)];
     para.children('.p_input').val(raw0);
-    syntaxHL(para);
+    elltwoHL(para);
     makeUnEditable(para);
     sendInsertPara(para, true, true, raw1, 'begin');
 }

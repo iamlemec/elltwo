@@ -1,12 +1,12 @@
 /* random utilities */
 
-export { initSVGEditor, hideSVGEditor, parseSVG, jsHL }
+export { initSVGEditor, hideSVGEditor, parseSVG, gums }
 
 import { on_success, createIcon, createToggle, smallable_butt } from './utils.js'
 import { state } from './state.js'
 import { sendCommand } from './client.js'
-import { s, esc_html, braceMatch} from './render.js'
-import { replace } from './marked3.js'
+import { replace } from './marked3.js'  
+import { s, SyntaxHL, braceMatch } from './hl.js'
 import { Gum, SVG, Element } from '../gum.js/lib/gum.js'
 
 let svg_butts = {};
@@ -74,9 +74,11 @@ function initSVGEditor(el, raw='', key='', gum=true) {
         console.log(val)
         if(val){
             $('#SVGEditorParsed').show()
+            $('#SVGEditorParsedView').show()
             $('#SVGEditorInputBox').removeClass('fullsize')
         } else{
             $('#SVGEditorParsed').hide()
+            $('#SVGEditorParsedView').hide()
             $('#SVGEditorInputBox').addClass('fullsize')
         }
     });
@@ -89,7 +91,7 @@ function initSVGEditor(el, raw='', key='', gum=true) {
     $(document).on('keyup', '#SVGEditorInputText', function(e) {
         let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
         if (arrs.includes(e.keyCode)) {
-            braceMatch(this, null, svgSyntaxHL, svgSyntaxHL);
+            braceMatch(this, null, 'gum', svgSyntaxHL);
         }
     });
 
@@ -127,12 +129,12 @@ function renderInput(src) {
     }
 
     let right = $('#SVGEditorOutput');
-    let parsed = $('#SVGEditorParsed');
+    let parsed = $('#SVGEditorParsedView');
 
     let ret = parseGum(src, size);
     if (ret.success) {
         right.html(ret.svg);
-        parsed.text(ret.svg);
+        parsed.html(SyntaxHL(ret.svg, 'svg'));
     } else {
         parsed.text(`parse error, line ${ret.line}: ${ret.message}`);
     }
@@ -181,183 +183,9 @@ function parseSVG(mime, src, size) {
     }
 }
 
-/* snytax hl */
 
-let jskeys = [
-    'await', 'break', 'catch', 'class', 'const',
-    'continue', 'do', 'else', 'eval', 'export', 'for',
-    'function', 'if', 'import', 'let', 'return', 'switch',
-    'throw', 'try', 'while', 'with', 'yield'
-];
-
-let boolean = ['true', 'false', 'null', 'undefined', 'new'];
-
-let jschars = `\\|\\&\\>\\<\\!\\;\\.\\=\\:\\,\\(\\)\\{\\}\\[\\]`;
-
-let rules = {
-    brace: /^&!(R|L)&/,
-    newline: /^(\n)/,
-    string: /^(['|"]+)\s*([\s\S]*?[^'"])\s*\1(?!['|"])/,
-    jskey: /^(squish)(?=\s|[jschars]|$)/,
-    bool: /^(squish)(?=\s|[jschars]|$)/,
-    gumex: /^(squish)(?![a-zA-Z0-9_-])/,
-    jschars: /^([jschars]+?)(?:\&\!)?/,
-    space: /^\s+/,
-    func: /^[\w]+(?=\(|\&\!)/,
-    text: /^[\S]+?(?=[jschars]|\s|$)/,
-};
-
-rules.gumex = replace(rules.gumex)
-    ('squish', gums.join('|'))
-    ();
-
-rules.jskey = replace(rules.jskey)
-    ('squish', jskeys.join('|'))
-    ();
-
-rules.bool = replace(rules.bool)
-    ('squish', boolean.join('|'))
-    ();
-
-rules.jschars = replace(rules.jschars)
-    ('jschars', jschars)
-    ();
-
-rules.jskey = replace(rules.jskey)
-    ('jschars', jschars)
-    ();
-
-rules.bool = replace(rules.bool)
-    ('jschars', jschars)
-    ();
-
-rules.text = replace(rules.text)
-    ('jschars', jschars)
-    ();
-
-class GumLexer {
-    constructor(renderer, options={}) {
-        this.renderer = renderer;
-        this.options = options;
-        this.rules = rules;
-    }
-
-    output(src) {
-        let out = '',
-            cap,
-            text,
-            key;
-
-        let l1 = this.renderer.newline('');
-
-        while (src) {
-            // brace match (for hl, not blocks)
-            if (cap = this.rules.brace.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.brace(cap[0], (cap[1]=='L'));
-                continue;
-            }
-
-            // newline (for line numbers)
-            if (cap = this.rules.newline.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.newline(cap[0]);
-                continue;
-            }
-
-            // strings
-            if (cap = this.rules.string.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.basic(cap[0], 'delimit');
-                continue;
-            }
-
-            // gum builtin expressions
-            if (cap = this.rules.gumex.exec(src)) {
-                src = src.substring(cap[0].length);
-                key = cap[1];
-                out += this.renderer.basic(key, 'ref');
-                continue;
-            }
-
-            //bool types and stuff
-            if (cap = this.rules.bool.exec(src)) {
-                src = src.substring(cap[0].length);
-                key = cap[0];
-                out += this.renderer.basic(key, 'hl');
-                continue;
-            }
-
-            // js keywords
-            if (cap = this.rules.jskey.exec(src)
-                || this.rules.func.exec(src)) {
-                src = src.substring(cap[0].length);
-                key = cap[0];
-                out += this.renderer.basic(key, 'math');
-                continue;
-            }
-
-            // js chars, like = () {} etc
-            if (cap = this.rules.jschars.exec(src)) {
-                src = src.substring(cap[1].length);
-                key = cap[1];
-                out += this.renderer.basic(key, 'jschars');
-                continue;
-            }
-
-            // tokens to do nothing with
-            if (cap = this.rules.text.exec(src)
-                || this.rules.space.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.nothing(cap[0]);
-                continue;
-            }
-
-            if (src) {
-                throw new Error('Infinite loop on byte: ' + src.charCodeAt(0));
-            }
-        }
-
-        return l1 + out;
-    }
-}
-
-class GumRenderer {
-    constructor(options) {
-        this.options = options ?? {};
-    }
-
-    brace(text, left) {
-        if (left) {
-            return'<span class="brace">';
-        } else {
-            return'</span>';
-        }
-    }
-
-    basic(text, klass) {
-        return s(text, klass);
-    }
-
-    newline(text) {
-        return text+'<div class=linenum></div>';
-    }
-
-    nothing(text) {
-        return text;
-    }
-}
-
-function jsHL(src){
-    let renderer = new GumRenderer();
-    let lexer = new GumLexer(renderer);
-    return lexer.output(src);
-}
-
-function svgSyntaxHL(src=null) {
-    if (src === null) {
-        src = $('#SVGEditorInputText').val();
-    }
-    let out = jsHL(src);
+function svgSyntaxHL() {
+    let src = $('#SVGEditorInputText').val();
+    let out = SyntaxHL(src, 'gum')
     $('#SVGEditorInputView').html(out);
 }

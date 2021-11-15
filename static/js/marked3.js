@@ -7,7 +7,8 @@
 
 export { markthree, replace, divInlineLexer, }
 
-import {jsHL} from'./svg.js'
+import {SyntaxHL} from'./hl.js'
+
 
 /**
  * Block-Level Grammar
@@ -841,7 +842,8 @@ class DivRenderer {
         console.log(args, ln)
 
         ln = ln && (args.ln!='false');
-        let js = args.lang=='js' || args.lang=='javascript' || args.lang=='gum'
+        let js = args.lang=='js' || args.lang=='javascript' || args.lang=='gum';
+        let ell = args.lang=='elltwo' || args.lang=='l2' || args.lang=='ell2';
 
         //code = escaped ? code : escape(code, true);
         //lang = lang ? (this.options.langPrefix + escape(lang, true)) : '';
@@ -849,7 +851,9 @@ class DivRenderer {
         let numbered = ln ? "numbered" : "";
         
         if(js){
-            code = jsHL(code);
+            code = SyntaxHL(code, 'gum');
+        }else if (ell){
+            code = SyntaxHL(code, 'elltwo');
         }else{
             code = `<div class="linenum"></div>` + code.replace(/\n/g, `\n<div class=linenum></div>`)
         }

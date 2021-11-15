@@ -3,9 +3,9 @@
 export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
     rawToTextarea, envClasses, envGlobal, renderRefText, createTOC, getTro,
-    troFromKey, popText, renderPop, syntaxHL, s_env_spec, getFoldLevel,
-    renderFold, braceMatch, barePara, makePara, connectCallbacks, getRefTags,
-    trackRef, untrackRef, doRenderRef, s, esc_html, esc_md
+    troFromKey, popText, renderPop, s_env_spec, getFoldLevel,
+    renderFold, barePara, makePara, connectCallbacks, getRefTags,
+    trackRef, untrackRef, doRenderRef, elltwoHL
 }
 
 import { merge, cooks, getPara, RefCount, DummyCache } from './utils.js'
@@ -17,6 +17,8 @@ import { renderKatex } from './math.js'
 import { markthree, replace, divInlineLexer } from './marked3.js'
 import { fold } from './editor.js'
 import { parseSVG } from './svg.js'
+import { SyntaxHL } from './hl.js'
+
 
 // main rendering entry point (for all cases)
 
@@ -269,8 +271,9 @@ function rawToTextarea(para) {
     var textArea = para.children('.p_input');
     var raw = para.attr('raw');
     textArea.val(raw);
-    syntaxHL(para);
+    elltwoHL(para);
 }
+
 
 ///////////////// ENVS /////////
 
@@ -1134,354 +1137,15 @@ let pop_spec = {
 
 /// syntax highlighting
 
-function syntaxHL(para) {
+
+function elltwoHL(para) {
     let text = para.children('.p_input');
     let view = para.children('.p_input_view');
     let raw = text.val();
-    let parsed = syntaxParseBlock(raw);
+    let parsed = SyntaxHL(raw, 'elltwo');
     view.html(parsed);
 }
 
-function esc_md(raw) {
-    return raw.replace(/\\/g, '&#92;')
-              .replace(/\//g, '&#47;')
-              .replace(/\[/g, '&#91;')
-              .replace(/\]/g, '&#93;')
-              .replace(/\*/g, '&#42;')
-              .replace(/\$/g, '&#36;')
-              .replace(/\@/g, '&#36;')
-              .replace(/\^/g, '&#94;')
-              .replace(/\`/g, '&#96;')
-              .replace(/\!/g, '&#33;');
-}
-
-function esc_html(raw) {
-    return raw.replace(/\</g, '&lt;')
-              .replace(/\>/g, '&gt;')
-              .replace(/&!L&/g, '<span class="brace">')
-              .replace(/&!R&/g, '</span>');
-}
-
-function s(text, cls) {
-    return `<span class="syn_${cls}">${text}</span>`;
-}
-
-let inline = {
-    escape: /\\([\\/`*{}\[\]()#+\-.!_>\$])/g,
-    url: /(https?):\/\/([^\s<]+[^<.,:;"')\]\s])/g,
-    comment: /\/\/([^\n]*?)(\n|$)/g,
-    code: /(`+)([\s\S\$]*?[^`])\1(?!`)/g,
-    ftnt: /\^(\!)?\[((?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*)\]/g,
-    math: /\$((?:\\\$|[\s\S])+?)\$/g,
-    ref: /@(\[([^\]]+)\])/g,
-    cite: /@@(\[([^\]]+)\])/g,
-    ilink: /\[\[([^\]]+)\]\]/g,
-    em: /\*((?:\*\*|[\s\S])+?)\*(?!\*)/g,
-    strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
-};
-
-function syntaxParseInline(raw) {
-    let html = esc_html(raw);
-
-    html = html.replace(inline.escape, (a, b) =>
-        s('\\', 'comment_head') + s(esc_md(b), 'comment')
-    );
-
-    html = html.replace(inline.url, (a, b, c) =>
-        s(b, 'hl') + ':' + s('&#47;&#47;', 'math') + s(c.replace(/\//g, s('/', 'math')), 'comment')
-    );
-
-    html = html.replace(inline.comment, (a, b, c) =>
-        s('//', 'comment_head') + s(b, 'comment') + c
-    );
-
-    html = html.replace(inline.code, (a, b, c) =>
-        s(b, 'comment_head') + s(c, 'code') + s(b, 'comment_head')
-    );
-
-    html = html.replace(inline.ftnt, (a, b,c) =>{
-        if(b){
-            return s('^!', 'hl') + s('[', 'delimit') + c + s(']', 'delimit')
-        } else {
-            return s('^[', 'delimit') + c + s(']', 'delimit')
-        }
-    });
-
-    html = html.replace(inline.math, (a, b) =>
-        s('$', 'delimit') + s(b, 'math') + s('$', 'delimit')
-    );
-
-    html = html.replace(inline.cite, (a, b) =>
-        s('@@', 'delimit') + s(fArgs(b, false), 'ref')
-    );
-
-    html = html.replace(inline.ref, (a, b) =>
-        s('@', 'delimit') + s(fArgs(b, false), 'ref')
-    );
-
-    html = html.replace(inline.ilink, (a, b) =>
-        s('[[', 'delimit') + s(b, 'ref') + s(']]', 'delimit')
-    );
-
-    // escape so we don't highlight these on italics
-    html = html.replace(inline.strong, (a, b) =>
-        s('&#42;&#42;', 'comment_head') + b + s('&#42;&#42;', 'comment_head')
-    );
-
-    html = html.replace(inline.em, (a, b) =>
-        s('*', 'delimit') + b + s('*', 'delimit')
-    );
-
-    return html;
-}
-
-// uses lookbehinds, might not work on old ass-browsers
-// set = true is for non ref when seting ids
-function fArgs(argsraw, set=true) {
-    let argmatch = /([\[\|\n\r])((?:[^\]\|\n\r]|(?<=\\)\||(?<=\\)\])*)/g;
-    let illegal = /[^a-zA-Z\d\_\-]/;
-    if (!set) {
-        illegal = /[^a-zA-Z\d\_\-\:]/;
-    }
-
-    // match and parse inside args
-    let args = argsraw.replace(argmatch, function(a, b, c) {
-        c = c.split(/(?<!\\)\=/);
-        if (c.length > 1) {
-            let val = c.pop();
-            let arg_val = s(syntaxParseInline(val), 'delimit');
-            let arg_key = '';
-            c.forEach(key => {
-                if (illegal.test(key)) {
-                    arg_key += s(key, 'err') + '=';
-                } else if (key == 'id' && illegal.test(val)) {
-                    arg_key += s(key, 'err') + '=';
-                    arg_val = s(val, 'err');
-                } else {
-                    arg_key += s(key, 'math') + '=';
-                }
-            });
-            return b + arg_key + arg_val;
-        } else {
-            let arg_key = (c[0]) ? s(c[0], 'math') : '';
-            if (illegal.test(c[0])) {
-                arg_key = s(c[0], 'err');
-            }
-            return b + arg_key;
-        }
-    });
-
-    // swap out leading/trailing bracket highlight
-    return args.replace(/^&!L&/, '<span class="brace">')
-               .replace(/&!R&$/, '</span>');
-}
-
-let block = {
-    title: /^#!( *)(?:refargs)?(\s*)([^\n]*)(\s*)/,
-    heading: /^(#{1,6})(\*?)( *)(?:refargs)?(\s*)([^\n]*)$/,
-    code: /^``(\*)?( *)(?:refargs)?(\n)?((?: |\n)?)/,
-    comment: /^\/\/( ?)/,
-    equation: /^\$\$(\*?)( *)(?:refargs)?(\s*)/,
-    image: /^(!{1,2})(\*)?( *)(?:refargs)?( *)(\()?([\w-:#/.&%=]*)(\))?(\s*)$/,
-    svg: /^\!(svg|gum)(\*)?( *)(?:refargs)?/,
-    envbeg: /^\>\>(\!)?( *)([\w-]+)(\*)?( *)(?:refargs)?/,
-    envend: /^\<\<( ?)/,
-};
-
-block._refargs = /((?:&!L&)?\[(?:[^\]]|(?<=\\)\])*\]?(?:&!R&)?)/;
-
-block.title = replace(block.title)
-  ('refargs', block._refargs)
-  ();
-block.heading = replace(block.heading)
-  ('refargs', block._refargs)
-  ();
-block.equation = replace(block.equation)
-  ('refargs', block._refargs)
-  ();
-block.code = replace(block.code)
-  ('refargs', block._refargs)
-  ();
-block.image = replace(block.image)
-  ('refargs', block._refargs)
-  ();
-block.svg = replace(block.svg)
-  ('refargs', block._refargs)
-  ();
-block.envbeg = replace(block.envbeg)
-  ('refargs', block._refargs)
-  ();
-
-function syntaxParseBlock(raw) {
-    let cap;
-
-    if (cap = block.title.exec(raw)) {
-        let id = cap[2] ? s(fArgs(cap[2]), 'ref') : '';
-        let tit = cap[4] ? syntaxParseInline(cap[4]) : '';
-        let rest = raw.slice(cap[0].length);
-        let pre = syntaxParseInline(rest);
-        return s('#!', 'hl') + cap[1] + id + cap[3] + tit + cap[5] + s(pre, 'ref');
-    }
-
-    if (cap = block.heading.exec(raw)) {
-        let star = cap[2] ? s(cap[2], 'hl') : '';
-        let id = cap[4] ? s(fArgs(cap[4]), 'ref') : '';
-        let text = cap[6] ? syntaxParseInline(cap[6]) : '';
-        return s(cap[1], 'delimit') + star + cap[3] + id + cap[5] + text;
-    }
-
-    if (cap = block.code.exec(raw)) {
-        let star = cap[1] ? s(cap[1], 'hl') : '';
-        let id = cap[3] ? s(fArgs(cap[3]), 'ref') : '';
-        let rest = raw.slice(cap[0].length);
-        let text = esc_html(rest);
-        return s('``', 'delimit') + star + cap[2] + id + cap[4] + s(text, 'code');
-    }
-
-    if (cap = block.comment.exec(raw)) {
-        let space = cap[1] || '';
-        let rest = raw.slice(cap[0].length);
-        let text = esc_html(rest);
-        return s('//', 'comment_head') + space + s(text, 'comment');
-    }
-
-    if (cap = block.equation.exec(raw)) {
-        let star = cap[1] ? s(cap[1], 'hl') : '';
-        let id = cap[3] ? s(fArgs(cap[3]), 'ref') : '';
-        let rest = raw.slice(cap[0].length);
-        return s('$$', 'delimit') + star + cap[2] + id + cap[4] + esc_html(rest);
-    }
-
-    if (cap = block.image.exec(raw)) {
-        let excl = cap[1] ? s(cap[1], 'hl') : '';
-        let star = cap[2] ? s('*', 'hl') : '';
-        let id = cap[4] ? s(fArgs(cap[4]), 'ref'): '';
-        let l = cap[6] ? s('(', 'delimit') : '';
-        let href = cap[7] ? s(cap[7], 'hl') : '';
-        let r = cap[8] ? s(')', 'delimit') : '';
-        return excl + star + cap[3] + id + cap[5] + l + href + r + cap[9];
-    }
-
-    if (cap = block.svg.exec(raw)) {
-        let mime = cap[1];
-        let star = cap[2] ? s('*', 'hl') : '';
-        let id = cap[4] ? s(fArgs(cap[4]), 'ref'): '';
-        let rest = raw.slice(cap[0].length);
-        let text = syntaxParseInline(rest);
-        return s('!', 'hl') + s(mime, 'delimit') + star + cap[3] + id + text;
-    }
-
-    if (cap = block.envbeg.exec(raw)) {
-        let bang = cap[1] ? s('!', 'hl') : '';
-        let env = cap[3] ? s(cap[3], 'ref') : '';
-        let star = cap[4] ? s(cap[4], 'hl') : '';
-        let id = cap[6] ? s(fArgs(cap[6]), 'ref'): '';
-        let rest = raw.slice(cap[0].length);
-        let text = syntaxParseInline(rest);
-        return s('>>', 'delimit') + bang + cap[2] + env + star + cap[5] + id + text;
-    }
-
-    if (cap = block.envend.exec(raw)) {
-        let space = cap[1] || '';
-        let rest = raw.slice(cap[0].length);
-        let text = syntaxParseInline(rest);
-        return s('<<', 'delimit') + space + text;
-    }
-
-    return syntaxParseInline(raw);
-}
-
-function braceMatch(textarea, para, parser=syntaxParseBlock, callback=syntaxHL) {
-    let delimit = {'(': ')', '[': ']', '{': '}'};
-    let rev_delimit = {')': '(', ']': '[', '}': '{'};
-
-    let cpos = textarea.selectionStart;
-    let text = textarea.value;
-
-    let after = text[cpos];
-    let before = text[cpos-1] || false;
-
-    if (after in delimit) {
-        let pos = getBracePos(text, after, delimit[after], cpos);
-        if (pos) {
-            let v = $(textarea).siblings('.p_input_view');
-            braceHL(v, text, pos, para, parser, callback);
-        }
-    } else if (before in delimit) {
-        let pos = getBracePos(text, before, delimit[before], cpos-1);
-        if (pos) {
-            let v = $(textarea).siblings('.p_input_view');
-            braceHL(v, text, pos, para, parser, callback);
-        }
-    } else if (before in rev_delimit) {
-        let pos = getBracePos(text, before, rev_delimit[before], cpos, true);
-        let v = $(textarea).siblings('.p_input_view');
-        braceHL(v, text, pos, para, parser, callback);
-    } else if (after in rev_delimit) {
-        let pos = getBracePos(text, after, rev_delimit[after], cpos+1, true);
-        let v = $(textarea).siblings('.p_input_view');
-        braceHL(v, text, pos, para, parser, callback);
-    } else {
-        $('.brace').contents().unwrap();
-    }
-}
-
-function getBracePos(text, brace, match, cpos, rev=false) {
-    let len = text.length;
-    if (rev) {
-        text = text.split('').reverse().join('');
-        cpos = len - cpos;
-    }
-
-    let z = 1;
-    let pos = cpos;
-    let char;
-
-    while (true) {
-        pos += 1;
-        if (pos <= len) {
-            char = text[pos];
-            if (char == brace) {
-                z += 1;
-            } else if (char == match) {
-                z -= 1;
-            }
-            if (z == 0) {
-                break;
-            }
-        } else {
-            if (!rev) {
-                return false;
-            } else {
-                break;
-            }
-        }
-    }
-
-    if (rev) {
-        return {'l': Math.max(0, len - pos - 1), 'r': len - cpos - 1};
-    } else {
-        return {'l': cpos, 'r': pos};
-    }
-}
-
-function braceHL(view, text, pos, para, parser, callback) {
-    let new_text = [
-        text.slice(0, pos['l']),
-        `\&\!L\&`,
-        text.slice(pos['l'], pos['r']+1),
-        `\&\!R\&`,
-        text.slice(pos['r']+1)
-    ].join('');
-
-    let syn = parser(new_text);
-    view.html(syn);
-
-    setTimeout(function() {
-        $('.brace').contents().unwrap();
-        callback(para);
-    }, 800);
-}
 
 /// folding (render only)
 

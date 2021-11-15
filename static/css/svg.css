@@ -118,10 +118,13 @@
   content: counter(line);
 }
 
-#SVGEditorParsed {
+#SVGEditorParsedView, #SVGEditorParsed {
+    white-space: pre-wrap;
     background-color: var(--bg-col);
     color: var(--font-col);
     border-top: 1px solid gray;
+    font-family: monospace;
+    font-size: 80%;
     position: absolute;
     top: 50%;
     width: 50%;
@@ -129,7 +132,8 @@
     padding: 10px;
     padding-left: 30px;
     -webkit-box-shadow:inset 25px 0px 0px 0px rgba(0,0,0,.15);
-
+    overflow: scroll;
+    counter-reset: line;
 }
 
 #SVGEditorOuter textarea::placeholder,

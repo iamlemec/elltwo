@@ -18,9 +18,10 @@ import {
 import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, envGlobal, createTOC, getTro, troFromKey, popText, syntaxHL,
-    braceMatch, renderRefText, getRefTags, untrackRef, doRenderRef, barePara
+    envClasses, envGlobal, createTOC, getTro, troFromKey, popText, elltwoHL,
+    renderRefText, getRefTags, untrackRef, doRenderRef, barePara
 } from './render.js'
+import { braceMatch } from './hl.js'
 import {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
     unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
@@ -187,7 +188,7 @@ function setSsvMode(val) {
     $('.para:not(.folded):not(.folder)').each(function() {
         let para = $(this);
         let input = para.children('.p_input');
-        syntaxHL(para);
+        elltwoHL(para);
         resize(input[0]);
         placeCursor('end');
     });
@@ -366,7 +367,7 @@ function eventArticle() {
         let cur = e.target.selectionStart;
         schedTimeout();
         ccRefs(view, raw, cur);
-        syntaxHL(para);
+        elltwoHL(para);
         if (state.ssv_mode) {
             rawToRender(para, false, false, raw);
         }
@@ -1105,7 +1106,7 @@ function textWrap(para,cur,d) {
     raw = b + d[0] + m + d[1] + e;
     input.val(raw);
     resize(input[0]);
-    syntaxHL(state.active_para);
+    elltwoHL(state.active_para);
     let c = (cur[0]==cur[1]) ? cur[0]+d[0].length : cur[1]+d[0].length + d[1].length
     input[0].setSelectionRange(c,c);
 }
@@ -1189,7 +1190,7 @@ function ccMake(cctxt=null,addText=false) {
     }
     input.val(raw);
     resize(input[0]);
-    syntaxHL(state.active_para);
+    elltwoHL(state.active_para);
     state.cc = false;
     $('#cc_pop').remove();
     if(addText && !iter){

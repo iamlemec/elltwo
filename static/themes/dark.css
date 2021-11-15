@@ -252,7 +252,7 @@ button:hover {
 .code {
     font-family: Fira;
     font-size: 90%;
-    color: var(--hl-col);
+    color: var(--bg-hl2-col);
     padding-left: 3px;
     padding-right: 3px;
     background-color: var(--pop-fg-col);
