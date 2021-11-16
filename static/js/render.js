@@ -146,15 +146,22 @@ const innerPara = `
 <div class="control">
 <div class="controlZone"></div>
 <div class="controlButs">
+<div class='butgrp1'>
 <div class="before controlBut" title='insert above'><svg>
 <use xlink:href="/static/img/icons.svg#control_before"></use>
 </svg></div>
 <div class="after controlBut" title='insert below'><svg>
 <use xlink:href="/static/img/icons.svg#control_after"></use>
 </svg></div>
+</div>
+<div class='butgrp2'>
 <div class="delete controlBut" title='delete'><svg>
 <use xlink:href="/static/img/icons.svg#control_delete"></use>
 </svg></div>
+<div class="copylink ro_but controlBut" title='copy link'><svg>
+<use xlink:href="/static/img/icons.svg#control_link"></use>
+</svg></div>
+</div>
 </div>
 </div>
 <div class="lock_icon"></div>
@@ -168,6 +175,8 @@ function barePara(pid, raw='') {
 
 function makePara(para, defer=true) {
     para.html(innerPara);
+    let anc = $('<span>', {id: `pid-${para.attr('pid')}`});
+    para.prepend(anc)
     rawToTextarea(para);
     rawToRender(para, defer); // postpone formatting
 }

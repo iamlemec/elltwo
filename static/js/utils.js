@@ -3,7 +3,8 @@
 export {
     merge, mapObject, mapValues, attrArray, initToggleBox, toggleBox,
     ensureVisible, setCookie, cooks, getPara, getEnvParas, isMobile, noop,
-    on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle, smallable_butt
+    on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle, smallable_butt,
+    copyText
 }
 
 // js tricks
@@ -49,6 +50,17 @@ function flash(msg) {
         }, 800);
     });
 }
+
+// copy text to clipboard
+
+function copyText(txt){
+    let textArea = document.createElement("textarea");
+    textArea.value = txt
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand("Copy");
+    textArea.remove();
+};
 
 // key cache
 

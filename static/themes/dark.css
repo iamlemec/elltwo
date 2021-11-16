@@ -133,7 +133,7 @@ button:hover {
 }
 
 .container.ssv.sb_content {
-    background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 58%,var(--pop-fg-col) 51%,var(--pop-fg-col) 100%); */
+    background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 45.5%,var(--pop-fg-col) 44%,var(--pop-fg-col) 100%); */
 }
 
 .container:not(.ssv) .para.active {
@@ -253,8 +253,6 @@ button:hover {
     font-family: Fira;
     font-size: 90%;
     color: var(--bg-hl2-col);
-    padding-left: 3px;
-    padding-right: 3px;
     background-color: var(--pop-fg-col);
     border-radius: 4px;
 }

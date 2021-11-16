@@ -6,7 +6,7 @@ import { config, state, cache, updateConfig, updateState, updateCache } from './
 import { connect, sendCommand, addHandler } from './client.js'
 import { renderKatex } from './math.js'
 import { connectDrops, makeImageBlob, promptUpload, uploadImage } from './drop.js'
-import { KeyCache } from './utils.js'
+import { KeyCache, flash, copyText } from './utils.js'
 import { initSVGEditor, hideSVGEditor, parseSVG } from './svg.js'
 
 // config
@@ -74,10 +74,11 @@ function connectImage() {
 function eventImage() {
     connectDrops(function(box, data) {
         let key = data.key;
+        let mime = data.mime;
         let kws = '';
         let div = $('<div>', {class: 'img_cont img_src'});
         $('#dropzone').after(div);
-        renderBox(div, key, kws);
+        renderBox(div, key, kws, mime);
     });
 
     $(document).on('click', '.img_src', function(e) {
@@ -248,12 +249,9 @@ function renderBox(elem, key, kws, mime) {
  }
 
 function copyKey(keyspan) {
-    let textArea = document.createElement("textarea");
-    textArea.value = $(keyspan).text();
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand("Copy");
-    textArea.remove();
+    let ks = $(keyspan).text();
+    copyText(ks)
+    flash(`ImageKey "${ks}" copied to clipboard`);
 };
 
 function hideDisplay() {

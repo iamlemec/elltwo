@@ -839,7 +839,6 @@ class DivRenderer {
             }
         }
 
-        console.log(args, ln)
 
         ln = ln && (args.ln!='false');
         let js = args.lang=='js' || args.lang=='javascript' || args.lang=='gum';
@@ -862,7 +861,7 @@ class DivRenderer {
             numbered = " numbered"
         }
 
-        return `<div class="code ${lang} ${numbered}"><pre>\n${code}\n</pre></div>\n\n`;
+        return `<div class="code ${numbered}"><pre>\n${code}\n</pre></div>\n\n`;
     }
 
     blockquote(quote) {

@@ -96,8 +96,8 @@
     left: 55%;
     width: 40%;
     height: auto;
-    min-height: 50px;
-    margin-bottom: 20px;
+    min-height: 55px;
+    margin-bottom: 40px;
     padding-left: 5px;
     border-right: 2px solid rgba(0, 0, 0, 0);
 }
@@ -154,7 +154,12 @@
     line-height: 20px;
 }
 
-#bg.writeable .para.active > .control {
+.container.ssv .controlBut{
+    width: 20px;
+    height: 20px;
+}
+
+.para.active > .control {
     display: block;
 }
 
@@ -188,7 +193,7 @@
 /* control buttons */
 
 .control {
-    display: none;
+/*     display: none; */
     position: absolute;
     height: 100%;
     top: 0;
@@ -196,6 +201,8 @@
     padding-right: 2px;
     z-index: 1;
 }
+
+
 .container:not(.ssv) .control {
     right: 100%;
 }
@@ -214,7 +221,7 @@
 }
 
 .controlButs {
-    flex-direction: column;
+    flex-direction: row;
     justify-content: flex-end;
     align-items: flex-end;
 }
@@ -235,7 +242,7 @@
 }
 
 .controlBut {
-    display: flex;
+    display: none;
     font-weight: bold;
     font-size: 70%;
     justify-content: center;
@@ -243,8 +250,17 @@
     width: 25px;
     height: 25px;
     cursor: default;
-    margin-right: 5px;
+    margin-right: 1px;
+    margin-bottom: 1px;
     padding: 6px;
+}
+
+.controlBut.ro_but{
+    display: flex;
+}
+
+#bg.writeable .controlBut{
+    display: flex;
 }
 
 .controlBut:first-child {
@@ -615,19 +631,19 @@ color: var(--delimit-col);
 
 .code > pre {
     margin-left: 0px;
-    padding-left: 5px;
+    padding: 3px;
+    padding-left: 10px;
     white-space: pre-wrap;
     counter-reset: line;
-    border-radius: 0;
     background-color: inherit;
+    background-color: rgba(0,0,0,.1);
 }
 
 .code.numbered > pre {
-    margin-left: 20px;
+    margin-left: 28px;
 }
 
 .code.numbered {
-   -webkit-box-shadow:inset 25px 0px 0px 0px rgba(0,0,0,.1);
 }
 
 .linenum{
@@ -1367,11 +1383,15 @@ circle.commit.active {
 .container.sb_content.ssv .control{
     padding-right: 0px;
 }
+    
+.container.ssv .controlButs {
+    flex-direction: column;
+ }
 
 
-.container.sb_content.ssv .controlBut {
-    width: 15px;
-    height: 15px;
+.container.ssv .controlBut {
+    width: 18px;
+    height: 18px;
     padding: 3px;
 }
 

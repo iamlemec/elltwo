@@ -8,7 +8,8 @@ export {
 
 import { config, state, cache } from './state.js'
 import {
-    ensureVisible, cooks, setCookie, getPara, attrArray, noop, on_success, flash, smallable_butt
+    ensureVisible, cooks, setCookie, getPara, attrArray, noop, on_success, flash, 
+    smallable_butt, copyText
 } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import {
@@ -262,6 +263,16 @@ function eventEditor() {
     $(document).on('click', '.delete', function() {
         let para = $(this).parents('.para');
         sendDeleteParas(para);
+        return false;
+    });
+
+    $(document).on('click', '.copylink', function() {
+        let para = $(this).parents('.para');
+        let link = para.attr('id') || `pid-${para.attr('pid')}`;
+        link = location.protocol + '//' + location.host + location.pathname + '#' + link;
+        copyText(link);
+        flash(`"${link}" copied to clipboard`);
+        
         return false;
     });
 

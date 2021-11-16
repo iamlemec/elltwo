@@ -233,8 +233,6 @@ button:hover {
     font-family: Fira;
     font-size: 90%;
     color: var(--bor-col);
-    padding-left: 3px;
-    padding-right: 3px;
     border-radius: 4px;
     background-color: var(--pop-fg-col);
 }

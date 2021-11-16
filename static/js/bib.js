@@ -6,7 +6,7 @@ import { config, state, cache, updateConfig, updateState, updateCache } from './
 import { connect, addHandler, sendCommand } from './client.js'
 import { getCiteData } from './bib_search.js'
 import { renderKatex } from './math.js'
-import { KeyCache, flash } from './utils.js'
+import { KeyCache, flash, copyText } from './utils.js'
 import { divInlineLexer } from './marked3.js'
 
 
@@ -316,13 +316,8 @@ function createBibEntry(key, cite, target, results=false) {
 // editing and nav
 
 function copyCitekey(cite) {
-    let textArea = document.createElement("textarea");
     let ck = $(cite).text();
-    textArea.value = ck
-    document.body.appendChild(textArea);
-    textArea.select();
-    document.execCommand("Copy");
-    textArea.remove();
+    copyText(ck);
     flash(`CiteKey "${ck}" copied to clipboard`);
 }
 
