@@ -2,26 +2,16 @@
 
 export { initSVGEditor, hideSVGEditor, parseSVG, gums }
 
-import { on_success, createIcon, createToggle, smallable_butt } from './utils.js'
+import { on_success, createIcon, createToggle, createButton, smallable_butt } from './utils.js'
 import { state } from './state.js'
 import { sendCommand } from './client.js'
 import { replace } from './marked3.js'  
+import { showConfirm } from './editor.js'  
+import { deleteImage } from './img.js'  
 import { s, SyntaxHL, braceMatch } from './hl.js'
 import { Gum, SVG, Element } from '../gum.js/lib/gum.js'
 
 let svg_butts = {};
-
-function createButton(id, text, iconName) {
-    if (iconName == null) {
-        iconName = id.toLowerCase();
-    }
-    let but = $('<button>', {id: `SVGEditor${id}`, class: 'foot_butt smallable_butt'});
-    let t = $('<span>', {id: `${id}_text`});
-    but.append(t);
-    but.append(createIcon(iconName));
-    svg_butts[`#${id}_text`] = text;
-    return but;
-}
 
 function initSVGEditor(el, raw='', key='', gum=true) {
     $('#hoot').html(`[201p // iamlemec ${s('// gum.js editor','math')}]`)
@@ -36,9 +26,9 @@ function initSVGEditor(el, raw='', key='', gum=true) {
     } else {
         // custom buttons and toggles
         let tog = createToggle('svgShow', 'Show SVG');
-        let commit = createButton('Commit', 'Commit', 'exp');
-        let del = createButton('Delete', 'Delete');
-        let exit = createButton('Exit', 'Exit');
+        let commit = createButton('SVGEditorCommit', 'Commit', 'exp', svg_butts);
+        let del = createButton('SVGEditorDelete', 'Delete', 'delete', svg_butts);
+        let exit = createButton('SVGEditorExit', 'Exit', 'exit', svg_butts);
         $('#SVGEditorNavUp').append(tog);
         $('#SVGEditorNavDown').append(commit).append(del).append(exit);
 
@@ -58,10 +48,22 @@ function initSVGEditor(el, raw='', key='', gum=true) {
 
         // mark constructed
         state.SVGEditor = true;
-    }
+    
 
     $(document).on('click', '#SVGEditorExit', function() {
         hideSVGEditor();
+    });
+
+    $(document).on('click', '#SVGEditorDelete', function() {
+        if(state.key){//only if extant image
+            let key = state.key;
+            let txt = `Delete Image "${key}"?`
+            let del = createButton('ConfirmDelete', 'Delete', 'delete');
+            let action = function(){
+                deleteImage(key)
+            };
+        showConfirm(del, action, txt)
+        }
     });
 
     window.onresize = () => {
@@ -108,9 +110,11 @@ function initSVGEditor(el, raw='', key='', gum=true) {
             $('#SVGEditorTag').addClass('input_err');
         }
     });
+    }
 }
 
 function hideSVGEditor() {
+    state.key = null;
     $('#hoot').html('[201p // iamlemec]');
     $('#SVGEditorOuter').hide();
 }

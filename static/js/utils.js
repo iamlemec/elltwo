@@ -3,8 +3,8 @@
 export {
     merge, mapObject, mapValues, attrArray, initToggleBox, toggleBox,
     ensureVisible, setCookie, cooks, getPara, getEnvParas, isMobile, noop,
-    on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle, smallable_butt,
-    copyText
+    on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle, createButton,
+    smallable_butt, copyText
 }
 
 // js tricks
@@ -234,6 +234,22 @@ function createToggle(id, text, checked=true){
         ${createIcon('svg-check')}
         </span></span></span>
         </label>`
+}
+
+function createButton(id, text, iconName, smallable=false) {
+    //set smallable=true to include class, 
+    //set as dict to add to dict also to pass later to some function
+    let s = smallable ? "smallable_butt" : ""
+    let but = $('<button>', {id: id, class: `foot_butt ${s}`});
+    let t = $('<span>', {id: `${id}_text`});
+    but.append(t);
+    but.append(createIcon(iconName));
+    if (typeof(smallable)==='object'){
+        smallable[`#${id}_text`] = text;
+    } else {
+        t.text(text);
+    }
+    return but;
 }
 
 

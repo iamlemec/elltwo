@@ -1,12 +1,13 @@
 /* image library browser */
 
-export { initImage }
+export { initImage, deleteImage }
 
 import { config, state, cache, updateConfig, updateState, updateCache } from './state.js'
 import { connect, sendCommand, addHandler } from './client.js'
 import { renderKatex } from './math.js'
+import { hideConfirm, showConfirm } from './editor.js'  
 import { connectDrops, makeImageBlob, promptUpload, uploadImage } from './drop.js'
-import { KeyCache, flash, copyText } from './utils.js'
+import { KeyCache, flash, copyText, createButton } from './utils.js'
 import { initSVGEditor, hideSVGEditor, parseSVG } from './svg.js'
 
 // config
@@ -71,6 +72,19 @@ function connectImage() {
     });
 }
 
+function deleteImage(key){
+    sendCommand('delete_image', {'key': key}, (ret) => {
+        if (ret) {
+            let img = $(`#${key}`);
+            cache.img.del('__img');
+            img.parent('.img_cont').remove();
+            hideDisplay();
+            hideSVGEditor();
+            $('#query').focus();
+        }
+        });
+}
+
 function eventImage() {
     connectDrops(function(box, data) {
         let key = data.key;
@@ -87,6 +101,7 @@ function eventImage() {
         let kw = img.attr('kw') || '';
 
         if (img.hasClass('svg')) {
+            state.key = key;
             let mime = img.attr('mime');
             let raw = img.attr('raw');
             let mode = mime.replace(/text\/svg\+(.+)/, '$1');
@@ -115,7 +130,6 @@ function eventImage() {
                 && targ.closest('#display').length == 0
                 && targ.closest('#SVGEditorOuter').length == 0) {
             hideDisplay();
-            $('#SVGEditorOuter').hide();
             $('#query').focus();
         }
     });
@@ -127,8 +141,12 @@ function eventImage() {
     $(document).on('keyup', function(e) {
         let key = e.key.toLowerCase();
         if (key == 'escape') {
-            hideDisplay();
-            hideSVGEditor();
+            if(state.confirm){
+                hideConfirm()
+            }else{
+                hideDisplay();
+                hideSVGEditor();
+            };
         }
     });
 
@@ -156,15 +174,12 @@ function eventImage() {
 
     $(document).on('click', '#img_delete', function() {
         let key = state.key;
-        sendCommand('delete_image', {'key': key}, (ret) => {
-            if (ret) {
-                let img = $(`#${key}`);
-                cache.img.del('__img');
-                img.parent('.img_cont').remove();
-                $('#display').hide();
-                $('#query').focus();
-            }
-        });
+        let txt = `Delete Image "${key}"?`
+        let del = createButton('ConfirmDelete', 'Delete', 'delete');
+        let action = function(){
+            deleteImage(key)
+        };
+        showConfirm(del, action, txt)
     });
 
     $(document).on('click', '#display_upload', function() {
@@ -257,6 +272,7 @@ function copyKey(keyspan) {
 function hideDisplay() {
     let disp = $('#display');
     if (disp.is(':visible')) {
+        state.key = null;
         disp.hide();
     }
 }

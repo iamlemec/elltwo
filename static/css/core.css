@@ -63,6 +63,11 @@ textarea:focus, input:focus {
     background-color: var(--bg-col)
 }
 
+
+#bg.blur{
+   filter: grayscale(.6) blur(.7px);
+}
+
 #flash{
     position: fixed;
     display: none;
@@ -115,6 +120,37 @@ a.reference {
     color: var(--hl2-col);
     text-decoration: none;
     white-space: nowrap;
+}
+
+#confirm_popup{
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,.3);
+    top: 0;
+}
+
+#cp_inner{
+    position: fixed;
+    width: 400px;
+    height: 100px;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%,0);
+    background: var(--pop-bg-col);
+    color: var(--pop-fg-col);
+    border-radius: 3px;
+    padding: 20px;
+    text-align: center;
+}
+
+#cp_inner div{
+    margin-bottom: 10px;
+}
+
+#cp_inner .foot_butt{
+    padding: 8px;
 }
 
 #hoot {
@@ -268,6 +304,7 @@ a.reference {
     padding-left: 30px;
     font-size: 70%;
 }
+    
 
 #hoot {
     display: none;
@@ -279,14 +316,20 @@ a.reference {
 }
 
 .foot_butt {
-    display: inline;
-    font-size: 100%;
     border: 1px solid var(--delimit-col);
     border-radius: 3px;
     margin-left: 0px;
     margin-right: 5px;
     top: 0;
-    width: 70px;
+}
+    
+not(#confirm_popup).foot_butt{
+        display: inline;
+        width: 70px;
+}
+    
+#confirm_popup .foot_butt svg{
+        margin: 2px;
 }
 
 .smallable_butt {

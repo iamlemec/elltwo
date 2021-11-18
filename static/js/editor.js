@@ -3,13 +3,13 @@
 export {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
     unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
-    fold, makeUnEditable, 
+    fold, makeUnEditable, hideConfirm, showConfirm
 }
 
 import { config, state, cache } from './state.js'
 import {
     ensureVisible, cooks, setCookie, getPara, attrArray, noop, on_success, flash, 
-    smallable_butt, copyText
+    smallable_butt, copyText, createButton
 } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
 import {
@@ -261,8 +261,13 @@ function eventEditor() {
     });
 
     $(document).on('click', '.delete', function() {
-        let para = $(this).parents('.para');
-        sendDeleteParas(para);
+        let txt = "Delete Cell?"
+        let del = createButton('ConfirmDelete', 'Delete', 'delete');
+        let para = $(this).parents('.para')
+        let action = function(){
+            sendDeleteParas(para);
+        };
+        showConfirm(del, action, txt)
         return false;
     });
 
@@ -708,4 +713,45 @@ function unfold() {
     setCookie('folded', foldcookie, 604800);
     renderFold();
 }
+
+/// confirm dialog
+
+function showConfirm(button, action, text){
+    state.confirm = true;
+    //let del = createButton('ConfirmDelete', 'Delete', 'delete');
+    let exit = createButton('ConfirmCancel', 'Cancel', 'exit');
+    $('#bg').addClass('blur');
+    let txt = $('<div>', {text: text});
+    $('#cp_inner').append(txt).append(button).append(exit);
+    $('#confirm_popup').show()
+    $('#ConfirmCancel').on('click', (e) => {hideConfirm()});
+    
+    let callback = function(){
+        action();
+        hideConfirm(button);
+    };
+
+    button.on('click',callback);
+
+    $('#confirm_popup').on('click', function(e) {
+        let targ = $(e.target);
+        if (targ.closest('#cp_inner').length == 0){
+            hideConfirm()
+        }
+    });
+}
+
+function hideConfirm(unbind=false) {
+        state.confirm = false;
+        $('#bg').removeClass('blur');
+        $('#cp_inner').empty();
+        $('#confirm_popup').hide();
+        //unbind click events
+        $('#ConfirmCancel').off('click');
+        $('#confirm_popup').off('click');
+        if(unbind){
+            unbind.off('click');
+        }
+}
+
 
