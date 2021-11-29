@@ -128,7 +128,7 @@ function parseArgs(argsraw, number=true, set=true) {
                let val = x.pop();
                x.forEach(key => {
                    if (!rx.test(key)) {
-                       args[key] = val
+                       args[key] = val;
                    }
                });
            });
@@ -143,7 +143,7 @@ function parseArgs(argsraw, number=true, set=true) {
             args['id'] = fst;
         }
     } else {
-        if (rx.test(args['id'])) { //cannot have chars in id
+        if (rx.test(args['id'])) { // cannot have chars in id
             delete args['id'];
         }
     }
@@ -847,18 +847,18 @@ class DivRenderer {
         //code = escaped ? code : escape(code, true);
         //lang = lang ? (this.options.langPrefix + escape(lang, true)) : '';
 
-        let numbered = ln ? "numbered" : "";
-        
-        if(js){
+        let numbered = ln ? 'numbered' : '';
+
+        if (js) {
             code = SyntaxHL(code, 'gum');
-        }else if (ell){
+        } else if (ell) {
             code = SyntaxHL(code, 'elltwo');
-        }else{
-            code = `<div class="linenum"></div>` + code.replace(/\n/g, `\n<div class=linenum></div>`)
+        } else {
+            code = `<div class="linenum"></div>` + code.replace(/\n/g, `\n<div class=linenum></div>`);
         }
 
-        if(ln){
-            numbered = " numbered"
+        if (ln) {
+            numbered = ' numbered';
         }
 
         return `<div class="code ${numbered}"><pre>\n${code}\n</pre></div>\n\n`;
@@ -1105,7 +1105,7 @@ class TexRenderer {
     }
 
     svg(svg) {
-        return 'SVG export is a to-do; sorry';
+        return '';
     }
 
     special(acc,letter) {
@@ -1206,7 +1206,7 @@ class TexRenderer {
     }
 
     imagelocal(key) {
-        return `[Image: ${key}]`;
+        return '';
     }
 
     escape(esc) {
@@ -1270,10 +1270,6 @@ class TexRenderer {
     }
 
     /*
-    image(href, alt) {
-      return `<img src="${href}" alt="${alt}">`;
-    }
-
     figure(ftype, tag, title, body) {
       let tagtxt = (tag != undefined) ? `id="${tag}"`: '';
       let captxt = (title != undefined) ? `<figcaption>${title}</figcaption>` : '';

@@ -47,8 +47,10 @@ function createTex() {
         paras.push(tex);
     });
 
+    let now = new Date();
     let tVars = {
         title: title,
+        date: now.toDateString(),
         macros: texMacros(state.macros),
         envs: sEnv(s_env_spec),
         bib: rawBibTex,
@@ -63,15 +65,6 @@ function createTex() {
     }
     return dict;
 }
-
-// function getBibRefs() {
-//     // non-null cache entries
-//     // let bib = Object.fromEntries(
-//     //     Object.entries(cache.cite).filter(([k,v]) => v)
-//     // );
-//     let bib = cache.cite.data
-//     return bib;
-// }
 
 function replaceCites(keys, text) {
     let ref = /\\(c)?ref\{([\w-:]+)\}/g;
@@ -105,7 +98,7 @@ function texEnv(m) {
     if (spec in tex_spec) {
         return tex_spec[spec](m.src, env);
     } else if (spec in s_env_spec) {
-        return texTheorem(m.src, env)
+        return texTheorem(m.src, env);
     } else {
         return tex_spec.error(m.src, env);
     }
@@ -127,6 +120,27 @@ function texEquation(src, env) {
     let num = (args.number) ? '' : '*';
     let eqenv = args.multiline ? 'align' : 'equation';
     let out = `\\begin{${eqenv}${num}}\n${src}\n${label}\\end{${eqenv}${num}}`;
+    return out;
+}
+
+function texImage(src, env) {
+    let args = env.args;
+    let caption = args.caption ?? '';
+    let out = `\\begin{figure}\n${src}\n\\caption{${caption}}\n\\end{figure}`;
+    return out;
+}
+
+function texImageLocal(src, env) {
+    let args = env.args;
+    let image = (args.image || args.img) ?? '';
+    let width = (args.width || args.w)/100 ?? '';
+    let caption = args.caption ?? '';
+    let out = `\\begin{figure}\n\\includegraphics[width=${width}\\textwidth]{${image}}\n\\caption{${caption}}\n\\end{figure}`;
+    return out;
+}
+
+function texSvg(src, env) {
+    let out = '[SVG export is a to-do, sorry]';
     return out;
 }
 
@@ -162,6 +176,9 @@ let tex_spec = {
     theorem: texTheorem,
     heading: texSection,
     equation: texEquation,
+    image: texImage,
+    imagelocal: texImageLocal,
+    svg: texSvg,
     error: texError,
     title: texTitle,
     end: texEndEnv,

@@ -22,6 +22,7 @@ function latexTemplate(d) {
 \usepackage{fancyvrb}
 \usepackage{fvextra}
 \usepackage{geometry}
+\usepackage{graphicx}
 \usepackage{filecontents} %for bib
 
 \geometry{margin=1.25in}

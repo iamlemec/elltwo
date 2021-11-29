@@ -8,6 +8,7 @@ import fire
 import toml
 
 from elltwo.tools import gen_auth
+from elltwo.convert import convert_latex
 import elltwo.query as dbq
 import elltwo.schema as dbs
 
@@ -286,6 +287,18 @@ class Backup:
             self.edb.create()
             self.edb.load_articles(inp, zip=zip)
 
+class Convert:
+    def latex(self, path, out=None):
+        with open(path) as fid:
+            tex = fid.read()
+        mark = convert_latex(tex)
+        if out is None:
+            print('Output:')
+            print(mark)
+        else:
+            with open(out, 'w+') as fout:
+                fout.write(mark)
+
 class Main:
     def __init__(self, db='elltwo.db'):
         edb = dbq.ElltwoDB(path=db)
@@ -300,6 +313,7 @@ class Main:
         self.biblio = self.bib = Biblio(edb=edb)
         self.reference = self.ref = Reference(edb=edb)
         self.backup = Backup(edb=edb)
+        self.convert = self.conv = Convert()
 
 if __name__ == '__main__':
     fire.Fire(Main)
