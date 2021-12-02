@@ -19,7 +19,7 @@ function createMd() {
 
     let dict = {
         format: 'text/markdown',
-        filename: `${config.title}.md`,
+        filename: config.title,
         text: paras.join('\n\n'),
     };
     return dict;
@@ -60,7 +60,7 @@ function createTex() {
 
     let dict = {
         mimetype: 'text/tex',
-        filename: `${config.title}.tex`,
+        filename: config.title,
         text: text,
     }
     return dict;
@@ -133,9 +133,11 @@ function texImage(src, env) {
 function texImageLocal(src, env) {
     let args = env.args;
     let image = (args.image || args.img) ?? '';
-    let width = (args.width || args.w)/100 ?? '';
-    let caption = args.caption ?? '';
-    let out = `\\begin{figure}\n\\includegraphics[width=${width}\\textwidth]{${image}}\n\\caption{${caption}}\n\\end{figure}`;
+    let width = args.width || args.w;
+    let opts = width ? `[width=${width/100}\\textwidth]` : '';
+    let cap = (args.caption == 'none') ? null : args.caption;
+    let caption = (cap != null) ? `\\caption{${cap}}\n` : '';
+    let out = `\\begin{figure}\n\\includegraphics${opts}{${image}}\n${caption}\\end{figure}`;
     return out;
 }
 
@@ -211,11 +213,16 @@ function sEnv(s_env_spec) {
 
 // export methods
 
-function downloadFile(mime, fname, text) {
+function urlify(s) {
+    return s.replace(/\W/g, '_').replace(/_{2,}/g, '_').toLowerCase();
+}
+
+function downloadFile(mime, name, ext, text) {
     let element = document.createElement('a');
     let data = encodeURIComponent(text);
+    name = (name.length > 0) ? urlify(name) : 'filename';
     element.setAttribute('href', `data:${mime};charset=utf-8,${data}`);
-    element.setAttribute('download', fname);
+    element.setAttribute('download', `${name}.${ext}`);
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click();
@@ -224,12 +231,12 @@ function downloadFile(mime, fname, text) {
 
 function exportMarkdown() {
     let data = createMd();
-    downloadFile(data['mimetype'], data['filename'], data['text']);
+    downloadFile(data.mimetype, data.filename, 'md', data.text);
 }
 
 function exportLatex() {
     let data = createTex();
-    downloadFile(data['mimetype'], data['filename'], data['text']);
+    downloadFile(data.mimetype, data.filename, 'tex', data.text);
 }
 
 // toggle box

@@ -39,13 +39,12 @@ function on_success(func) {
 // messages
 
 function flash(msg) {
-    let flash = $('<div>', {text: msg});
-    flash.attr('id', 'flash')
-    $('#bg').append(flash)
-    $('#flash').fadeIn(400, function(){
-        setTimeout(function(){
-            $('#flash').fadeOut(400, function(){
-                $(this).remove();
+    let flash = $('<div>', {text: msg, id: 'flash'});
+    $('#bg').append(flash);
+    flash.fadeIn(400, function() {
+        setTimeout(function() {
+            flash.fadeOut(400, function() {
+                flash.remove();
             });
         }, 800);
     });
@@ -53,14 +52,14 @@ function flash(msg) {
 
 // copy text to clipboard
 
-function copyText(txt){
+function copyText(txt) {
     let textArea = document.createElement("textarea");
-    textArea.value = txt
+    textArea.value = txt;
     document.body.appendChild(textArea);
     textArea.select();
     document.execCommand("Copy");
     textArea.remove();
-};
+}
 
 // key cache
 
@@ -214,41 +213,45 @@ class RefCount {
     }
 }
 
-// html constructors 
+// html constructors
 
 function createIcon(id) {
-    return `<svg>
-            <use xlink:href="/static/img/icons.svg#${id}"></use>
-            </svg>`;
+    return `
+<svg>
+<use xlink:href="/static/img/icons.svg#${id}"></use>
+</svg>
+`.trim();
 }
 
 function createToggle(id, text, checked=true){
-
-    checked = checked ? 'checked' : "";
-
+    checked = checked ? 'checked' : '';
     return `
-        <label class="toggle" for="${id}_check" id="${id}_label">
-        <span> ${text} </span>
-        <input type="checkbox" class="toggle__input" id="${id}_check" ${checked}/>
-        <span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
-        ${createIcon('svg-check')}
-        </span></span></span>
-        </label>`
+<label class="toggle" for="${id}_check" id="${id}_label">
+<span> ${text} </span>
+<input type="checkbox" class="toggle__input" id="${id}_check" ${checked}/>
+<span class="toggle-track"><span class="toggle-indicator"><span class="checkMark">
+${createIcon('svg-check')}
+</span></span></span>
+</label>
+`.trim();
 }
 
 function createButton(id, text, iconName, smallable=false) {
-    //set smallable=true to include class, 
-    //set as dict to add to dict also to pass later to some function
-    let s = smallable ? "smallable_butt" : ""
+    // set smallable=true to include class,
+    // set as dict to add to dict also to pass later to some function
+
+    let s = smallable ? 'smallable_butt' : '';
     let but = $('<button>', {id: id, class: `foot_butt ${s}`});
     let t = $('<span>', {id: `${id}_text`});
     but.append(t);
     but.append(createIcon(iconName));
-    if (typeof(smallable)==='object'){
+
+    if (typeof(smallable) === 'object') {
         smallable[`#${id}_text`] = text;
     } else {
         t.text(text);
     }
+
     return but;
 }
 
@@ -307,7 +310,6 @@ function smallable_butt(butts, threshold=1000) {
         let txt = small ? '' : text;
         let tit = small ? text : '';
         $(id).text(txt).parent().attr('title', tit);
-
     };
 };
 

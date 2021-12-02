@@ -55,7 +55,7 @@ function createbtjs(bd) {
             }
         }
         let s = bd.author[0].family.toLowerCase().replace(' ', '') + btjs.year + btjs.title.split(' ')[0];
-        s = s.replace(/[^\w\s]/g, "");
+        s = s.replace(/[^\w\s]/g, '');
         btjs.citekey = s;
         btjs.raw = toBibtexStr(btjs);
         return btjs;

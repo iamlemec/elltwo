@@ -5,7 +5,7 @@ export { initImage, deleteImage }
 import { config, state, cache, updateConfig, updateState, updateCache } from './state.js'
 import { connect, sendCommand, addHandler } from './client.js'
 import { renderKatex } from './math.js'
-import { hideConfirm, showConfirm } from './editor.js'  
+import { hideConfirm, showConfirm } from './editor.js'
 import { connectDrops, makeImageBlob, promptUpload, uploadImage } from './drop.js'
 import { KeyCache, flash, copyText, createButton } from './utils.js'
 import { initSVGEditor, hideSVGEditor, parseSVG } from './svg.js'
@@ -72,7 +72,7 @@ function connectImage() {
     });
 }
 
-function deleteImage(key){
+function deleteImage(key) {
     sendCommand('delete_image', {'key': key}, (ret) => {
         if (ret) {
             let img = $(`#${key}`);
@@ -82,7 +82,7 @@ function deleteImage(key){
             hideSVGEditor();
             $('#query').focus();
         }
-        });
+    });
 }
 
 function eventImage() {

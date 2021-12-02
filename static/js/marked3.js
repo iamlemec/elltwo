@@ -480,7 +480,7 @@ class Lexer {
 
 let inline = {
     special: /^(?<!\\)\\([\`\"\^\~])\{([A-z])\}/,
-    escape: /^\\([\\/`*{}\[\]()#+\-.!_>\$])/,
+    escape: /^\\([\\/`*{}\[\]()#+\-.!_>\$%&])/,
     in_comment: /^\/\/([^\n]*?)(?:\n|$)/,
     autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
     url: noop,
@@ -492,7 +492,7 @@ let inline = {
     code: /^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/,
     br: /^ {2,}\n(?!\s*$)/,
     del: noop,
-    text: /^[\s\S]+?(?=[\/\\<!\[_*`\$\^@%]| {2,}\n|$)/,
+    text: /^[\s\S]+?(?=[\/\\<!\[_*`\$\^@]| {2,}\n|$)/,
     math: /^\$((?:\\\$|[\s\S])+?)\$/,
     ref: /^@\[([^\]]+)\]/,
     cite: /^@@\[([^\]]+)\]/,
@@ -1170,7 +1170,7 @@ class TexRenderer {
     }
 
     br() {
-        return `\\bigskip`;
+        return ` \\\\\n`;
     }
 
     /*
@@ -1508,7 +1508,6 @@ function escape_latex(tex) {
         .replace(/#/g, '\\#')
         .replace(/&/g, '\\&')
         .replace(/%/g, '\\%')
-        .replace(/\$/g, '\\$')
         .replace(/_/g, '\\_')
         .replace(/\^/g,'\\textasciicircum');
 }
@@ -1522,9 +1521,9 @@ let acc_dict = {
 }
 
 function special(acc, letter) {
-    if(acc in acc_dict){
+    if (acc in acc_dict) {
         let spec = acc_dict[acc];
-        if(spec.allowed.includes(letter)){
+        if (spec.allowed.includes(letter)) {
             return `&${letter}${spec.name};`
         }
     }
@@ -1624,7 +1623,7 @@ function markthree(src, output) {
         let html = parser.parse(tokens);
         return html;
     } catch (e) {
-        console.log(e)
+        console.log(e);
         return {
             src: `<p>marked3 error [marked3.js:${e.lineNumber}] → ${e.message}</p>`
         };

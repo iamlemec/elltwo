@@ -26,6 +26,9 @@ function latexTemplate(d) {
 \usepackage{filecontents} %for bib
 
 \geometry{margin=1.25in}
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{0.3cm}
+\renewcommand{\baselinestretch}{1.1}
 
 %% colors
 \definecolor{lam1}{HTML}{127DFF}
@@ -77,7 +80,8 @@ ${d.bib}
 
 \begin{document}
 
-\title{ ${d.title}\thanks{This .tex file was created via elltwo ($\ell^2$) on ${d.date}.} }
+\title{${d.title}}
+\date{}
 
 \maketitle
 
