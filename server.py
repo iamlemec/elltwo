@@ -1,7 +1,8 @@
-import os, argparse, toml, secrets
+import os, argparse, toml, secrets, webbrowser
 from io import BytesIO
 from pathlib import Path
 from collections import namedtuple
+from threading import Timer
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash
@@ -37,11 +38,12 @@ parser.add_argument('--port', type=int, default=5000, help='Main port to serve o
 parser.add_argument('--debug', action='store_true', help='Run in debug mode')
 parser.add_argument('--login', action='store_true', help='Require login for editing')
 parser.add_argument('--private', action='store_true', help='Require login for viewing/editing')
-parser.add_argument('--reindex', action='store_true', help='reindex search database on load')
+parser.add_argument('--reindex', action='store_true', help='Reindex search database on load')
 parser.add_argument('--demo', action='store_true', help='Go to index by default')
-parser.add_argument('--conf', type=str, default=None, help='path to configuation file')
-parser.add_argument('--auth', type=str, default=None, help='user authorization config')
-parser.add_argument('--mail', type=str, default=None, help='mail authorization config')
+parser.add_argument('--no-browser', action='store_true', help='Do not launch browser on startup')
+parser.add_argument('--conf', type=str, default=None, help='Path to configuation file')
+parser.add_argument('--auth', type=str, default=None, help='User authorization config')
+parser.add_argument('--mail', type=str, default=None, help='Mail authorization config')
 args = parser.parse_args()
 
 ###
@@ -893,6 +895,13 @@ def delete_image(data):
 ##
 ## run that babeee
 ##
+
+# launch browser maybe
+def launch_browser():
+    webbrowser.open_new(f'http://{args.ip}:{args.port}')
+if not args.no_browser and not args.debug:
+    thr = Timer(1, launch_browser)
+    thr.start()
 
 # run through socketio event loop
 socketio.run(app, host=args.ip, port=args.port)
