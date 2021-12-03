@@ -44,6 +44,7 @@ function createTex() {
             tex = markout.src;
         }
         tex = replaceCites(bibKeys, tex);
+        tex = replaceQuotes(tex);
         paras.push(tex);
     });
 
@@ -81,6 +82,11 @@ function replaceCites(keys, text) {
         return $(`[citekey='${p1}']`).first().text();
     });
 
+    return text;
+}
+
+function replaceQuotes(text) {
+    text = text.replace(/"([^"\n]+)"/g, "``$1''");
     return text;
 }
 

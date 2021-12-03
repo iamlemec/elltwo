@@ -81,7 +81,7 @@ ${d.bib}
 
 \begin{document}
 
-\title{${d.title}}
+\title{\vspace{-3em}${d.title}\vspace{-3em}}
 \date{}
 
 \maketitle
