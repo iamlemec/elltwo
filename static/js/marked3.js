@@ -1006,7 +1006,7 @@ class DivRenderer {
     }
 
     ilink(args, text) {
-        const id = args.id || '';
+        const id = args.id ?? '';
         const pclass = (args.popup != 'false') ? 'pop_anchor': '';
         const dtext = text ? ` data-text="${escape(text)}"` : '';
         return `<a class="reference ${pclass}" href="${id}" refkey="${id}" ${dtext} reftype="link"></a>`;
@@ -1033,12 +1033,6 @@ class DivRenderer {
         const img = args.image || args.img;
         const key = img ? `key="${img}"`: '';
         return `<div ${key} class="dropzone">Drop Image or Click to Upload</div>`;
-    }
-
-    figure(ftype, tag, title, body) {
-        let tagtxt = (tag != undefined) ? `id="${tag}"`: '';
-        let captxt = (title != undefined) ? `<figcaption>${title}</figcaption>` : '';
-        return `<figure class="${ftype}" ${tagtxt}>\n${body}\n${captxt}\n</figure>\n\n`;
     }
 
     biblio(id, info) {
@@ -1151,7 +1145,6 @@ class TexRenderer {
     }
     */
 
-    // span level TexRenderer
     strong(text) {
         return `\\textbf{${text}}`;
     }
@@ -1173,35 +1166,24 @@ class TexRenderer {
         return ` \\\\\n`;
     }
 
-    /*
     del(text) {
-      return `<span class="del">${text}</span>`;
+      return `\\sout{${text}}`;
     }
-    */
 
     link(href, title, text) {
-        if (this.options.sanitize) {
-            try {
-                let prot = decodeURIComponent(unescape(href))
-                    .replace(/[^\w:]/g, '')
-                    .toLowerCase();
-            } catch (e) {
-                return '';
-            }
-            if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0) {
-                return '';
-            }
-        }
-        text = escape_latex(text);
-
-        return `\\href{${href}}{${text}}`
+        href = escape_latex(href);
+        // text = escape_latex(text);
+        return `\\href{${href}}{${text}}`;
     }
 
-    ilink(href) {
-        return `\\href{${window.location.origin}/r/${href}}{${href}}`
+    ilink(args, text) {
+        let id = escape_latex(args.id ?? '');
+        let name = text || id;
+        return `\\href{${window.location.origin}/r/${id}}{${name}}`;
     }
 
     image(href) {
+        href = escape_latex(href);
         return `\\href{${href}}{${href}}`;
     }
 
@@ -1268,14 +1250,6 @@ class TexRenderer {
     sidenote(text) {
         return `\\footnote{${text}}`;
     }
-
-    /*
-    figure(ftype, tag, title, body) {
-      let tagtxt = (tag != undefined) ? `id="${tag}"`: '';
-      let captxt = (title != undefined) ? `<figcaption>${title}</figcaption>` : '';
-      return `<figure class="${ftype}" ${tagtxt}>\n${body}\n${captxt}\n</figure>\n\n`;
-    }
-    */
 }
 
 /**
@@ -1446,9 +1420,6 @@ class Parser {
             }
             case 'paragraph': {
                 return this.renderer.paragraph(this.inline.output(this.token.text));
-            }
-            case 'text': {
-                return this.renderer.paragraph(this.parseText());
             }
             case 'upload': {
                 return this.renderer.upload(this.token.args);

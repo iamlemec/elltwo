@@ -14,16 +14,17 @@ function latexTemplate(d) {
 \usepackage{fullpage}
 \usepackage{enumerate}
 \usepackage{enumitem}
-\usepackage[authoryear]{natbib} %bib
-\usepackage[unicode]{hyperref} %hyperlinks
-\usepackage{xcolor} %colors
-\usepackage{cleveref} %references
+\usepackage{ulem}
+\usepackage[authoryear]{natbib} % bib
+\usepackage[unicode]{hyperref} % hyperlinks
+\usepackage{xcolor} % colors
+\usepackage{cleveref} % references
 \usepackage{newverbs}
 \usepackage{fancyvrb}
 \usepackage{fvextra}
 \usepackage{geometry}
 \usepackage{graphicx}
-\usepackage{filecontents} %for bib
+\usepackage{filecontents} % for bib
 
 \geometry{margin=1.25in}
 \setlength{\parindent}{0cm}

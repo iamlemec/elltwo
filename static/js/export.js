@@ -214,7 +214,10 @@ function sEnv(s_env_spec) {
 // export methods
 
 function urlify(s) {
-    return s.replace(/\W/g, '_').replace(/_{2,}/g, '_').toLowerCase();
+    return s.replace(/\W/g, '_')
+            .replace(/_{2,}/g, '_')
+            .replace(/(^_|_$)/g, '')
+            .toLowerCase();
 }
 
 function downloadFile(mime, name, ext, text) {
