@@ -7,7 +7,7 @@ import { connect, addHandler, sendCommand } from './client.js'
 import { getCiteData } from './bib_search.js'
 import { renderKatex } from './math.js'
 import { KeyCache, flash, copyText } from './utils.js'
-import { divInlineLexer } from './marked3.js'
+import { divInlineParser } from './marked3.js'
 
 
 function initBib() {
@@ -254,7 +254,7 @@ function createBibInfo(cite) {
     let vol = cite.volume ? `, ${cite.volume}` : '';
     let num = cite.number ? `, no. ${cite.number}` : '';
     let pgs = cite.pages ? `, pp. ${cite.pages}` : '';
-    let title = cite.title ? `${divInlineLexer.output(cite.title)}` : '';
+    let title = cite.title ? `${divInlineParser.output(cite.title)}` : '';
     let pubs = ['book', 'incollection'];
     let jns = ['article', 'techreport', 'unpublished'];
     let wild = [undefined];
@@ -273,7 +273,7 @@ function createBibInfo(cite) {
         journal = cite.journal || cite.booktitle || '';
     }
 
-    let author = `<b>${divInlineLexer.output(cite.author)}</b>. ` || '';
+    let author = `<b>${divInlineParser.output(cite.author)}</b>. ` || '';
     let index = (vol || num || pgs) ? `${vol + num + pgs}.` : '';
 
     return {

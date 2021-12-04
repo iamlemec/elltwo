@@ -5,19 +5,18 @@
  *
  */
 
-export { markthree, replace, divInlineLexer, }
+export { markthree, replace, divInlineParser }
 
-import {SyntaxHL} from'./hl.js'
-
+import { SyntaxHL } from'./hl.js'
 
 /**
- * Block-Level Grammar
+ * Block Parser
  */
 
 let block = {
     empty: /^(\s*)$/,
     comment: /^\/\/ ?/,
-    hr: /^([-*_]){3,}\s*$/,
+    hrule: /^([-*_]){3,}\s*$/,
     heading: /^(#{1,6})(\*?) *(?:refargs)? *([^\n]+?)$/,
     lheading: /^([^\n]+)\n *(=|-){2,}\s*$/,
     blockquote: /^q*> ?\n?/,
@@ -28,18 +27,15 @@ let block = {
     svg: /^\!(svg|gum)(\*)? *(?:refargs)?\s*/,
     image: /^!(\*)? *(?:refargs)? *\(href\)\s*$/,
     imagelocal: /^!(\*)? *(?:refargs)\s*$/,
-    // biblio: /^@@ *(?:refid)\s*/,
     figtab: /^@\| *(?:refargs) *\n(?:table)/,
     envbeg: /^\>\>(\!)? *([\w-]+)(\*)? *(?:refargs)?\s*/,
     envend: /^\<\<\s*/,
-    fences: /^(?:`{3,}|~{3,})\ ?(\S+)?\s*/,
     list: /^((?: *(?:bull) [^\n]*(?:\n|$))+)\s*$/,
     table: /^\|([^\n]+)\| *\n *\|( *[-:]+[-| :]*)\| *\n((?: *\|[^\n]*\| *(?:\n|$))*)\s*$/,
 };
 
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
-// block._refargs = /(?:\[([\w-\|\=\s\.\?\!\$]+)\])/;
 block._refargs = /(?:\[((?:[^\]]|(?<=\\)\])*)\])/;
 
 block._bull = /(?:[*+-]|\d+\.)/;
@@ -78,12 +74,6 @@ block.svg = replace(block.svg)
     ('refargs', block._refargs)
     ();
 
-/*
-block.biblio = replace(block.biblio)
-    ('refid', block._refid)
-    ();
-*/
-
 block.envbeg = replace(block.envbeg)
     ('refargs', block._refargs)
     ();
@@ -101,10 +91,7 @@ block._item = replace(block._item)
     ('bull', block._bull)
     ();
 
-/**
- * Args Parser
- */
-
+// Args Parser
 function parseArgs(argsraw, number=true, set=true) {
     if (!argsraw) {
         return {
@@ -154,328 +141,314 @@ function parseArgs(argsraw, number=true, set=true) {
     return args;
 }
 
-/**
- * Block Lexer
- */
-
-class Lexer {
-    constructor(options) {
+// Block Parser
+class BlockParser {
+    constructor(renderer, inline, options) {
+        this.renderer = renderer;
+        this.inline = inline;
         this.options = options || defaults;
         this.rules = block;
     }
 
-    lex(src) {
+    parseList(src) {
+        let items = src
+            .split('\n')
+            .filter(x => x.length > 0);
+
+        let ordered = true;
+        let rows = items.map(function(item) {
+            let ret = block._item.exec(item);
+            ordered &&= (ret[2].length > 1);
+            return item.slice(ret[0].length);
+        });
+
+        let body = rows.map(function(row) {
+            let cont = this.inline.output(row);
+            return this.renderer.listitem(cont);
+        }, this).join('');
+
+        return this.renderer.list(body, ordered);
+    }
+
+    parseTable(header, align, cells) {
+        let i, j;
+
+        header = header.replace(/^ *| *\| *$/g, '').split(/ *\| */);
+        align = align.replace(/^ *|\| *$/g, '').split(/ *\| */);
+        cells = cells.replace(/(?: *\| *)?\n$/, '').split('\n');
+
+        align = align.map(function(al) {
+            if (/^ *-+: *$/.test(al)) {
+                return 'right';
+            } else if (/^ *:-+: *$/.test(al)) {
+                return 'center';
+            } else if (/^ *:-+ *$/.test(al)) {
+                return 'left';
+            } else {
+                return null;
+            }
+        });
+
+        cells = cells.map(function(cell) {
+            return cell
+                .replace(/^ *\| *| *\| *$/g, '')
+                .split(/ *\| */);
+        });
+
+        // head
+        let head = '';
+        for (i = 0; i < header.length; i++) {
+            let flags = {header: true, align: align[i]};
+            let cont = this.inline.output(header[i]);
+            head += this.renderer.tablecell(cont, flags);
+        }
+        head = this.renderer.tablerow(head);
+
+        // body
+        let body = '';
+        for (i = 0; i < cells.length; i++) {
+            let cell = '';
+            let row = cells[i];
+            for (j = 0; j < row.length; j++) {
+                let flags = {header: false, align: align[j]};
+                let cont = this.inline.output(row[j]);
+                cell += this.renderer.tablecell(cont, flags);
+            }
+            body += this.renderer.tablerow(cell);
+        }
+
+        return this.renderer.table(head, body);
+    }
+
+    parseBiblio(id, text) {
+        let bib = {};
+        text.split('\n').forEach(function(line) {
+            if (line.includes(':')) {
+                let [key, val] = line.split(':', 1);
+                bib[key.trim()] = val.trim();
+            }
+        });
+        return this.renderer.biblio(id, bib);
+    }
+
+    parseSource(src) {
         src = src
             .replace(/\r\n|\r/g, '\n')
             .replace(/\t/g, '    ')
             .replace(/\u00a0/g, ' ')
-            .replace(/\u2424/g, '\n');
+            .replace(/\u2424/g, '\n')
+            .replace(/^ +$/gm, '');
 
-        return this.token(src);
-    }
+        let cap;
 
-    parseBiblio(id, text) {
-        let bib = {
-            type: 'biblio',
-            id: id,
-        };
+        // empty cell (all whitespace)
+        if (cap = this.rules.empty.exec(src)) {
+            let text = cap[1];
+            return this.renderer.empty(text);
+        }
 
-        let lines = text.split('\n');
-        let line, kv, key, val, i;
-
-        for (i in lines) {
-            line = lines[i];
-            if (line.includes(':')) {
-                kv = lines[i].split(':');
-                key = kv[0];
-                val = kv.slice(1).join(':').trim();
-                bib[key] = val;
+        // equation
+        if (cap = this.rules.equation.exec(src)) {
+            let vargs = cap[1] || '';
+            let argsraw = cap[2] || '';
+            let number = !vargs.includes('*');
+            let multi = vargs.includes('&');
+            let args = parseArgs(argsraw, number);
+            args.multiline = multi;
+            let text = src.slice(cap[0].length);
+            this.env = {
+                type: 'env_one',
+                env: 'equation',
+                args: args,
             }
+            return this.renderer.equation(text, multi);
         }
 
-        return bib;
-    }
-
-    parseTable(header, align, cells) {
-        let item = {
-            type: 'table',
-            header: header.replace(/^ *| *\| *$/g, '').split(/ *\| */),
-            align: align.replace(/^ *|\| *$/g, '').split(/ *\| */),
-            cells: cells.replace(/(?: *\| *)?\n$/, '').split('\n')
-        };
-
-        let i;
-
-        for (i = 0; i < item.align.length; i++) {
-            if (/^ *-+: *$/.test(item.align[i])) {
-                item.align[i] = 'right';
-            } else if (/^ *:-+: *$/.test(item.align[i])) {
-                item.align[i] = 'center';
-            } else if (/^ *:-+ *$/.test(item.align[i])) {
-                item.align[i] = 'left';
-            } else {
-                item.align[i] = null;
+        // image
+        if (cap = this.rules.image.exec(src)) {
+            let number = cap[1] == undefined;
+            let argsraw = cap[2] || '';
+            let args = parseArgs(argsraw, number);
+            let href = cap[3];
+            this.env = {
+                type: 'env_one',
+                env: 'image',
+                args: args,
             }
+            return this.renderer.image(href);
         }
 
-        for (i = 0; i < item.cells.length; i++) {
-            item.cells[i] = item.cells[i]
-                .replace(/^ *\| *| *\| *$/g, '')
-                .split(/ *\| */);
+        // imagelocal
+        if (cap = this.rules.imagelocal.exec(src)) {
+            let number = cap[1] == undefined;
+            let argsraw = cap[2] || '';
+            let args = parseArgs(argsraw, number);
+            this.env = {
+                type: 'env_one',
+                env: 'imagelocal',
+                args: args,
+            }
+            return this.renderer.imagelocal();
         }
 
-        return item;
+        // upload
+        if (cap = this.rules.upload.exec(src)) {
+            let argsraw = cap[1] || '';
+            let args = parseArgs(argsraw);
+            return this.renderer.upload(args);
+        }
+
+        // figure table
+        if (cap = this.rules.figtab.exec(src)) {
+            let argsraw = cap[1] || '';
+            let args = parseArgs(argsraw);
+            let table = this.lexTable(cap[2], cap[3], cap[4]);
+            this.env = {
+                type: 'env_one',
+                env: 'table',
+                args: args,
+            }
+            return this.parseTable(table);
+        }
+
+        // comment
+        if (cap = this.rules.comment.exec(src)) {
+            let text = src.slice(cap[0].length);
+            return this.renderer.comment(text);
+        }
+
+        // code
+        if (cap = this.rules.code.exec(src)) {
+            let vargs = cap[1] || '';
+            let argsraw = cap[2] || '';
+            let number = !vargs.includes('*');
+            let args = parseArgs(argsraw);
+            let text = src.slice(cap[0].length);
+            return this.renderer.code(text, null, null, args, number);
+        }
+
+        // title
+        if (cap = this.rules.title.exec(src)) {
+            let argsraw = cap[1] || '';
+            let args = parseArgs(argsraw);
+            let title = this.inline.output(cap[2]);
+            let text = src.slice(cap[0].length);
+            this.env = {
+                type: 'env_one',
+                env: 'title',
+                args: args,
+                title: title,
+                preamble: text,
+            }
+            return this.renderer.title(title);
+        }
+
+        // svg
+        if (cap = this.rules.svg.exec(src)) {
+            let number = cap[2] != '*';
+            let argsraw = cap[3] || '';
+            let args = parseArgs(argsraw, number);
+            args.mime = cap[1];
+            args.svg = src.slice(cap[0].length);
+            this.env = {
+                type: 'env_one',
+                env: 'svg',
+                args: args,
+            }
+            return this.renderer.svg();
+        }
+
+        // heading
+        if (cap = this.rules.heading.exec(src)) {
+            let number = (cap[2].length == 0);
+            let args = parseArgs(cap[3], number=number);
+            args.level = (cap[1].length);
+            let text = this.inline.output(cap[4]);
+            this.env = {
+                type: 'env_one',
+                env: 'heading',
+                args: args,
+            }
+            return this.renderer.heading(text);
+        }
+
+        // envbeg
+        if (cap = this.rules.envbeg.exec(src)) {
+            let end = cap[1] != undefined;
+            let number = cap[3] == undefined;
+            let argsraw = cap[4] || '';
+            let args = parseArgs(argsraw, number);
+            let text = src.slice(cap[0].length);
+            let cont = this.inline.output(text);
+            let env = cap[2];
+            this.env = {
+                type: 'env_beg',
+                single: end,
+                env: env,
+                args: args,
+            };
+            return this.renderer.envbeg(cont, args);
+        }
+
+        // envend
+        if (cap = this.rules.envend.exec(src)) {
+            let text = src.slice(cap[0].length);
+            let cont = this.inline.output(text);
+            this.env = {
+                type: 'env_end',
+                args: {}
+            };
+            return this.renderer.envend(cont);
+        }
+
+        // lheading
+        if (cap = this.rules.lheading.exec(src)) {
+            return {
+                type: 'heading',
+                depth: cap[2] === '=' ? 1 : 2,
+                text: cap[1]
+            };
+        }
+
+        // hrule
+        if (cap = this.rules.hrule.exec(src)) {
+            return this.renderer.hr();
+        }
+
+        // blockquote
+        if (cap = this.rules.blockquote.exec(src)) {
+            let text = src.slice(cap[0].length);
+            return this.renderer.blockquote(text);
+        }
+
+        // list
+        if (cap = this.rules.list.exec(src)) {
+            return this.parseList(cap[1]);
+        }
+
+        // table (gfm)
+        if (cap = this.rules.table.exec(src)) {
+            return this.parseTable(cap[1], cap[2], cap[3]);
+        }
+
+        // top-level paragraph (fallback)
+        let cont = this.inline.output(src);
+        return this.renderer.paragraph(cont);
     }
 
-    parseList(items) {
-        let list = {
-            type: 'list',
-            ordered: true,
-            items: items.split('\n').filter(x => x.length > 0)
+    parse(src) {
+        this.env = null;
+        let out = this.parseSource(src);
+
+        return {
+            'src': out,
+            'env': this.env
         };
-
-        let i, text, ret;
-
-        for (i = 0; i < list.items.length; i++) {
-            text = list.items[i];
-            ret = block._item.exec(text);
-            list.items[i] = text.slice(ret[0].length);
-            list.ordered &&= (ret[2].length > 1);
-        }
-
-        return list;
     }
-
-    token(src) {
-        src = src.replace(/^ +$/gm, '');
-        let cap
-          , number
-          , multi
-          , vargs
-          , argsraw
-          , args
-          , text
-          , i;
-
-          // empty cell
-          if (cap = this.rules.empty.exec(src)) {
-              return {
-                  type: 'empty',
-                  text: cap[1]
-              };
-          }
-
-          // equation
-          if (cap = this.rules.equation.exec(src)) {
-              vargs = cap[1] || '';
-              argsraw = cap[2] || '';
-              number = !vargs.includes('*');
-              multi = vargs.includes('&');
-              args = parseArgs(argsraw, number);
-              args.multiline = multi;
-              text = src.slice(cap[0].length);
-              return {
-                  type: 'equation',
-                  args: args,
-                  tex: text
-              };
-          }
-
-          // image
-          if (cap = this.rules.image.exec(src)) {
-              number = cap[1] == undefined;
-              argsraw = cap[2] || '';
-              args = parseArgs(argsraw, number);
-              return {
-                  type: 'image',
-                  args: args,
-                  href: cap[3]
-              };
-          }
-
-          // imagelocal
-          if (cap = this.rules.imagelocal.exec(src)) {
-              number = cap[1] == undefined;
-              argsraw = cap[2] || '';
-              args = parseArgs(argsraw, number);
-              return {
-                  type: 'imagelocal',
-                  args: args,
-              };
-          }
-
-          // upload
-          if (cap = this.rules.upload.exec(src)) {
-              argsraw = cap[1] || '';
-              args = parseArgs(argsraw);
-              return {
-                  type: 'upload',
-                  args: args,
-              };
-          }
-
-          // figure table
-          if (cap = this.rules.figtab.exec(src)) {
-              argsraw = cap[1] || '';
-              args = parseArgs(argsraw);
-              let table = this.parseTable(cap[2], cap[3], cap[4]);
-              return {
-                  type: 'figtab',
-                  args: args,
-                  table: table
-              };
-          }
-
-          // bibliographic info
-          /*
-          if (cap = this.rules.biblio.exec(src)) {
-              text = src.slice(cap[0].length);
-              return this.parseBiblio(cap[1], text);
-          }
-          */
-
-          // comment
-          if (cap = this.rules.comment.exec(src)) {
-              text = src.slice(cap[0].length);
-              return {
-                  type: 'comment',
-                  text: text
-              };
-          }
-
-          // code fence
-          if (cap = this.rules.fences.exec(src)) {
-              text = src.slice(cap[0].length);
-              return {
-                  type: 'code',
-                  lang: cap[1],
-                  text: text
-              };
-          }
-
-          // code
-          if (cap = this.rules.code.exec(src)) {
-              vargs = cap[1] || '';
-              argsraw = cap[2] || '';
-              number = !vargs.includes('*');
-              args = parseArgs(argsraw);
-              text = src.slice(cap[0].length);
-              return {
-                  type: 'code',
-                  text: text,
-                  args: args,
-                  ln: number,
-              };
-          }
-
-          // title
-          if (cap = this.rules.title.exec(src)) {
-              argsraw = cap[1] || '';
-              args = parseArgs(argsraw);
-              text = src.slice(cap[0].length);
-              return {
-                  type: 'title',
-                  args: args,
-                  title: cap[2],
-                  preamble: text
-              };
-          }
-
-          // svg
-          if (cap = this.rules.svg.exec(src)) {
-              number = cap[2] != '*';
-              argsraw = cap[3] || '';
-              args = parseArgs(argsraw, number);
-              args.mime = cap[1];
-              args.svg = src.slice(cap[0].length);
-              return {
-                  type: 'svg',
-                  args: args
-              };
-          }
-
-          // heading
-          if (cap = this.rules.heading.exec(src)) {
-              let number = (cap[2].length == 0);
-              let args = parseArgs(cap[3], number=number);
-              args.level = (cap[1].length);
-              return {
-                  type: 'heading',
-                  args: args,
-                  text: cap[4]
-              };
-          }
-
-          // envbeg
-          if (cap = this.rules.envbeg.exec(src)) {
-              let end = cap[1] != undefined;
-              number = cap[3] == undefined;
-              argsraw = cap[4] || '';
-              args = parseArgs(argsraw, number);
-              text = src.slice(cap[0].length);
-              return {
-                  type: 'envbeg',
-                  end: end,
-                  env: cap[2],
-                  args: args,
-                  text: text
-              };
-          }
-
-          // envend
-          if (cap = this.rules.envend.exec(src)) {
-              text = src.slice(cap[0].length);
-              return {
-                  type: 'envend',
-                  text: text
-              };
-          }
-
-          // lheading
-          if (cap = this.rules.lheading.exec(src)) {
-              return {
-                  type: 'heading',
-                  depth: cap[2] === '=' ? 1 : 2,
-                  text: cap[1]
-              };
-          }
-
-          // hr
-          if (cap = this.rules.hr.exec(src)) {
-              return {
-                  type: 'hr'
-              };
-          }
-
-          // blockquote
-          if (cap = this.rules.blockquote.exec(src)) {
-              text = src.slice(cap[0].length);
-              return {
-                  type: 'blockquote',
-                  text: text
-              };
-          }
-
-          // list
-          if (cap = this.rules.list.exec(src)) {
-              return this.parseList(cap[1]);
-          }
-
-          // table (gfm)
-          if (cap = this.rules.table.exec(src)) {
-              return this.parseTable(cap[1], cap[2], cap[3]);
-          }
-
-          // top-level paragraph (fallback)
-          return {
-              type: 'paragraph',
-              text: src
-          };
-      }
 }
 
 /**
- * Inline-Level Grammar
+ * Inline Parser
  */
 
 let inline = {
@@ -512,27 +485,8 @@ inline.footnote = replace(inline.footnote)
     ('inside', inline._inside)
     ();
 
-
-/**
- * Normal Inline Grammar
- */
-
-inline.normal = merge({}, inline);
-
-/**
- * Pedantic Inline Grammar
- */
-
-inline.pedantic = merge({}, inline.normal, {
-  strong: /^__(?=\S)([\s\S]*?\S)__(?!_)|^\*\*(?=\S)([\s\S]*?\S)\*\*(?!\*)/,
-  em: /^_(?=\S)([\s\S]*?\S)_(?!_)|^\*(?=\S)([\s\S]*?\S)\*(?!\*)/
-});
-
-/**
- * GFM Inline Grammar
- */
-
-inline.gfm = merge({}, inline.normal, {
+// GFM Inline Grammar
+inline.gfm = merge({}, inline, {
   escape: replace(inline.escape)('])', '~|])')(),
   url: /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/,
   del: /^~~(?=\S)([\s\S]*?\S)~~/,
@@ -542,24 +496,18 @@ inline.gfm = merge({}, inline.normal, {
     ()
 });
 
-/**
- * GFM + Line Breaks Inline Grammar
- */
-
+// GFM + Line Breaks Inline Grammar
 inline.breaks = merge({}, inline.gfm, {
   br: replace(inline.br)('{2,}', '*')(),
   text: replace(inline.gfm.text)('{2,}', '*')()
 });
 
-/**
- * Inline Lexer & Compiler
- */
-
-class InlineLexer {
+// Inline Parser
+class InlineParser {
     constructor(renderer, options) {
         this.renderer = renderer;
         this.options = options ?? defaults;
-        this.rules = inline.normal;
+        this.rules = inline;
 
         if (this.options.gfm) {
             if (this.options.breaks) {
@@ -567,8 +515,6 @@ class InlineLexer {
             } else {
                 this.rules = inline.gfm;
             }
-        } else if (this.options.pedantic) {
-            this.rules = inline.pedantic;
         }
     }
 
@@ -582,7 +528,9 @@ class InlineLexer {
           , id
           , acc
           , letter
-          , alt;
+          , alt
+          , argsraw
+          , args;
 
         while (src) {
 
@@ -622,28 +570,28 @@ class InlineLexer {
             // ref
             if (cap = this.rules.ref.exec(src)) {
                 src = src.substring(cap[0].length);
-                let argsraw = cap[1];
-                let args = parseArgs(argsraw, false, false);
-                let text = args.text || args.txt || args.t || '';
+                argsraw = cap[1];
+                args = parseArgs(argsraw, false, false);
+                text = args.text || args.txt || args.t || '';
                 out += this.renderer.ref(args, this.output(text));
             }
 
             // cite
             if (cap = this.rules.cite.exec(src)) {
                 src = src.substring(cap[0].length);
-                let argsraw = cap[1];
-                let args = parseArgs(argsraw, false, false);
-                let text = args.text || args.txt || args.t || '';
+                argsraw = cap[1];
+                args = parseArgs(argsraw, false, false);
+                text = args.text || args.txt || args.t || '';
                 out += this.renderer.cite(args, this.output(text));
             }
 
             // footnote
             if (cap = this.rules.footnote.exec(src)) {
                 src = src.substring(cap[0].length);
-                if(cap[1]){
-                out += this.renderer.sidenote(this.output(cap[2]));
+                if (cap[1]) {
+                    out += this.renderer.sidenote(this.output(cap[2]));
                 } else {
-                out += this.renderer.footnote(this.output(cap[2]));
+                    out += this.renderer.footnote(this.output(cap[2]));
                 }
                 continue;
             }
@@ -651,9 +599,9 @@ class InlineLexer {
             // internal link
             if (cap = this.rules.ilink.exec(src)) {
                 src = src.substring(cap[0].length);
-                let argsraw = cap[1];
-                let args = parseArgs(argsraw, false, false);
-                let text = args.text || args.txt || args.t || '';
+                argsraw = cap[1];
+                args = parseArgs(argsraw, false, false);
+                text = args.text || args.txt || args.t || '';
                 out += this.renderer.ilink(args, this.output(text));
             }
 
@@ -690,12 +638,7 @@ class InlineLexer {
                     this.inLink = false;
                 }
                 src = src.substring(cap[0].length);
-                out += this.options.sanitize
-                    ? (this.options.sanitizer
-                        ? this.options.sanitizer(cap[0])
-                        : escape(cap[0])
-                    )
-                    : cap[0];
+                out += cap[0];
                 continue;
             }
 
@@ -749,7 +692,7 @@ class InlineLexer {
             // text
             if (cap = this.rules.text.exec(src)) {
                 src = src.substring(cap[0].length);
-                out += this.renderer.text(this.smartypants(cap[0]));
+                out += this.renderer.text(cap[0]);
                 continue;
             }
 
@@ -768,25 +711,6 @@ class InlineLexer {
         return cap[0].charAt(0) !== '!'
             ? this.renderer.link(href, title, this.output(cap[1]))
             : this.renderer.image(href, title, escape(cap[1]));
-    }
-
-    smartypants(text) {
-        if (!this.options.smartypants) return text;
-        return text
-            // em-dashes
-            .replace(/---/g, '\u2014')
-            // en-dashes
-            .replace(/--/g, '\u2013')
-            // opening singles
-            .replace(/(^|[-\u2014/(\[{"\s])'/g, '$1\u2018')
-            // closing singles & apostrophes
-            .replace(/'/g, '\u2019')
-            // opening doubles
-            .replace(/(^|[-\u2014/(\[{\u2018\s])"/g, '$1\u201c')
-            // closing doubles
-            .replace(/"/g, '\u201d')
-            // ellipses
-            .replace(/\.{3}/g, '\u2026');
     }
 
     mangle(text) {
@@ -831,22 +755,9 @@ class DivRenderer {
     }
 
     code(code, lang, escaped, args, ln) {
-        if (this.options.highlight) {
-            let out = this.options.highlight(code, lang);
-            if (out != null && out !== code) {
-                escaped = true;
-                code = out;
-            }
-        }
-
-
-        ln = ln && (args.ln!='false');
-        let js = args.lang=='js' || args.lang=='javascript' || args.lang=='gum';
-        let ell = args.lang=='elltwo' || args.lang=='l2' || args.lang=='ell2';
-
-        //code = escaped ? code : escape(code, true);
-        //lang = lang ? (this.options.langPrefix + escape(lang, true)) : '';
-
+        ln = ln && (args.ln != 'false');
+        let js = args.lang == 'js' || args.lang == 'javascript' || args.lang == 'gum';
+        let ell = args.lang == 'elltwo' || args.lang == 'l2' || args.lang == 'ell2';
         let numbered = ln ? 'numbered' : '';
 
         if (js) {
@@ -893,7 +804,7 @@ class DivRenderer {
     }
 
     hr() {
-        return this.options.xhtml ? '<hr/>\n\n' : '<hr>\n\n';
+        return '<hr>\n\n';
     }
 
     list(body, ordered) {
@@ -935,7 +846,7 @@ class DivRenderer {
     }
 
     br() {
-        return this.options.xhtml ? '<br/>' : '<br>';
+        return '<br>';
     }
 
     del(text) {
@@ -943,21 +854,7 @@ class DivRenderer {
     }
 
     link(href, title, text) {
-        if (this.options.sanitize) {
-            try {
-                let prot = decodeURIComponent(unescape(href))
-                    .replace(/[^\w:]/g, '')
-                    .toLowerCase();
-            } catch (e) {
-                return '';
-            }
-            if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0) {
-                return '';
-            }
-        }
-
         title = title ? `title="${title}"` : '';
-        //text = escape(text);
         return `<a href="${href}" ${title}>${text}</a>`;
 
     }
@@ -967,7 +864,7 @@ class DivRenderer {
     }
 
     special(acc, letter) {
-        return special(acc,letter);
+        return special(acc, letter);
     }
 
     text(text) {
@@ -1068,17 +965,7 @@ class TexRenderer {
     }
 
     code(code, lang, escaped) {
-        if (this.options.highlight) {
-            let out = this.options.highlight(code, lang);
-            if (out != null && out !== code) {
-                escaped = true;
-                code = out;
-            }
-        }
-
-        code = escaped ? code : escape_latex(code, true);
-        lang = lang ? (this.options.langPrefix + escape(lang, true)) : '';
-
+        code = escaped ? code : escape_latex(code);
         return `\\begin{blockcode}\n${code}\n\\end{blockcode}`;
     }
 
@@ -1158,7 +1045,6 @@ class TexRenderer {
     }
 
     codespan(code) {
-        // text = escape_latex(text, true);
         return `\\cverb\`${code}\``;
     }
 
@@ -1172,7 +1058,6 @@ class TexRenderer {
 
     link(href, title, text) {
         href = escape_latex(href);
-        // text = escape_latex(text);
         return `\\href{${href}}{${text}}`;
     }
 
@@ -1214,7 +1099,7 @@ class TexRenderer {
         let c = (format == 'plain') ? '': 'c';
         let text = args['text'] || args['txt'] || args['t'];
         let pclass = (args['popup'] != 'false') ? 'pop_anchor': '';
-        if(ext) {
+        if (ext) {
             let inner = (text) ? text : `<!!<${id}>!!>`;
             let [art, key] = id.split(':');
             return `\\href{${window.location.origin}/r/${art}\\\#${key}}{${inner}}`;
@@ -1253,215 +1138,8 @@ class TexRenderer {
 }
 
 /**
- * Parsing & Compiling
- */
-
-class Parser {
-    constructor(renderer, inline, options) {
-        this.renderer = renderer;
-        this.inline = inline;
-        this.options = options ?? defaults;
-        this.token = null;
-    }
-
-    parse(src) {
-        this.token = src;
-        this.env = null;
-
-        return {
-            'src': this.tok(),
-            'env': this.env
-        };
-    }
-
-    parseTable(token) {
-        let header = ''
-          , body = ''
-          , row
-          , cell
-          , flags
-          , i
-          , j;
-
-        // header
-        cell = '';
-        for (i = 0; i < token.header.length; i++) {
-            flags = { header: true, align: token.align[i] };
-            cell += this.renderer.tablecell(
-                this.inline.output(token.header[i]),
-                { header: true, align: token.align[i] }
-            );
-        }
-        header += this.renderer.tablerow(cell);
-
-        for (i = 0; i < token.cells.length; i++) {
-            row = token.cells[i];
-
-            cell = '';
-            for (j = 0; j < row.length; j++) {
-                cell += this.renderer.tablecell(
-                    this.inline.output(row[j]),
-                    { header: false, align: token.align[j] }
-                );
-            }
-
-            body += this.renderer.tablerow(cell);
-        }
-
-        return this.renderer.table(header, body);
-    }
-
-    parseList(token) {
-        let body = ''
-          , ordered = token.ordered
-          , row
-          , item
-          , i;
-
-        for (i = 0; i < token.items.length; i++) {
-            row = token.items[i];
-            item = this.inline.output(row);
-            body += this.renderer.listitem(item);
-        }
-
-        return this.renderer.list(body, ordered);
-    }
-
-    tok() {
-        switch (this.token.type) {
-            case 'empty': {
-                return this.renderer.empty(this.token.text);
-            }
-            case 'hr': {
-                return this.renderer.hr();
-            }
-            case 'title': {
-                this.env = {
-                    type: 'env_one',
-                    env: 'title',
-                    args: this.token.args,
-                    title: this.token.title,
-                    preamble: this.token.preamble,
-                }
-                return this.renderer.title(this.inline.output(this.token.title));
-            }
-            case 'svg': {
-                this.env = {
-                    type: 'env_one',
-                    env: 'svg',
-                    args: this.token.args
-                }
-                return this.renderer.svg();
-            }
-            case 'heading': {
-                this.env = {
-                    type: 'env_one',
-                    env: 'heading',
-                    args: this.token.args
-                }
-                return this.renderer.heading(
-                    this.inline.output(this.token.text)
-                );
-            }
-            case 'envbeg': {
-                this.env = {
-                    type: 'env_beg',
-                    single: this.token.end,
-                    env: this.token.env,
-                    args: this.token.args
-                };
-                return this.renderer.envbeg(
-                    this.inline.output(this.token.text), this.token.args
-                );
-            }
-            case 'envend': {
-                this.env = {
-                    type: 'env_end',
-                    args: {}
-                };
-                return this.renderer.envend(
-                    this.inline.output(this.token.text),
-                );
-            }
-            case 'equation': {
-                this.env = {
-                    type: 'env_one',
-                    env: 'equation',
-                    args: this.token.args
-                }
-                return this.renderer.equation(this.token.tex, this.token.args.multiline);
-            }
-            case 'comment': {
-                return this.renderer.comment(this.token.text);
-            }
-            case 'code': {
-                return this.renderer.code(
-                    this.token.text,
-                    this.token.lang,
-                    this.token.escaped,
-                    this.token.args,
-                    this.token.ln
-                );
-            }
-            case 'table': {
-                return this.parseTable(this.token);
-            }
-            case 'blockquote': {
-                return this.renderer.blockquote(this.token.text);
-            }
-            case 'list': {
-                return this.parseList(this.token);
-            }
-            case 'html': {
-                let html = !this.token.pre && !this.options.pedantic
-                    ? this.inline.output(this.token.text)
-                    : this.token.text;
-                return this.renderer.html(html);
-            }
-            case 'paragraph': {
-                return this.renderer.paragraph(this.inline.output(this.token.text));
-            }
-            case 'upload': {
-                return this.renderer.upload(this.token.args);
-            }
-            case 'image': {
-                this.env = {
-                    type: 'env_one',
-                    env: 'image',
-                    args: this.token.args
-                }
-                return this.renderer.image(this.token.href);
-            }
-            case 'imagelocal': {
-                this.env = {
-                    type: 'env_one',
-                    env: 'imagelocal',
-                    args: this.token.args
-                }
-                return this.renderer.imagelocal();
-            }
-            case 'figtab': {
-                this.env = {
-                    type: 'env_one',
-                    env: 'table',
-                    args: this.token.args
-                }
-                return this.parseTable(this.token.table);
-            }
-            case 'biblio': {
-                let id = this.token.id;
-                delete this.token['type'];
-                delete this.token['id'];
-                return this.renderer.biblio(id, this.token);
-            }
-        }
-    }
-}
-
-/**
  * Helpers
  */
-
 
 function escape(html, encode) {
     return html
@@ -1498,7 +1176,7 @@ function special(acc, letter) {
             return `&${letter}${spec.name};`
         }
     }
-    return letter
+    return letter;
 }
 
 function unescape(html) {
@@ -1527,6 +1205,7 @@ function replace(regex, opt) {
     };
 }
 
+// dummy regex pattern
 function noop() {}
 noop.exec = noop;
 
@@ -1555,29 +1234,20 @@ let defaults = {
     gfm: true,
     tables: true,
     breaks: true,
-    pedantic: false,
-    sanitize: false,
-    sanitizer: null,
     mangle: true,
-    highlight: null,
-    langPrefix: 'lang-',
-    smartypants: false,
-    xhtml: false,
 };
 
 /**
  * Markthree
  */
 
-let lexer = new Lexer();
-
 let divRenderer = new DivRenderer();
-let divInlineLexer = new InlineLexer(divRenderer);
-let divParser = new Parser(divRenderer, divInlineLexer);
+let divInlineParser = new InlineParser(divRenderer);
+let divParser = new BlockParser(divRenderer, divInlineParser);
 
 let texRenderer = new TexRenderer();
-let texInlineLexer = new InlineLexer(texRenderer);
-let texParser = new Parser(texRenderer, texInlineLexer);
+let texInlineParser = new InlineParser(texRenderer);
+let texParser = new BlockParser(texRenderer, texInlineParser);
 
 function markthree(src, output) {
     output = output ?? 'html';
@@ -1590,9 +1260,7 @@ function markthree(src, output) {
     }
 
     try {
-        let tokens = lexer.lex(src);
-        let html = parser.parse(tokens);
-        return html;
+        return parser.parse(src);
     } catch (e) {
         console.log(e);
         return {

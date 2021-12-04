@@ -14,7 +14,7 @@ import {
 } from './state.js'
 import { sendCommand, schedTimeout, addDummy } from './client.js'
 import { renderKatex } from './math.js'
-import { markthree, replace, divInlineLexer } from './marked3.js'
+import { markthree, replace, divInlineParser } from './marked3.js'
 import { fold } from './editor.js'
 import { parseSVG } from './svg.js'
 import { SyntaxHL } from './hl.js'
@@ -600,7 +600,7 @@ function figEnv(ptxt, args) {
         var num = (args.number) ? makeCounter('figure') : '';
         var space = (num) ? ' ' : '';
         var caption = args.caption || '';
-        caption = divInlineLexer.output(caption);
+        caption = divInlineParser.output(caption);
         var div = $('<div>', {class: 'env_add fig_cap'});
         var span = $('<span>', {class: 'strong'});
         span.append(['Figure', space, num, '. ']);
@@ -716,7 +716,7 @@ function createNumbers(outer) {
         let counter = num.attr('counter');
         let tag = num.attr('tag');
         if(tag){
-            tag = divInlineLexer.output(tag);
+            tag = divInlineParser.output(tag);
             num.html(tag);
             renderKatex(num);
             return true;
@@ -935,7 +935,7 @@ function refCite(ref, tro) {
             citeText += ` (${year})`;
         }
     }
-    citeText = divInlineLexer.output(citeText);
+    citeText = divInlineParser.output(citeText);
     ref.html(citeText);
 
     if (tro.cite_doi) {

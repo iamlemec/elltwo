@@ -222,7 +222,7 @@ function sEnv(s_env_spec) {
 function urlify(s) {
     return s.replace(/\W/g, '_')
             .replace(/_{2,}/g, '_')
-            .replace(/(^_|_$)/g, '')
+            .replace(/^_|_$/g, '')
             .toLowerCase();
 }
 
