@@ -15,7 +15,7 @@ function latexTemplate(d) {
 \usepackage{enumerate}
 \usepackage{enumitem}
 \usepackage{ulem}
-\usepackage[authoryear]{natbib} % bib
+\usepackage[style=authoryear,natbib=true]{biblatex} % bib
 \usepackage[unicode]{hyperref} % hyperlinks
 \usepackage{xcolor} % colors
 \usepackage{cleveref} % references
@@ -74,6 +74,7 @@ ${d.envs}
 \begin{filecontents}{\jobname.bib}
 ${d.bib}
 \end{filecontents}
+\addbibresource{\jobname.bib}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -88,8 +89,8 @@ ${d.bib}
 
 ${d.body}
 
-\bibliographystyle{plainnat}
-\bibliography{\jobname}
+\printbibliography
+
 \end{document}
     `.trim();
 }

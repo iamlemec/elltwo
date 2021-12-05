@@ -71,7 +71,7 @@ function replaceCites(keys, text) {
     let ref = /\\(c)?ref\{([\w-:]+)\}/g;
     text = text.replaceAll(ref, function(m, p1, p2) {
         if (keys.includes(p2)) {
-            return `\\cite{${p2}}`;
+            return `\\citet{${p2}}`;
         } else {
             return m;
         };
