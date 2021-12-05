@@ -112,8 +112,8 @@ function parseArgs(argsraw, number=true, set=true) {
            .map(x => x.split(/(?<!\\)\=/))
            .filter(x => x.length > 1)
            .forEach(x => {
-               let val = x.pop();
-               x.forEach(key => {
+               let [val, ...keys] = x.reverse();
+               keys.forEach(key => {
                    if (!rx.test(key)) {
                        args[key] = val;
                    }
@@ -1238,7 +1238,7 @@ let defaults = {
 };
 
 /**
- * Markthree
+ * Interface
  */
 
 let divRenderer = new DivRenderer();
@@ -1264,7 +1264,7 @@ function markthree(src, output) {
     } catch (e) {
         console.log(e);
         return {
-            src: `<p>marked3 error [marked3.js:${e.lineNumber}] → ${e.message}</p>`
+            src: `<p>internal parsing error [marked3.js:${e.lineNumber}] → ${e.message}</p>`
         };
     }
 }

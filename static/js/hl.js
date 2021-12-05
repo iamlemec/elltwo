@@ -1,11 +1,10 @@
 /* random utilities */
 
-export {SyntaxHL, braceMatch, s}
+export { SyntaxHL, braceMatch, s }
+
 import { replace } from './marked3.js'
 import { Gum, SVG, Element } from '../gum.js/lib/gum.js'
 import { elltwoHL } from './render.js'
-
-
 
 /* HELPERS */
 
@@ -72,8 +71,7 @@ function fArgs(argsraw, set=true) {
                .replace(/&!R&$/, '</span>');
 }
 
-
-// GUMM
+// GUM
 
 let jskeys = [
     'await', 'break', 'catch', 'class', 'const',
@@ -222,9 +220,9 @@ class GumRenderer {
 
     brace(text, left) {
         if (left) {
-            return'<span class="brace">';
+            return '<span class="brace">';
         } else {
-            return'</span>';
+            return '</span>';
         }
     }
 
@@ -233,7 +231,7 @@ class GumRenderer {
     }
 
     newline(text) {
-        return text+'<div class=linenum></div>';
+        return text + '<div class=linenum></div>';
     }
 
     nothing(text) {
@@ -241,7 +239,7 @@ class GumRenderer {
     }
 }
 
-//// ELTWO
+//// ELLTWO
 
 let inline = {
     escape: /\\([\\/`*{}\[\]()#+\-.!_>\$])/g,
@@ -253,13 +251,12 @@ let inline = {
     ref: /@(\[([^\]]+)\])/g,
     cite: /@@(\[([^\]]+)\])/g,
     ilink: /\[\[([^\]]+)\]\]/g,
+    link: /(!?)\[([^\]]+)\]\(([^\)]+)\)/g,
     em: /\*((?:\*\*|[\s\S])+?)\*(?!\*)/g,
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
 };
 
-
 function syntaxParseInline(raw) {
-
     let html = esc_html(raw);
 
     html = html.replace(inline.escape, (a, b) =>
@@ -278,11 +275,11 @@ function syntaxParseInline(raw) {
         s(b, 'comment_head') + s(c, 'code') + s(b, 'comment_head')
     );
 
-    html = html.replace(inline.ftnt, (a, b,c) =>{
-        if(b){
-            return s('^!', 'hl') + s('[', 'delimit') + c + s(']', 'delimit')
+    html = html.replace(inline.ftnt, (a, b, c) => {
+        if (b) {
+            return s('^!', 'hl') + s('[', 'delimit') + c + s(']', 'delimit');
         } else {
-            return s('^[', 'delimit') + c + s(']', 'delimit')
+            return s('^[', 'delimit') + c + s(']', 'delimit');
         }
     });
 
@@ -300,6 +297,12 @@ function syntaxParseInline(raw) {
 
     html = html.replace(inline.ilink, (a, b) =>
         s('[[', 'delimit') + s(b, 'ref') + s(']]', 'delimit')
+    );
+
+    html = html.replace(inline.link, (a, b, c, d) =>
+        s(b, 'delimit')
+        + s('[', 'ref') + s(c, 'math') + s(']', 'ref')
+        + s('(', 'ref') + s(d, 'math') + s(')', 'ref')
     );
 
     // escape so we don't highlight these on italics
@@ -408,12 +411,12 @@ function syntaxParseBlock(raw) {
         let star = cap[2] ? s('*', 'hl') : '';
         let id = cap[4] ? s(fArgs(cap[4]), 'ref'): '';
         let rest = raw.slice(cap[0].length);
-        let text = "";
-        if(mime=='gum'){
+        let text = '';
+        if (mime=='gum') {
             text = SyntaxHL(rest, 'gum');
         } else {
             text = SyntaxHL(rest, 'svg');
-        };
+        }
         return s('!', 'hl') + s(mime, 'delimit') + star + cap[3] + id + text;
     }
 
@@ -437,7 +440,6 @@ function syntaxParseBlock(raw) {
     return syntaxParseInline(raw);
 }
 
-
 let SVGrules = {
     opentag: /\&lt;(\w+)?/g,
     closetag: /(\/)?(\w+)?\&gt;/g,
@@ -446,35 +448,30 @@ let SVGrules = {
 };
 
 function shittySVG(raw) {
-
     raw = esc_html(raw);
-    let n = `<div class=linenum></div>`
+    let n = `<div class=linenum></div>`;
 
     raw = raw.replace(SVGrules.attr, (a, b, c) => {
         c = c ? c : "";
-        return b + s(c, 'math') + s('=', 'delimit')
-    }
-    );
+        return b + s(c, 'math') + s('=', 'delimit');
+    });
     raw = raw.replace(SVGrules.opentag, (a, b) => {
         b = b ? b : "";
-        return s('&lt;', 'delimit') + s(b, 'ref')
-    }
-    );
+        return s('&lt;', 'delimit') + s(b, 'ref');
+    });
     raw = raw.replace(SVGrules.closetag, (a, b, c) => {
         b = b ? s('/', 'hl') : "";
         c = c ? s(c, 'ref') : "";
-        return b + c + s('\&gt;', 'delimit')
-    }
-    );
+        return b + c + s('\&gt;', 'delimit');
+    });
     raw = raw.replace(SVGrules.newline, (a) => {
-        return n + '\n'
-    }
-    );
+        return n + '\n';
+    });
 
-    return n + raw
-    }
+    return n + raw;
+}
 
-///BRACE MATACH
+/// BRACE MATACH
 
 function braceMatch(textarea, para, hl='elltwo', callback=elltwoHL) {
     let delimit = {'(': ')', '[': ']', '{': '}'};
@@ -568,8 +565,7 @@ function braceHL(view, text, pos, para, hl, callback) {
     }, 800);
 }
 
-
-function jsHL(src){
+function jsHL(src) {
     let renderer = new GumRenderer();
     let lexer = new GumLexer(renderer);
     return lexer.output(src);
@@ -584,12 +580,12 @@ let HLs =  {
 
 function SyntaxHL(src, hl=null, callback=null) {
     let out = null;
-    if(hl in HLs){
-        out = HLs[hl](src)
+    if (hl in HLs) {
+        out = HLs[hl](src);
     }
-    if(callback===null){
-        return out
-    }else{
-        callback(out)
+    if (callback === null) {
+        return out;
+    } else {
+        callback(out);
     }
 }

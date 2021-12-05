@@ -1,24 +1,20 @@
 /// core renderer (includes readonly)
 
 export {
-    stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender,
-    rawToTextarea, envClasses, envGlobal, renderRefText, createTOC, getTro,
-    troFromKey, popText, renderPop, s_env_spec, getFoldLevel,
-    renderFold, barePara, makePara, connectCallbacks, getRefTags,
+    stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender, rawToTextarea,
+    envClasses, envGlobal, renderRefText, createTOC, getTro, troFromKey, popText, renderPop,
+    s_env_spec, getFoldLevel, renderFold, barePara, makePara, connectCallbacks, getRefTags,
     trackRef, untrackRef, doRenderRef, elltwoHL
 }
 
 import { merge, cooks, getPara, RefCount, DummyCache } from './utils.js'
-import {
-    config, cache, state, updateConfig, updateCache, updateState
-} from './state.js'
+import { config, cache, state, updateConfig, updateCache, updateState } from './state.js'
 import { sendCommand, schedTimeout, addDummy } from './client.js'
 import { renderKatex } from './math.js'
 import { markthree, replace, divInlineParser } from './marked3.js'
 import { fold } from './editor.js'
 import { parseSVG } from './svg.js'
 import { SyntaxHL } from './hl.js'
-
 
 // main rendering entry point (for all cases)
 
@@ -1146,7 +1142,6 @@ let pop_spec = {
 
 /// syntax highlighting
 
-
 function elltwoHL(para) {
     let text = para.children('.p_input');
     let view = para.children('.p_input_view');
@@ -1154,7 +1149,6 @@ function elltwoHL(para) {
     let parsed = SyntaxHL(raw, 'elltwo');
     view.html(parsed);
 }
-
 
 /// folding (render only)
 
