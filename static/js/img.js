@@ -6,7 +6,7 @@ import { config, state, cache, updateConfig, updateState, updateCache } from './
 import { connect, sendCommand, addHandler } from './client.js'
 import { renderKatex } from './math.js'
 import { hideConfirm, showConfirm } from './editor.js'
-import { connectDrops, makeImageBlob, promptUpload, uploadImage } from './drop.js'
+import { connectDrops, promptUpload, uploadImage } from './drop.js'
 import { KeyCache, flash, copyText, createButton } from './utils.js'
 import { initSVGEditor, hideSVGEditor, parseSVG } from './svg.js'
 
@@ -45,10 +45,12 @@ function cacheImage() {
             sendCommand('get_images', {}, callback);
         } else {
             sendCommand('get_image', {key: key}, function(ret) {
-                if (ret.mime == 'text/svg+gum') {
+                if (ret == null) {
+                    callback(null);
+                } else if (ret.mime == 'text/svg+gum') {
                     callback(ret.data);
                 } else {
-                    let url = (ret !== undefined) ? makeImageBlob(ret.mime, ret.data) : null;
+                    let url = new Blob([ret.data], {type: ret.mime});
                     callback(url);
                 }
             });
@@ -190,8 +192,9 @@ function eventImage() {
             let ret = uploadImage(file, key, function(data) {
                 cache.img.del(key);
                 cache.img.get(key, function(ret) {
-                    $('#display_image').attr('src', ret);
-                    $(`#${key}`).attr('src', ret);
+                    let url = URL.createObjectURL(ret);
+                    $('#display_image').attr('src', url);
+                    $(`#${key}`).attr('src', url);
                 });
             });
         });
@@ -258,7 +261,8 @@ function renderBox(elem, key, kws, mime) {
         let img = $('<img>');
         elem.append(img);
         cache.img.get(key, function(ret) {
-            img.attr('src', ret);
+            let url = URL.createObjectURL(ret);
+            img.attr('src', url);
         });
     }
  }

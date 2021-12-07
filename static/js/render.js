@@ -10,9 +10,9 @@ export {
 import { merge, cooks, getPara, RefCount, DummyCache } from './utils.js'
 import { config, cache, state, updateConfig, updateCache, updateState } from './state.js'
 import { sendCommand, schedTimeout, addDummy } from './client.js'
-import { renderKatex } from './math.js'
 import { markthree, replace, divInlineParser } from './marked3.js'
 import { fold } from './editor.js'
+import { renderKatex } from './math.js'
 import { parseSVG } from './svg.js'
 import { SyntaxHL } from './hl.js'
 
@@ -626,8 +626,9 @@ function imgEnv(ptxt, args) {
             let hdl = $('<div>', {class: 'env_add svg_hodl', html: svg});
             fig.append(hdl);
         } else {
+            let url = URL.createObjectURL(ret.data);
             let upd = $('<div>', {class: 'env_add img_update'});
-            let img = $('<img>', {class: 'env_add', src: ret.data});
+            let img = $('<img>', {class: 'env_add', src: url});
             let ico = $('<svg><use xlink:href="/static/img/icons.svg#upload"></use></svg>');
             upd.append(ico);
             fig.append(upd);

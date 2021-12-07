@@ -5,9 +5,9 @@ export { initSVGEditor, hideSVGEditor, parseSVG, gums }
 import { on_success, createIcon, createToggle, createButton, smallable_butt } from './utils.js'
 import { state } from './state.js'
 import { sendCommand } from './client.js'
-import { replace } from './marked3.js'  
-import { showConfirm } from './editor.js'  
-import { deleteImage } from './img.js'  
+import { replace } from './marked3.js'
+import { showConfirm } from './editor.js'
+import { deleteImage } from './img.js'
 import { s, SyntaxHL, braceMatch } from './hl.js'
 import { Gum, SVG, Element } from '../gum.js/lib/gum.js'
 
@@ -48,7 +48,7 @@ function initSVGEditor(el, raw='', key='', gum=true) {
 
         // mark constructed
         state.SVGEditor = true;
-    
+
 
     $(document).on('click', '#SVGEditorExit', function() {
         hideSVGEditor();
@@ -154,7 +154,7 @@ function parseGum(src, size) {
         let e = new Function(gums, src);
         out = e(...mako);
     } catch (e) {
-        //the n-2 is to match internal line numbers, there must be a header on e.lines
+        // the n-2 is to match internal line numbers, there must be a header on e.lines
         return {success: false, message: e.message, line: e.lineNumber - 2};
     }
 
@@ -176,7 +176,11 @@ function parseGum(src, size) {
 function parseSVG(mime, src, size) {
     if (mime == 'text/svg+gum') {
         let ret = parseGum(src, size);
-        return ret.svg;
+        if (!ret.success) {
+            return ret.message;
+        } else {
+            return ret.svg;
+        }
     } else {
         if (src.match(/ *<svg( |>)/) == null) {
             let [w, h] = (typeof(size) == 'number') ? [size, size] : size;

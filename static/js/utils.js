@@ -1,7 +1,7 @@
 /* random utilities */
 
 export {
-    merge, mapObject, mapValues, attrArray, initToggleBox, toggleBox,
+    merge, mapObject, mapValues, eachObject, attrArray, initToggleBox, toggleBox,
     ensureVisible, setCookie, cooks, getPara, getEnvParas, isMobile, noop,
     on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle, createButton,
     smallable_butt, copyText
@@ -19,6 +19,10 @@ function mapObject(obj, func) {
 
 function mapValues(obj, func) {
     return Object.fromEntries(Object.entries(obj).map(([x, y]) => [x, func(y)]));
+}
+
+function eachObject(obj, func) {
+    Object.entries(obj).forEach(([x, y]) => { func(x, y); });
 }
 
 function attrArray(elems, attr) {

@@ -1,6 +1,6 @@
 // drop to upload — used in article and img
 
-export { connectDrops, promptUpload, makeImageBlob, uploadImage }
+export { connectDrops, promptUpload, uploadImage }
 
 import { config, state, cache } from './state.js'
 import { sendCommand } from './client.js'
@@ -103,11 +103,4 @@ function connectDrops(callback) {
         });
         return false;
     });
-}
-
-// image retrieval
-
-function makeImageBlob(mime, data) {
-    const blob = new Blob([data], {type: mime});
-    return URL.createObjectURL(blob);
 }

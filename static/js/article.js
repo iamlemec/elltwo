@@ -27,7 +27,7 @@ import {
     unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
     makeUnEditable
 } from './editor.js'
-import { connectDrops, promptUpload, uploadImage, makeImageBlob } from './drop.js'
+import { connectDrops, promptUpload, uploadImage } from './drop.js'
 import { initExport } from './export.js'
 import { initHelp } from './help.js'
 import { createBibInfo } from './bib.js'
@@ -105,13 +105,13 @@ function cacheArticle() {
     // image cache
     cache.img = new KeyCache('img', function(key, callback) {
         sendCommand('get_image', {key: key}, function(ret) {
-            if (ret === undefined) {
+            if (ret == null) {
                 callback(null);
-            } else if (ret.mime == 'text/svg+gum') {
+            } else if (ret.mime.startsWith('text/svg')) {
                 callback({mime: ret.mime, data: ret.data});
             } else {
-                let url = makeImageBlob(ret.mime, ret.data);
-                callback({mime: ret.mime, data: url});
+                let data = new Blob([ret.data], {type: ret.mime});
+                callback({mime: ret.mime, data: data});
             }
         });
     });

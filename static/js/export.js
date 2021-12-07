@@ -2,35 +2,47 @@
 
 export { initExport, exportMarkdown, exportLatex }
 
-import { initToggleBox } from './utils.js'
+import { mapObject, eachObject, initToggleBox } from './utils.js'
 import { config, state, cache } from './state.js'
 import { markthree } from './marked3.js'
 import { s_env_spec } from './render.js'
 import { latexTemplate } from './template.js'
+import * as zip from '../zip.js/lib/zip.js'
+
+// image extensions
+let imgext = {
+    'image/png': 'png',
+}
 
 // markdown export
 
 function createMd() {
+    let name = urlify(config.title);
+
     let paras = [];
     $('.para:not(.folder)').each(function() {
         let raw = $(this).attr('raw');
         paras.push(raw);
     });
+    let text = paras.join('\n\n');
 
-    let dict = {
-        format: 'text/markdown',
-        filename: config.title,
-        text: paras.join('\n\n'),
+    return {
+        name: name,
+        data: text,
     };
-    return dict;
 }
 
 // latex export
 
 let title;
+let images;
 
 function createTex() {
+    let name = urlify(config.title);
+
     title = config.title;
+    images = [];
+
     let bibKeys = cache.cite.keys()
     let rawBibTex = cache.cite.values().map(bib => bib.raw).join('\n');
     let paras = [];
@@ -59,12 +71,36 @@ function createTex() {
     };
     let text = latexTemplate(tVars);
 
-    let dict = {
-        mimetype: 'text/tex',
-        filename: config.title,
-        text: text,
+    return {
+        name: name,
+        data: text,
     }
-    return dict;
+}
+
+async function createZip() {
+    let {name, data} = createTex();
+    let tname = `${name}.tex`;
+
+    let bwrite = new zip.BlobWriter('application/zip');
+    let zwrite = new zip.ZipWriter(bwrite);
+    let ftex = new zip.TextReader(data);
+    await zwrite.add(tname, ftex);
+
+    let imgs = cache.img.many(images);
+    for (let [k, v] of Object.entries(imgs)) {
+        let r = new zip.BlobReader(v.data);
+        let e = imgext[v.mime];
+        let n = (e != null) ? `${k}.${e}` : k;
+        await zwrite.add(n, r);
+    }
+
+    await zwrite.close();
+    let blob = await bwrite.getData();
+
+    return {
+        name: name,
+        data: blob,
+    }
 }
 
 function replaceCites(keys, text) {
@@ -144,6 +180,7 @@ function texImageLocal(src, env) {
     let cap = (args.caption == 'none') ? null : args.caption;
     let caption = (cap != null) ? `\\caption{${cap}}\n` : '';
     let out = `\\begin{figure}\n\\includegraphics${opts}{${image}}\n${caption}\\end{figure}`;
+    images.push(image);
     return out;
 }
 
@@ -226,12 +263,11 @@ function urlify(s) {
             .toLowerCase();
 }
 
-function downloadFile(mime, name, ext, text) {
+function downloadFile(name, blob) {
     let element = document.createElement('a');
-    let data = encodeURIComponent(text);
-    name = (name.length > 0) ? urlify(name) : 'filename';
-    element.setAttribute('href', `data:${mime};charset=utf-8,${data}`);
-    element.setAttribute('download', `${name}.${ext}`);
+    let url = URL.createObjectURL(blob);
+    element.setAttribute('href', url);
+    element.setAttribute('download', `${name}`);
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click();
@@ -239,13 +275,21 @@ function downloadFile(mime, name, ext, text) {
 }
 
 function exportMarkdown() {
-    let data = createMd();
-    downloadFile(data.mimetype, data.filename, 'md', data.text);
+    let {name, data} = createMd();
+    let blob = new Blob([data], {type: 'text/markdown'});
+    downloadFile(`${name}.md`, blob);
 }
 
 function exportLatex() {
-    let data = createTex();
-    downloadFile(data.mimetype, data.filename, 'tex', data.text);
+    let {name, data} = createTex();
+    let blob = new Blob([data], {type: 'text/tex'});
+    downloadFile(`${name}.tex`, blob);
+}
+
+function exportZip() {
+    createZip().then(ret => {
+        downloadFile(`${ret.name}.zip`, ret.data);
+    });
 }
 
 // toggle box
@@ -257,6 +301,11 @@ function initExport() {
     $('#export_tex').click(function() {
         ebox.hide();
         exportLatex();
+    });
+
+    $('#export_zip').click(function() {
+        ebox.hide();
+        exportZip();
     });
 
     $('#export_md').click(function() {
