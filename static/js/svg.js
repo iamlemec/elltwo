@@ -73,7 +73,6 @@ function initSVGEditor(el, raw='', key='', gum=true) {
     $(document).on('change', '#svgShow_check', function() {
         let check = $(this);
         let val = check.is(':checked');
-        console.log(val)
         if(val){
             $('#SVGEditorParsed').show()
             $('#SVGEditorParsedView').show()
@@ -190,7 +189,6 @@ function parseSVG(mime, src, size) {
         }
     }
 }
-
 
 function svgSyntaxHL() {
     let src = $('#SVGEditorInputText').val();

@@ -7,11 +7,14 @@ import { config, state, cache } from './state.js'
 import { markthree } from './marked3.js'
 import { s_env_spec } from './render.js'
 import { latexTemplate } from './template.js'
+import { parseSVG } from './svg.js'
 import * as zip from '../zip.js/lib/zip.js'
 
 // image extensions
 let imgext = {
     'image/png': 'png',
+    'image/jpeg': 'jpg',
+    'text/svg+xml': 'svg',
 }
 
 // markdown export
@@ -86,9 +89,9 @@ async function createZip() {
     let ftex = new zip.TextReader(data);
     await zwrite.add(tname, ftex);
 
-    let imgs = cache.img.many(images);
-    for (let [k, v] of Object.entries(imgs)) {
-        let r = new zip.BlobReader(v.data);
+    console.log(images)
+    for (let [k, v] of Object.entries(images)) {
+        let r = new zip.BlobReader(v);
         let e = imgext[v.mime];
         let n = (e != null) ? `${k}.${e}` : k;
         await zwrite.add(n, r);
@@ -152,8 +155,7 @@ function texSection(src, env) {
     let sub = (times > 0) ? 'sub'.repeat(times) : '';
     let label = (args.id) ? `\\label{${args.id}}` : '';
     let num = (args.number) ? '' : '*';
-    let out = `\\${sub}section${num}{${src}}${label}`;
-    return out;
+    return `\\${sub}section${num}{${src}}${label}`;
 }
 
 function texEquation(src, env) {
@@ -161,32 +163,50 @@ function texEquation(src, env) {
     let label = (args.id) ? `\\label{${args.id}}` : '';
     let num = (args.number) ? '' : '*';
     let eqenv = args.multiline ? 'align' : 'equation';
-    let out = `\\begin{${eqenv}${num}}\n${src}\n${label}\\end{${eqenv}${num}}`;
-    return out;
+    return `\\begin{${eqenv}${num}}\n${src}\n${label}\\end{${eqenv}${num}}`;
 }
 
 function texImage(src, env) {
     let args = env.args;
     let caption = args.caption ?? '';
-    let out = `\\begin{figure}\n${src}\n\\caption{${caption}}\n\\end{figure}`;
-    return out;
+    return `\\begin{figure}\n${src}\n\\caption{${caption}}\n\\end{figure}`;
 }
 
 function texImageLocal(src, env) {
     let args = env.args;
-    let image = (args.image || args.img) ?? '';
+    let image = args.image || args.img;
+    if (image == null) return;
+
+    let img = cache.img.see(image);
+    let blob = img.data;
+    let ext = imgext[blob.type];
+    let fname = `${image}.${ext}`;
+    images[fname] = blob;
+
     let width = args.width || args.w;
     let opts = width ? `[width=${width/100}\\textwidth]` : '';
     let cap = (args.caption == 'none') ? null : args.caption;
     let caption = (cap != null) ? `\\caption{${cap}}\n` : '';
-    let out = `\\begin{figure}\n\\includegraphics${opts}{${image}}\n${caption}\\end{figure}`;
-    images.push(image);
-    return out;
+
+    return `\\begin{figure}\n\\includegraphics${opts}{${fname}}\n${caption}\\end{figure}`;
 }
 
 function texSvg(src, env) {
-    let out = '[SVG export is a to-do, sorry]';
-    return out;
+    let args = env.args;
+    let inum = Object.keys(images).length;
+    let name = args.id || `image_${inum}`;
+
+    let fname = `${name}.svg`;
+    let svg = parseSVG(args.mime, args.svg, 100);
+    let blob = new Blob([svg], {type: 'text/svg+xml'});
+    images[fname] = blob;
+
+    let width = args.width || args.w;
+    let opts = width ? `[width=${width/100}\\textwidth]` : '';
+    let cap = (args.caption == 'none') ? null : args.caption;
+    let caption = (cap != null) ? `\\caption{${cap}}\n` : '';
+
+    return `\\begin{figure}\n\\includegraphics${opts}{${fname}}\n${caption}\\end{figure}`;
 }
 
 function texTheorem(src, env) {
@@ -196,8 +216,7 @@ function texTheorem(src, env) {
     let label = (args.id) ? `\\label{${args.id}}` : '';
     let close = env.single ? `\n\\end{${env.env}}` : ""
     current_tex_env = `${env.env}${num}`;
-    let out = `\\begin{${current_tex_env}}${name}${label} \n ${src}${close}`;
-    return out;
+    return `\\begin{${current_tex_env}}${name}${label} \n ${src}${close}`;
 }
 
 function texTitle(src, env) {

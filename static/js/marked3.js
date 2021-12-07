@@ -348,7 +348,7 @@ class BlockParser {
             let number = cap[2] != '*';
             let argsraw = cap[3] || '';
             let args = parseArgs(argsraw, number);
-            args.mime = cap[1];
+            args.mime = {svg: 'text/svg+xml', gum: 'text/svg+gum'}[cap[1]];
             args.svg = src.slice(cap[0].length);
             this.env = {
                 type: 'env_one',

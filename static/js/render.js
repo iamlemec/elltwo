@@ -640,8 +640,7 @@ function imgEnv(ptxt, args) {
 function svgEnv(ptxt, args) {
     figEnv(ptxt, args);
     let fig = ptxt.find('.fig_cont');
-    let mim = {svg: 'text/svg+xml', gum: 'text/svg+gum'}[args.mime];
-    let svg = parseSVG(mim, args.svg, 100);
+    let svg = parseSVG(args.mime, args.svg, 100);
     let hdl = $('<div>', {class: 'env_add svg_hodl', html: svg});
     fig.append(hdl);
 }
