@@ -142,7 +142,7 @@ const innerPara = `
 <div class="control">
 <div class="controlZone"></div>
 <div class="controlButs">
-<div class='butgrp1'>
+<div class="butgrp1">
 <div class="before controlBut" title='insert above'><svg>
 <use xlink:href="/static/img/icons.svg#control_before"></use>
 </svg></div>
@@ -150,7 +150,7 @@ const innerPara = `
 <use xlink:href="/static/img/icons.svg#control_after"></use>
 </svg></div>
 </div>
-<div class='butgrp2'>
+<div class="butgrp2">
 <div class="delete controlBut" title='delete'><svg>
 <use xlink:href="/static/img/icons.svg#control_delete"></use>
 </svg></div>

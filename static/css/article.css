@@ -197,8 +197,6 @@
     height: 100%;
     top: 0;
     text-align: right;
-    padding-right: 2px;
-    margin-right: 2px;
     z-index: 1;
 }
 
@@ -214,7 +212,7 @@
     position: absolute;
     top: 0%;
     right: 0px;
-    width: 55px;
+    width: 70px;
     height: 100%;
     z-index: -1;
 }
@@ -223,22 +221,19 @@
     flex-direction: row;
     justify-content: flex-end;
     align-items: flex-end;
+    padding-right: 2px;
 }
 
 .container .controlButs {
     display: none;
 }
 
-#bg.hover .container.ssv .controlButs {
-    display: flex;
-}
-
-#bg.hover .container:not(.ssv) .para:hover .controlButs,
-#bg.hover .container:not(.ssv) .controlZone:hover + .controlButs,
-#bg.hover .container:not(.ssv) .controlButs:hover,
-#bg.active .container .para:hover .controlButs,
-#bg.active .container .controlZone:hover + .controlButs,
-#bg.active .container .controlButs:hover
+#bg.hover .para:hover .controlButs,
+#bg.hover .controlZone:hover + .controlButs,
+#bg.hover .controlButs:hover,
+#bg.active .para.active:hover .controlButs,
+#bg.active .para.active .controlZone:hover + .controlButs,
+#bg.active .para.active .controlButs:hover
 {
     display: flex;
 }
@@ -261,21 +256,27 @@
     display: flex;
 }
 
-.container .controlBut.ro_but {
-    border-radius: 3px;
-}
-
 #bg.writeable .controlBut {
     display: flex;
 }
 
-.controlBut:first-child {
+#bg:not(.writeable) .controlBut {
+    border-radius: 3px;
+}
+
+.controlBut.before {
     border-top-left-radius: 3px;
+}
+
+.controlBut.after {
+    border-bottom-left-radius: 3px;
+}
+
+.controlBut.delete {
     border-top-right-radius: 3px;
 }
 
-.controlBut:last-child {
-    border-bottom-left-radius: 3px;
+.controlBut.copylink {
     border-bottom-right-radius: 3px;
 }
 
