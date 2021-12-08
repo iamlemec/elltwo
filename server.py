@@ -63,6 +63,7 @@ config = {
     'edit_persist': True, # persistent edit mode in cookie
     'ssv_init': False, # whether to start in ssv mode
     'edit_init': True, # whether to start in edit mode
+    'always_hover': False, # hover bar in read-only mode
     'default_theme': 'white', # default theme
     'default_font': 'default', # default font
     'demo_path': 'testing/demo.md', # path to demo content

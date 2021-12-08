@@ -8,6 +8,7 @@ ssv_persist = true # start articles in ssv mode
 edit_persist = true # start articles in edit mode
 ssv_init = false # whether to start in ssv mode
 edit_init = true # whether to start in edit mode
+always_hover = false # hover bar even in read-only mode
 default_theme = 'white' # default theme
 default_font = 'default' # default font
 

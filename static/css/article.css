@@ -154,7 +154,7 @@
     line-height: 20px;
 }
 
-.container.ssv .controlBut{
+.container.ssv .controlBut {
     width: 20px;
     height: 20px;
 }
@@ -193,15 +193,14 @@
 /* control buttons */
 
 .control {
-/*     display: none; */
     position: absolute;
     height: 100%;
     top: 0;
     text-align: right;
     padding-right: 2px;
+    margin-right: 2px;
     z-index: 1;
 }
-
 
 .container:not(.ssv) .control {
     right: 100%;
@@ -226,17 +225,20 @@
     align-items: flex-end;
 }
 
-.container.ssv .controlButs {
-    display: flex;
-}
-
-.container:not(.ssv) .controlButs {
+.container .controlButs {
     display: none;
 }
 
-.container:not(.ssv) .para:hover .controlButs,
-.container:not(.ssv) .controlZone:hover + .controlButs,
-.container:not(.ssv) .controlButs:hover
+#bg.hover .container.ssv .controlButs {
+    display: flex;
+}
+
+#bg.hover .container:not(.ssv) .para:hover .controlButs,
+#bg.hover .container:not(.ssv) .controlZone:hover + .controlButs,
+#bg.hover .container:not(.ssv) .controlButs:hover,
+#bg.active .container .para:hover .controlButs,
+#bg.active .container .controlZone:hover + .controlButs,
+#bg.active .container .controlButs:hover
 {
     display: flex;
 }
@@ -255,11 +257,15 @@
     padding: 6px;
 }
 
-.controlBut.ro_but{
+.controlBut.ro_but {
     display: flex;
 }
 
-#bg.writeable .controlBut{
+.container .controlBut.ro_but {
+    border-radius: 3px;
+}
+
+#bg.writeable .controlBut {
     display: flex;
 }
 
@@ -1383,7 +1389,7 @@ circle.commit.active {
 .container.sb_content.ssv .control{
     padding-right: 0px;
 }
-    
+
 .container.ssv .controlButs {
     flex-direction: column;
  }

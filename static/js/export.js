@@ -125,8 +125,7 @@ function replaceCites(keys, text) {
 }
 
 function replaceQuotes(text) {
-    text = text.replace(/"([^"\n]+)"/g, "``$1''");
-    return text;
+    return text.replace(/"([^"\n]+)"/g, "``$1''");
 }
 
 let current_tex_env = null;

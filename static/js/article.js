@@ -45,6 +45,7 @@ let default_config = {
     readonly: true, // is session readonly
     ssv_persist: false, // start in ssv mode
     edit_persist: false, // start in edit mode
+    always_hover: false, // hover bar in read-only
     title: null, // default article title
     aid: null, // article identifier
 };
@@ -173,6 +174,9 @@ function loadArticle(args) {
     let ssv0 =  config.ssv_persist && (cooks('ssv_mode') ?? config.ssv_init);
     let edit0 = config.edit_persist && (cooks('edit_mode') ?? config.edit_init);
 
+    // realize hover policy
+    $('#bg').toggleClass('hover', config.always_hover);
+
     // connect events
     eventArticle();
 
@@ -224,7 +228,8 @@ function setWriteable() {
             text.prop('readonly', true);
             storeChange(para);
         }
-    }}
+    }
+}
 
 function connectServer() {
     let url = `//${document.domain}:${location.port}`;
