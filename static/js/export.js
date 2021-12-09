@@ -6,7 +6,7 @@ import { mapObject, eachObject, initToggleBox } from './utils.js'
 import { config, state, cache } from './state.js'
 import { markthree } from './marked3.js'
 import { s_env_spec } from './render.js'
-import { latexTemplate } from './template.js'
+import { htmlTemplate, latexTemplate } from './template.js'
 import { parseSVG } from './svg.js'
 import * as zip from '../zip.js/lib/zip.js'
 
@@ -22,16 +22,30 @@ let imgext = {
 function createMd() {
     let name = urlify(config.title);
 
-    let paras = [];
-    $('.para:not(.folder)').each(function() {
-        let raw = $(this).attr('raw');
-        paras.push(raw);
-    });
-    let text = paras.join('\n\n');
+    let text = $('.para:not(.folder)').map(function() {
+        return $(this).attr('raw');
+    }).toArray().join('\n\n');
 
     return {
         name: name,
         data: text,
+    };
+}
+
+// html export_tex
+
+function createHtml() {
+    let {name, data} = createMd();
+
+    let html = htmlTemplate({
+        prefix: '/elltwo/static',
+        title: name,
+        markdown: data,
+    });
+
+    return {
+        name: name,
+        data: html,
     };
 }
 
@@ -46,33 +60,27 @@ function createTex() {
     title = config.title;
     images = [];
 
-    let bibKeys = cache.cite.keys()
+    let bibKeys = cache.cite.keys();
     let rawBibTex = cache.cite.values().map(bib => bib.raw).join('\n');
-    let paras = [];
-    $('.para:not(.folder)').each(function() {
+
+    let paras = $('.para:not(.folder)').map(function() {
         let raw = $(this).attr('raw');
         let markout = markthree(raw, 'latex');
-        let tex;
-        if (markout.env) {
-            tex = texEnv(markout);
-        } else {
-            tex = markout.src;
-        }
+        let tex = markout.env ? texEnv(markout) : markout.src;
         tex = replaceCites(bibKeys, tex);
         tex = replaceQuotes(tex);
-        paras.push(tex);
-    });
+        return tex;
+    }).toArray();
 
     let now = new Date();
-    let tVars = {
+    let text = latexTemplate({
         title: title,
         date: now.toDateString(),
         macros: texMacros(state.macros),
         envs: sEnv(s_env_spec),
         bib: rawBibTex,
         body: paras.join('\n\n'),
-    };
-    let text = latexTemplate(tVars);
+    });
 
     return {
         name: name,
@@ -89,7 +97,6 @@ async function createZip() {
     let ftex = new zip.TextReader(data);
     await zwrite.add(tname, ftex);
 
-    console.log(images)
     for (let [k, v] of Object.entries(images)) {
         let r = new zip.BlobReader(v);
         let e = imgext[v.mime];
@@ -193,10 +200,11 @@ function texImageLocal(src, env) {
 function texSvg(src, env) {
     let args = env.args;
     let inum = Object.keys(images).length;
-    let name = args.id || `image_${inum}`;
+    let name = args.id ?? `image_${inum}`;
+    let size = args.pixels ? parseInt(args.pixels) : 100;
 
     let fname = `${name}.svg`;
-    let svg = parseSVG(args.mime, args.svg, 100);
+    let svg = parseSVG(args.mime, args.svg, size);
     let blob = new Blob([svg], {type: 'text/svg+xml'});
     images[fname] = blob;
 
@@ -298,6 +306,12 @@ function exportMarkdown() {
     downloadFile(`${name}.md`, blob);
 }
 
+function exportHtml() {
+    let {name, data} = createHtml();
+    let blob = new Blob([data], {type: 'text/html'});
+    downloadFile(`${name}.html`, blob);
+}
+
 function exportLatex() {
     let {name, data} = createTex();
     let blob = new Blob([data], {type: 'text/tex'});
@@ -319,6 +333,11 @@ function initExport() {
     $('#export_tex').click(function() {
         ebox.hide();
         exportLatex();
+    });
+
+    $('#export_html').click(function() {
+        ebox.hide();
+        exportHtml();
     });
 
     $('#export_zip').click(function() {

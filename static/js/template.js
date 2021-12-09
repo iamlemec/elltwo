@@ -1,4 +1,43 @@
-export { latexTemplate }
+export { htmlTemplate, latexTemplate }
+
+function htmlTemplate(d) {
+    return String.raw`
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="icon" href="${d.prefix}/favicon/elltwo.svg" />
+
+<link rel="stylesheet" href="${d.prefix}/css/article.css" />
+<link rel="stylesheet" href="${d.prefix}/themes/white.css" />
+<link rel="stylesheet" href="${d.prefix}/katex/katex.min.css" />
+
+<script src="${d.prefix}/libs/jquery.min.js" ></script>
+<script src="${d.prefix}/katex/katex.min.js"></script>
+
+<title>External</title>
+
+</head>
+
+<body>
+
+<script id="markdown" type="text/template">
+${d.markdown}
+</script>
+
+<script type="module">
+import { loadMarkdown } from '${d.prefix}/js/render.js'
+loadMarkdown();
+</script>
+
+</body>
+
+</html>
+    `.trim();
+}
 
 function latexTemplate(d) {
     return String.raw`

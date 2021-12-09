@@ -304,7 +304,6 @@ a.reference {
     padding-left: 30px;
     font-size: 70%;
 }
-    
 
 #hoot {
     display: none;
@@ -322,13 +321,13 @@ a.reference {
     margin-right: 5px;
     top: 0;
 }
-    
-not(#confirm_popup).foot_butt{
+
+not(#confirm_popup).foot_butt {
         display: inline;
         width: 70px;
 }
-    
-#confirm_popup .foot_butt svg{
+
+#confirm_popup .foot_butt svg {
         margin: 2px;
 }
 

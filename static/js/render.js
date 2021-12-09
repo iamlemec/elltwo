@@ -110,13 +110,42 @@ function connectCallbacks(callbacks) {
     }
 }
 
-function loadMarkdown(args) {
-    if (args.url !== undefined) {
-        $.get(args.url, function(md) {
-            let args1 = {...args, url: undefined, markdown: md};
-            loadMarkdown(args1);
-        });
-        return;
+async function getFile(url) {
+    let text = await $.get({
+        url: url,
+        type: 'GET',
+    });
+    return text;
+}
+
+function ensureContent() {
+    let body = $('body');
+    let bg = $('#bg');
+    if (bg.length == 0) {
+        bg = $('<div>', {id: 'bg'});
+        body.append(bg);
+    }
+    let cont = $('#cont');
+    if (cont.length == 0) {
+        cont = $('<div>', {id: 'content', class: 'container'});
+        bg.append(cont);
+    }
+}
+
+async function loadMarkdown(args) {
+    args = args ?? {};
+
+    let markdown;
+    if (args.url == null) {
+        if (args.markdown) {
+            markdown = args.markdown;
+        } else {
+            let mk = $('#markdown');
+            markdown = mk ? mk.html() : '';
+            ensureContent();
+        }
+    } else {
+        markdown = await getFile(args.url);
     }
 
     stateRender();
@@ -126,7 +155,7 @@ function loadMarkdown(args) {
     let callbacks = merge(default_callbacks, args.callbacks ?? {});
     connectCallbacks(callbacks);
 
-    initMarkdown(args.markdown ?? '');
+    initMarkdown(markdown);
     initRender();
 
     eventRender();
@@ -640,7 +669,8 @@ function imgEnv(ptxt, args) {
 function svgEnv(ptxt, args) {
     figEnv(ptxt, args);
     let fig = ptxt.find('.fig_cont');
-    let svg = parseSVG(args.mime, args.svg, 100);
+    let size = args.pixels ? parseInt(args.pixels) : 100;
+    let svg = parseSVG(args.mime, args.svg, size);
     let hdl = $('<div>', {class: 'env_add svg_hodl', html: svg});
     fig.append(hdl);
 }

@@ -11,7 +11,7 @@ See @[test] for more info
 !svg [id=box|caption=It's a box|width=50]
 <rect x="10" y="10" width="80" height="80" stroke="white" stroke-width="0.5" fill="#5D9D68" />
 
-!gum [id=gum|caption=Gum.js test]
+!gum [id=gum|pixels=250|caption=Gum.js test]
 let b = Scatter([
     [Rect({stroke: 'red'}), [0.25, 0.25, 0.2]],
     [Rect({stroke: 'blue'}), [0.75, 0.75, 0.2]]
