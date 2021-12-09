@@ -183,6 +183,7 @@ a.reference {
     max-width: 100px;
     margin-bottom: 2px;
     line-height: 17px;
+    width: 100%;
 }
 
 .foot_butt svg {

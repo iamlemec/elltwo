@@ -287,9 +287,6 @@
 
 button {
     font-size: 70%;
-    padding: 1px 3px;
-    width: 100%;
-    margin-top: 3px;
 }
 
 /* DIV renderer stylying */
@@ -1153,26 +1150,45 @@ circle.commit.active {
 #export_options {
     display: none;
     position: absolute;
-    width: 80px;
+    width: 110px;
     bottom: 130%;
-    right: 20px;
+    right: 10px;
     background-color: var(--bg-hl2-col);
     padding: 5px 5px 5px 5px;
 }
 
-.export_butt {
+.export_box {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.export_row {
+    display: flex;
     width: 100%;
+}
+
+.export_butt {
+    padding: 1px 3px;
     min-height: 20px;
     font-size: 110%;
-    margin-top: 0;
-    margin-bottom: 5px;
     background-color: var(--bg-hl-col);
     border: 1px solid var(--delimit-col);
     font-size: 90%;
 }
 
-.export_butt:last-child {
-    margin-bottom: 0;
+.export_butt.export_zip {
+    width: 30%;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left: 1px dotted var(--font-col);
+}
+
+.export_butt.export_text {
+    width: 70%;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: 0;
 }
 
 #export_options:after {
@@ -1182,7 +1198,7 @@ circle.commit.active {
     border-style: solid;
     border-color: var(--bg-hl2-col) transparent transparent transparent;
     bottom: -20px;
-    left: 40%;
+    right: 35%;
 }
 
 #ssv_text {

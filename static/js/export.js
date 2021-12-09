@@ -17,13 +17,35 @@ let imgext = {
     'text/svg+xml': 'svg',
 }
 
+// persistent tracking
+let title;
+let images;
+
 // markdown export
 
-function createMd() {
+function mdEnv(env) {
+    if (env.env == 'imagelocal') {
+        let args = env.args;
+        let image = args.image || args.img;
+        if (image != null) {
+            let img = cache.img.see(image);
+            let blob = img.data;
+            let ext = imgext[blob.type];
+            let fname = `${image}.${ext}`;
+            images[fname] = blob;
+        }
+    }
+}
+
+function createMarkdown() {
     let name = urlify(config.title);
 
+    images = [];
     let text = $('.para:not(.folder)').map(function() {
-        return $(this).attr('raw');
+        let raw = $(this).attr('raw');
+        let markout = markthree(raw, 'html'); // this is inefficient
+        if (markout.env) mdEnv(markout.env);
+        return raw;
     }).toArray().join('\n\n');
 
     return {
@@ -32,29 +54,9 @@ function createMd() {
     };
 }
 
-// html export_tex
-
-function createHtml() {
-    let {name, data} = createMd();
-
-    let html = htmlTemplate({
-        prefix: '/elltwo/static',
-        title: name,
-        markdown: data,
-    });
-
-    return {
-        name: name,
-        data: html,
-    };
-}
-
 // latex export
 
-let title;
-let images;
-
-function createTex() {
+function createLatex() {
     let name = urlify(config.title);
 
     title = config.title;
@@ -88,29 +90,56 @@ function createTex() {
     }
 }
 
-async function createZip() {
-    let {name, data} = createTex();
-    let tname = `${name}.tex`;
+// html export
 
-    let bwrite = new zip.BlobWriter('application/zip');
-    let zwrite = new zip.ZipWriter(bwrite);
-    let ftex = new zip.TextReader(data);
-    await zwrite.add(tname, ftex);
+function createHtml() {
+    let {name, data} = createMarkdown();
 
-    for (let [k, v] of Object.entries(images)) {
-        let r = new zip.BlobReader(v);
-        let e = imgext[v.mime];
-        let n = (e != null) ? `${k}.${e}` : k;
-        await zwrite.add(n, r);
-    }
-
-    await zwrite.close();
-    let blob = await bwrite.getData();
+    let html = htmlTemplate({
+        prefix: '/elltwo/static',
+        title: name,
+        markdown: data,
+    });
 
     return {
         name: name,
-        data: blob,
+        data: html,
+    };
+}
+
+async function createZip(blobs) {
+    let bwrite = new zip.BlobWriter('application/zip');
+    let zwrite = new zip.ZipWriter(bwrite);
+
+    for (let [k, v] of Object.entries(blobs)) {
+        let r = new zip.BlobReader(v);
+        await zwrite.add(k, r);
     }
+
+    await zwrite.close();
+    let zblob = await bwrite.getData();
+
+    return zblob;
+}
+
+async function createMdZip() {
+    let {name, data} = createMarkdown();
+    images[`${name}.md`] = new Blob([data], {type: 'text/markdown'});
+    let blob = await createZip(images);
+    return {
+        name: name,
+        data: blob,
+    };
+}
+
+async function createTexZip() {
+    let {name, data} = createLatex();
+    images[`${name}.tex`] = new Blob([data], {type: 'application/x-latex'});
+    let blob = await createZip(images);
+    return {
+        name: name,
+        data: blob,
+    };
 }
 
 function replaceCites(keys, text) {
@@ -301,9 +330,27 @@ function downloadFile(name, blob) {
 }
 
 function exportMarkdown() {
-    let {name, data} = createMd();
+    let {name, data} = createMarkdown();
     let blob = new Blob([data], {type: 'text/markdown'});
     downloadFile(`${name}.md`, blob);
+}
+
+function exportLatex() {
+    let {name, data} = createLatex();
+    let blob = new Blob([data], {type: 'text/tex'});
+    downloadFile(`${name}.tex`, blob);
+}
+
+function exportMdZip() {
+    createMdZip().then(ret => {
+        downloadFile(`${ret.name}.zip`, ret.data);
+    });
+}
+
+function exportTexZip() {
+    createTexZip().then(ret => {
+        downloadFile(`${ret.name}.zip`, ret.data);
+    });
 }
 
 function exportHtml() {
@@ -312,41 +359,29 @@ function exportHtml() {
     downloadFile(`${name}.html`, blob);
 }
 
-function exportLatex() {
-    let {name, data} = createTex();
-    let blob = new Blob([data], {type: 'text/tex'});
-    downloadFile(`${name}.tex`, blob);
-}
-
-function exportZip() {
-    createZip().then(ret => {
-        downloadFile(`${ret.name}.zip`, ret.data);
-    });
-}
-
 // toggle box
 
 function initExport() {
     let ebox = $('#export_options');
     initToggleBox('#export', ebox);
 
-    $('#export_tex').click(function() {
+    $('#export_textxt').click(function() {
         ebox.hide();
         exportLatex();
     });
 
-    $('#export_html').click(function() {
+    $('#export_texzip').click(function() {
         ebox.hide();
-        exportHtml();
+        exportTexZip();
     });
 
-    $('#export_zip').click(function() {
+    $('#export_mdtxt').click(function() {
         ebox.hide();
-        exportZip();
+        exportMarkdown();
     });
 
-    $('#export_md').click(function() {
+    $('#export_mdzip').click(function() {
         ebox.hide();
-        exportMarkdown()
+        exportMdZip();
     });
 }
