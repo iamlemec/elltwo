@@ -919,11 +919,11 @@ class DivRenderer {
     }
 
     image(href) {
-        return `<div class="fig_cont"><img src="${href}"></div>`;
+        return `<div class="fig_cont"><img src="${href}" /></div>`;
     }
 
     imagelocal() {
-        return `<div class="fig_cont"></div>`;
+        return `<div class="fig_cont"><img /></div>`;
     }
 
     upload(args) {

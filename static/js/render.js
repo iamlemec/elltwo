@@ -643,25 +643,22 @@ function imgEnv(ptxt, args) {
     figEnv(ptxt, args);
 
     let fig = ptxt.find('.fig_cont');
+    let img = fig.children('img');
     let key = args.image || args.img || ptxt.parent().attr('id');
 
     cache.img.get(key, function(ret) {
         if (ret == null) {
+            img.attr('src', '');
             let msg = `Error: image "${key}" not found`;
-            let err = $('<span>', {class: 'img_err env_add', text: msg});
+            let err = $('<span>', {class: 'env_add img_err', text: msg});
             fig.append(err);
-        } else if (ret.mime.startsWith('text/svg')) {
-            let svg = parseSVG(ret.mime, ret.data, 250);
-            let hdl = $('<div>', {class: 'env_add svg_hodl', html: svg});
-            fig.append(hdl);
         } else {
             let url = URL.createObjectURL(ret.data);
+            img.attr('src', url);
             let upd = $('<div>', {class: 'env_add img_update'});
-            let img = $('<img>', {class: 'env_add', src: url});
             let ico = $('<svg><use xlink:href="/static/img/icons.svg#upload"></use></svg>');
             upd.append(ico);
             fig.append(upd);
-            fig.append(img);
         }
     });
 }
