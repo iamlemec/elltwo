@@ -1310,7 +1310,7 @@ function ccRefs(view, raw, cur) {
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-            let search = cap[4] || '';
+            let search = cap[1] || '';
             let ex_keys = cache.list.get('__art', function(ret) {
                 ret = ret.map(x => [x, 'title'])
                 ccSearch(ret, search, p, true);
