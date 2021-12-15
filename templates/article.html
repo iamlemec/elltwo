@@ -4,6 +4,7 @@
 
 {{ super() }}
 
+<link rel="stylesheet" href={{ url_for('static', filename='css/core.css') }} />
 <link rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
 
 <script src="{{ url_for('static', filename='libs/socket.io.min.js') }}"></script>
@@ -122,8 +123,16 @@ Font
 </button>
 
 <div id="export_options" class="box">
-<button id="export_tex" class="export_butt">TeX</button>
-<button id="export_md" class="export_butt">MarkDown</button>
+<div class="export_box">
+<div class="export_row">
+<button id="export_textxt" class="export_butt export_text">LaTeX</button>
+<button id="export_texzip" class="export_butt export_zip">ZIP</button>
+</div>
+<div class="export_row">
+<button id="export_mdtxt" class="export_butt export_text">Markdown</button>
+<button id="export_mdzip" class="export_butt export_zip">ZIP</button>
+</div>
+</div>
 </div>
 
 {% endblock %}
@@ -148,6 +157,7 @@ loadArticle({{
         'edit_persist': edit_persist,
         'ssv_init': ssv_init,
         'edit_init': edit_init,
+        'always_hover': always_hover,
         'macros': macros,
     },
     'update_refs': g_ref,

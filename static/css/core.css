@@ -183,6 +183,7 @@ a.reference {
     max-width: 100px;
     margin-bottom: 2px;
     line-height: 17px;
+    width: 100%;
 }
 
 .foot_butt svg {
@@ -304,7 +305,6 @@ a.reference {
     padding-left: 30px;
     font-size: 70%;
 }
-    
 
 #hoot {
     display: none;
@@ -322,13 +322,13 @@ a.reference {
     margin-right: 5px;
     top: 0;
 }
-    
-not(#confirm_popup).foot_butt{
+
+not(#confirm_popup).foot_butt {
         display: inline;
         width: 70px;
 }
-    
-#confirm_popup .foot_butt svg{
+
+#confirm_popup .foot_butt svg {
         margin: 2px;
 }
 

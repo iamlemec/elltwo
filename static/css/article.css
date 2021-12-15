@@ -1,6 +1,6 @@
 @import 'core.css';
 
-:root{
+:root {
     --sb_off: 180px;
 }
 
@@ -154,7 +154,7 @@
     line-height: 20px;
 }
 
-.container.ssv .controlBut{
+.container.ssv .controlBut {
     width: 20px;
     height: 20px;
 }
@@ -193,15 +193,12 @@
 /* control buttons */
 
 .control {
-/*     display: none; */
     position: absolute;
     height: 100%;
     top: 0;
     text-align: right;
-    padding-right: 2px;
     z-index: 1;
 }
-
 
 .container:not(.ssv) .control {
     right: 100%;
@@ -215,7 +212,7 @@
     position: absolute;
     top: 0%;
     right: 0px;
-    width: 55px;
+    width: 70px;
     height: 100%;
     z-index: -1;
 }
@@ -224,19 +221,19 @@
     flex-direction: row;
     justify-content: flex-end;
     align-items: flex-end;
+    padding-right: 2px;
 }
 
-.container.ssv .controlButs {
-    display: flex;
-}
-
-.container:not(.ssv) .controlButs {
+.container .controlButs {
     display: none;
 }
 
-.container:not(.ssv) .para:hover .controlButs,
-.container:not(.ssv) .controlZone:hover + .controlButs,
-.container:not(.ssv) .controlButs:hover
+#bg.hover .para:hover .controlButs,
+#bg.hover .controlZone:hover + .controlButs,
+#bg.hover .controlButs:hover,
+#bg.active .para.active:hover .controlButs,
+#bg.active .para.active .controlZone:hover + .controlButs,
+#bg.active .para.active .controlButs:hover
 {
     display: flex;
 }
@@ -255,21 +252,31 @@
     padding: 6px;
 }
 
-.controlBut.ro_but{
+.controlBut.ro_but {
     display: flex;
 }
 
-#bg.writeable .controlBut{
+#bg.writeable .controlBut {
     display: flex;
 }
 
-.controlBut:first-child {
+#bg:not(.writeable) .controlBut {
+    border-radius: 3px;
+}
+
+.controlBut.before {
     border-top-left-radius: 3px;
+}
+
+.controlBut.after {
+    border-bottom-left-radius: 3px;
+}
+
+.controlBut.delete {
     border-top-right-radius: 3px;
 }
 
-.controlBut:last-child {
-    border-bottom-left-radius: 3px;
+.controlBut.copylink {
     border-bottom-right-radius: 3px;
 }
 
@@ -280,9 +287,6 @@
 
 button {
     font-size: 70%;
-    padding: 1px 3px;
-    width: 100%;
-    margin-top: 3px;
 }
 
 /* DIV renderer stylying */
@@ -1146,26 +1150,45 @@ circle.commit.active {
 #export_options {
     display: none;
     position: absolute;
-    width: 80px;
+    width: 110px;
     bottom: 130%;
-    right: 20px;
+    right: 10px;
     background-color: var(--bg-hl2-col);
     padding: 5px 5px 5px 5px;
 }
 
-.export_butt {
+.export_box {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.export_row {
+    display: flex;
     width: 100%;
+}
+
+.export_butt {
+    padding: 1px 3px;
     min-height: 20px;
     font-size: 110%;
-    margin-top: 0;
-    margin-bottom: 5px;
     background-color: var(--bg-hl-col);
     border: 1px solid var(--delimit-col);
     font-size: 90%;
 }
 
-.export_butt:last-child {
-    margin-bottom: 0;
+.export_butt.export_zip {
+    width: 30%;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left: 1px dotted var(--font-col);
+}
+
+.export_butt.export_text {
+    width: 70%;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: 0;
 }
 
 #export_options:after {
@@ -1175,7 +1198,7 @@ circle.commit.active {
     border-style: solid;
     border-color: var(--bg-hl2-col) transparent transparent transparent;
     bottom: -20px;
-    left: 40%;
+    right: 35%;
 }
 
 #ssv_text {
@@ -1383,7 +1406,7 @@ circle.commit.active {
 .container.sb_content.ssv .control{
     padding-right: 0px;
 }
-    
+
 .container.ssv .controlButs {
     flex-direction: column;
  }

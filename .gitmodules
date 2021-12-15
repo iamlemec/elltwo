@@ -4,3 +4,6 @@
 [submodule "gum.js"]
 	path = static/gum.js
 	url = https://github.com/iamlemec/gum.js
+[submodule "static/zip.js"]
+	path = static/zip.js
+	url = https://github.com/gildas-lormeau/zip.js

@@ -2,69 +2,144 @@
 
 export { initExport, exportMarkdown, exportLatex }
 
-import { initToggleBox } from './utils.js'
+import { mapObject, eachObject, initToggleBox } from './utils.js'
 import { config, state, cache } from './state.js'
 import { markthree } from './marked3.js'
 import { s_env_spec } from './render.js'
-import { latexTemplate } from './template.js'
+import { htmlTemplate, latexTemplate } from './template.js'
+import { parseSVG } from './svg.js'
+import * as zip from '../zip.js/lib/zip.js'
+
+// image extensions
+let imgext = {
+    'image/png': 'png',
+    'image/jpeg': 'jpg',
+    'text/svg+xml': 'svg',
+}
+
+// persistent tracking
+let title;
+let images;
 
 // markdown export
 
-function createMd() {
-    let paras = [];
-    $('.para:not(.folder)').each(function() {
-        let raw = $(this).attr('raw');
-        paras.push(raw);
-    });
+function mdEnv(env) {
+    if (env.env == 'imagelocal') {
+        let args = env.args;
+        let image = args.image || args.img;
+        if (image != null) {
+            let img = cache.img.see(image);
+            let blob = img.data;
+            let ext = imgext[blob.type];
+            let fname = `${image}.${ext}`;
+            images[fname] = blob;
+        }
+    }
+}
 
-    let dict = {
-        format: 'text/markdown',
-        filename: config.title,
-        text: paras.join('\n\n'),
+function createMarkdown() {
+    let name = urlify(config.title);
+
+    images = [];
+    let text = $('.para:not(.folder)').map(function() {
+        let raw = $(this).attr('raw');
+        let markout = markthree(raw, 'html'); // this is inefficient
+        if (markout.env) mdEnv(markout.env);
+        return raw;
+    }).toArray().join('\n\n');
+
+    return {
+        name: name,
+        data: text,
     };
-    return dict;
 }
 
 // latex export
 
-let title;
+function createLatex() {
+    let name = urlify(config.title);
 
-function createTex() {
     title = config.title;
-    let bibKeys = cache.cite.keys()
+    images = [];
+
+    let bibKeys = cache.cite.keys();
     let rawBibTex = cache.cite.values().map(bib => bib.raw).join('\n');
-    let paras = [];
-    $('.para:not(.folder)').each(function() {
+
+    let paras = $('.para:not(.folder)').map(function() {
         let raw = $(this).attr('raw');
         let markout = markthree(raw, 'latex');
-        let tex;
-        if (markout.env) {
-            tex = texEnv(markout);
-        } else {
-            tex = markout.src;
-        }
+        let tex = markout.env ? texEnv(markout) : markout.src;
         tex = replaceCites(bibKeys, tex);
         tex = replaceQuotes(tex);
-        paras.push(tex);
-    });
+        return tex;
+    }).toArray();
 
     let now = new Date();
-    let tVars = {
+    let text = latexTemplate({
         title: title,
         date: now.toDateString(),
         macros: texMacros(state.macros),
         envs: sEnv(s_env_spec),
         bib: rawBibTex,
         body: paras.join('\n\n'),
-    };
-    let text = latexTemplate(tVars);
+    });
 
-    let dict = {
-        mimetype: 'text/tex',
-        filename: config.title,
-        text: text,
+    return {
+        name: name,
+        data: text,
     }
-    return dict;
+}
+
+// html export
+
+function createHtml() {
+    let {name, data} = createMarkdown();
+
+    let html = htmlTemplate({
+        prefix: '/elltwo/static',
+        title: name,
+        markdown: data,
+    });
+
+    return {
+        name: name,
+        data: html,
+    };
+}
+
+async function createZip(blobs) {
+    let bwrite = new zip.BlobWriter('application/zip');
+    let zwrite = new zip.ZipWriter(bwrite);
+
+    for (let [k, v] of Object.entries(blobs)) {
+        let r = new zip.BlobReader(v);
+        await zwrite.add(k, r);
+    }
+
+    await zwrite.close();
+    let zblob = await bwrite.getData();
+
+    return zblob;
+}
+
+async function createMdZip() {
+    let {name, data} = createMarkdown();
+    images[`${name}.md`] = new Blob([data], {type: 'text/markdown'});
+    let blob = await createZip(images);
+    return {
+        name: name,
+        data: blob,
+    };
+}
+
+async function createTexZip() {
+    let {name, data} = createLatex();
+    images[`${name}.tex`] = new Blob([data], {type: 'application/x-latex'});
+    let blob = await createZip(images);
+    return {
+        name: name,
+        data: blob,
+    };
 }
 
 function replaceCites(keys, text) {
@@ -86,8 +161,7 @@ function replaceCites(keys, text) {
 }
 
 function replaceQuotes(text) {
-    text = text.replace(/"([^"\n]+)"/g, "``$1''");
-    return text;
+    return text.replace(/"([^"\n]+)"/g, "``$1''");
 }
 
 let current_tex_env = null;
@@ -116,8 +190,7 @@ function texSection(src, env) {
     let sub = (times > 0) ? 'sub'.repeat(times) : '';
     let label = (args.id) ? `\\label{${args.id}}` : '';
     let num = (args.number) ? '' : '*';
-    let out = `\\${sub}section${num}{${src}}${label}`;
-    return out;
+    return `\\${sub}section${num}{${src}}${label}`;
 }
 
 function texEquation(src, env) {
@@ -125,31 +198,51 @@ function texEquation(src, env) {
     let label = (args.id) ? `\\label{${args.id}}` : '';
     let num = (args.number) ? '' : '*';
     let eqenv = args.multiline ? 'align' : 'equation';
-    let out = `\\begin{${eqenv}${num}}\n${src}\n${label}\\end{${eqenv}${num}}`;
-    return out;
+    return `\\begin{${eqenv}${num}}\n${src}\n${label}\\end{${eqenv}${num}}`;
 }
 
 function texImage(src, env) {
     let args = env.args;
     let caption = args.caption ?? '';
-    let out = `\\begin{figure}\n${src}\n\\caption{${caption}}\n\\end{figure}`;
-    return out;
+    return `\\begin{figure}\n${src}\n\\caption{${caption}}\n\\end{figure}`;
 }
 
 function texImageLocal(src, env) {
     let args = env.args;
-    let image = (args.image || args.img) ?? '';
+    let image = args.image || args.img;
+    if (image == null) return;
+
+    let img = cache.img.see(image);
+    let blob = img.data;
+    let ext = imgext[blob.type];
+    let fname = `${image}.${ext}`;
+    images[fname] = blob;
+
     let width = args.width || args.w;
     let opts = width ? `[width=${width/100}\\textwidth]` : '';
     let cap = (args.caption == 'none') ? null : args.caption;
     let caption = (cap != null) ? `\\caption{${cap}}\n` : '';
-    let out = `\\begin{figure}\n\\includegraphics${opts}{${image}}\n${caption}\\end{figure}`;
-    return out;
+
+    return `\\begin{figure}\n\\includegraphics${opts}{${fname}}\n${caption}\\end{figure}`;
 }
 
 function texSvg(src, env) {
-    let out = '[SVG export is a to-do, sorry]';
-    return out;
+    let args = env.args;
+    let inum = Object.keys(images).length;
+    let name = args.id ?? `image_${inum}`;
+    let size = args.pixels ? parseInt(args.pixels) : 100;
+
+    let fname = `${name}.svg`;
+    let svg = parseSVG(args.mime, args.svg, size);
+    let blob = new Blob([svg], {type: 'text/svg+xml'});
+    images[fname] = blob;
+
+    let width = args.width || args.w;
+    let opts = width ? `[width=${width/100}\\textwidth]` : '';
+    let cap = (args.caption == 'none') ? null : args.caption;
+    let caption = (cap != null) ? `\\caption{${cap}}\n` : '';
+
+    return `\\begin{figure}\n\\includegraphics${opts}{${fname}}\n${caption}\\end{figure}`;
 }
 
 function texTheorem(src, env) {
@@ -159,8 +252,7 @@ function texTheorem(src, env) {
     let label = (args.id) ? `\\label{${args.id}}` : '';
     let close = env.single ? `\n\\end{${env.env}}` : ""
     current_tex_env = `${env.env}${num}`;
-    let out = `\\begin{${current_tex_env}}${name}${label} \n ${src}${close}`;
-    return out;
+    return `\\begin{${current_tex_env}}${name}${label} \n ${src}${close}`;
 }
 
 function texTitle(src, env) {
@@ -226,12 +318,11 @@ function urlify(s) {
             .toLowerCase();
 }
 
-function downloadFile(mime, name, ext, text) {
+function downloadFile(name, blob) {
     let element = document.createElement('a');
-    let data = encodeURIComponent(text);
-    name = (name.length > 0) ? urlify(name) : 'filename';
-    element.setAttribute('href', `data:${mime};charset=utf-8,${data}`);
-    element.setAttribute('download', `${name}.${ext}`);
+    let url = URL.createObjectURL(blob);
+    element.setAttribute('href', url);
+    element.setAttribute('download', `${name}`);
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click();
@@ -239,13 +330,33 @@ function downloadFile(mime, name, ext, text) {
 }
 
 function exportMarkdown() {
-    let data = createMd();
-    downloadFile(data.mimetype, data.filename, 'md', data.text);
+    let {name, data} = createMarkdown();
+    let blob = new Blob([data], {type: 'text/markdown'});
+    downloadFile(`${name}.md`, blob);
 }
 
 function exportLatex() {
-    let data = createTex();
-    downloadFile(data.mimetype, data.filename, 'tex', data.text);
+    let {name, data} = createLatex();
+    let blob = new Blob([data], {type: 'text/tex'});
+    downloadFile(`${name}.tex`, blob);
+}
+
+function exportMdZip() {
+    createMdZip().then(ret => {
+        downloadFile(`${ret.name}.zip`, ret.data);
+    });
+}
+
+function exportTexZip() {
+    createTexZip().then(ret => {
+        downloadFile(`${ret.name}.zip`, ret.data);
+    });
+}
+
+function exportHtml() {
+    let {name, data} = createHtml();
+    let blob = new Blob([data], {type: 'text/html'});
+    downloadFile(`${name}.html`, blob);
 }
 
 // toggle box
@@ -254,13 +365,23 @@ function initExport() {
     let ebox = $('#export_options');
     initToggleBox('#export', ebox);
 
-    $('#export_tex').click(function() {
+    $('#export_textxt').click(function() {
         ebox.hide();
         exportLatex();
     });
 
-    $('#export_md').click(function() {
+    $('#export_texzip').click(function() {
         ebox.hide();
-        exportMarkdown()
+        exportTexZip();
+    });
+
+    $('#export_mdtxt').click(function() {
+        ebox.hide();
+        exportMarkdown();
+    });
+
+    $('#export_mdzip').click(function() {
+        ebox.hide();
+        exportMdZip();
     });
 }
