@@ -744,7 +744,7 @@ class ElltwoDB:
             self.session.commit()
 
         if index:
-            self.index_article(art.aid)
+            self.reindex_article(art.aid)
 
     ##
     ## citation methods
@@ -1135,10 +1135,11 @@ class ElltwoDB:
         query.delete()
         self.session.commit()
 
-    def reindex_article(aid, commit=True):
+    def reindex_article(self, aid, commit=True):
         if (art := self.get_art(aid)) is None:
             return
         self.index_document('title', art.aid, art.title, clear=True, commit=False)
+        self.index_document('title', art.aid, art.short_title, clear=False, commit=False)
         for par in self.get_paras(art.aid):
             self.index_document('para', par.pid, par.text, clear=True, commit=False)
         if commit:
@@ -1147,9 +1148,7 @@ class ElltwoDB:
     def reindex_articles(self):
         self.clear_index()
         for art in self.get_arts():
-            self.index_document('title', art.aid, art.title, commit=False)
-            for par in self.get_paras(art.aid):
-                self.index_document('para', par.pid, par.text, commit=False)
+            self.reindex_article(art.aid, commit=False)
         self.session.commit()
 
     def search_index(self, text, dtype=None):

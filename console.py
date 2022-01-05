@@ -149,17 +149,6 @@ class Article:
             return
         self.edb.rename_article(art.aid, new_title)
 
-    def ingest(self, path, title=None):
-        if title is None:
-            _, fname = os.path.split(path)
-            title, _ = os.path.splitext(fname)
-        if (art := self.edb.get_art_short(title)) is not None:
-            print(f'Article "{title}" already exists')
-        else:
-            with open(path) as fid:
-                mark = fid.read()
-            self.edb.import_markdown(title, mark)
-
     def delete(self, aid=None, title=None):
         if (art := art_find(self.edb, aid=aid, title=title, all=False)) is None:
             print(f'Article "{title}" not found')
@@ -249,7 +238,7 @@ class Index:
             print(p)
 
 class Biblio:
-    def __init__(self, edb, all=False):
+    def __init__(self, edb):
         self.edb = edb
 
     def list(self, all=False):
@@ -261,7 +250,7 @@ class Biblio:
         print(bib_summary(bib, full=True, time=all))
 
 class Reference:
-    def __init__(self, edb, all=False):
+    def __init__(self, edb):
         self.edb = edb
 
     def list(self, aid=None, all=False):
@@ -287,7 +276,21 @@ class Backup:
             self.edb.create()
             self.edb.load_articles(inp, zip=zip)
 
-class Convert:
+class Ingest:
+    def __init__(self, edb):
+        self.edb = edb
+
+    def markdown(self, path, title=None):
+        if title is None:
+            _, fname = os.path.split(path)
+            title, _ = os.path.splitext(fname)
+        if (art := self.edb.get_art_short(title)) is not None:
+            print(f'Article "{title}" already exists')
+        else:
+            with open(path) as fid:
+                mark = fid.read()
+            self.edb.import_markdown(title, mark)
+
     def latex(self, path, out=None):
         with open(path) as fid:
             tex = fid.read()
@@ -313,7 +316,7 @@ class Main:
         self.biblio = self.bib = Biblio(edb=edb)
         self.reference = self.ref = Reference(edb=edb)
         self.backup = Backup(edb=edb)
-        self.convert = self.conv = Convert()
+        self.ingest = Ingest(edb=edb)
 
 if __name__ == '__main__':
     fire.Fire(Main)
