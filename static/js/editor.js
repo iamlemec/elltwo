@@ -20,6 +20,8 @@ import {
     toggleSidebar, ccNext, ccMake, textWrap
 } from './article.js'
 import { toggleHelp } from './help.js'
+import {hideSVGEditor} from './svg.js'
+
 
 /// initialization
 
@@ -116,6 +118,9 @@ function eventEditor() {
                 copyParas();
                 return false;
             } else if (key == 'escape') {
+                if (state.SVGEditor){
+                    hideSVGEditor();
+                }
                 makeActive(null);
                 return false;
             } else if (shift && key == 'f') {
@@ -296,6 +301,9 @@ function eventEditor() {
 /// textarea manage
 
 function resize(textarea) {
+    if(textarea.id == "SVGEditorParsed" || textarea.id == "SVGEditorInputText"){
+        return false
+    }
     textarea.style.height = 'auto';
     let h = (textarea.scrollHeight) + 'px';
     textarea.style.height = h;

@@ -31,6 +31,8 @@ import { connectDrops, promptUpload, uploadImage } from './drop.js'
 import { initExport } from './export.js'
 import { initHelp } from './help.js'
 import { createBibInfo } from './bib.js'
+import { initSVGEditor, hideSVGEditor, parseSVG } from './svg.js'
+
 
 // history
 let updateHistMap;
@@ -353,6 +355,11 @@ function eventArticle() {
     $(document).on('click', '.img_update', function() {
         let para = $(this).closest('.para');
         let key = para.attr('id');
+        if($(this).hasClass('update_text/svg+gum')){
+            let raw = cache.img.get(key, ret => {
+                initSVGEditor($('#bg'), ret.data, key, true);
+            });
+        }else{
         promptUpload(function(files) {
             let file = files[0];
             let ret = uploadImage(file, key, function(data) {
@@ -360,6 +367,7 @@ function eventArticle() {
                 rawToRender(para, false);
             });
         });
+        };
         return false;
     });
 

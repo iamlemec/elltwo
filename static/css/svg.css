@@ -3,7 +3,7 @@
     display: flex;
     visibility: hidden;
     flex-direction: column;
-    background: var(--bg-hl-col);
+    background: var(--bg-col);
     width: 100%;
     height: calc(100% - 27.5px);
     top: 0;
@@ -123,13 +123,13 @@
     white-space: pre-wrap;
     background-color: var(--bg-col);
     color: var(--font-col);
-    border-top: 1px solid gray;
+    border-top: 1px solid gray !important;
     font-family: monospace;
     font-size: 80%;
     position: absolute;
     top: 50%;
-    width: 50%;
-    height: 50%;
+    width: 50% !important;
+    height: 50% !important;
     padding: 10px;
     padding-left: 30px;
     -webkit-box-shadow:inset 25px 0px 0px 0px rgba(0,0,0,.15);
@@ -157,6 +157,7 @@
     width: 50%;
     height: 100%;
     padding: 20px;
+    background: var(--bg-hl-col);
     border-left: 1px solid gray;
 }
 

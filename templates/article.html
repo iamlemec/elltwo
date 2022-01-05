@@ -6,6 +6,8 @@
 
 <link rel="stylesheet" href={{ url_for('static', filename='css/core.css') }} />
 <link rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
+<link rel="stylesheet" href={{ url_for('static', filename='css/svg.css') }} />
+
 
 <script src="{{ url_for('static', filename='libs/socket.io.min.js') }}"></script>
 <script src="{{ url_for('static', filename='libs/d3.min.js') }}"></script>
@@ -74,6 +76,34 @@ Font
 {% for p in paras %}
 <div class="para" pid="{{p.pid}}" raw="{{p.text}}" fold_level="0"></div>
 {% endfor%}
+
+<div id="SVGEditorOuter">
+<div id="SVGEditorBox">
+
+<div id="SVGEditorBoxLeft">
+<div id="SVGEditorInputBox">
+<textarea id="SVGEditorInputText" spellcheck="false"></textarea>
+<div id="SVGEditorInputView" class="p_input_view svgE"></div>
+</div>
+<textarea id="SVGEditorParsed" readonly="true" placeholder="Add SVG code here"></textarea>
+<div id="SVGEditorParsedView" class="p_input_view svgE"></div>
+
+</div>
+
+<div id="SVGEditorBoxRight">
+<div id="SVGEditorOutput"></div>
+<div id="SVGEditorNav">
+<div id="SVGEditorNavUp">
+<input id="SVGEditorKW" placeholder="Keywords"></input>
+</div>
+<div id="SVGEditorNavDown">
+<input id="SVGEditorTag" placeholder="Image tag (required)"></input>
+</div>
+</div>
+</div>
+
+</div>
+</div>
 
 {% endblock %}
 

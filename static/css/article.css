@@ -4,6 +4,16 @@
     --sb_off: 180px;
 }
 
+#SVGEditorOuter {
+    border-left: 45px solid rgba(0,0,0,.15);
+}
+
+.container.sb_content #SVGEditorOuter {
+   left: calc(.5  * var(--sb_off));
+   width: calc(100% - var(--sb_off));
+   border-left: none;
+}
+
 /* classic view paras */
 
 .container:not(.ssv) .para {
@@ -58,7 +68,7 @@
     overflow-wrap: anywhere;
 }
 
-.container:not(.ssv) .p_input_view {
+.container:not(.ssv) .p_input_view:not(.svgE) {
     position: absolute;
     white-space: pre-wrap;
     width: 100%;
