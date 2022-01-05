@@ -653,9 +653,15 @@ function imgEnv(ptxt, args) {
             let err = $('<span>', {class: 'env_add img_err', text: msg});
             fig.append(err);
         } else {
-            let url = URL.createObjectURL(ret.data);
-            img.attr('src', url);
-            let upd = $('<div>', {class: 'env_add img_update'});
+            if(ret.mime.startsWith('text/svg')){
+                args['svg'] = ret.data
+                args['mime'] = ret.mime
+                svgEnv(ptxt, args, false)
+            }else{
+                let url = URL.createObjectURL(ret.data);
+                img.attr('src', url);
+            }
+            let upd = $('<div>', {class: `env_add img_update update_${ret.mime}`});
             let ico = $('<svg><use xlink:href="/static/img/icons.svg#upload"></use></svg>');
             upd.append(ico);
             fig.append(upd);
@@ -663,8 +669,10 @@ function imgEnv(ptxt, args) {
     });
 }
 
-function svgEnv(ptxt, args) {
-    figEnv(ptxt, args);
+function svgEnv(ptxt, args, outer=true) {
+    if(outer){
+        figEnv(ptxt, args);
+    };
     let fig = ptxt.find('.fig_cont');
     let size = args.pixels ? parseInt(args.pixels) : 100;
     let svg = parseSVG(args.mime, args.svg, size);
