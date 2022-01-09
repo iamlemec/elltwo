@@ -8,7 +8,7 @@ export {
 
 import { config, state, cache } from './state.js'
 import {
-    ensureVisible, cooks, setCookie, getPara, attrArray, noop, on_success, flash, 
+    ensureVisible, cooks, setCookie, getPara, attrArray, noop, on_success, flash,
     smallable_butt, copyText, createButton
 } from './utils.js'
 import { sendCommand, schedTimeout } from './client.js'
@@ -20,7 +20,7 @@ import {
     toggleSidebar, ccNext, ccMake, textWrap
 } from './article.js'
 import { toggleHelp } from './help.js'
-import {hideSVGEditor} from './svg.js'
+import { hideSVGEditor } from './svg.js'
 
 
 /// initialization
@@ -118,7 +118,7 @@ function eventEditor() {
                 copyParas();
                 return false;
             } else if (key == 'escape') {
-                if (state.SVGEditor){
+                if (state.SVGEditor) {
                     hideSVGEditor();
                 }
                 makeActive(null);
@@ -282,7 +282,7 @@ function eventEditor() {
         link = location.protocol + '//' + location.host + location.pathname + '#' + link;
         copyText(link);
         flash(`"${link}" copied to clipboard`);
-        
+
         return false;
     });
 
@@ -301,8 +301,8 @@ function eventEditor() {
 /// textarea manage
 
 function resize(textarea) {
-    if(textarea.id == "SVGEditorParsed" || textarea.id == "SVGEditorInputText"){
-        return false
+    if (textarea.id == "SVGEditorParsed" || textarea.id == "SVGEditorInputText") {
+        return false;
     }
     textarea.style.height = 'auto';
     let h = (textarea.scrollHeight) + 'px';
@@ -315,7 +315,7 @@ function resize(textarea) {
 /// rendering and storage
 
 // store a change locally or server side, if no change also unlock server side
-function storeChange(para, unlock=true) {
+function storeChange(para, unlock=true, force=false) {
     // get old and new text
     let text = para.children('.p_input').val();
     let raw = para.attr('raw');
@@ -324,7 +324,7 @@ function storeChange(para, unlock=true) {
     rawToRender(para, false, true, text); // local changes only
 
     // update server as needed
-    if (text != raw) {
+    if (force || text != raw) {
         $(para).addClass('changed');
         sendUpdatePara(para, text);
     } else {
@@ -733,7 +733,7 @@ function showConfirm(button, action, text){
     $('#cp_inner').append(txt).append(button).append(exit);
     $('#confirm_popup').show()
     $('#ConfirmCancel').on('click', (e) => {hideConfirm()});
-    
+
     let callback = function(){
         action();
         hideConfirm(button);
@@ -761,5 +761,3 @@ function hideConfirm(unbind=false) {
             unbind.off('click');
         }
 }
-
-

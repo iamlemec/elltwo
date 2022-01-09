@@ -202,7 +202,7 @@ class Image:
             print(f'Image "{key}" not found')
         else:
             print(img_summary(img))
-            if img.mime.startswith('text/svg'):
+            if img.mime.startswith('image/svg'):
                 print(img.data.decode())
 
     def delete(self, key):

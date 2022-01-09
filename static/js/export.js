@@ -14,7 +14,8 @@ import * as zip from '../zip.js/lib/zip.js'
 let imgext = {
     'image/png': 'png',
     'image/jpeg': 'jpg',
-    'text/svg+xml': 'svg',
+    'image/svg+xml': 'svg',
+    'image/gif': 'gif',
 }
 
 // persistent tracking
@@ -234,7 +235,7 @@ function texSvg(src, env) {
 
     let fname = `${name}.svg`;
     let svg = parseSVG(args.mime, args.svg, size);
-    let blob = new Blob([svg], {type: 'text/svg+xml'});
+    let blob = new Blob([svg], {type: 'image/svg+xml'});
     images[fname] = blob;
 
     let width = args.width || args.w;

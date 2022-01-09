@@ -1,5 +1,5 @@
 <div align="center">
-<img src="static/favicon/elltwo.svg" alt="logo"></img>
+<img src="static/favicon/elltwo.svg" alt="logo" />
 </div>
 
 # elltwo

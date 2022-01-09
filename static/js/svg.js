@@ -103,7 +103,7 @@ function initSVGEditor(el, raw='', key='', gum=true) {
     $(document).on('click', '#SVGEditorCommit', function(e) {
         if (key = $('#SVGEditorTag').val()) {
             let raw = $('#SVGEditorInputText').val();
-            let data = {'key': key, 'mime': 'text/svg+gum', 'raw': raw};
+            let data = {'key': key, 'mime': 'image/svg+gum', 'raw': raw};
             sendCommand('save_svg', data);
         } else {
             $('#SVGEditorTag').addClass('input_err');
@@ -173,7 +173,7 @@ function parseGum(src, size) {
 }
 
 function parseSVG(mime, src, size) {
-    if (mime == 'text/svg+gum') {
+    if (mime == 'image/svg+gum') {
         let ret = parseGum(src, size);
         if (!ret.success) {
             return ret.message;
@@ -181,9 +181,13 @@ function parseSVG(mime, src, size) {
             return ret.svg;
         }
     } else {
-        if (src.match(/ *<svg( |>)/) == null) {
-            let [w, h] = (typeof(size) == 'number') ? [size, size] : size;
-            return `<svg viewBox="0 0 ${w} ${h}">\n${src}\n</svg>`;
+        if (typeof(src) == 'string') {
+            if (src.match(/ *<svg( |>)/) == null) {
+                let [w, h] = (typeof(size) == 'number') ? [size, size] : size;
+                return `<svg viewBox="0 0 ${w} ${h}">\n${src}\n</svg>`;
+            } else {
+                return src;
+            }
         } else {
             return src;
         }

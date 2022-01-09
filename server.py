@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os, argparse, toml, secrets, webbrowser
 from io import BytesIO
 from pathlib import Path
@@ -872,7 +874,7 @@ def get_imgs(data):
 def get_image(data):
     key = data['key']
     if (img := edb.get_image(key)) is not None:
-        raw = img.data.decode() if img.mime.startswith('text/svg') else img.data
+        raw = img.data.decode() if img.mime.startswith('image/svg') else img.data
         return {'mime': img.mime, 'data': raw, 'kw': img.keywords}
 
 @socketio.on('update_image_key')

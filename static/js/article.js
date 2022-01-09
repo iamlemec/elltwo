@@ -110,7 +110,7 @@ function cacheArticle() {
         sendCommand('get_image', {key: key}, function(ret) {
             if (ret == null) {
                 callback(null);
-            } else if (ret.mime.startsWith('text/svg')) {
+            } else if (ret.mime.startsWith('image/svg+gum')) {
                 callback({mime: ret.mime, data: ret.data});
             } else {
                 let data = new Blob([ret.data], {type: ret.mime});
@@ -353,21 +353,22 @@ function eventArticle() {
 
     // upload replacement image
     $(document).on('click', '.img_update', function() {
-        let para = $(this).closest('.para');
+        let upd = $(this);
+        let para = upd.closest('.para');
         let key = para.attr('id');
-        if($(this).hasClass('update_text/svg+gum')){
+        if (upd.hasClass('update_image/svg+gum')) {
             let raw = cache.img.get(key, ret => {
                 initSVGEditor($('#bg'), ret.data, key, true);
             });
-        }else{
-        promptUpload(function(files) {
-            let file = files[0];
-            let ret = uploadImage(file, key, function(data) {
-                cache.img.del(key);
-                rawToRender(para, false);
+        } else {
+            promptUpload(function(files) {
+                let file = files[0];
+                let ret = uploadImage(file, key, function(data) {
+                    cache.img.del(key);
+                    rawToRender(para, false);
+                });
             });
-        });
-        };
+        }
         return false;
     });
 

@@ -47,7 +47,7 @@ function cacheImage() {
             sendCommand('get_image', {key: key}, function(ret) {
                 if (ret == null) {
                     callback(null);
-                } else if (ret.mime == 'text/svg+gum') {
+                } else if (ret.mime == 'image/svg+gum') {
                     callback(ret.data);
                 } else {
                     let url = new Blob([ret.data], {type: ret.mime});
@@ -248,7 +248,7 @@ function renderBox(elem, key, kws, mime) {
     let keyspan = $('<div>', {class: 'keyspan', text: key});
     elem.append(keyspan);
 
-    if (mime.startsWith('text/svg')) {
+    if (mime == 'image/svg+gum') {
         cache.img.get(key, function(ret) {
             let size = elem.height();
             let svg = parseSVG(mime, ret, size);

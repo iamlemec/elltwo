@@ -653,11 +653,11 @@ function imgEnv(ptxt, args) {
             let err = $('<span>', {class: 'env_add img_err', text: msg});
             fig.append(err);
         } else {
-            if(ret.mime.startsWith('text/svg')){
-                args['svg'] = ret.data
-                args['mime'] = ret.mime
-                svgEnv(ptxt, args, false)
-            }else{
+            if (ret.mime == 'image/svg+gum') {
+                args['svg'] = ret.data;
+                args['mime'] = ret.mime;
+                svgEnv(ptxt, args, false);
+            } else {
                 let url = URL.createObjectURL(ret.data);
                 img.attr('src', url);
             }
@@ -670,9 +670,9 @@ function imgEnv(ptxt, args) {
 }
 
 function svgEnv(ptxt, args, outer=true) {
-    if(outer){
+    if (outer) {
         figEnv(ptxt, args);
-    };
+    }
     let fig = ptxt.find('.fig_cont');
     let size = args.pixels ? parseInt(args.pixels) : 100;
     let svg = parseSVG(args.mime, args.svg, size);
