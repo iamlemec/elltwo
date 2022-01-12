@@ -173,9 +173,9 @@ class BlockParser {
     parseTable(header, align, cells) {
         let i, j;
 
-        header = header.replace(/^ *| *\| *$/g, '').split(/ *\| */);
-        align = align.replace(/^ *|\| *$/g, '').split(/ *\| */);
-        cells = cells.replace(/(?: *\| *)?\n$/, '').split('\n');
+        header = header.replace(/^ *| *$/g, '').split(/ *\| */);
+        align = align.replace(/^ *| *$/g, '').split(/ *\| */);
+        cells = cells.replace(/^ *| *\n?$/, '').split('\n');
 
         align = align.map(function(al) {
             if (/^ *-+: *$/.test(al)) {
@@ -188,6 +188,7 @@ class BlockParser {
                 return null;
             }
         });
+        console.log(align);
 
         cells = cells.map(function(cell) {
             return cell
@@ -196,28 +197,28 @@ class BlockParser {
         });
 
         // head
-        let head = '';
+        let head = [];
         for (i = 0; i < header.length; i++) {
-            let flags = {header: true, align: align[i]};
             let cont = this.inline.output(header[i]);
-            head += this.renderer.tablecell(cont, flags);
+            let cell = this.renderer.tablecell(cont, align[i], true);
+            head.push(cell);
         }
         head = this.renderer.tablerow(head);
 
         // body
         let body = '';
         for (i = 0; i < cells.length; i++) {
-            let cell = '';
+            let rlist = [];
             let row = cells[i];
             for (j = 0; j < row.length; j++) {
-                let flags = {header: false, align: align[j]};
                 let cont = this.inline.output(row[j]);
-                cell += this.renderer.tablecell(cont, flags);
+                let cell = this.renderer.tablecell(cont, align[j], false);
+                rlist.push(cell);
             }
-            body += this.renderer.tablerow(cell);
+            body += this.renderer.tablerow(rlist) + '\n';
         }
 
-        return this.renderer.table(head, body);
+        return this.renderer.table(head, body, align);
     }
 
     parseBiblio(id, text) {
@@ -820,16 +821,18 @@ class DivRenderer {
         return `<div class="p">${text}</div>\n\n`;
     }
 
-    table(header, body) {
+    table(header, body, align) {
         return `<div class="table">\n<div class="table-header">\n${header}</div>\n<div class="table-body">\n${body}</div>\n</div>\n\n`;
     }
 
     tablerow(content) {
-        return `<div class="table-row">${content}</div>\n`;
+        let row = content.join('');
+        return `<div class="table-row">${row}</div>\n`;
     }
 
-    tablecell(content, flags) {
-        return `<div class="table-cell">${content}</div>`;
+    tablecell(content, align, header) {
+        let aclass = (align != null) ? ` table-cell-${align}` : '';
+        return `<div class="table-cell${aclass}">${content}</div>`;
     }
 
     strong(text) {
@@ -1018,19 +1021,23 @@ class TexRenderer {
         return `${text}`;
     }
 
-    /*
-    table(header, body) {
-      return `<div class="table">\n<div class="table-header">\n${header}</div>\n<div class="table-body">\n${body}</div>\n</div>\n\n`;
+    table(header, body, align) {
+        let atext = align.map(a => (a != null) ? a[0] : 'l').join('');
+        return `\\begin{tabular}{${atext}}\n${header}\n\\hline\n${body}\\end{tabular}`;
     }
 
     tablerow(content) {
-      return `<div class="table-row">${content}</div>\n`;
+        let row = content.join(' & ');
+        return `${row} \\\\`;
     }
 
-    tablecell(content, flags) {
-      return `<div class="table-cell">${content}</div>`;
+    tablecell(content, align, header) {
+        if (header ?? false) {
+            return `\\textbf{${content}}`;
+        } else {
+            return content;
+        }
     }
-    */
 
     strong(text) {
         return `\\textbf{${text}}`;

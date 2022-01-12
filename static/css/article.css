@@ -1274,6 +1274,18 @@ circle.commit.active {
     padding: 3px 10px;
 }
 
+.table-cell-left {
+    text-align: left;
+}
+
+.table-cell-right {
+    text-align: right;
+}
+
+.table-cell-center {
+    text-align: center;
+}
+
 /* help overlay */
 
 #help {
