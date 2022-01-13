@@ -188,7 +188,6 @@ class BlockParser {
                 return null;
             }
         });
-        console.log(align);
 
         cells = cells.map(function(cell) {
             return cell
@@ -303,13 +302,12 @@ class BlockParser {
         if (cap = this.rules.figtab.exec(src)) {
             let argsraw = cap[1] || '';
             let args = parseArgs(argsraw);
-            let table = this.lexTable(cap[2], cap[3], cap[4]);
             this.env = {
                 type: 'env_one',
                 env: 'table',
                 args: args,
             }
-            return this.parseTable(table);
+            return this.parseTable(cap[2], cap[3], cap[4]);
         }
 
         // comment
