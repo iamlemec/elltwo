@@ -627,7 +627,7 @@ color: var(--delimit-col);
     /* hacky, margin does */
 }
 
-.dropzone {
+.dropzone, #open_svg_editor {
     border: 1px dashed var(--hl-col);
     text-align: center;
     padding: 20px;
@@ -667,6 +667,10 @@ color: var(--delimit-col);
     left: 0;
     font-size: 100%;
     opacity: .4;
+}
+
+.p_input_view .linenum{
+    display: none;
 }
 
 .code.numbered .linenum:before{

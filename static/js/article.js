@@ -372,6 +372,14 @@ function eventArticle() {
         return false;
     });
 
+    $(document).on('click', '#open_svg_editor', function() {
+        let key = $(this).attr('key');
+        initSVGEditor($('#bg'), "", key, true);
+        return false;
+    });
+
+
+
     // syntax highlighting and brace matching
     $(document).on('input', '.p_input', function(e) {
         let para = $(this).parent('.para');

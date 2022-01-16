@@ -23,7 +23,7 @@ let block = {
     code: /^``(\*)? *(?:refargs)?(?:\n)?(?: |\n)?/,
     equation: /^\$\$(\*&|&\*|\*|&)? *(?:refargs)?\s*/,
     title: /^#! *(?:refargs)?\s*([^\n]*)\s*/,
-    upload: /^!! *(?:refargs)?\s*$/,
+    upload: /^!!(gum)? *(?:refargs)?\s*$/,
     svg: /^\!(svg|gum)(\*)? *(?:refargs)?\s*/,
     image: /^!(\*)? *(?:refargs)? *\(href\)\s*$/,
     imagelocal: /^!(\*)? *(?:refargs)\s*$/,
@@ -293,9 +293,10 @@ class BlockParser {
 
         // upload
         if (cap = this.rules.upload.exec(src)) {
-            let argsraw = cap[1] || '';
+            let gum = cap[1] != undefined;
+            let argsraw = cap[2] || '';
             let args = parseArgs(argsraw);
-            return this.renderer.upload(args);
+            return this.renderer.upload(args, gum);
         }
 
         // figure table
@@ -926,10 +927,14 @@ class DivRenderer {
         return `<div class="fig_cont"><img /></div>`;
     }
 
-    upload(args) {
-        const img = args.image || args.img;
+    upload(args, gum) {
+        const img = args.image || args.img || args.id;
         const key = img ? `key="${img}"`: '';
-        return `<div ${key} class="dropzone">Drop Image or Click to Upload</div>`;
+        if(gum){
+            return `<div ${key} id="open_svg_editor">Click to Open gum.js Editor</div>`;
+        }else{
+            return `<div ${key} class="dropzone">Drop Image or Click to Upload</div>`;
+        };
     }
 
     biblio(id, info) {

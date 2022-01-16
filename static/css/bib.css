@@ -191,6 +191,27 @@
     cursor: pointer;
 }
 
+.DOI_link{
+    position: absolute;
+    left: 100%;
+    top: 0px;
+    cursor: pointer;
+    width: 30px;
+    opacity: 0;
+}
+
+.DOI_link svg{
+    stroke: none;
+    width: 24px;
+    height: 24px;
+    margin-left: 24px;
+    fill: var(--font-col);
+}
+
+.cite:hover .DOI_link, .DOI_link:hover{
+    opacity: 1;
+}
+
 @media only screen and (max-width: 1000px) {
 
 #para_holder {

@@ -6,7 +6,7 @@ import { config, state, cache, updateConfig, updateState, updateCache } from './
 import { connect, addHandler, sendCommand } from './client.js'
 import { getCiteData } from './bib_search.js'
 import { renderKatex } from './math.js'
-import { KeyCache, flash, copyText } from './utils.js'
+import { KeyCache, flash, copyText, createIcon } from './utils.js'
 import { divInlineParser } from './marked3.js'
 
 
@@ -258,7 +258,7 @@ function createBibInfo(cite) {
     let pubs = ['book', 'incollection'];
     let jns = ['article', 'techreport', 'unpublished'];
     let wild = [undefined];
-    let doi = cite.DOI ? `<a target="_blank" href="https://www.doi.org/${cite.DOI}">[Go]</a>` : '';
+    let doi = cite.DOI ? ` <a class=DOI_link target="_blank" href="https://www.doi.org/${cite.DOI}">${createIcon('ext_link')}</a>` : '';
 
     let pub;
     let journal;
@@ -280,7 +280,7 @@ function createBibInfo(cite) {
         author: cite.author,
         year: cite.year,
         doi: cite.DOI,
-        entry: `${author}${yr}${title}. <em>${journal}</em>${index} ${pub}`,
+        entry: `${author}${yr}${title}. <em>${journal}</em>${index} ${pub}${doi}`,
         raw: cite.raw,
     }
 }

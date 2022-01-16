@@ -83,6 +83,8 @@ function eventEditor() {
             if (state.help_show) {
                 toggleHelp();
                 return false;
+            } else if (state.SVGEditor) {
+                    hideSVGEditor();
             }
         }
 
@@ -159,6 +161,9 @@ function eventEditor() {
                     return editShift('down');
                 }
             } else if (key == 'escape') {
+                if (state.SVGEditor) {
+                    hideSVGEditor();
+                }
                 if (state.cc) {
                     state.cc = false;
                     $('#cc_pop').remove();

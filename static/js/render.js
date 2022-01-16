@@ -678,6 +678,7 @@ function svgEnv(ptxt, args, outer=true) {
     let svg = parseSVG(args.mime, args.svg, size);
     let hdl = $('<div>', {class: 'env_add svg_hodl', html: svg});
     fig.append(hdl);
+    renderKatex(ptxt);
 }
 
 function quoteEnv(ptxt, args) {
