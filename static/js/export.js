@@ -24,30 +24,48 @@ let images;
 
 // markdown export
 
-function mdEnv(env) {
+async function mdEnv(raw, env) {
     if (env.env == 'imagelocal') {
         let args = env.args;
         let image = args.image || args.img;
         if (image != null) {
             let img = cache.img.see(image);
-            let blob = img.data;
-            let ext = imgext[blob.type];
-            let fname = `${image}.${ext}`;
-            images[fname] = blob;
+            if (img.mime == 'image/svg+gum') {
+                return `!gum\n${img.data.trim()}`;
+            } else {
+                let blob = img.data;
+                let ext = imgext[blob.type];
+                let fname = `${image}.${ext}`;
+                images[fname] = blob;
+
+                let sargs = Object.entries(args)
+                    .filter(([k,v]) => k != 'image' && k != 'img')
+                    .map(([k,v]) => `${k}=${v}`).join('|');
+                return `! [${sargs}] (${fname})`;
+            }
         }
     }
+    return raw;
 }
 
-function createMarkdown() {
+async function createMarkdown() {
     let name = urlify(config.title);
 
     images = [];
-    let text = $('.para:not(.folder)').map(function() {
-        let raw = $(this).attr('raw');
+    let mds = [];
+    let paras = $('.para:not(.folder)').toArray();
+    for (let p of paras) {
+        let raw = $(p).attr('raw');
         let markout = markthree(raw, 'html'); // this is inefficient
-        if (markout.env) mdEnv(markout.env);
-        return raw;
-    }).toArray().join('\n\n');
+        let md;
+        if (markout.env != null) {
+            md = await mdEnv(raw, markout.env);
+        } else {
+            md = raw;
+        }
+        mds.push(md);
+    }
+    let text = mds.join('\n\n');
 
     return {
         name: name,
@@ -91,23 +109,6 @@ function createLatex() {
     }
 }
 
-// html export
-
-function createHtml() {
-    let {name, data} = createMarkdown();
-
-    let html = htmlTemplate({
-        prefix: '/elltwo/static',
-        title: name,
-        markdown: data,
-    });
-
-    return {
-        name: name,
-        data: html,
-    };
-}
-
 async function createZip(blobs) {
     let bwrite = new zip.BlobWriter('application/zip');
     let zwrite = new zip.ZipWriter(bwrite);
@@ -124,7 +125,7 @@ async function createZip(blobs) {
 }
 
 async function createMdZip() {
-    let {name, data} = createMarkdown();
+    let {name, data} = await createMarkdown();
     images[`${name}.md`] = new Blob([data], {type: 'text/markdown'});
     let blob = await createZip(images);
     return {
@@ -331,9 +332,10 @@ function downloadFile(name, blob) {
 }
 
 function exportMarkdown() {
-    let {name, data} = createMarkdown();
-    let blob = new Blob([data], {type: 'text/markdown'});
-    downloadFile(`${name}.md`, blob);
+    createMarkdown().then(ret => {
+        let blob = new Blob([ret.data], {type: 'text/markdown'});
+        downloadFile(`${ret.name}.md`, blob);
+    });
 }
 
 function exportLatex() {
