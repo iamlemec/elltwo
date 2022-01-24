@@ -4,7 +4,7 @@ export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender, rawToTextarea,
     envClasses, envGlobal, renderRefText, createTOC, getTro, troFromKey, popText, renderPop,
     s_env_spec, getFoldLevel, renderFold, barePara, makePara, connectCallbacks, getRefTags,
-    trackRef, untrackRef, doRenderRef, elltwoHL
+    trackRef, untrackRef, doRenderRef, elltwoHL, exportMarkdown, exportLatex
 }
 
 import { merge, cooks, getPara, RefCount, DummyCache } from './utils.js'
@@ -15,11 +15,12 @@ import { fold } from './editor.js'
 import { renderKatex } from './math.js'
 import { parseSVG } from './svg.js'
 import { SyntaxHL } from './hl.js'
+import { exportMarkdown, exportLatex } from './export.js'
 
 // main rendering entry point (for all cases)
 
 function stateRender() {
-    state.title = null; // document title
+    state.title = 'untitled'; // document title
     state.macros = {}; // internal katex macros
     state.folded = []; // current folded pids
     cache.track = new RefCount(trackRef, untrackRef); // reference counting
@@ -86,6 +87,10 @@ let default_callbacks = {
         console.log('dummy untrack_ref:', data.key);
         ack();
     },
+    set_title: (data, ack) => {
+        console.log('dummy set_title:', data.title);
+        ack();
+    }
 };
 
 let dummy_cache = {

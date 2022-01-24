@@ -178,6 +178,10 @@ class DummyCache {
     keys() {
         return [];
     }
+
+    values() {
+        return [];
+    }
 }
 
 // reference counting

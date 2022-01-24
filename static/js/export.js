@@ -49,7 +49,7 @@ async function mdEnv(raw, env) {
 }
 
 async function createMarkdown() {
-    let name = urlify(config.title);
+    let name = urlify(state.title);
 
     images = [];
     let mds = [];
@@ -76,9 +76,9 @@ async function createMarkdown() {
 // latex export
 
 function createLatex() {
-    let name = urlify(config.title);
+    let name = urlify(state.title);
 
-    title = config.title;
+    title = state.title;
     images = [];
 
     let bibKeys = cache.cite.keys();
