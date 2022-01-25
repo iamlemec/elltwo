@@ -21,6 +21,7 @@ let imgext = {
 // persistent tracking
 let title;
 let images;
+let cites;
 
 // markdown export
 
@@ -49,9 +50,9 @@ async function mdEnv(raw, env) {
 }
 
 async function createMarkdown() {
-    let name = urlify(state.title);
-
+    title = config.title;
     images = [];
+
     let mds = [];
     let paras = $('.para:not(.folder)').toArray();
     for (let p of paras) {
@@ -66,6 +67,7 @@ async function createMarkdown() {
         mds.push(md);
     }
     let text = mds.join('\n\n');
+    let name = urlify(title);
 
     return {
         name: name,
@@ -76,23 +78,26 @@ async function createMarkdown() {
 // latex export
 
 function createLatex() {
-    let name = urlify(state.title);
-
-    title = state.title;
+    title = config.title;
     images = [];
-
-    let bibKeys = cache.cite.keys();
-    let rawBibTex = cache.cite.values().map(bib => bib.raw).join('\n');
+    cites = [];
 
     let paras = $('.para:not(.folder)').map(function() {
         let raw = $(this).attr('raw');
         let markout = markthree(raw, 'latex');
         let tex = markout.env ? texEnv(markout) : markout.src;
-        tex = replaceCites(bibKeys, tex);
+        tex = replaceCites(tex);
         tex = replaceQuotes(tex);
         return tex;
     }).toArray();
 
+    let rawBibTex = null;
+    if (cites.length > 0) {
+        let usedCites = cache.cite.many(cites);
+        rawBibTex = Object.values(usedCites).map(bib => bib.raw).join('\n');
+    }
+
+    let name = urlify(title);
     let now = new Date();
     let text = latexTemplate({
         title: title,
@@ -144,10 +149,11 @@ async function createTexZip() {
     };
 }
 
-function replaceCites(keys, text) {
+function replaceCites(text) {
     let ref = /\\(c)?ref\{([\w-:]+)\}/g;
     text = text.replaceAll(ref, function(m, p1, p2) {
-        if (keys.includes(p2)) {
+        if (cache.cite.has(p2)) {
+            cites.push(p2);
             return `\\citet{${p2}}`;
         } else {
             return m;
@@ -289,12 +295,15 @@ let tex_spec = {
 function texMacros(macros_dict) {
     let macout = '';
     for (const [key, value] of Object.entries(macros_dict)) {
-        const num = (value.match(/(?<!\\)\#[0-9]+/g)||[]).length;
-        let argnum = '';
-        for (const x of Array(num).keys()) {
-            argnum += `#${x+1}`;
+        let args = value.match(/(?<!\\)\#([0-9]+)/g) ?? [];
+        let nargs = Math.max(0, ...args.map(x => parseInt(x.slice(1))));
+
+        let argstr = '';
+        for (const x of Array(nargs).keys()) {
+            argstr += `#${x+1}`;
         }
-        macout += `\\def${key}${argnum}{${value}}\n`;
+
+        macout += `\\def${key}${argstr}{${value}}\n`;
     }
     return macout;
 }

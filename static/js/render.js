@@ -20,7 +20,7 @@ import { exportMarkdown, exportLatex } from './export.js'
 // main rendering entry point (for all cases)
 
 function stateRender() {
-    state.title = 'untitled'; // document title
+    state.title = null; // document title
     state.macros = {}; // internal katex macros
     state.folded = []; // current folded pids
     cache.track = new RefCount(trackRef, untrackRef); // reference counting
@@ -731,7 +731,7 @@ function parsePreamble(raw) {
 }
 
 function setTitle(title) {
-    if (state.title !== null && state.title != title) {
+    if (state.title != null && state.title != title) {
         document.title = title;
         sendCommand('set_title', {aid: config.aid, title: title});
     }
