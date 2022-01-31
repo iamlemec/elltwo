@@ -40,6 +40,45 @@ loadMarkdown();
 }
 
 function latexTemplate(d) {
+    let packages = [
+        ['babel', 'english'], 'amsmath', 'amsfonts', 'amsthm', 'amssymb', 'array',
+        'fullpage', 'enumerate', 'enumitem', 'ulem', ['hyperref', 'unicode'], 'xcolor',
+        'newverbs', 'fancyvrb', 'fvextra', 'geometry', 'graphicx'
+    ]
+    let head = [];
+    let tail = [];
+
+    if (d.bib != null) {
+        let bibpack = [
+            ['biblatex', 'style=authoryear,natbib=true'], 'filecontents'
+        ];
+        packages.push(...bibpack);
+
+        head.push(
+            '% local bib entries',
+            '\\begin{filecontents}{\\jobname.bib}',
+            d.bib,
+            '\\end{filecontents}',
+            '\\addbibresource{\\jobname.bib}',
+        );
+
+        tail.push(
+            '\\printbibliography',
+        );
+    }
+
+    let packstr = packages.map(p => {
+        let o = '';
+        if (p instanceof Array) {
+            [p, o] = p;
+            o = `[${o}]`;
+        }
+        return `\\usepackage${o}{${p}}`;
+    }).join('\n');
+
+    let headstr = head.join('\n');
+    let tailstr = tail.join('\n');
+
     return String.raw`
 %
 % This .tex file was created with elltwo ($\ell^2$)
@@ -47,23 +86,7 @@ function latexTemplate(d) {
 %
 
 \documentclass[12pt]{article}
-\usepackage[english]{babel} % English language/hyphenation
-\usepackage{amsmath,amsfonts,amsthm,amssymb} % Math packages
-\usepackage{array}
-\usepackage{fullpage}
-\usepackage{enumerate}
-\usepackage{enumitem}
-\usepackage{ulem}
-\usepackage[style=authoryear,natbib=true]{biblatex} % bib
-\usepackage[unicode]{hyperref} % hyperlinks
-\usepackage{xcolor} % colors
-\usepackage{cleveref} % references
-\usepackage{newverbs}
-\usepackage{fancyvrb}
-\usepackage{fvextra}
-\usepackage{geometry}
-\usepackage{graphicx}
-\usepackage{filecontents} % for bib
+${packstr}
 
 \geometry{margin=1.25in}
 \setlength{\parindent}{0cm}
@@ -108,12 +131,7 @@ ${d.envs}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% local bib entries
-
-\begin{filecontents}{\jobname.bib}
-${d.bib}
-\end{filecontents}
-\addbibresource{\jobname.bib}
+${headstr}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -128,7 +146,7 @@ ${d.bib}
 
 ${d.body}
 
-\printbibliography
+${tailstr}
 
 \end{document}
     `.trim();
