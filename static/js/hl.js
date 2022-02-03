@@ -3,7 +3,7 @@
 export { SyntaxHL, braceMatch, s }
 
 import { replace } from './marked3.js'
-import { Gum, SVG, Element } from '../gum.js/lib/gum.js'
+import { gums } from '../gum.js/build/lib/gum.js'
 import { elltwoHL } from './render.js'
 
 /* HELPERS */
@@ -81,7 +81,6 @@ let jskeys = [
 ];
 
 let boolean = ['true', 'false', 'null', 'undefined', 'new'];
-let gums = [...Gum.map(g => g.name)];
 
 let jschars = `\\|\\&\\>\\<\\!\\;\\.\\=\\:\\,\\(\\)\\{\\}\\[\\]`;
 
