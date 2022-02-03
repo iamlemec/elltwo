@@ -88,7 +88,7 @@ function eventEditor() {
             }
         }
 
-        if (!(state.rawtext && state.writeable) && !meta && !ctrl) {
+        if (!(state.rawtext && state.writeable) && !meta && !ctrl && !state.SVGEditor) {
             if (key == '-') {
                 $('#ssv_check').click();
                 return false;
@@ -105,7 +105,9 @@ function eventEditor() {
                 return false;
             }
         } else if (state.active_para && !state.rawtext) {
-            if (key == 'enter') {
+            if (shift && key == 'enter' && state.active_para.attr('env')=='imagelocal') {
+                state.active_para.find('.img_update').click();
+            } else if (key == 'enter') {
                 sendMakeEditable();
                 return false;
             } else if (key == 'arrowup') {
@@ -350,11 +352,15 @@ function applyChange(para, raw) {
 
 /// server comms and callbacks
 
-function sendUpdatePara(para, text) {
+function sendUpdatePara(para, text, rerender=false) {
     let pid = para.attr('pid');
     let data = {aid: config.aid, pid: pid, text: text};
     sendCommand('update_para', data, on_success(() => {
         applyChange(para, text);
+        if(rerender){
+            rawToRender(para);
+            rawToTextarea(para);
+        };
     }));
 }
 

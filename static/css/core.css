@@ -251,7 +251,8 @@ a.reference {
 	display: flex;
 	height: 30px;
 	position: relative;
-	width: 56px;
+    width: 56px;
+    min-width: 56px;
 }
 
 .toggle-indicator {
@@ -270,7 +271,7 @@ a.reference {
 
 .toggle__input:checked + .toggle-track .toggle-indicator {
 	background: var(--bg-hl2-col);
-	transform: translateX(25px);
+	transform: translateX(30px);
 }
 
 .toggle__input:checked + .toggle-track {

@@ -372,9 +372,10 @@ function eventArticle() {
         return false;
     });
 
-    $(document).on('click', '#open_svg_editor', function() {
+    $(document).on('click', '.open_svg_editor', function() {
         let key = $(this).attr('key');
-        initSVGEditor($('#bg'), "", key, true);
+        let pid = $(this).closest('.para');
+        initSVGEditor($('#bg'), "", key, true, pid);
         return false;
     });
 

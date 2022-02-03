@@ -19,3 +19,7 @@ screenlog.*
 # Config / Auth
 auth.toml
 mail.toml
+
+# node 
+
+static/gum.js/*.json

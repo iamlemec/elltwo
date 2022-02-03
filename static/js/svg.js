@@ -3,18 +3,19 @@
 export { initSVGEditor, hideSVGEditor, parseSVG }
 
 import { on_success, createIcon, createToggle, createButton, smallable_butt } from './utils.js'
-import { state } from './state.js'
+import { config, state } from './state.js'
 import { sendCommand } from './client.js'
 import { replace } from './marked3.js'
-import { showConfirm } from './editor.js'
+import { showConfirm, makeUnEditable, sendUpdatePara} from './editor.js'
 import { deleteImage } from './img.js'
 import { s, SyntaxHL, braceMatch } from './hl.js'
-import { SVG, Element, parseGum } from '../gum.js/build/lib/gum.js'
+import { SVG, Element, InterActive, parseGum } from '../gum.js/build/lib/gum.js'
 
 let svg_butts = {};
 
-function initSVGEditor(el, raw='', key='', gum=true) {
+function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
     $('#hoot').html(`[201p // iamlemec ${s('// gum.js editor','math')}]`)
+    makeUnEditable();
     if (state.SVGEditor) {
         $('#SVGEditorInputText').val(raw);
         $('#SVGEditorInputView').text(raw);
@@ -105,6 +106,12 @@ function initSVGEditor(el, raw='', key='', gum=true) {
             let raw = $('#SVGEditorInputText').val();
             let data = {'key': key, 'mime': 'image/svg+gum', 'raw': raw};
             sendCommand('save_svg', data);
+            if(updatePara){
+                let data = {pid: updatePara.attr('pid'), aid: config.aid};
+                sendCommand('lock', data, function(response) {
+                    sendUpdatePara(updatePara, `![${key}]`, true) 
+                });
+            }
         } else {
             $('#SVGEditorTag').addClass('input_err');
         }
@@ -140,6 +147,9 @@ function renderInput(src) {
 }
 
 function renderGum(src, size) {
+    let iac = document.querySelector('#interActiveControl');
+    iac.innerHTML = '';
+
     if (src.length == 0) {
         return {success: true, svg: ''};
     }
@@ -157,6 +167,11 @@ function renderGum(src, size) {
     }
 
     let svg;
+    if (out instanceof InterActive) {
+        let disp = document.querySelector('#SVGEditorOutput');
+        let anchors = out.createAnchors(iac, disp);
+        out = out.create(disp);
+    };
     if (out instanceof Element) {
         out = (out instanceof SVG) ? out : new SVG([out]);
         svg = out.svg({size: size, prec: prec});
@@ -194,3 +209,26 @@ function svgSyntaxHL() {
     let out = SyntaxHL(src, 'gum')
     $('#SVGEditorInputView').html(out);
 }
+
+let mid = document.querySelector('#SVGWidthControl');
+let left = document.querySelector('#SVGEditorBoxLeft');
+let right = document.querySelector('#SVGEditorBoxRight');
+
+function resizePane(e) {
+    let x = e.clientX
+    let vw = window.innerWidth;
+    x = Math.max(x,100)
+    x = Math.min(x, vw-300)
+    let perc = (x-2)*100/vw
+    left.style.width = `${perc}%`;
+    right.style.width = `${100-perc}%`;
+}
+
+
+mid.addEventListener('mousedown', evt => {
+    document.addEventListener('mousemove', resizePane, false);
+}, false);
+
+document.addEventListener('mouseup', evt => {
+    document.removeEventListener('mousemove', resizePane, false);
+}, false);

@@ -44,33 +44,7 @@
     <button id="img_delete">Delete</button>
 </div>
 
-<div id="SVGEditorOuter">
-<div id="SVGEditorBox">
-
-<div id="SVGEditorBoxLeft">
-<div id="SVGEditorInputBox">
-<textarea id="SVGEditorInputText" spellcheck="false"></textarea>
-<div id="SVGEditorInputView" class="p_input_view"></div>
-</div>
-<textarea id="SVGEditorParsed" readonly="true" placeholder="Add SVG code here"></textarea>
-<div id="SVGEditorParsedView" class="p_input_view"></div>
-
-</div>
-
-<div id="SVGEditorBoxRight">
-<div id="SVGEditorOutput"></div>
-<div id="SVGEditorNav">
-<div id="SVGEditorNavUp">
-<input id="SVGEditorKW" placeholder="Keywords"></input>
-</div>
-<div id="SVGEditorNavDown">
-<input id="SVGEditorTag" placeholder="Image tag (required)"></input>
-</div>
-</div>
-</div>
-
-</div>
-</div>
+{% include '/svgEditor.html' %}
 
 {% endblock %}
 

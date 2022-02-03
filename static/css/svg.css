@@ -12,6 +12,13 @@
     font-size: 125%;
 }
 
+#SVGWidthControl{
+    width: 2px;
+    background-color: var(--hl-col);
+    cursor:  col-resize;
+    z-index: 10;
+}
+
 #SVGEditorBox {
     display: flex;
     height: 100%;
@@ -76,17 +83,18 @@
     font-family: monospace;
     font-size: 75%;
     height: 100%;
-    width: 50%;
+    width: 100%;
     padding: 10px;
     padding-left: 30px;
 }
 
 #SVGEditorInputBox {
-    position: absolute;
+    position: relative;
     height: 50%;
     width: 100%;
     overflow: scroll;
     scrollbar-width: none;
+
 }
 
 #SVGEditorInputBox.fullsize{
@@ -123,18 +131,22 @@
     white-space: pre-wrap;
     background-color: var(--bg-col);
     color: var(--font-col);
-    border-top: 1px solid gray !important;
+    border-top: 1px solid var(--hl-col);
     font-family: monospace;
     font-size: 80%;
-    position: absolute;
-    top: 50%;
-    width: 50% !important;
+    position: relative;
+    top: 0%;
+    width: 100% !important;
     height: 50% !important;
     padding: 10px;
     padding-left: 30px;
     -webkit-box-shadow:inset 25px 0px 0px 0px rgba(0,0,0,.15);
     overflow: scroll;
     counter-reset: line;
+}
+
+#SVGEditorParsedView{
+    top: -50%;
 }
 
 #SVGEditorOuter textarea::placeholder,
@@ -192,3 +204,133 @@
         color: rgba(0, 0, 0, 0.01);
     }
 }
+
+/* IINTERACTIVE */
+
+#interActiveControl {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 30%;
+    overflow-y: scroll;
+}
+
+.var_cont {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 90%;
+    margin: 10px;
+    background-color: var(--brace-col);
+    border-radius: 10px;
+}
+
+.var_title {
+    position: relative;
+    font-family: monospace;
+    font-size: 60%;
+    margin-bottom: 5px;
+    line-height: 20px;
+    background-color: rgba(0,0,0,.1);
+    width: 100%;
+    text-indent: 30px;
+    border-radius: 10px 10px 0 0;
+}
+
+/* slider */
+
+.slider {
+    width: 80%;
+    margin-bottom: 15px;
+    margin-top: 20px;
+}
+
+input[type=range] {
+  position: relative;
+  -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+  width: 100%; /* Specific width is required for Firefox. */
+  background: transparent; /* Otherwise white in Chrome */
+}
+
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  visibility: hidden;
+}
+
+input[type=range]::-moz-range-thumb {
+  visibility: hidden;
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.phantom_track_wrap{
+    display: flex;
+    margin-bottom: -40px;
+    width: calc(100% + 30px);
+    transform: translateX(-15px)
+}
+
+.phantom_track {
+    width: 100%;
+    height: 1.5px;
+    background-color: var(--hl-col);
+}
+
+.min_lim, .max_lim {
+    color: var(--hl-col);
+    font-size: 10px;
+    line-height: 1.5px;
+}
+
+.min_lim{
+    text-align: right;
+    margin-right: 15px;
+}
+
+.max_lim{
+    text-align: left;
+    margin-left: 15px;
+}
+
+
+
+.slider_label {
+    position: relative;
+    transform-origin: center center;
+    display: block;
+    width: 30px;
+    height: 30px;
+    background: var(--bg-hl2-col);
+    border-radius: 50%;
+    line-height: 25px;
+    text-align: center;
+    padding-top: 2px;
+    box-sizing: border-box;
+    border: 1px solid var(--font-col-int);
+    left: 50%;
+    top: 26px;
+    color: var(--font-col-int);
+    font-size: 15px;
+}
+
+/* toggle Interactive */
+
+.toggle_cont .toggle{
+    margin: 10px;
+}
+
+/* list interctive */
+
+.list_cont .custom-select-wrapper{
+    position: unset !important;
+}
+
+
+

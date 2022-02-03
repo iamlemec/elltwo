@@ -632,7 +632,7 @@ button {
     /* hacky, margin does */
 }
 
-.dropzone, #open_svg_editor {
+.dropzone, .open_svg_editor {
     border: 1px dashed var(--hl-col);
     text-align: center;
     padding: 20px;
@@ -1253,11 +1253,6 @@ circle.commit.active {
     height: 19px;
     width: 19px;
 }
-
-.toggle__input:checked + .toggle-track .toggle-indicator {
-	transform: translateX(20px);
-}
-
 
 /* tables */
 

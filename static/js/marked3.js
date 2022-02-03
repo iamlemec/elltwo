@@ -932,7 +932,7 @@ class DivRenderer {
         const img = args.image || args.img || args.id;
         const key = img ? `key="${img}"`: '';
         if(gum){
-            return `<div ${key} id="open_svg_editor">Click to Open gum.js Editor</div>`;
+            return `<div ${key} class="open_svg_editor">Click to Open gum.js Editor</div>`;
         }else{
             return `<div ${key} class="dropzone">Drop Image or Click to Upload</div>`;
         };
