@@ -1,6 +1,6 @@
 /* random utilities */
 
-export { initSVGEditor, hideSVGEditor, parseSVG, gums }
+export { initSVGEditor, hideSVGEditor, parseSVG }
 
 import { on_success, createIcon, createToggle, createButton, smallable_butt } from './utils.js'
 import { state } from './state.js'
@@ -9,7 +9,7 @@ import { replace } from './marked3.js'
 import { showConfirm } from './editor.js'
 import { deleteImage } from './img.js'
 import { s, SyntaxHL, braceMatch } from './hl.js'
-import { Gum, SVG, Element } from '../gum.js/lib/gum.js'
+import { SVG, Element, parseGum } from '../gum.js/build/lib/gum.js'
 
 let svg_butts = {};
 
@@ -122,10 +122,6 @@ function hideSVGEditor() {
 let prec = 2;
 let size = 500;
 
-// gum.js interface mapper
-let gums = ['log', ...Gum.map(g => g.name)];
-let mako = [console.log, ...Gum.map(g => function(...args) { return new g(...args); })];
-
 function renderInput(src) {
     if (src == null) {
         src = $('#SVGEditorInputText').val();
@@ -134,7 +130,7 @@ function renderInput(src) {
     let right = $('#SVGEditorOutput');
     let parsed = $('#SVGEditorParsedView');
 
-    let ret = parseGum(src, size);
+    let ret = renderGum(src);
     if (ret.success) {
         right.html(ret.svg);
         parsed.html(SyntaxHL(ret.svg, 'svg'));
@@ -143,15 +139,14 @@ function renderInput(src) {
     }
 }
 
-function parseGum(src, size) {
+function renderGum(src, size) {
     if (src.length == 0) {
         return {success: true, svg: ''};
     }
 
     let out;
     try {
-        let e = new Function(gums, src);
-        out = e(...mako);
+        out = parseGum(src);
     } catch (e) {
         // the n-2 is to match internal line numbers, there must be a header on e.lines
         return {success: false, message: e.message, line: e.lineNumber - 2};
@@ -174,7 +169,7 @@ function parseGum(src, size) {
 
 function parseSVG(mime, src, size) {
     if (mime == 'image/svg+gum') {
-        let ret = parseGum(src, size);
+        let ret = renderGum(src, size);
         if (!ret.success) {
             return ret.message;
         } else {
