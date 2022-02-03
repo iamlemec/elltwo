@@ -16,6 +16,7 @@
 
 /* classic view paras */
 
+
 .container:not(.ssv) .para {
     position: relative;
     margin: auto;
@@ -672,7 +673,7 @@ button {
     opacity: .4;
 }
 
-.p_input_view .linenum{
+.para .linenum{
     display: none;
 }
 
@@ -718,6 +719,10 @@ button {
     min-width: 250px;
     min-height: 30px;
     max-width: 400px;
+}
+
+#pop .DOI_link{
+    display: none;
 }
 
 #pop.ext_pop{
