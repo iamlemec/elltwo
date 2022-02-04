@@ -2,7 +2,7 @@
 
 export { initSVGEditor, hideSVGEditor, parseSVG }
 
-import { on_success, createIcon, createToggle, createButton, smallable_butt } from './utils.js'
+import { on_success, createIcon, createToggle, createButton, smallable_butt, updateSliderValue } from './utils.js'
 import { config, state } from './state.js'
 import { sendCommand } from './client.js'
 import { replace } from './marked3.js'
@@ -149,6 +149,7 @@ function renderInput(src) {
         parsed.html(SyntaxHL(ret.svg, 'svg'));
         if(ret.anchors){
             iac.append(...ret.anchors)
+            $(iac).find('.slider_input').each((i,s) => {updateSliderValue(s)})
         }
     } else {
         parsed.text(`parse error, line ${ret.line}: ${ret.message}`);
