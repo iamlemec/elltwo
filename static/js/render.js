@@ -7,7 +7,7 @@ export {
     trackRef, untrackRef, doRenderRef, elltwoHL, exportMarkdown, exportLatex
 }
 
-import { merge, cooks, getPara, RefCount, DummyCache } from './utils.js'
+import { merge, cooks, getPara, RefCount, DummyCache, updateSliderValue } from './utils.js'
 import { config, cache, state, updateConfig, updateCache, updateState } from './state.js'
 import { sendCommand, schedTimeout, addDummy } from './client.js'
 import { markthree, replace, divInlineParser } from './marked3.js'
@@ -680,9 +680,28 @@ function svgEnv(ptxt, args, outer=true) {
     }
     let fig = ptxt.find('.fig_cont');
     let size = args.pixels ? parseInt(args.pixels) : 100;
-    let svg = parseSVG(args.mime, args.svg, size);
-    let hdl = $('<div>', {class: 'env_add svg_hodl', html: svg});
+    //let hdl = $('<div>', {class: 'env_add svg_hodl'});
+    let hdl = document.createElement('div');
+    hdl.className = 'env_add svg_hodl';
+    let ret = parseSVG(args.mime, args.svg, size, hdl);
+    let svg;
+        if (!ret.success) {
+            svg = ret.message;
+        } else {
+            svg = ret.svg;
+        }
+    hdl.innerHTML = svg;
     fig.append(hdl);
+    if(ret.anchors){
+        let iac_wrap = $('<div>', {class: 'env_add fig_iac_wrap'});
+        let iac = $('<div>', {class: 'env_add fig_iac'});
+        let iac_tog = document.createElement('div');
+        iac_tog.className = 'iac_tog';
+        iac.append(...ret.anchors);
+        iac_wrap.append(iac, iac_tog)
+        fig.append(iac_wrap);
+        fig.find('.slider_input').each((i,s) => {updateSliderValue(s)})
+    }
     renderKatex(ptxt);
 }
 

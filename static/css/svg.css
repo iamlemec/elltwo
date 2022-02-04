@@ -10,6 +10,7 @@
     left: 0;
     border-bottom: 1px solid gray;
     font-size: 125%;
+    z-index: 2;
 }
 
 #SVGWidthControl{
@@ -222,8 +223,10 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 90%;
-    margin: 10px;
+    width: calc(100% - 60px);
+    margin-left: 30px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     background-color: var(--brace-col);
     border-radius: 10px;
 }

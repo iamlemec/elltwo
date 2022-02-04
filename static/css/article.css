@@ -524,15 +524,36 @@ button {
     width: 80%;
 }
 
+.fig_iac_wrap{
+    width: 100%;
+    min-width: 250px;
+    max-width: 400px;
+    min-height: 30px;
+    position: relative;
+    left: 50%; 
+    transform: translate(-50%, 0);
+    border: 1px solid var(--brace-col)
+}
+
+.fig_iac_wrap.closed:before{
+    content: "Click to Open Interactive Controls";
+    color: var(--brace-col);
+    padding-left: 10px;
+    line-height: 30px;
+    font-size: 12px;
+}
+
+
 .svg_hodl {
     width: 100%;
     display: flex;
     justify-content: center;
+    align-content: center;
 }
 
 .svg_hodl > svg {
     max-width: 100%;
-    max-height: 300px;
+    max-height: 500px;
     fill: none;
     stroke: var(--font-col);
 }
@@ -1024,7 +1045,7 @@ button {
     cursor: pointer;
 }
 
-.custom-select-trigger:after, #logo:after {
+.custom-select-trigger:after, #logo:after, .iac_tog:after{
     position: absolute;
     display: block;
     content: '';
@@ -1038,6 +1059,19 @@ button {
     border-bottom: 2px solid;
     border-right: 2px solid;
     border-color: var(--hl2-col);
+}
+
+.iac_tog:after{
+    top: 15px;
+    left: calc(100% - 20px);
+    cursor: pointer;
+}
+
+.iac_tog.closed:after{
+    top: 18px;
+    left: calc(100% - 15px);
+    transform: rotate(-45deg) translateY(-100%) translateX(-50%);
+    cursor: pointer;
 }
 
 #logo:after {
@@ -1423,6 +1457,7 @@ circle.commit.active {
     font-size: 90%;
     padding: 5px;
 }
+
 
 /*  NARROW CSS */
 

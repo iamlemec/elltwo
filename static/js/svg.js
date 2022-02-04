@@ -6,7 +6,8 @@ import { on_success, createIcon, createToggle, createButton, smallable_butt } fr
 import { config, state } from './state.js'
 import { sendCommand } from './client.js'
 import { replace } from './marked3.js'
-import { showConfirm, makeUnEditable, sendUpdatePara} from './editor.js'
+import { showConfirm, makeActive
+    , sendUpdatePara} from './editor.js'
 import { deleteImage } from './img.js'
 import { s, SyntaxHL, braceMatch } from './hl.js'
 import { SVG, Element, InterActive, parseGum } from '../gum.js/build/lib/gum.js'
@@ -15,7 +16,7 @@ let svg_butts = {};
 
 function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
     $('#hoot').html(`[201p // iamlemec ${s('// gum.js editor','math')}]`)
-    makeUnEditable();
+    makeActive(false);
     if (state.SVGEditor) {
         $('#SVGEditorInputText').val(raw);
         $('#SVGEditorInputView').text(raw);
@@ -24,6 +25,7 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
         $('#SVGEditorOuter').show();
         svgSyntaxHL();
         renderInput();
+        state.SVGEditorOpen = true;
     } else {
         // custom buttons and toggles
         let tog = createToggle('svgShow', 'Show SVG');
@@ -49,6 +51,7 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
 
         // mark constructed
         state.SVGEditor = true;
+        state.SVGEditorOpen = true; //mark open
 
 
     $(document).on('click', '#SVGEditorExit', function() {
@@ -120,6 +123,7 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
 }
 
 function hideSVGEditor() {
+    state.SVGEditorOpen = false;
     state.key = null;
     $('#hoot').html('[201p // iamlemec]');
     $('#SVGEditorOuter').hide();
@@ -136,19 +140,22 @@ function renderInput(src) {
 
     let right = $('#SVGEditorOutput');
     let parsed = $('#SVGEditorParsedView');
+    let redraw = document.querySelector('#SVGEditorOutput')
 
-    let ret = renderGum(src);
+    let ret = renderGum(src, size, redraw);
     if (ret.success) {
+        iac.innerHTML = ""
         right.html(ret.svg);
         parsed.html(SyntaxHL(ret.svg, 'svg'));
+        if(ret.anchors){
+            iac.append(...ret.anchors)
+        }
     } else {
         parsed.text(`parse error, line ${ret.line}: ${ret.message}`);
     }
 }
 
-function renderGum(src, size) {
-    let iac = document.querySelector('#interActiveControl');
-    iac.innerHTML = '';
+function renderGum(src, size, redraw=false) {
 
     if (src.length == 0) {
         return {success: true, svg: ''};
@@ -167,10 +174,11 @@ function renderGum(src, size) {
     }
 
     let svg;
+    let anchors = null;
     if (out instanceof InterActive) {
-        let disp = document.querySelector('#SVGEditorOutput');
-        let anchors = out.createAnchors(iac, disp);
-        out = out.create(disp);
+        //let disp = document.querySelector('#SVGEditorOutput');
+        anchors = out.createAnchors(redraw);
+        out = out.create(redraw);
     };
     if (out instanceof Element) {
         out = (out instanceof SVG) ? out : new SVG([out]);
@@ -179,17 +187,13 @@ function renderGum(src, size) {
         return {success: false, message: 'did not return gum element', line: 0};
     }
 
-    return {success: true, svg: svg};
+    return {success: true, svg: svg, anchors: anchors};
 }
 
-function parseSVG(mime, src, size) {
+function parseSVG(mime, src, size, redraw=false) {
     if (mime == 'image/svg+gum') {
-        let ret = renderGum(src, size);
-        if (!ret.success) {
-            return ret.message;
-        } else {
-            return ret.svg;
-        }
+        let ret = renderGum(src, size, redraw);
+        return ret
     } else {
         if (typeof(src) == 'string') {
             if (src.match(/ *<svg( |>)/) == null) {
@@ -213,6 +217,7 @@ function svgSyntaxHL() {
 let mid = document.querySelector('#SVGWidthControl');
 let left = document.querySelector('#SVGEditorBoxLeft');
 let right = document.querySelector('#SVGEditorBoxRight');
+let iac = document.querySelector('#interActiveControl');
 
 function resizePane(e) {
     let x = e.clientX

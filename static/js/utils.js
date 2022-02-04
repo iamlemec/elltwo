@@ -4,7 +4,7 @@ export {
     merge, mapObject, mapValues, eachObject, attrArray, initToggleBox, toggleBox,
     ensureVisible, setCookie, cooks, getPara, getEnvParas, isMobile, noop,
     on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle, createButton,
-    smallable_butt, copyText
+    smallable_butt, copyText, updateSliderValue
 }
 
 // js tricks
@@ -308,6 +308,17 @@ function initToggleBox(button, box) {
         }
     });
 };
+
+///slider shit
+
+function updateSliderValue(slider) {
+    let pos = (slider.value - slider.min) / (slider.max - slider.min);
+    let len = slider.getBoundingClientRect().width;
+    let lab = slider.parentNode.querySelector('.slider_label');
+    let lef = (100*pos*(len-30))/len;
+    lab.innerHTML = slider.value;
+    lab.style.left = `${lef}%`; //in prec for window resize events
+}
 
 //button smalling
 

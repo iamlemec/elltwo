@@ -83,12 +83,12 @@ function eventEditor() {
             if (state.help_show) {
                 toggleHelp();
                 return false;
-            } else if (state.SVGEditor) {
+            } else if (state.SVGEditorOpen) {
                     hideSVGEditor();
             }
         }
 
-        if (!(state.rawtext && state.writeable) && !meta && !ctrl && !state.SVGEditor) {
+        if (!(state.rawtext && state.writeable) && !meta && !ctrl && !state.SVGEditorOpen) {
             if (key == '-') {
                 $('#ssv_check').click();
                 return false;
@@ -98,13 +98,13 @@ function eventEditor() {
             }
         }
 
-        if (!state.active_para) { // if we are inactive
+        if (!state.active_para && !state.SVGEditorOpen) { // if we are inactive
             if (key == 'enter') {
                 let foc_para = state.last_active || $('.para').first();
                 makeActive(foc_para);
                 return false;
             }
-        } else if (state.active_para && !state.rawtext) {
+        } else if (state.active_para && !state.rawtext && !state.SVGEditorOpen) {
             if (shift && key == 'enter' && state.active_para.attr('env')=='imagelocal') {
                 state.active_para.find('.img_update').click();
             } else if (key == 'enter') {
@@ -131,7 +131,7 @@ function eventEditor() {
                 fold(state.active_para);
                 return false;
             }
-            if (state.writeable) { // if we are active but not in edit mode
+            if (state.writeable && !state.SVGEditorOpen) { // if we are active but not in edit mode
                 if (key == 'a') {
                     sendInsertPara(state.active_para, false);
                     return false;
@@ -147,7 +147,7 @@ function eventEditor() {
                     return false;
                 }
             }
-        } else if (state.active_para && state.rawtext) { // we are active and rawtext
+        } else if (state.active_para && state.rawtext && !state.SVGEditorOpen) { // we are active and rawtext
             if (key == 'arrowup' || key == 'arrowleft') {
                 if (state.cc) { // if there is an open command completion window
                     ccNext('down');
@@ -209,6 +209,12 @@ function eventEditor() {
 
         // if link, follow it
         if (event.target.href !== undefined) {
+            return;
+        }
+
+        //clicking interactive does not open para
+        let targ = $(e.target);
+        if (targ.closest('.fig_iac').length > 0){
             return;
         }
 
@@ -300,6 +306,27 @@ function eventEditor() {
         input.focus();
         input[0].setSelectionRange(l, l);
         return false
+    });
+
+    $(document).on('click', '.iac_tog', function() {
+        let iac = $(this).siblings('.fig_iac');
+        let wrap = $(this).parent()
+        $(this).toggleClass('closed') 
+        if(!$(this).hasClass('closed')){
+             wrap.toggleClass('closed')
+            iac.slideDown()
+        } else {
+            iac.slideUp(()=>{
+                wrap.toggleClass('closed')
+            })
+        }
+
+        return false;
+    });
+
+    $(document).on('click', '.fig_iac_wrap.closed', function() {
+        $(this).children('.iac_tog').click();
+        return false;
     });
 
     $('#content').focus();

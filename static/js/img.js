@@ -247,15 +247,21 @@ function renderBox(elem, key, kws, mime) {
     elem.attr('kw', kws);
     let keyspan = $('<div>', {class: 'keyspan', text: key});
     elem.append(keyspan);
+        console.log('sdfd')
 
     if (mime == 'image/svg+gum') {
         cache.img.get(key, function(ret) {
             let size = elem.height();
             let svg = parseSVG(mime, ret, size);
-            elem.html(svg);
-            elem.addClass('svg');
-            elem.attr('mime', mime);
-            elem.attr('raw', ret);
+            if (!svg.success) {
+                elem.html(svg.message);
+            } else {
+                elem.html(svg.svg);
+                elem.addClass('svg');
+                elem.attr('mime', mime);
+                elem.attr('raw', ret);
+            }
+
         });
     } else {
         let img = $('<img>');
