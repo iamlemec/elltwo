@@ -1,9 +1,11 @@
 [submodule "katex"]
 	path = katex
 	url = https://github.com/KaTeX/KaTeX
+	ignore = dirty
 [submodule "gum.js"]
 	path = static/gum.js
 	url = https://github.com/iamlemec/gum.js
 [submodule "static/zip.js"]
 	path = static/zip.js
 	url = https://github.com/gildas-lormeau/zip.js
+	ignore = dirtys
