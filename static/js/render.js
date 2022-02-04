@@ -692,13 +692,13 @@ function svgEnv(ptxt, args, outer=true) {
         }
     hdl.innerHTML = svg;
     fig.append(hdl);
-    if(ret.anchors){
+    if (ret.anchors) {
         let iac_wrap = $('<div>', {class: 'env_add fig_iac_wrap'});
         let iac = $('<div>', {class: 'env_add fig_iac'});
         let iac_tog = document.createElement('div');
         iac_tog.className = 'iac_tog';
         iac.append(...ret.anchors);
-        iac_wrap.append(iac, iac_tog)
+        iac_wrap.append(iac, iac_tog);
         fig.append(iac_wrap);
         fig.find('.slider_input').each((i,s) => {updateSliderValue(s)})
     }
@@ -1078,8 +1078,6 @@ function createPop(ref, html='', link=false, blurb=false,ext_title=undefined) {
         pop.addClass('blurb_pop');
     }
     $('#bg').append(pop);
-
-
 
     let h = pop.outerHeight();
     let w = pop.outerWidth();

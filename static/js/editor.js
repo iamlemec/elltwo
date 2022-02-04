@@ -180,11 +180,13 @@ function eventEditor() {
                 }
             } else if (shift && key == 'enter') {
                 if (state.cc) {
-                    ccMake(null,true);
+                    ccMake(null, true);
                     return false;
                 }
                 makeUnEditable();
-                sendInsertPara(state.active_para, true);
+                if (state.writeable) {
+                    sendInsertPara(state.active_para, true);
+                }
                 return false;
             } else if ((ctrl || meta) && key in wraps) {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
@@ -310,17 +312,16 @@ function eventEditor() {
 
     $(document).on('click', '.iac_tog', function() {
         let iac = $(this).siblings('.fig_iac');
-        let wrap = $(this).parent()
-        $(this).toggleClass('closed') 
-        if(!$(this).hasClass('closed')){
-             wrap.toggleClass('closed')
-            iac.slideDown()
+        let wrap = $(this).parent();
+        $(this).toggleClass('closed');
+        if (!$(this).hasClass('closed')) {
+            wrap.toggleClass('closed');
+            iac.slideDown();
         } else {
-            iac.slideUp(()=>{
-                wrap.toggleClass('closed')
-            })
+            iac.slideUp(() => {
+                wrap.toggleClass('closed');
+            });
         }
-
         return false;
     });
 

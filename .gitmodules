@@ -8,4 +8,4 @@
 [submodule "static/zip.js"]
 	path = static/zip.js
 	url = https://github.com/gildas-lormeau/zip.js
-	ignore = dirtys
+	ignore = dirty

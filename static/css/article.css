@@ -530,7 +530,7 @@ button {
     max-width: 400px;
     min-height: 30px;
     position: relative;
-    left: 50%; 
+    left: 50%;
     transform: translate(-50%, 0);
     border: 1px solid var(--brace-col)
 }
@@ -553,7 +553,7 @@ button {
 
 .svg_hodl > svg {
     max-width: 100%;
-    max-height: 500px;
+    max-height: 300px;
     fill: none;
     stroke: var(--font-col);
 }
@@ -867,6 +867,10 @@ button {
     stroke: var(--pop-fg-col);
 }
 
+#pop .fig_iac_wrap {
+    display: none;
+}
+
 /* sidebar */
 
 #head {
@@ -1045,7 +1049,7 @@ button {
     cursor: pointer;
 }
 
-.custom-select-trigger:after, #logo:after, .iac_tog:after{
+.custom-select-trigger:after, #logo:after, .iac_tog:after {
     position: absolute;
     display: block;
     content: '';
@@ -1061,13 +1065,13 @@ button {
     border-color: var(--hl2-col);
 }
 
-.iac_tog:after{
+.iac_tog:after {
     top: 15px;
     left: calc(100% - 20px);
     cursor: pointer;
 }
 
-.iac_tog.closed:after{
+.iac_tog.closed:after {
     top: 18px;
     left: calc(100% - 15px);
     transform: rotate(-45deg) translateY(-100%) translateX(-50%);

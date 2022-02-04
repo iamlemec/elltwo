@@ -112,7 +112,7 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
             if(updatePara){
                 let data = {pid: updatePara.attr('pid'), aid: config.aid};
                 sendCommand('lock', data, function(response) {
-                    sendUpdatePara(updatePara, `![${key}]`, true) 
+                    sendUpdatePara(updatePara, `![${key}]`, true);
                 });
             }
         } else {
@@ -140,7 +140,7 @@ function renderInput(src) {
 
     let right = $('#SVGEditorOutput');
     let parsed = $('#SVGEditorParsedView');
-    let redraw = document.querySelector('#SVGEditorOutput')
+    let redraw = document.querySelector('#SVGEditorOutput');
 
     let ret = renderGum(src, size, redraw);
     if (ret.success) {
@@ -156,8 +156,7 @@ function renderInput(src) {
     }
 }
 
-function renderGum(src, size, redraw=false) {
-
+function renderGum(src, size, redraw) {
     if (src.length == 0) {
         return {success: true, svg: ''};
     }
@@ -177,10 +176,9 @@ function renderGum(src, size, redraw=false) {
     let svg;
     let anchors = null;
     if (out instanceof InterActive) {
-        //let disp = document.querySelector('#SVGEditorOutput');
         anchors = out.createAnchors(redraw);
         out = out.create(redraw);
-    };
+    }
     if (out instanceof Element) {
         out = (out instanceof SVG) ? out : new SVG([out]);
         svg = out.svg({size: size, prec: prec});
@@ -191,7 +189,7 @@ function renderGum(src, size, redraw=false) {
     return {success: true, svg: svg, anchors: anchors};
 }
 
-function parseSVG(mime, src, size, redraw=false) {
+function parseSVG(mime, src, size, redraw) {
     if (mime == 'image/svg+gum') {
         let ret = renderGum(src, size, redraw);
         return ret
@@ -230,10 +228,11 @@ function resizePane(e) {
     right.style.width = `${100-perc}%`;
 }
 
-
-mid.addEventListener('mousedown', evt => {
-    document.addEventListener('mousemove', resizePane, false);
-}, false);
+if (mid != null) {
+    mid.addEventListener('mousedown', evt => {
+        document.addEventListener('mousemove', resizePane, false);
+    }, false);
+}
 
 document.addEventListener('mouseup', evt => {
     document.removeEventListener('mousemove', resizePane, false);
