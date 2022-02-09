@@ -32,6 +32,8 @@ import { initExport } from './export.js'
 import { initHelp } from './help.js'
 import { createBibInfo } from './bib.js'
 import { initSVGEditor, hideSVGEditor, parseSVG } from './svg.js'
+import { renderKatex} from './math.js'
+import { tex_cmd } from '../libs/tex_cmd.js'
 
 
 // history
@@ -1155,62 +1157,73 @@ function ccMake(cctxt=null,addText=false) {
     let para = state.active_para;
     let input = para.children('.p_input');
     let raw = input.val();
-    let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
-    let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
-    let open_img = /^\!(\[)?([\w-\|\=^]+)?(?!.*\])([\s\n]|$)/;
 
-    let cap, l;
+    let [l,u] = state.cc
+    let sel = raw.substring(l, u)
+
+    let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])/;
+    let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])/;
+    let open_img = /^\!(\[)?([\w-\|\=^]+)?(?!.*\])/;
+    let open_cmd = /\\([\w-\|\=^]+)/;
+
+    let cap;
     let iter = false //true iterates the process (for ext art refs)
     let at = "";
     if (addText){
         at = '|text=';
     };
-    if (cap = open_ref.exec(raw)) {
-        l = cap.index;
-        let space = cap[5] || '';
+    if (cap = open_ref.exec(sel)) {
+        l += cap.index;
         if (cap[3] && !cap[2]) { // start ext page
-           raw = raw.replace(open_ref, function() {
-                const out = `@[${cctxt}:${space}`;
-                l += out.length - space.length;
+           sel = sel.replace(open_ref, function() {
+                const out = `@[${cctxt}:`;
+                l += out.length;
                 iter=true;
                 return out;
             });
         } else if (cap[2] && cap[3]) { // ref on ext page
-            raw = raw.replace(open_ref, function() {
-                const out = `@[${cap[2]}:${cctxt}${at}]${space}`;
-                l += out.length - space.length;
+            sel = sel.replace(open_ref, function() {
+                const out = `@[${cap[2]}:${cctxt}${at}]`;
+                l += out.length;
                 return out;
             });
         } else if (cap[1] == '@') { // external citation
-            raw = raw.replace(open_ref, function() {
-                const out = `@@[${cctxt}${at}]${space}`;
-                l += out.length - space.length;
+            sel = sel.replace(open_ref, function() {
+                const out = `@@[${cctxt}${at}]`;
+                l += out.length;
                 return out;
             });
         } else { // internal reference
-            raw = raw.replace(open_ref, function() {
-                const out = `@[${cctxt}${at}]${space}`;
-                l += out.length - space.length;
+            sel = sel.replace(open_ref, function() {
+                const out = `@[${cctxt}${at}]`;
+                l += out.length;
                 return out;
             });
         }
-    } else if (cap = open_i_link.exec(raw)) {
-        l = cap.index;
+    } else if (cap = open_i_link.exec(sel)) {
+        l += cap.index;
         let space = cap[2] || '';
-        raw = raw.replace(open_i_link, function() {
-            const out = `[[${cctxt}${at}]]${space}`;
-            l += out.length - space.length;
+        sel = sel.replace(open_i_link, function() {
+            const out = `[[${cctxt}${at}]]`;
+            l += out.length;
             return out;
         });
-    } else if (cap = open_img.exec(raw)) {
-        l = cap.index;
-        let space = cap[2] || '';
-        raw = raw.replace(open_img, function() {
-            const out = `![${cctxt}${at}]${space}`;
-            l += out.length - space.length;
+    } else if (cap = open_img.exec(sel)) {
+        l += cap.index;
+        sel = sel.replace(open_img, function() {
+            const out = `![${cctxt}${at}]`;
+            l += out.length;
+            return out;
+        });
+    } else if (cap = open_cmd.exec(sel)) {
+        l += cap.index;
+        sel = sel.replace(open_cmd, function() {
+            const out = `\\${cctxt}`;
+            l += out.length;
             return out;
         });
     }
+    raw = raw.substring(0,state.cc[0]) + sel + raw.substring(u);
     input.val(raw);
     resize(input[0]);
     elltwoHL(state.active_para);
@@ -1236,13 +1249,13 @@ function getInternalRefs() {
     return $('.para:not(.folder):is(.env_beg,.env_one)[id]').toArray().map(x => [x.id, x.getAttribute("env")]);
 }
 
-function env_display_text(env) {
+function env_display_text(env, sym="") {
     let env_dict = {
         'equation': `<span class="syn_math">$$</span>`,
-        'theorem': `<span class="syn_hl">>thm</span>`,
-        'definition': `<span class="syn_hl">>def</span>`,
+        'theorem': `<span class="syn_hl">>th</span>`,
+        'definition': `<span class="syn_hl">>df</span>`,
         'example': `<span class="syn_hl">>>ex</span>`,
-        'proof': `<span class="syn_hl">>>prf</span>`,
+        'proof': `<span class="syn_hl">>>pf</span>`,
         'axiom': `<span class="syn_hl">>ax</span>`,
         'heading': `<span class="syn_delimit">##</span>`,
         'imagelocal': `<span class="syn_ref">!img</span>`,
@@ -1250,29 +1263,34 @@ function env_display_text(env) {
         'title': `<span class="syn_delimit">#</span><span class="syn_hl">!</span>`,
         'image': `<span class="syn_hl">!!</span>`,
         'bib': `<span class="syn_ref">@@</span>`,
+        'cmd': `<span class="syn_ref latex">${sym}</span>`,
     }
     return env_dict[env] || ''
 }
 
-function ccSearch(list, search, placement, env_display=false) {
+function ccSearch(list, search, placement, selchars, env_display=false) {
     if(env_display){
     list = list.filter(el => el[0].includes(search));
+    list = list.sort((a, b) => b[0].startsWith(search) - a[0].startsWith(search));
     } else {
     list = list.filter(el => el.includes(search));
-    } if (list.length > 0) {
-        state.cc = true;
+    list = list.sort((a, b) => b.startsWith(search) - a.startsWith(search));
+    } 
+    if (list.length > 0) {
+        state.cc = selchars;
         let pop = $('<div>', {id: 'cc_pop'});
         list.forEach(r => {
             let cc_row = $('<div>', {class: 'cc_row'});
             if(env_display){
                 cc_row.text(r[0]).attr('ref', r[0]);
                 let env_disp = $('<div>', {class: 'env_disp'});
-                env_disp.html(env_display_text(r[1]));
+                let sym = r[2] || '';
+                env_disp.html(env_display_text(r[1], sym));
                 cc_row.prepend(env_disp)
             } else {
                 cc_row.text(r).attr('ref', r);
             };
-
+            renderKatex(cc_row)
             pop.append(cc_row);
         });
         $('#bg').append(pop);
@@ -1288,16 +1306,19 @@ function ccSearch(list, search, placement, env_display=false) {
 function ccRefs(view, raw, cur) {
     state.cc = false;
     $('#cc_pop').remove();
+
+    let before = raw.substring(0,cur).split(/[\s\n]/).at(-1)
+    let after = raw.substring(cur).split(/[\s\n]/).at(0)
+    let sel = before+after;
+    let selchars = [cur - before.length, cur+after.length]
+
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     let open_img = /^\!(\[)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
+    let open_cmd = /\\([\w-\|\=^]+)(?:[\s\n]|$)/;
     let cap;
-    if (cap = open_ref.exec(raw)) {
-        // if cursor is near the match
-        let b = cap.index;
-        let e = b + cap[0].length;
-        if (cur >= b && cur <= e) {
-            raw = raw.slice(0, e) + '<span id="cc_pos"></span>' + raw.slice(e);
+    if (cap = open_ref.exec(sel)) {
+            raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
@@ -1305,53 +1326,52 @@ function ccRefs(view, raw, cur) {
                 let search = cap[2] || '';
                 cache.list.get('__bib', function(ret) {
                     ret = ret.map(x => [x, 'bib'])
-                    ccSearch(ret, search, p, true);
+                    ccSearch(ret, search, p, selchars, true);
                 });
             } else if (cap[3] && !cap[2]) { // searching for ext page
                 let search = cap[4] || '';
                 cache.list.get('__art', function(ret) {
                     ret = ret.map(x => [x, 'title'])
-                    ccSearch(ret, search, p, true);
+                    ccSearch(ret, search, p, selchars, true);
                 });
             } else if (cap[2] && cap[3]) {
                 let title = cap[2];
                 let search = cap[4] || "";
                 cache.list.get(title, function(ret) {
-                    ccSearch(ret, search, p, true);
+                    ccSearch(ret, search, p, selchars, true);
                 });
             } else {
                 let search = cap[4] || cap[2] || '';
                 let in_refs = getInternalRefs();
-                ccSearch(in_refs, search, p, true);
+                ccSearch(in_refs, search, p, selchars, true);
             }
-        }
-    } else if (cap = open_i_link.exec(raw)) {
-        let b = cap.index;
-        let e = b + cap[0].length;
-        if (cur >= b && cur <= e) {
-            raw = raw.slice(0, e) + '<span id="cc_pos"></span>' + raw.slice(e);
+    } else if (cap = open_i_link.exec(sel)) {
+            raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let search = cap[1] || '';
             let ex_keys = cache.list.get('__art', function(ret) {
                 ret = ret.map(x => [x, 'title'])
-                ccSearch(ret, search, p, true);
+                ccSearch(ret, search, p, selchars, true);
             });
-        }
-    } else if (cap = open_img.exec(raw)) {
-        let b = cap.index;
-        let e = b + cap[0].length;
-        if (cur >= b && cur <= e) {
-            raw = raw.slice(0, e) + '<span id="cc_pos"></span>' + raw.slice(e);
+    } else if (cap = open_img.exec(sel)) {
+            raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let search = cap[2] || '';
             let ex_keys = cache.list.get('__img', function(ret) {
                 ret = ret.map(x => [x, 'image'])
-                ccSearch(ret, search, p, true);
+                ccSearch(ret, search, p, selchars, true);
             });
-        }
+        } else if (cap = open_cmd.exec(sel)) {
+            raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
+            view.html(raw);
+            let off = $('#cc_pos').offset();
+            let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+            let search = cap[1] || '';
+            let ret = tex_cmd.map(x => [x, 'cmd', `\\${x}`])
+            ccSearch(ret, search, p, selchars, true);
     }
 }

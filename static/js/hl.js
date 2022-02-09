@@ -242,6 +242,7 @@ class GumRenderer {
 
 let inline = {
     escape: /\\([\\/`*{}\[\]()#+\-.!_>\$])/g,
+    cmd: /\\(\w+)/g,
     url: /(https?):\/\/([^\s<]+[^<.,:;"')\]\s])/g,
     comment: /\/\/([^\n]*?)(\n|$)/g,
     code: /(`+)([\s\S\$]*?[^`])\1(?!`)/g,
@@ -260,6 +261,10 @@ function syntaxParseInline(raw) {
 
     html = html.replace(inline.escape, (a, b) =>
         s('\\', 'comment_head') + s(esc_md(b), 'comment')
+    );
+
+    html = html.replace(inline.cmd, (a, b) =>
+        s('\\', 'comment_head') + s(esc_md(b), 'comment_head')
     );
 
     html = html.replace(inline.url, (a, b, c) =>

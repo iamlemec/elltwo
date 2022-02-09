@@ -510,7 +510,6 @@ def update_para(data):
     aid, pid, text = data['aid'], data['pid'], data['text']
     said, spid = str(aid), str(pid)
     if locked.loc(spid) == sid:
-        print('lock worked\n'*10)
         edb.update_para(pid, text)
         emit('updatePara', [pid, text], room=str(aid), include_self=False)
         trueUnlock(aid, [pid], sid)
