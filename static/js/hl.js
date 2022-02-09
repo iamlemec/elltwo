@@ -447,6 +447,7 @@ let SVGrules = {
 };
 
 function shittySVG(raw) {
+    console.log('shittySVG')
     raw = esc_html(raw);
     let n = `<div class=linenum></div>`;
 

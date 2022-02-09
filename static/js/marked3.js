@@ -758,12 +758,15 @@ class DivRenderer {
         ln = ln && (args.ln != 'false');
         let js = args.lang == 'js' || args.lang == 'javascript' || args.lang == 'gum';
         let ell = args.lang == 'elltwo' || args.lang == 'l2' || args.lang == 'ell2';
+        let svg = args.lang == 'html' || args.lang == 'HTML' || args.lang == 'svg' ||  args.lang == 'SVG';
         let numbered = ln ? 'numbered' : '';
 
         if (js) {
             code = SyntaxHL(code, 'gum');
         } else if (ell) {
             code = SyntaxHL(code, 'elltwo');
+        }else if (svg) {
+            code = SyntaxHL(code, 'svg');
         } else {
             code = `<div class="linenum"></div>` + code.replace(/\n/g, `\n<div class=linenum></div>`);
         }

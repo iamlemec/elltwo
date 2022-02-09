@@ -217,6 +217,9 @@ let mid = document.querySelector('#SVGWidthControl');
 let left = document.querySelector('#SVGEditorBoxLeft');
 let right = document.querySelector('#SVGEditorBoxRight');
 let iac = document.querySelector('#interActiveControl');
+let ipt = document.querySelector('#SVGEditorInputText');
+let view = document.querySelector('#SVGEditorInputView');
+
 
 function resizePane(e) {
     let x = e.clientX
@@ -236,4 +239,9 @@ if (mid != null) {
 
 document.addEventListener('mouseup', evt => {
     document.removeEventListener('mousemove', resizePane, false);
+}, false);
+
+ipt.addEventListener('scroll', evt => {
+    console.log(evt.target.scrollTop)
+    view.scrollTop = evt.target.scrollTop;
 }, false);

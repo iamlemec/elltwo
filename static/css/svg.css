@@ -87,6 +87,7 @@
     width: 100%;
     padding: 10px;
     padding-left: 30px;
+    overflow: scroll;
 }
 
 #SVGEditorInputBox {
@@ -114,6 +115,10 @@
     z-index: 2;
 }
 
+.code:not(.numbered) .linenum{
+    display: none;
+}
+
 .linenum {
     position: absolute;
     text-align: right;
@@ -121,6 +126,10 @@
     left: 0;
     font-size: 100%;
     opacity: .3;
+}
+
+.para .linenum{
+   width: 28px;
 }
 
 .linenum:before {

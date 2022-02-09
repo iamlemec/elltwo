@@ -553,7 +553,7 @@ button {
 
 .svg_hodl > svg {
     max-width: 100%;
-    max-height: 300px;
+    max-height: 500px;
     fill: none;
     stroke: var(--font-col);
 }
@@ -679,30 +679,14 @@ button {
     background-color: rgba(0,0,0,.1);
 }
 
+.para .p_input_view .linenum{
+    display: none;
+}
+
 .code.numbered > pre {
     margin-left: 28px;
 }
 
-.code.numbered {
-}
-
-.linenum{
-    position: absolute;
-    text-align: right;
-    width: 25px;
-    left: 0;
-    font-size: 100%;
-    opacity: .4;
-}
-
-.para .linenum{
-    display: none;
-}
-
-.code.numbered .linenum:before{
-  counter-increment: line;
-  content: counter(line);
-}
 
 #bib_block {
     display: none;
