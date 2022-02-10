@@ -798,7 +798,6 @@ def trueLock(aid, pid, sid):
     if (own := locked.loc(spid)) is not None:
         return own == sid
     locked.add(sid, spid)
-    print('***\n'*5, 'spid=='+spid, locked)
     emit('lock', [spid], room=said, include_self=False)
     return True
 

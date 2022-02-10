@@ -189,21 +189,19 @@ function renderGum(src, size, redraw) {
     return {success: true, svg: svg, anchors: anchors};
 }
 
+function renderSVG(src, size) {
+    if (src.match(/ *<svg( |>)/) == null) {
+        let [w, h] = (typeof(size) == 'number') ? [size, size] : size;
+        src = `<svg viewBox="0 0 ${w} ${h}">\n${src}\n</svg>`;
+    }
+    return {success: true, svg: src};
+}
+
 function parseSVG(mime, src, size, redraw) {
     if (mime == 'image/svg+gum') {
-        let ret = renderGum(src, size, redraw);
-        return ret
-    } else {
-        if (typeof(src) == 'string') {
-            if (src.match(/ *<svg( |>)/) == null) {
-                let [w, h] = (typeof(size) == 'number') ? [size, size] : size;
-                return `<svg viewBox="0 0 ${w} ${h}">\n${src}\n</svg>`;
-            } else {
-                return src;
-            }
-        } else {
-            return src;
-        }
+        return renderGum(src, size, redraw);
+    } else if (mime == 'image/svg+xml') {
+        return renderSVG(src, size);
     }
 }
 

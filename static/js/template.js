@@ -43,8 +43,8 @@ function latexTemplate(d) {
     let packages = [
         ['babel', 'english'], 'amsmath', 'amsfonts', 'amsthm', 'amssymb', 'array',
         'fullpage', 'enumerate', 'enumitem', 'ulem', ['hyperref', 'unicode'], 'xcolor',
-        'newverbs', 'fancyvrb', 'fvextra', 'geometry', 'graphicx'
-    ]
+        'cleveref', 'newverbs', 'fancyvrb', 'fvextra', 'geometry', 'graphicx'
+    ];
     let head = [];
     let tail = [];
 
