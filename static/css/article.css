@@ -728,11 +728,11 @@ button {
     max-width: 400px;
 }
 
-#pop .DOI_link{
+#pop .DOI_link {
     display: none;
 }
 
-#pop.ext_pop{
+#pop.ext_pop {
     padding-top:20px;
 }
 
@@ -749,7 +749,7 @@ button {
 	margin-left: -10px;
 }
 
-#pop_ext_title{
+#pop_ext_title {
     position: absolute;
     top: 0;
     width: calc(100% - 10px);
@@ -854,6 +854,10 @@ button {
 
 #pop .fig_iac_wrap {
     display: none;
+}
+
+#pop .table > .table-header .table-cell {
+    border-bottom-color: var(--pop-fg-col);
 }
 
 /* sidebar */

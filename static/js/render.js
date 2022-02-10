@@ -1056,6 +1056,7 @@ let ref_spec = {
     svg: refFigure,
     image: refFigure,
     imagelocal: refFigure,
+    table: refFigure,
 };
 
 /**
@@ -1196,6 +1197,7 @@ let pop_spec = {
     image: popEquation,
     imagelocal: popEquation,
     footnote: popSelf,
+    table: popEquation,
 };
 
 /// syntax highlighting
