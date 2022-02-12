@@ -464,11 +464,11 @@ function envGlobal(outer) {
     createTOC();
     let time4 = Date.now();
 
-    console.log('envGlobal', outer);
-    console.log('createNumbers', time1-time0);
-    console.log('renderRefText', time2-time1);
-    console.log('renderFold', time3-time2);
-    console.log('createTOC', time4-time3);
+    // console.log('envGlobal', outer);
+    // console.log('createNumbers', time1-time0);
+    // console.log('renderRefText', time2-time1);
+    // console.log('renderFold', time3-time2);
+    // console.log('createTOC', time4-time3);
 }
 
 function envFormat(ptxt, env, args) {

@@ -44,6 +44,7 @@ let updateHistMap;
 let default_config = {
     theme: 'classic', // theme to use
     font: 'default', // font to use
+    cmd: 'on', //
     timeout: 180, // para lock timeout
     max_size: 1024, // max image size
     readonly: true, // is session readonly
@@ -330,6 +331,14 @@ function eventArticle() {
         }
     });
 
+    $(document).on('change', '#cmd_select', function() {
+        let fselect = $(this);
+        let fchoice = fselect.children('option:selected').text();
+        if (fchoice != config.cmd) {
+            setCmd(fchoice);
+        }
+    });
+
     // progress bar
     $('#content').scroll(function() {
         let elem = $('#content');
@@ -385,13 +394,23 @@ function eventArticle() {
 
     // syntax highlighting and brace matching
     $(document).on('input', '.p_input', function(e) {
+        let cur = e.currentTarget.selectionStart;
         let para = $(this).parent('.para');
         let text = para.children('.p_input');
         let view = para.children('.p_input_view');
         let raw = text.val();
-        let cur = e.target.selectionStart;
+        let math = raw.startsWith('$$') // are we in math cell
+        let dollars = [...raw.matchAll(/(\\*)\$/g)] || []; //match dollars
+        dollars = dollars.filter(x => (x[0].length%2==1)); //filter out escaped dollars
+        if(dollars.length%2==1){
+            state.lastdollar = dollars.pop().index + 1
+            math = true
+        } else{
+            state.lastdollar = false;
+        }
+        state.mathmode = math;
         schedTimeout();
-        ccRefs(view, raw, cur);
+        ccRefs(view, raw, cur, config.cmd);
         elltwoHL(para);
         if (state.ssv_mode) {
             rawToRender(para, false, false, raw);
@@ -715,18 +734,28 @@ function setFont(font) {
     $('#content').css('font-family', fset);
 }
 
+function setCmd(cmd) {
+    config.cmd = cmd;
+    setCookie('cmd', cmd);
+}
+
 function initSidebar() {
     let theme_select = $('#theme_select');
     let font_select = $('#font_select');
+    let cmd_select = $('#cmd_select');
 
     makeSelect(theme_select);
     makeSelect(font_select);
+    makeSelect(cmd_select);
 
     setSelect(theme_select, config.theme);
     setSelect(font_select, config.font);
+    setSelect(cmd_select, config.cmd);
+
 
     setTheme(config.theme);
     setFont(config.font);
+    setCmd(config.cmd);
 }
 
 function showOption(sel1, opt) {
@@ -1150,9 +1179,10 @@ function ccNext(dir) {
     }
 }
 
-function ccMake(cctxt=null,addText=false) {
+function ccMake(cctxt=null, addText=false, offset_chars=0) {
     if (cctxt===null){
         cctxt = $('.cc_row').first().attr('ref');
+        offset_chars=$('.cc_row').first().attr('offset_chars') || 0;
     }
     let para = state.active_para;
     let input = para.children('.p_input');
@@ -1160,6 +1190,8 @@ function ccMake(cctxt=null,addText=false) {
 
     let [l,u] = state.cc
     let sel = raw.substring(l, u)
+
+    console.log(state.cc)
 
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])/;
@@ -1223,6 +1255,7 @@ function ccMake(cctxt=null,addText=false) {
             return out;
         });
     }
+    console.log(sel)
     raw = raw.substring(0,state.cc[0]) + sel + raw.substring(u);
     input.val(raw);
     resize(input[0]);
@@ -1232,6 +1265,7 @@ function ccMake(cctxt=null,addText=false) {
     if(addText && !iter){
         l -= 1;
     }
+    l -= offset_chars;
     input[0].setSelectionRange(l, l);
     if(iter){
         let view = para.children('.p_input_view');
@@ -1246,7 +1280,9 @@ function ccMake(cctxt=null,addText=false) {
 /// command completion
 
 function getInternalRefs() {
-    return $('.para:not(.folder):is(.env_beg,.env_one)[id]').toArray().map(x => [x.id, x.getAttribute("env")]);
+    return $('.para:not(.folder):is(.env_beg,.env_one)[id]').toArray().map(x => {
+                    return {name:x.id, type:x.getAttribute('env')}
+                });
 }
 
 function env_display_text(env, sym="") {
@@ -1264,14 +1300,19 @@ function env_display_text(env, sym="") {
         'image': `<span class="syn_hl">!!</span>`,
         'bib': `<span class="syn_ref">@@</span>`,
         'cmd': `<span class="syn_ref latex">${sym}</span>`,
+        'cmd_opt': `<span class="syn_delimit latex">${sym}</span>`,
     }
     return env_dict[env] || ''
 }
 
 function ccSearch(list, search, placement, selchars, env_display=false) {
     if(env_display){
-    list = list.filter(el => el[0].includes(search));
-    list = list.sort((a, b) => b[0].startsWith(search) - a[0].startsWith(search));
+    list = list.filter(el => el.name.includes(search));
+    list = list.sort((a, b) => {
+        a = a.disp_name || a.name;
+        b = b.disp_name || b.name;
+        return b.startsWith(search) - a.startsWith(search)
+        });
     } else {
     list = list.filter(el => el.includes(search));
     list = list.sort((a, b) => b.startsWith(search) - a.startsWith(search));
@@ -1282,10 +1323,12 @@ function ccSearch(list, search, placement, selchars, env_display=false) {
         list.forEach(r => {
             let cc_row = $('<div>', {class: 'cc_row'});
             if(env_display){
-                cc_row.text(r[0]).attr('ref', r[0]);
+                let offset_chars = r.offset_chars || 0
+                let disp_name = r.disp_name || r.name;
+                cc_row.text(disp_name).attr('ref', r.name).attr('offset_chars', r.offset_chars);
                 let env_disp = $('<div>', {class: 'env_disp'});
-                let sym = r[2] || '';
-                env_disp.html(env_display_text(r[1], sym));
+                let sym = r.sym || '';
+                env_disp.html(env_display_text(r.type, r.sym));
                 cc_row.prepend(env_disp)
             } else {
                 cc_row.text(r).attr('ref', r);
@@ -1303,14 +1346,21 @@ function ccSearch(list, search, placement, selchars, env_display=false) {
 }
 
 // show command completion popup for references (@[]) and article links ([[]])
-function ccRefs(view, raw, cur) {
+function ccRefs(view, raw, cur, configCMD) {
+    if(configCMD === 'off'){
+        return false;
+    }
     state.cc = false;
     $('#cc_pop').remove();
 
-    let before = raw.substring(0,cur).split(/[\s\n]/).at(-1)
-    let after = raw.substring(cur).split(/[\s\n]/).at(0)
+    let before = raw.substring(0,cur).split(/[\s\n\$]/).at(-1)
+    if(before.lastIndexOf('\\') > -1){ //in case there is no space between commands
+        before=before.substring(before.lastIndexOf('\\'))
+    }
+    let after = raw.substring(cur).split(/[\s\n\$]/).at(0)
     let sel = before+after;
     let selchars = [cur - before.length, cur+after.length]
+    console.log('sels', cur, before, after)
 
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
@@ -1325,19 +1375,26 @@ function ccRefs(view, raw, cur) {
             if (cap[1] == '@') { // bib search
                 let search = cap[2] || '';
                 cache.list.get('__bib', function(ret) {
-                    ret = ret.map(x => [x, 'bib'])
+                ret = ret.map(x => {
+                    return {name:x, type:'bib'}
+                });
                     ccSearch(ret, search, p, selchars, true);
                 });
             } else if (cap[3] && !cap[2]) { // searching for ext page
                 let search = cap[4] || '';
                 cache.list.get('__art', function(ret) {
-                    ret = ret.map(x => [x, 'title'])
+                ret = ret.map(x => {
+                    return {name:x, type:'title'}
+                });
                     ccSearch(ret, search, p, selchars, true);
                 });
             } else if (cap[2] && cap[3]) {
                 let title = cap[2];
                 let search = cap[4] || "";
                 cache.list.get(title, function(ret) {
+                ret = ret.map(x => {
+                    return {name:x[0], type:x[1]}
+                });
                     ccSearch(ret, search, p, selchars, true);
                 });
             } else {
@@ -1352,7 +1409,9 @@ function ccRefs(view, raw, cur) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let search = cap[1] || '';
             let ex_keys = cache.list.get('__art', function(ret) {
-                ret = ret.map(x => [x, 'title'])
+                ret = ret.map(x => {
+                    return {name:x, type:'title'}
+                });
                 ccSearch(ret, search, p, selchars, true);
             });
     } else if (cap = open_img.exec(sel)) {
@@ -1362,16 +1421,23 @@ function ccRefs(view, raw, cur) {
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let search = cap[2] || '';
             let ex_keys = cache.list.get('__img', function(ret) {
-                ret = ret.map(x => [x, 'image'])
+                ret = ret.map(x => {
+                    return {name:x, type:'image'}
+                });
                 ccSearch(ret, search, p, selchars, true);
             });
-        } else if (cap = open_cmd.exec(sel)) {
+        } else if (open_cmd.exec(sel) && configCMD === 'on' && state.mathmode) {
+            cap = open_cmd.exec(sel)
             raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let search = cap[1] || '';
-            let ret = tex_cmd.map(x => [x, 'cmd', `\\${x}`])
+            let ret = tex_cmd.syms.map(x => {
+                return {name:x, type:'cmd', sym:`\\${x}`,}
+            })
+            let ops = tex_cmd.ops
+            ret = ret.concat(ops)
             ccSearch(ret, search, p, selchars, true);
     }
 }

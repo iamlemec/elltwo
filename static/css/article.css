@@ -533,7 +533,8 @@ button {
     position: relative;
     left: 50%;
     transform: translate(-50%, 0);
-    border: 1px solid var(--brace-col)
+    border: 1px solid var(--brace-col);
+    z-index: 1;
 }
 
 .fig_iac_wrap.closed:before{
@@ -913,12 +914,14 @@ button {
 .options {
     padding-left: 10px;
     margin-top: 50px;
-    padding-bottom: 30px;
+    padding-bottom: 0px;
 }
 
 .option {
     margin-top: 20px;
+    margin-bottom: 40px;
     white-space: nowrap;
+    padding-left: 10px;
 }
 
 #toc_wrap {
@@ -1405,6 +1408,16 @@ circle.commit.active {
 }
 
 @media only screen and (max-width: 1000px) {
+    
+#sidebar .custom-select-wrapper{
+    margin-top:0;
+    width: 120px;
+}
+    
+.option {
+    text-align: left;
+    margin-bottom: 20px;
+}
 
 .container:not(.ssv) .para {
     left: 0%;

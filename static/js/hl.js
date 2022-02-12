@@ -5,6 +5,7 @@ export { SyntaxHL, braceMatch, s }
 import { replace } from './marked3.js'
 import { gums } from '../gum.js/build/lib/gum.js'
 import { elltwoHL } from './render.js'
+import { state } from './state.js'
 
 /* HELPERS */
 
@@ -243,6 +244,7 @@ class GumRenderer {
 let inline = {
     escape: /\\([\\/`*{}\[\]()#+\-.!_>\$])/g,
     cmd: /\\(\w+)/g,
+    brac: /(\\*)([\{,\}])/g,
     url: /(https?):\/\/([^\s<]+[^<.,:;"')\]\s])/g,
     comment: /\/\/([^\n]*?)(\n|$)/g,
     code: /(`+)([\s\S\$]*?[^`])\1(?!`)/g,
@@ -256,15 +258,37 @@ let inline = {
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
 };
 
+function mathHL(raw) {
+    raw = raw.replace(inline.brac, (a, b, c) => {
+        b = b||"";
+        console.log(b, b.length)
+        return (b.length%2==0) ? b + s(c, 'hl') : a //even number of / is escaped
+    }
+        );
+
+    raw = raw.replace(inline.cmd, (a, b) =>
+        s('\\', 'hl') + s(esc_md(b), 'comment_head')
+    );
+
+    return raw
+}
+
 function syntaxParseInline(raw) {
+
+    let endmath = ""
+
+    if (state.mathmode && state.lastdollar){
+        let ld = state.lastdollar;
+        endmath = raw.substring(ld);
+        raw = raw.substring(0,ld-1)
+        endmath = esc_html(endmath)
+        endmath = s('$', 'delimit') + s(mathHL(endmath),'math')
+    }
+
     let html = esc_html(raw);
 
     html = html.replace(inline.escape, (a, b) =>
         s('\\', 'comment_head') + s(esc_md(b), 'comment')
-    );
-
-    html = html.replace(inline.cmd, (a, b) =>
-        s('\\', 'comment_head') + s(esc_md(b), 'comment_head')
     );
 
     html = html.replace(inline.url, (a, b, c) =>
@@ -287,9 +311,10 @@ function syntaxParseInline(raw) {
         }
     });
 
-    html = html.replace(inline.math, (a, b) =>
-        s('$', 'delimit') + s(b, 'math') + s('$', 'delimit')
-    );
+    html= html.replace(inline.math, (a, b) => {
+        b = mathHL(b);
+        return s('$', 'delimit') + s(b, 'math') + s('$', 'delimit')
+    });
 
     html = html.replace(inline.cite, (a, b) =>
         s('@@', 'delimit') + s(fArgs(b, false), 'ref')
@@ -318,7 +343,7 @@ function syntaxParseInline(raw) {
         s('*', 'delimit') + b + s('*', 'delimit')
     );
 
-    return html;
+    return html + endmath;
 }
 
 // uses lookbehinds, might not work on old ass-browsers
@@ -397,7 +422,9 @@ function syntaxParseBlock(raw) {
         let star = cap[1] ? s(cap[1], 'hl') : '';
         let id = cap[3] ? s(fArgs(cap[3]), 'ref') : '';
         let rest = raw.slice(cap[0].length);
-        return s('$$', 'delimit') + star + cap[2] + id + cap[4] + s(esc_html(rest), 'math');
+        rest = esc_html(rest)
+        rest = mathHL(rest)
+        return s('$$', 'delimit') + star + cap[2] + id + cap[4] + s(rest, 'math');
     }
 
     if (cap = block.image.exec(raw)) {

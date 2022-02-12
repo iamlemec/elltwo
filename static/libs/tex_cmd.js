@@ -1,4 +1,4 @@
-let tex_cmd = [
+let syms = [
 'Alpha',
 'beta',
 'Gamma',
@@ -91,10 +91,6 @@ let tex_cmd = [
 'daleth',
 'hbar',
 'real',
-'paren',
-'paren',
-'ceil',
-'ceil',
 'uparrow',
 'lbrack',
 'rbrack',
@@ -115,6 +111,8 @@ let tex_cmd = [
 'rangle',
 'vert',
 'ulcorner',
+'lceil',
+'rceil',
 'Downarrow',
 'Vert',
 'llcorner',
@@ -186,8 +184,6 @@ let tex_cmd = [
 'bigsqcup',
 'cdot',
 'gtrdot',
-'mod',
-'pmod',
 'cdotp',
 'intercal',
 'pod',
@@ -215,7 +211,6 @@ let tex_cmd = [
 'cup',
 'ltimes',
 'sqcup',
-'bmodmod',
 'curlyvee',
 'times',
 'boxdot',
@@ -279,7 +274,6 @@ let tex_cmd = [
 'cth',
 'log',
 'th',
-'operatorname',
 'argmax',
 'injlim',
 'min',
@@ -299,8 +293,6 @@ let tex_cmd = [
 'inf',
 'max',
 'sup',
-'operatorname*',
-'operatornamewithlimits',
 'limits',
 'sqrt',
 'doteqdot',
@@ -562,7 +554,6 @@ let tex_cmd = [
 'hookrightarrow',
 'lrarr',
 'Uarr',
-'iff',
 'Lsh',
 'uArr',
 'impliedby',
@@ -594,5 +585,31 @@ let tex_cmd = [
 'leftharpoondown',
 'Rarr',
  ]
+
+ let ops = [
+{name:'operatorname{}', disp_name:'operatorname', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:1},
+{name:'mod{}', disp_name:'mod', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:1},
+{name:'pmod{}', disp_name:'pmod ', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:1},
+{name:'operatorname*{}', disp_name:'operatorname*' ,type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:1},
+{name:'operatornamewithlimits{}', disp_name:'operatornamewithlimits', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:1},
+{name:'begin{matrix}\n\n\\end{maxtix}', disp_name:'matrix', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:13},
+{name:'begin{pmatrix}\n\n\\end{pmaxtix}', disp_name:'pmatrix', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:14},
+{name:'begin{vmatrix}\n\n\\end{vmaxtix}', disp_name:'vmatrix', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:14},
+{name:'begin{Bmatrix}\n\n\\end{Bmaxtix}', disp_name:'Bmatrix', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:14},
+{name:'begin{smallmatrix}\n\n\\end{smallmaxtix}', disp_name:'smallmatrix', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:18},
+{name:'begin{cases}\n\n\\end{cases}', disp_name:'cases', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:12},
+{name:'begin{equation*}\n\n\\end{equation*}', disp_name:'equation', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:16},
+{name:'begin{gather*}\n\n\\end{gather*}', disp_name:'gather', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:14},
+{name:'begin{align*}\n\n\\end{align*}', disp_name:'align', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:13},
+{name:'begin{CD}\n\n\\end{CD}', disp_name:'CD', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:9},
+{name:'frac{}{}', disp_name:'frac', type:'cmd_opt', sym:`\\frac {\\{\\cdot\\}}{\\{\\cdot\\}}`, offset_chars:3},
+{name:'tfrac{}{}', disp_name:'tfrac', type:'cmd_opt', sym:`\\frac {\\{\\cdot\\}}{\\{\\cdot\\}}`, offset_chars:3},
+{name:'dfrac{}{}', disp_name:'dfrac', type:'cmd_opt', sym:`\\tfrac {\\{\\cdot\\}}{\\{\\cdot\\}}`, offset_chars:3},
+{name:'cfrac{}{}', disp_name:'cfrac', type:'cmd_opt', sym:`\\dfrac {\\{\\cdot\\}}{\\{\\cdot\\}}`, offset_chars:3},
+
+
+ ]
+
+ let tex_cmd  = {'syms': syms, 'ops': ops}
 
 export{ tex_cmd }
