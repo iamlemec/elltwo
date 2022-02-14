@@ -4,7 +4,7 @@
     --hl2-col: rgb(255, 13, 87);
     --hl3-col: mediumseagreen;
     --bg-col: #f5f4ef;
-    --bg-hl-col: whitesmoke;
+    --bg-hl-col: #f5e7d8;
     --bg-hl2-col: rgb(200,200,200);
     --comment: rgb(150,150,150);
     --delimit-col: tomato;
@@ -90,6 +90,10 @@ button,
 
 /* paras */
 
+.p_text {
+    padding: 0 4px;
+}
+
 .env__title > .p_text {
     text-align: center;
     border-bottom: 2px solid black;
@@ -100,8 +104,13 @@ button,
     border-bottom: 1px solid black;
 }
 
+.container:not(.ssv) .para {
+    padding: 0;
+    border: 0;
+}
+
 .container:not(.ssv) .para.active {
-    box-shadow: -4px 0px var(--hl-col);
+    box-shadow: none;
 }
 
 .container.ssv .para.active .p_input_view {
@@ -122,6 +131,8 @@ button,
 
 .para.copy_sel {
     background-color: var(--bg-hl-col);
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
 }
 
 

@@ -239,7 +239,9 @@ document.addEventListener('mouseup', evt => {
     document.removeEventListener('mousemove', resizePane, false);
 }, false);
 
-ipt.addEventListener('scroll', evt => {
-    console.log(evt.target.scrollTop)
-    view.scrollTop = evt.target.scrollTop;
-}, false);
+if (ipt != null) {
+    ipt.addEventListener('scroll', evt => {
+        console.log(evt.target.scrollTop)
+        view.scrollTop = evt.target.scrollTop;
+    }, false);
+}
