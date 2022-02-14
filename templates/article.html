@@ -7,7 +7,7 @@
 <link rel="stylesheet" href={{ url_for('static', filename='css/core.css') }} />
 <link rel="stylesheet" href={{ url_for('static', filename='css/article.css') }} />
 <link rel="stylesheet" href={{ url_for('static', filename='css/svg.css') }} />
-
+<link rel="stylesheet" href={{ url_for('static', filename='gum.js/build/fonts.css') }} />
 
 <script src="{{ url_for('static', filename='libs/socket.io.min.js') }}"></script>
 <script src="{{ url_for('static', filename='libs/d3.min.js') }}"></script>
@@ -48,7 +48,7 @@ Font
 </div>
 
 <div class="option">
-Cmd Completion 
+Cmd Completion
 <select id="cmd_select" name="cc" class="sources" placeholder="on">
     <option value="on">on</option>
     <option value="refonly">refs only</option>
