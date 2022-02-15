@@ -238,7 +238,7 @@ function texSvg(src, env) {
     let args = env.args;
     let inum = Object.keys(images).length;
     let name = args.id ?? `image_${inum}`;
-    let size = args.pixels ? parseInt(args.pixels) : 100;
+    let size = args.pixels ? parseInt(args.pixels) : null;
 
     let fname = `${name}.svg`;
     let svg = parseSVG(args.mime, args.svg, size);

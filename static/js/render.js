@@ -679,7 +679,7 @@ function svgEnv(ptxt, args, outer=true) {
         figEnv(ptxt, args);
     }
     let fig = ptxt.find('.fig_cont');
-    let size = args.pixels ? parseInt(args.pixels) : 100;
+    let size = args.pixels ? parseInt(args.pixels) : null;
     //let hdl = $('<div>', {class: 'env_add svg_hodl'});
     let hdl = document.createElement('div');
     hdl.className = 'env_add svg_hodl';

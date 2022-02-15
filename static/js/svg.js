@@ -130,8 +130,8 @@ function hideSVGEditor() {
 }
 
 // hard-coded options
-let prec = 2;
-let size = 500;
+let prec0 = 2;
+let size0 = 500;
 
 function renderInput(src) {
     if (src == null) {
@@ -142,7 +142,7 @@ function renderInput(src) {
     let parsed = $('#SVGEditorParsedView');
     let redraw = document.querySelector('#SVGEditorOutput');
 
-    let ret = renderGum(src, size, redraw);
+    let ret = renderGum(src, size0, redraw);
     if (ret.success) {
         iac.innerHTML = ""
         right.html(ret.svg);
@@ -157,6 +157,8 @@ function renderInput(src) {
 }
 
 function renderGum(src, size, redraw) {
+    size = size ?? size0;
+
     if (src.length == 0) {
         return {success: true, svg: ''};
     }
@@ -180,8 +182,9 @@ function renderGum(src, size, redraw) {
         out = out.create(redraw);
     }
     if (out instanceof Element) {
-        out = (out instanceof SVG) ? out : new SVG([out]);
-        svg = out.svg({size: size, prec: prec});
+        let args = {size: size};
+        out = (out instanceof SVG) ? out : new SVG(out, args);
+        svg = out.svg();
     } else {
         return {success: false, message: 'did not return gum element', line: 0};
     }
