@@ -1,4 +1,4 @@
-@import 'gum.js/bin/fonts.css';
+@import './gum/fonts.css';
 
 #SVGEditorOuter {
     position: fixed;
