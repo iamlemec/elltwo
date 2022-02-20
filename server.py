@@ -896,6 +896,14 @@ def delete_image(data):
     return True
 
 ##
+## snowpack build watch hack (see https://github.com/withastro/snowpack/issues/3629)
+##
+
+@app.route('/_snowpack/<path:subpath>')
+def snowpack(subpath):
+    return redirect(f'/build/_snowpack/{subpath}')
+
+##
 ## run that babeee
 ##
 
