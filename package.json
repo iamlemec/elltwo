@@ -1,0 +1,20 @@
+{
+  "name": "elltwo",
+  "version": "0.1",
+  "description": "Elltwo markdown parser.",
+  "type": "module",
+  "author": "Doug Hanley and Evan Piermont",
+  "license": "MIT",
+  "scripts": {
+    "build": "npx snowpack build",
+    "dev": "npx snowpack dev"
+  },
+  "dependencies": {
+    "@zip.js/zip.js": "^2.4.4",
+    "gum.js": "iamlemec/gum.js",
+    "katex": "^0.15.2"
+  },
+  "devDependencies": {
+    "snowpack": "^3.8.8"
+  }
+}

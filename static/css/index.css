@@ -1,4 +1,4 @@
-@import 'core.css';
+@import './core.css';
 
 #bg {
     height: unset;
@@ -967,7 +967,7 @@ button {
 /*  slim browser CSS */
 
 @media only screen and (max-width: 550px){
-    
+
   #features {
     background-color: var(--bg-hl2-col);
     height: calc(auto - 6vh);
@@ -1014,7 +1014,7 @@ button {
     width: 100vw;
     padding-left: 0;
     bottom: 40px;
-}  
+}
 }
 
 /*  MOBILE CSS */

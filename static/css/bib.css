@@ -1,4 +1,4 @@
-@import 'home.css';
+@import './home.css';
 
 #query {
 }
@@ -219,18 +219,18 @@
  top: 200px;
  height: calc(100% - 240px);
 }
-    
+
 #query{
-   width: 64%;   
+   width: 64%;
 }
-    
-#search{    
+
+#search{
  width: 15%;
  right: 10%;
  font-size: 90%;
  top: 85px;
 }
-    
+
 #create_new{
         width: 80%;
         left: 10%;

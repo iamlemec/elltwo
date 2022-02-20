@@ -2,6 +2,8 @@
 
 export { renderKatex }
 
+import katex from 'katex'
+
 function renderKatex(para, macros) {
     if (para == undefined) {
         para = $('body');

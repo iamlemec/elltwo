@@ -10,7 +10,7 @@ import { showConfirm, makeActive
     , sendUpdatePara} from './editor.js'
 import { deleteImage } from './img.js'
 import { s, SyntaxHL, braceMatch } from './hl.js'
-import { SVG, Element, InterActive, parseGum } from '../gum.js/build/lib/gum.js'
+import { SVG, Element, InterActive, parseGum } from 'gum.js/lib/gum.js'
 
 let svg_butts = {};
 

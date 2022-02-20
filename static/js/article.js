@@ -707,7 +707,7 @@ function themeLink(name) {
         id: 'theme',
         type: 'text/css',
         rel: 'stylesheet',
-        href: `/static/themes/${name}.css`,
+        href: `/build/themes/${name}.css`,
     });
 }
 
@@ -1316,7 +1316,7 @@ function ccSearch(list, search, placement, selchars, env_display=false) {
     } else {
     list = list.filter(el => el.includes(search));
     list = list.sort((a, b) => b.startsWith(search) - a.startsWith(search));
-    } 
+    }
     if (list.length > 0) {
         state.cc = selchars;
         let pop = $('<div>', {id: 'cc_pop'});

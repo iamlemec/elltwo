@@ -8,7 +8,7 @@ import { markthree } from './marked3.js'
 import { s_env_spec } from './render.js'
 import { htmlTemplate, latexTemplate } from './template.js'
 import { parseSVG } from './svg.js'
-import * as zip from '../zip.js/lib/zip.js'
+import * as zip from '@zip.js/zip.js'
 
 // image extensions
 let imgext = {
@@ -242,8 +242,9 @@ function texSvg(src, env) {
 
     let fname = `${name}.svg`;
     let svg = parseSVG(args.mime, args.svg, size);
-    let blob = new Blob([svg], {type: 'image/svg+xml'});
-    images[fname] = blob;
+    if (svg.success) {
+        images[fname] = new Blob([svg.svg], {type: 'image/svg+xml'});
+    }
 
     let width = args.width || args.w;
     let opts = width ? `[width=${width/100}\\textwidth]` : '';

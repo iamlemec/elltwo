@@ -20,6 +20,7 @@ screenlog.*
 auth.toml
 mail.toml
 
-# node 
-
-static/gum.js/*.json
+# node
+node_modules
+package-lock.json
+build

@@ -226,7 +226,7 @@ class RefCount {
 function createIcon(id) {
     return `
 <svg>
-<use xlink:href="/static/img/icons.svg#${id}"></use>
+<use xlink:href="/build/img/icons.svg#${id}"></use>
 </svg>
 `.trim();
 }

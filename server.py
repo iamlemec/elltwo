@@ -95,7 +95,7 @@ view_decor = login_required if args.private else (lambda f: f)
 ###
 
 # create flask app
-app = Flask(__name__)
+app = Flask(__name__, static_folder='build')
 app.config['DEBUG'] = args.debug
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.db}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True

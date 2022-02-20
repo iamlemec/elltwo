@@ -178,18 +178,18 @@ const innerPara = `
 <div class="controlButs">
 <div class="butgrp1">
 <div class="before controlBut" title='insert above'><svg>
-<use xlink:href="/static/img/icons.svg#control_before"></use>
+<use xlink:href="/build/img/icons.svg#control_before"></use>
 </svg></div>
 <div class="after controlBut" title='insert below'><svg>
-<use xlink:href="/static/img/icons.svg#control_after"></use>
+<use xlink:href="/build/img/icons.svg#control_after"></use>
 </svg></div>
 </div>
 <div class="butgrp2">
 <div class="delete controlBut" title='delete'><svg>
-<use xlink:href="/static/img/icons.svg#control_delete"></use>
+<use xlink:href="/build/img/icons.svg#control_delete"></use>
 </svg></div>
 <div class="copylink ro_but controlBut" title='copy link'><svg>
-<use xlink:href="/static/img/icons.svg#control_link"></use>
+<use xlink:href="/build/img/icons.svg#control_link"></use>
 </svg></div>
 </div>
 </div>
@@ -667,7 +667,7 @@ function imgEnv(ptxt, args) {
                 img.attr('src', url);
             }
             let upd = $('<div>', {class: `env_add img_update update_${ret.mime}`});
-            let ico = $('<svg><use xlink:href="/static/img/icons.svg#upload"></use></svg>');
+            let ico = $('<svg><use xlink:href="/build/img/icons.svg#upload"></use></svg>');
             upd.append(ico);
             fig.append(upd);
         }

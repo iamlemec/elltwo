@@ -1,3 +1,5 @@
+@import 'gum.js/bin/fonts.css';
+
 #SVGEditorOuter {
     position: fixed;
     display: flex;
@@ -343,6 +345,3 @@ input[type=range]::-moz-range-thumb {
 .list_cont .custom-select-wrapper{
     position: unset !important;
 }
-
-
-
