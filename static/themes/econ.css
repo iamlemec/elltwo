@@ -110,7 +110,7 @@ button,
 }
 
 .container:not(.ssv) .para.active {
-    box-shadow: none;
+    box-shadow: -4px 0px var(--hl-col);
 }
 
 .container.ssv .para.active .p_input_view {
