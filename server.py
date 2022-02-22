@@ -95,7 +95,7 @@ view_decor = login_required if args.private else (lambda f: f)
 ###
 
 # create flask app
-app = Flask(__name__, static_folder='build')
+app = Flask(__name__, static_folder='dist')
 app.config['DEBUG'] = args.debug
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.db}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
@@ -894,14 +894,6 @@ def delete_image(data):
     socketio.emit('invalidateRef', ['list', '__img'])
     socketio.emit('invalidateRef', ['img', key])
     return True
-
-##
-## snowpack build watch hack (see https://github.com/withastro/snowpack/issues/3629)
-##
-
-@app.route('/_snowpack/<path:subpath>')
-def snowpack(subpath):
-    return redirect(f'/build/_snowpack/{subpath}')
 
 ##
 ## run that babeee

@@ -5,14 +5,12 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="icon" href="/elltwo/static/favicon/elltwo.svg" />
+<link rel="icon" href="/elltwo/dist/favicon/elltwo.svg" />
 
-<link rel="stylesheet" href="/elltwo/static/css/article.css" />
-<link rel="stylesheet" href="/elltwo/static/themes/white.css" />
-<link rel="stylesheet" href="/elltwo/static/katex/katex.min.css" />
+<link rel="stylesheet" href="/elltwo/dist/css/article.css" />
+<link rel="stylesheet" href="/elltwo/dist/themes/white.css" />
 
 <script src="/elltwo/static/libs/jquery.min.js" ></script>
-<script src="/elltwo/static/katex/katex.min.js"></script>
 
 <title>External</title>
 
@@ -26,7 +24,7 @@
 
 <script type="module">
 
-import { loadMarkdown } from '/elltwo/static/js/render.js'
+import { loadMarkdown } from '/elltwo/dist/js/extern.js'
 
 let urlParams = new URLSearchParams(window.location.search);
 let src = urlParams.get('src');

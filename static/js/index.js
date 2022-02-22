@@ -5,17 +5,15 @@ export {
 }
 
 import { DummyCache } from './utils.js'
+import { config, state, cache, updateConfig, updateState, updateCache } from './state.js'
 import {
-    config, state, cache, updateConfig, updateState, updateCache
-} from './state.js'
-import {
-    stateRender, initRender, eventRender, rawToRender, envClasses, syntaxHL,
-    braceMatch, barePara, makePara, connectCallbacks
+    stateRender, initRender, eventRender, rawToRender, envClasses, barePara, makePara,
+    connectCallbacks
 } from './render.js'
+import { SyntaxHL, braceMatch } from './hl.js'
 import { renderKatex } from './math.js'
 import {
-    initEditor, stateEditor, eventEditor, resize, makeActive, sendMakeEditable,
-    placeCursor
+    initEditor, stateEditor, eventEditor, resize, makeActive, sendMakeEditable, placeCursor
 } from './editor.js'
 import { ccRefs } from './article.js'
 
@@ -130,7 +128,7 @@ function initIndex() {
     $('.para').each(function() {
         let para = $(this);
         makePara(para, false);
-        syntaxHL(para);
+        SyntaxHL(para);
     });
 
     //make editor work
@@ -159,7 +157,7 @@ function eventIndex() {
         let raw = text.val();
         let cur = e.target.selectionStart;
         ccRefs(view, raw, cur);
-        syntaxHL(para);
+        SyntaxHL(para);
         rawToRender(para, true, false, raw); // local changes only
         envClasses();
     });
@@ -235,7 +233,7 @@ function genExample(example) {
         makePara(para);
         let input = para.children('.p_input');
         resize(input[0]);
-        syntaxHL(para);
+        SyntaxHL(para);
     });
     envClasses();
 }
