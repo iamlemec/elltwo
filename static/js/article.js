@@ -1360,7 +1360,6 @@ function ccRefs(view, raw, cur, configCMD) {
     let after = raw.substring(cur).split(/[\s\n\$]/).at(0)
     let sel = before+after;
     let selchars = [cur - before.length, cur+after.length]
-    console.log('sels', cur, before, after)
 
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?!.*\])(?:[\s\n]|$)/;
