@@ -1,0 +1,464 @@
+@import './fonts.css';
+
+:root {
+    --font-col: black;
+    --hl-col: rgb(31, 111, 241);
+    --hl2-col: rgb(255, 13, 87);
+    --hl3-col: mediumseagreen;
+    --bg-col: white;
+    --bg-hl-col: whitesmoke;
+    --bg-hl2-col: rgb(200,200,200);
+    --comment: rgb(150,150,150);
+    --delimit-col: tomato;
+    --pop-bg-col: rgba(0,0,0,.95);
+    --pop-fg-col: white;
+    --font-col-int: goldenrod;
+    --brace-col: rgba(33, 150, 243, 0.3);
+    --comment-col: rgb(140, 140, 140); /* comment text color */
+    --neon-blue: rgba(31, 111, 241, 0.85);
+    --faint-gray: #5C809E;
+}
+
+body {
+    margin: 0;
+}
+
+svg {
+    fill: none;
+    stroke: black;
+}
+
+#main {
+    position: fixed;
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+#left, #right {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+#left {
+    flex-direction: column;
+    width: 50%;
+}
+
+#mid{
+    width: 4px;
+    background-color: lightgray;
+    cursor:  col-resize;
+}
+
+#right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    background-color: #EEE;
+}
+
+#code, #conv {
+    height: 50%;
+    overflow: scroll;
+    scrollbar-width: none;
+}
+
+#code::-webkit-scrollbar, #conv::-webkit-scrollbar, .cm-scroller::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+.cm-editor {
+    height: 100%;
+}
+
+.cm-scroller {
+    scrollbar-width: none;
+}
+
+#conv {
+    border-top: 1px solid gray;
+}
+
+#disp {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
+    height: 60%;
+}
+
+#disp svg {
+    max-height: 80%;
+    background-color: white;
+}
+
+#stat {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 15px;
+    margin: 5px;
+}
+
+#stat.good {
+    background-color: #1e88e5;
+}
+
+#stat.bad {
+    background-color: #ff0d57;
+}
+
+#copy {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 2px;
+    padding: 2px;
+    margin: 3px;
+    z-index: 10;
+    border-radius: 5px;
+}
+
+#copy svg {
+    fill: white;
+}
+
+#copy:active svg {
+    fill: #DDD;
+}
+
+#copy:hover svg {
+    stroke-width: 1.3px;
+}
+
+/* IINTERACTIVE */
+
+#interActiveControl {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-height: 40%;
+    overflow-y: scroll;
+}
+
+.var_cont {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 90%;
+    margin: 20px;
+    background-color: var(--brace-col);
+    border-radius: 10px;
+}
+
+.slider {
+    width: 90%;
+    margin-bottom: 15px;
+    margin-top: 20px;
+}
+
+.var_title {
+    position: relative;
+    font-family: monospace;
+    margin-bottom: 5px;
+    line-height: 20px;
+    background-color: rgba(0,0,0,.1);
+    width: 100%;
+    text-indent: 30px;
+    border-radius: 10px 10px 0 0;
+}
+
+input[type=range] {
+  position: relative;
+  -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+  width: 100%; /* Specific width is required for Firefox. */
+  background: transparent; /* Otherwise white in Chrome */
+}
+
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  visibility: hidden;
+}
+
+input[type=range]::-moz-range-thumb {
+  visibility: hidden;
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.phantom_track {
+    width: 100%;
+    height: 1.5px;
+    background-color: var(--faint-gray);
+    margin-bottom: -41px;
+}
+
+.min_lim, .max_lim {
+    text-align: center;
+    color: var(--faint-gray);
+    font-size: 10px;
+    line-height: 24px;
+}
+
+.min_lim {
+    position: absolute;
+    padding: 0px 5px 0 6px;
+    right: 90%;
+    margin: -10px 0 0 0;
+}
+
+.max_lim {
+    position: absolute;
+    padding: 0px 5px 0 5px;
+    left: 90%;
+    margin: -10px 0px 0 0;
+}
+
+.slider_label {
+    position: relative;
+    transform-origin: center center;
+    display: block;
+    width: 30px;
+    height: 30px;
+    background: var(--faint-gray);
+    border-radius: 50%;
+    line-height: 25px;
+    text-align: center;
+    padding-top: 2px;
+    box-sizing: border-box;
+    border: 1px solid var(--font-col-int);
+    left: 50%;
+    top: 26px;
+    color: var(--font-col-int);
+    font-size: 15px;
+}
+
+.box-minmax {
+    margin-top: 30px;
+    width: 608px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    color: #FFFFFF;
+}
+
+/* check mark */
+
+.toggle {
+	align-items: center;
+	display: flex;
+}
+
+.toggle__input {
+    display: none;
+}
+
+.toggle-track {
+	background: var(--brace-col);
+	border: 1px solid darkgray;
+	border-radius: 100px;
+	cursor: pointer;
+	display: flex;
+	height: 28px;
+	position: relative;
+	width: 56px;
+    margin-bottom: 10px;
+}
+
+.toggle-indicator {
+	align-items: center;
+	background: var(--faint-gray);
+	border-radius: 24px;
+	bottom: 2px;
+	display: flex;
+	height: 24px;
+	justify-content: center;
+	left: 2px;
+	position: absolute;
+	transition: 200ms;
+	width: 24px;
+}
+
+.toggle__input:checked + .toggle-track .toggle-indicator {
+	background: var(--faint-gray);
+	transform: translateX(25px);
+}
+
+.toggle__input:checked + .toggle-track {
+    border: 1px solid var(--font-col-int);
+}
+
+.toggle__input:checked + .toggle-track .checkMark {
+	opacity: 1;
+	transition: opacity 200ms ease-in-out;
+}
+
+.checkMark {
+	height: 20px;
+	width: 20px;
+	opacity: 0;
+	transition: opacity 200ms ease-in-out;
+}
+
+.checkMark svg {
+    fill: var(--font-col-int);
+    stroke: : var(--delimit-col);
+}
+
+/* radio */
+
+.radio__input {
+    opacity: 0;
+    position: absolute;
+}
+
+.radio_label {
+    display:  block;
+    margin: 5px;
+    line-height: 15px;
+    cursor: pointer;
+    font-family: 'Montserrat';
+    border: 2px solid var(--font-col);
+    background-color: var(--bg-hl2-col);
+    padding: 5px;
+    border-radius: 10px;
+    text-align: center;
+    color: var(--font-col);
+}
+
+.radio_label:hover {
+    background-color: var(--bg-hl-col);
+}
+
+input[type="radio"]:checked + label {
+    font-weight: bold;
+    border-color: var(--font-col-int);
+    background-color: var(--bg-hl-col);
+}
+
+/* Custom Select */
+
+.custom-select-wrapper {
+    margin-bottom: 10px;
+    margin-top: 10px;
+    font-family: 'Montserrat';
+    font-size: 120%;
+}
+
+.custom-select-wrapper select {
+    display: none;
+}
+
+.custom-select {
+    position: relative;
+    display: inline-block;
+}
+
+.custom-select-trigger {
+    position: relative;
+    display: block;
+    width: 120px;
+    padding: 0 10px 0 10px;
+    line-height: 160%;
+    border-radius: 0px;
+    cursor: pointer;
+}
+
+.custom-select-trigger:after {
+    position: absolute;
+    display: block;
+    content: '';
+    width: 10px;
+    height: 10px;
+    top: 50%; right: 10px;
+    margin-top: -3px;
+    transform: rotate(45deg) translateY(-50%);
+    transition: all .2s ease-in-out;
+    transform-origin: 50% 0;
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+    border-color: var(--hl2-col);
+}
+
+.custom-select.opened .custom-select-trigger:after {
+    margin-top: 3px;
+    transform: rotate(-135deg) translateY(-50%);
+}
+
+.custom-options {
+    position: absolute;
+    display: block;
+    top: 100%; left: 0; right: 0;
+    min-width: 100%;
+    box-sizing: border-box;
+    transition: all .2s ease-in-out;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-15px);
+    z-index: 99;
+}
+
+.custom-select.opened .custom-options {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+    transform: translateY(0);
+}
+
+.custom-option {
+    position: relative;
+    display: block;
+    padding: 0 0 0 10px ;
+    line-height: 160%;
+    cursor: pointer;
+    transition: all .2s ease-in-out;
+}
+
+.custom-option:last-of-type {
+    border-bottom: 0;
+}
+
+.custom-select-trigger:after {
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+    border-color: var(--hl2-col);
+}
+
+.custom-select-trigger {
+    background: var(--bg-hl-col);
+    color: var(--font-col);
+    border: 1px solid var(--font-col-int);
+}
+
+.custom-options {
+    background: var(--bg-col);
+}
+
+.custom-option {
+    border-bottom: 1px solid var(--pop-bg-col);
+    background-color: var(--bg-hl2-col);
+    color: var(--font-col);
+}
+
+.custom-option:hover {
+    background-color: var(--pop-bg-col);
+    color: var(--pop-fg-col);
+}
