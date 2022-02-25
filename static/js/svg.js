@@ -6,11 +6,10 @@ import { on_success, createIcon, createToggle, createButton, smallable_butt, upd
 import { config, state } from './state.js'
 import { sendCommand } from './client.js'
 import { replace } from './marked3.js'
-import { showConfirm, makeActive
-    , sendUpdatePara} from './editor.js'
+import { showConfirm, makeActive, sendUpdatePara} from './editor.js'
 import { deleteImage } from './img.js'
 import { s, SyntaxHL, braceMatch } from './hl.js'
-import { SVG, Element, InterActive, parseGum } from 'gum.js/lib/gum.js'
+import { SVG, Element, InterActive, parseGum } from 'gum.js/dist/js/gum.js'
 
 let svg_butts = {};
 
@@ -193,11 +192,14 @@ function renderGum(src, size, redraw) {
 }
 
 function renderSVG(src, size) {
+    size = size ?? size0;
+
     if (src.match(/ *<svg( |>)/) == null) {
         size = size || 100;
         let [w, h] = (typeof(size) == 'number') ? [size, size] : size;
         src = `<svg viewBox="0 0 ${w} ${h}">\n${src}\n</svg>`;
     }
+
     return {success: true, svg: src};
 }
 

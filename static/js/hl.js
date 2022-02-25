@@ -3,7 +3,7 @@
 export { SyntaxHL, braceMatch, s }
 
 import { replace } from './marked3.js'
-import { gums } from 'gum.js/lib/gum.js'
+import { gums } from 'gum.js/dist/js/gum.js'
 import { elltwoHL } from './render.js'
 import { state } from './state.js'
 

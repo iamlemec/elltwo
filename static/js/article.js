@@ -707,7 +707,7 @@ function themeLink(name) {
         id: 'theme',
         type: 'text/css',
         rel: 'stylesheet',
-        href: `/build/themes/${name}.css`,
+        href: `/dist/themes/${name}.css`,
     });
 }
 

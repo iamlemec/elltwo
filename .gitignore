@@ -21,6 +21,5 @@ auth.toml
 mail.toml
 
 # node
-node_modules
+/node_modules
 package-lock.json
-build
