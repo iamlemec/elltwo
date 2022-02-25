@@ -53,7 +53,7 @@ args = parser.parse_args()
 ###
 
 # enumerate available themes
-theme_css = [os.path.splitext(t) for t in os.listdir('static/themes')]
+theme_css = [os.path.splitext(t) for t in os.listdir('dist/themes')]
 themes = [t for t, e in theme_css if e == '.css']
 
 # get base configuration

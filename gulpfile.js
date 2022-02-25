@@ -78,13 +78,13 @@ gulp.task('core-fonts', () => gulp.src(['./static/css/fonts/*'])
 );
 
 // gum font css
-gulp.task('gum-fonts-css', () => gulp.src(['./node_modules/gum.js/bin/fonts.css'])
+gulp.task('gum-fonts-css', () => gulp.src(['./node_modules/gum.js/dist/css/fonts.css'])
     .pipe(rename('gum.css'))
     .pipe(gulp.dest('./dist/css'))
 );
 
 // gum fonts files
-gulp.task('gum-fonts-data', () => gulp.src(['./node_modules/gum.js/bin/fonts/*'])
+gulp.task('gum-fonts-data', () => gulp.src(['./node_modules/gum.js/dist/css/fonts/*'])
     .pipe(gulp.dest('./dist/css/fonts'))
 );
 
@@ -98,7 +98,7 @@ gulp.task('katex-fonts-css', () => gulp.src(['./node_modules/katex/dist/katex.mi
 );
 
 // katex fonts files
-gulp.task('katex-fonts-data', () => gulp.src(['./node_modules/katex/bin/fonts/*'])
+gulp.task('katex-fonts-data', () => gulp.src(['./node_modules/katex/dist/fonts/*'])
     .pipe(gulp.dest('./dist/css/fonts'))
 );
 
