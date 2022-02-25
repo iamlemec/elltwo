@@ -42,12 +42,15 @@ function eventEditor() {
         e.altKey;
         let meta = e.metaKey;
         let shift = e.shiftKey;
+        let tab = e.keyCode == 9;
 
         let wraps = {'i': ['*','*'],
                      'b': ['**','**'],
                      'm': ['$','$'],
                      '`': ['`','`'],
-                     'n': ['^[', ']']};
+                     'n': ['^[', ']'],
+                     'k': ['[', ']()'],
+                     'tab': ['\t', ''],};
 
         if (ctrl && key == 'enter') {
             toggleHistMap();
@@ -174,6 +177,10 @@ function eventEditor() {
             } else if ((ctrl || meta) && key in wraps) {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
                 textWrap(state.active_para, cur, wraps[key]);
+                return false;
+            } else if (tab) {
+                let cur = [e.target.selectionStart, e.target.selectionEnd];
+                textWrap(state.active_para, cur, wraps['tab']);
                 return false;
             } else if ((ctrl || meta) && key == '\\') {
                 if (e.target.selectionStart == e.target.selectionEnd) {

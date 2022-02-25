@@ -1,7 +1,7 @@
 import { replace } from './marked3.js';
 import { gums } from '../node_modules/gum.js/dist/gum.js';
 import { elltwoHL } from './render.js';
-import { state } from './state.js';
+import './state.js';
 
 /* random utilities */
 
@@ -258,7 +258,6 @@ let inline = {
 function mathHL(raw) {
     raw = raw.replace(inline.brac, (a, b, c) => {
         b = b||"";
-        console.log(b, b.length);
         return (b.length%2==0) ? b + s(c, 'hl') : a //even number of / is escaped
     }
         );
@@ -274,8 +273,10 @@ function syntaxParseInline(raw) {
 
     let endmath = "";
 
-    if (state.mathmode && state.lastdollar){
-        let ld = state.lastdollar;
+    let dollars = [...raw.matchAll(/(\\*)\$/g)] || []; //match dollars
+    dollars = dollars.filter(x => (x[0].length%2==1)); //filter out escaped dollars
+    if(dollars.length%2==1){
+        let ld = dollars.pop().index + 1;
         endmath = raw.substring(ld);
         raw = raw.substring(0,ld-1);
         endmath = esc_html(endmath);
