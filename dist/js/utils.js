@@ -357,7 +357,11 @@ function cooks(name) {
 // detect mobile
 
 function isMobile() {
-    return window.matchMedia('(max-width: 600px) and (max-device-width: 800px)').matches;
+    try {
+        return window.matchMedia('(max-width: 600px) and (max-device-width: 800px)').matches;
+    } catch {
+        return null;
+    }
 }
 
 export { DummyCache, KeyCache, RefCount, attrArray, cooks, copyText, createButton, createIcon, createToggle, ensureVisible, flash, getEnvParas, getPara, initToggleBox, isMobile, merge, noop, on_success, setCookie, smallable_butt, toggleBox, updateSliderValue };

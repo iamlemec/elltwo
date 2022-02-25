@@ -15,6 +15,7 @@ gulp.task('js-core', () => {
             'static/js/extern.js',
             'static/js/article.js',
             'static/js/home.js',
+            'static/js/math.js',
             'static/js/img.js',
             'static/js/bib.js',
             'static/js/index.js',

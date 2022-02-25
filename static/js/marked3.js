@@ -7,8 +7,6 @@
 
 export { markthree, replace, divInlineParser }
 
-import { SyntaxHL } from'./hl.js'
-
 /**
  * Block Parser
  */
@@ -324,7 +322,12 @@ class BlockParser {
             let number = !vargs.includes('*');
             let args = parseArgs(argsraw);
             let text = src.slice(cap[0].length);
-            return this.renderer.code(text, null, null, args, number);
+            this.env = {
+                type: 'env_one',
+                env: 'code',
+                args: args,
+            }
+            return this.renderer.code(text, number);
         }
 
         // title
@@ -754,28 +757,9 @@ class DivRenderer {
         return '';
     }
 
-    code(code, lang, escaped, args, ln) {
-        ln = ln && (args.ln != 'false');
-        let js = args.lang == 'js' || args.lang == 'javascript' || args.lang == 'gum';
-        let ell = args.lang == 'elltwo' || args.lang == 'l2' || args.lang == 'ell2';
-        let svg = args.lang == 'html' || args.lang == 'HTML' || args.lang == 'svg' ||  args.lang == 'SVG';
+    code(code, ln) {
         let numbered = ln ? 'numbered' : '';
-
-        if (js) {
-            code = SyntaxHL(code, 'gum');
-        } else if (ell) {
-            code = SyntaxHL(code, 'elltwo');
-        }else if (svg) {
-            code = SyntaxHL(code, 'svg');
-        } else {
-            code = `<div class="linenum"></div>` + code.replace(/\n/g, `\n<div class=linenum></div>`);
-        }
-
-        if (ln) {
-            numbered = ' numbered';
-        }
-
-        return `<div class="code ${numbered}"><pre>\n${code}\n</pre></div>\n\n`;
+        return `<div class="code ${numbered}"><pre>${code}</pre></div>\n\n`;
     }
 
     blockquote(quote) {

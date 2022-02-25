@@ -388,5 +388,9 @@ function cooks(name) {
 // detect mobile
 
 function isMobile() {
-    return window.matchMedia('(max-width: 600px) and (max-device-width: 800px)').matches;
+    try {
+        return window.matchMedia('(max-width: 600px) and (max-device-width: 800px)').matches;
+    } catch {
+        return null;
+    }
 }

@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@zip.js/zip.js": "^2.4.4",
-    "gum.js": "iamlemec/gum.js",
+    "gum.js": "github:iamlemec/gum.js",
     "katex": "^0.15.2"
   },
   "devDependencies": {

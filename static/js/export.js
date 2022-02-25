@@ -1,8 +1,8 @@
     /* exporting functionality */
 
-export { initExport, exportMarkdown, exportLatex }
+export { initExport, createMarkdown, createLatex, exportMarkdown, exportLatex }
 
-import { mapObject, eachObject, initToggleBox } from './utils.js'
+import { mapObject, eachObject, attrArray, initToggleBox } from './utils.js'
 import { config, state, cache } from './state.js'
 import { markthree } from './marked3.js'
 import { s_env_spec } from './render.js'
@@ -22,6 +22,12 @@ let imgext = {
 let title;
 let images;
 let cites;
+
+// get text
+
+function getParaArray() {
+    return attrArray($('.para:not(.folder)'), 'raw');
+}
 
 // markdown export
 
@@ -49,14 +55,14 @@ async function mdEnv(raw, env) {
     return raw;
 }
 
-async function createMarkdown() {
+async function createMarkdown(paras) {
+    paras = paras ?? getParaArray();
+
     title = config.title;
     images = [];
 
     let mds = [];
-    let paras = $('.para:not(.folder)').toArray();
-    for (let p of paras) {
-        let raw = $(p).attr('raw');
+    for (let raw of paras) {
         let markout = markthree(raw, 'html'); // this is inefficient
         let md;
         if (markout.env != null) {
@@ -77,19 +83,21 @@ async function createMarkdown() {
 
 // latex export
 
-function createLatex() {
+function createLatex(paras) {
+    paras = paras ?? getParaArray();
+
     title = config.title;
     images = [];
     cites = [];
 
-    let paras = $('.para:not(.folder)').map(function() {
-        let raw = $(this).attr('raw');
+    let texs = [];
+    for (let raw of paras) {
         let markout = markthree(raw, 'latex');
         let tex = markout.env ? texEnv(markout) : markout.src;
         tex = replaceCites(tex);
         tex = replaceQuotes(tex);
-        return tex;
-    }).toArray();
+        texs.push(tex);
+    }
 
     let rawBibTex = null;
     if (cites.length > 0) {
@@ -105,7 +113,7 @@ function createLatex() {
         macros: texMacros(state.macros),
         envs: sEnv(s_env_spec),
         bib: rawBibTex,
-        body: paras.join('\n\n'),
+        body: texs.join('\n\n'),
     });
 
     return {
