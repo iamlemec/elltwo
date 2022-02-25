@@ -194,6 +194,7 @@ function renderGum(src, size, redraw) {
 
 function renderSVG(src, size) {
     if (src.match(/ *<svg( |>)/) == null) {
+        size = size || 100;
         let [w, h] = (typeof(size) == 'number') ? [size, size] : size;
         src = `<svg viewBox="0 0 ${w} ${h}">\n${src}\n</svg>`;
     }
