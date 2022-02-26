@@ -5,7 +5,7 @@ import './marked3.js';
 import { makeActive, showConfirm, sendUpdatePara } from './editor.js';
 import { deleteImage } from './img.js';
 import { s, braceMatch, SyntaxHL } from './hl.js';
-import { parseGum, InterActive, Element, SVG } from '../node_modules/gum.js/dist/gum.js';
+import { parseGum, InterActive, Element, SVG } from '../node_modules/gum.js/js/gum.js';
 
 /* random utilities */
 

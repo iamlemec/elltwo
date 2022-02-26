@@ -957,9 +957,8 @@ class TexRenderer {
         return `% ${text}`;
     }
 
-    code(code, lang, escaped) {
-        code = escaped ? code : escape_latex(code);
-        return `\\begin{blockcode}\n${code}\n\\end{blockcode}`;
+    code(code) {
+        return code;
     }
 
     blockquote(quote) {
@@ -1086,7 +1085,7 @@ class TexRenderer {
     }
 
     equation(tex, multi) {
-        return `${tex}`;
+        return tex;
     }
 
     ref(args) {

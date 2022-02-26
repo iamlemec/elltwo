@@ -1,5 +1,5 @@
 import { replace } from './marked3.js';
-import { gums } from '../node_modules/gum.js/dist/gum.js';
+import { gums } from '../node_modules/gum.js/js/gum.js';
 import { elltwoHL } from './render.js';
 import './state.js';
 

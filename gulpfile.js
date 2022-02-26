@@ -79,13 +79,13 @@ gulp.task('core-fonts', () => gulp.src(['./static/css/fonts/*'])
 );
 
 // gum font css
-gulp.task('gum-fonts-css', () => gulp.src(['./node_modules/gum.js/dist/css/fonts.css'])
+gulp.task('gum-fonts-css', () => gulp.src(['./node_modules/gum.js/css/fonts.css'])
     .pipe(rename('gum.css'))
     .pipe(gulp.dest('./dist/css'))
 );
 
 // gum fonts files
-gulp.task('gum-fonts-data', () => gulp.src(['./node_modules/gum.js/dist/css/fonts/*'])
+gulp.task('gum-fonts-data', () => gulp.src(['./node_modules/gum.js/css/fonts/*'])
     .pipe(gulp.dest('./dist/css/fonts'))
 );
 

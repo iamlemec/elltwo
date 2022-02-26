@@ -73,7 +73,7 @@ async function createMarkdown(paras) {
         mds.push(md);
     }
     let text = mds.join('\n\n');
-    let name = urlify(title);
+    let name = urlify(title ?? '');
 
     return {
         name: name,
@@ -105,12 +105,13 @@ function createLatex(paras) {
         rawBibTex = Object.values(usedCites).map(bib => bib.raw).join('\n');
     }
 
-    let name = urlify(title);
+    let name = urlify(title ?? '');
     let now = new Date();
+    let macros = texMacros(state.macros ?? {});
     let text = latexTemplate({
         title: title,
         date: now.toDateString(),
-        macros: texMacros(state.macros),
+        macros: macros,
         envs: sEnv(s_env_spec),
         bib: rawBibTex,
         body: texs.join('\n\n'),
@@ -262,6 +263,17 @@ function texSvg(src, env) {
     return `\\begin{figure}\n\\includegraphics${opts}{${fname}}\n${caption}\\end{figure}`;
 }
 
+function texCode(src, env) {
+    return `\\begin{blockcode}\n${src}\n\\end{blockcode}`;
+}
+
+function texTable(src, env) {
+    let args = env.args;
+    let cap = (args.caption == 'none') ? null : args.caption;
+    let caption = (cap != null) ? `\\caption{${cap}}\n` : '';
+    return `\\begin{table}\n${caption}${src}\n\\end{table}`;
+}
+
 function texTheorem(src, env) {
     let args = env.args;
     let num = (args.number) ? '' : '*';
@@ -296,6 +308,8 @@ let tex_spec = {
     image: texImage,
     imagelocal: texImageLocal,
     svg: texSvg,
+    code: texCode,
+    table: texTable,
     error: texError,
     title: texTitle,
     end: texEndEnv,

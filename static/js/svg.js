@@ -9,7 +9,7 @@ import { replace } from './marked3.js'
 import { showConfirm, makeActive, sendUpdatePara} from './editor.js'
 import { deleteImage } from './img.js'
 import { s, SyntaxHL, braceMatch } from './hl.js'
-import { SVG, Element, InterActive, parseGum } from 'gum.js/dist/gum.js'
+import { SVG, Element, InterActive, parseGum } from 'gum.js'
 
 let svg_butts = {};
 
