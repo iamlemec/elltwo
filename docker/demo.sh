@@ -9,5 +9,9 @@ if [ ! -f "${E2DB}" ]; then
     python -u console.py --db="${E2DB}" backup load testing
 fi
 
+##add defualt arts (howto, gum...)
+python -u console.py --db="${E2DB}" ingest markdown defaultMD/howto.md
+
+
 # start server
 python -u server.py --db="${E2DB}" --ip="${ADDR}" --demo

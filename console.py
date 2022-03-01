@@ -302,6 +302,15 @@ class Ingest:
             with open(out, 'w+') as fout:
                 fout.write(mark)
 
+    def batch(self, path):
+        files = os.listdir(path)
+        for name in files:
+            short, ext = os.path.splitext(name)
+            ext = ext[1:]
+
+            if ext == 'md':
+                self.markdown(f'{path}/{name}')
+
 class Main:
     def __init__(self, db='elltwo.db'):
         edb = dbq.ElltwoDB(path=db)
