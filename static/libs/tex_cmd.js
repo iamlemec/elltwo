@@ -1,6 +1,5 @@
 let syms = [
 'Alpha',
-'beta',
 'Gamma',
 'Delta',
 'Epsilon',
