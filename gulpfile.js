@@ -21,7 +21,9 @@ gulp.task('js-core', () => {
             'static/js/index.js',
         ],
         plugins: [
-            resolve(),
+            resolve({
+                preferBuiltins: false,
+            }),
             // terser(),
         ],
     }).then(bundle => {

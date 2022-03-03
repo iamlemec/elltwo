@@ -43,7 +43,7 @@ function latexTemplate(d) {
     let packages = [
         ['babel', 'english'], 'amsmath', 'amsfonts', 'amsthm', 'amssymb', 'array',
         'fullpage', 'enumerate', 'enumitem', 'ulem', ['hyperref', 'unicode'], 'xcolor',
-        'cleveref', 'newverbs', 'fancyvrb', 'fvextra', 'geometry', 'graphicx'
+        'cleveref', 'newverbs', 'fancyvrb', 'fvextra', 'geometry'
     ];
     let head = [];
     let tail = [];
@@ -65,6 +65,13 @@ function latexTemplate(d) {
         tail.push(
             '\\printbibliography',
         );
+    }
+
+    if (d.img.map(t => t.startsWith('image')).length > 0) {
+        packages.push('graphicx');
+    }
+    if (d.img.map(t => t.startsWith('image/svg')).length > 0) {
+        packages.push('svg');
     }
 
     let packstr = packages.map(p => {

@@ -1,4 +1,4 @@
-    /* exporting functionality */
+/* exporting functionality */
 
 export { initExport, createMarkdown, createLatex, exportMarkdown, exportLatex }
 
@@ -32,7 +32,9 @@ function getParaArray() {
 // markdown export
 
 async function mdEnv(raw, env) {
-    if (env.env == 'imagelocal') {
+    if (env.env == 'title') {
+        title = raw;
+    } else if (env.env == 'imagelocal') {
         let args = env.args;
         let image = args.image || args.img;
         if (image != null) {
@@ -43,7 +45,8 @@ async function mdEnv(raw, env) {
                 let blob = img.data;
                 let ext = imgext[blob.type];
                 let fname = `${image}.${ext}`;
-                images[fname] = blob;
+                let data = await blob.arrayBuffer();
+                images.push([fname, blob.type, data]);
 
                 let sargs = Object.entries(args)
                     .filter(([k,v]) => k != 'image' && k != 'img')
@@ -78,12 +81,13 @@ async function createMarkdown(paras) {
     return {
         name: name,
         data: text,
+        imgs: images,
     };
 }
 
 // latex export
 
-function createLatex(paras) {
+async function createLatex(paras) {
     paras = paras ?? getParaArray();
 
     title = config.title;
@@ -93,7 +97,7 @@ function createLatex(paras) {
     let texs = [];
     for (let raw of paras) {
         let markout = markthree(raw, 'latex');
-        let tex = markout.env ? texEnv(markout) : markout.src;
+        let tex = markout.env ? await texEnv(markout) : markout.src;
         tex = replaceCites(tex);
         tex = replaceQuotes(tex);
         texs.push(tex);
@@ -105,21 +109,25 @@ function createLatex(paras) {
         rawBibTex = Object.values(usedCites).map(bib => bib.raw).join('\n');
     }
 
+    let itypes = [...new Set(images.map(([n, t, d]) => t))];
+
     let name = urlify(title ?? '');
     let now = new Date();
     let macros = texMacros(state.macros ?? {});
     let text = latexTemplate({
-        title: title,
+        title: title ?? 'Untitled',
         date: now.toDateString(),
         macros: macros,
         envs: sEnv(s_env_spec),
         bib: rawBibTex,
+        img: itypes,
         body: texs.join('\n\n'),
     });
 
     return {
         name: name,
         data: text,
+        imgs: images,
     }
 }
 
@@ -127,7 +135,7 @@ async function createZip(blobs) {
     let bwrite = new zip.BlobWriter('application/zip');
     let zwrite = new zip.ZipWriter(bwrite);
 
-    for (let [k, v] of Object.entries(blobs)) {
+    for (let [k, v] of blobs) {
         let r = new zip.BlobReader(v);
         await zwrite.add(k, r);
     }
@@ -139,22 +147,24 @@ async function createZip(blobs) {
 }
 
 async function createMdZip() {
-    let {name, data} = await createMarkdown();
-    images[`${name}.md`] = new Blob([data], {type: 'text/markdown'});
-    let blob = await createZip(images);
+    let {name, data, imgs} = await createMarkdown();
+    imgs.push([`${name}.md`, 'text/markdown', data]);
+    let blobs = imgs.map(([n, t, d]) => [n, new Blob([d], {type: t})]);
+    let zblob = await createZip(blobs);
     return {
         name: name,
-        data: blob,
+        data: zblob,
     };
 }
 
 async function createTexZip() {
-    let {name, data} = createLatex();
-    images[`${name}.tex`] = new Blob([data], {type: 'application/x-latex'});
-    let blob = await createZip(images);
+    let {name, data, imgs} = await createLatex();
+    imgs.push([`${name}.tex`, 'application/x-latex', data]);
+    let blobs = imgs.map(([n, t, d]) => [n, new Blob([d], {type: t})]);
+    let zblob = await createZip(blobs);
     return {
         name: name,
-        data: blob,
+        data: zblob,
     };
 }
 
@@ -221,10 +231,10 @@ function texEquation(src, env) {
 function texImage(src, env) {
     let args = env.args;
     let caption = args.caption ?? '';
-    return `\\begin{figure}\n${src}\n\\caption{${caption}}\n\\end{figure}`;
+    return `\\begin{figure}[h]\n\\begin{center}\n${src}\n\\caption{${caption}}\n\\end{center}\n\\end{figure}`;
 }
 
-function texImageLocal(src, env) {
+async function texImageLocal(src, env) {
     let args = env.args;
     let image = args.image || args.img;
     if (image == null) return;
@@ -233,26 +243,27 @@ function texImageLocal(src, env) {
     let blob = img.data;
     let ext = imgext[blob.type];
     let fname = `${image}.${ext}`;
-    images[fname] = blob;
+    let data = await blob.arrayBuffer();
+    images.push([fname, blob.type, data]);
 
     let width = args.width || args.w;
     let opts = width ? `[width=${width/100}\\textwidth]` : '';
     let cap = (args.caption == 'none') ? null : args.caption;
     let caption = (cap != null) ? `\\caption{${cap}}\n` : '';
 
-    return `\\begin{figure}\n\\includegraphics${opts}{${fname}}\n${caption}\\end{figure}`;
+    return `\\begin{figure}[h]\n\\begin{center}\n\\includegraphics${opts}{${fname}}\n\\end{center}\n${caption}\\end{figure}`;
 }
 
 function texSvg(src, env) {
     let args = env.args;
-    let inum = Object.keys(images).length;
+    let inum = images.length;
     let name = args.id ?? `image_${inum}`;
     let size = args.pixels ? parseInt(args.pixels) : null;
 
     let fname = `${name}.svg`;
     let svg = parseSVG(args.mime, args.svg, size);
     if (svg.success) {
-        images[fname] = new Blob([svg.svg], {type: 'image/svg+xml'});
+        images.push([fname, 'image/svg+xml', svg.svg]);
     }
 
     let width = args.width || args.w;
@@ -260,7 +271,7 @@ function texSvg(src, env) {
     let cap = (args.caption == 'none') ? null : args.caption;
     let caption = (cap != null) ? `\\caption{${cap}}\n` : '';
 
-    return `\\begin{figure}\n\\includegraphics${opts}{${fname}}\n${caption}\\end{figure}`;
+    return `\\begin{figure}[h]\n\\begin{center}\n\\includesvg${opts}{${name}}\n\\end{center}\n${caption}\\end{figure}`;
 }
 
 function texCode(src, env) {
@@ -371,9 +382,10 @@ function exportMarkdown() {
 }
 
 function exportLatex() {
-    let {name, data} = createLatex();
-    let blob = new Blob([data], {type: 'text/tex'});
-    downloadFile(`${name}.tex`, blob);
+    createLatex().then(ret => {
+        let blob = new Blob([ret.data], {type: 'text/tex'});
+        downloadFile(`${ret.name}.tex`, blob);
+    });
 }
 
 function exportMdZip() {
