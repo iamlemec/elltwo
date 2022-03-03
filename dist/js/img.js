@@ -1,9 +1,9 @@
-import { updateConfig, updateState, state, cache, config } from './state.js';
-import { connect, addHandler, sendCommand } from './client.js';
+import { updateConfig, updateState, cache, state, config } from './state.js';
+import { sendCommand, connect, addHandler } from './client.js';
 import { renderKatex } from './math.js';
 import { hideConfirm, showConfirm } from './editor.js';
 import { connectDrops, promptUpload, uploadImage } from './drop.js';
-import { createButton, copyText, flash, KeyCache } from './utils.js';
+import { KeyCache, createButton, copyText, flash } from './utils.js';
 import { initSVGEditor, hideSVGEditor, parseSVG } from './svg.js';
 
 /* image library browser */

@@ -1,4 +1,4 @@
-import { getPara, setCookie, getEnvParas, KeyCache, cooks, on_success } from './utils.js';
+import { getPara, cooks, setCookie, getEnvParas, KeyCache, on_success } from './utils.js';
 import { updateConfig, config, cache, state, updateState } from './state.js';
 import { connect, addHandler, sendCommand, schedTimeout, setTimeoutHandler } from './client.js';
 import { initUser } from './user.js';

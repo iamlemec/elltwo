@@ -244,7 +244,7 @@ async function texImageLocal(src, env) {
     let blob = img.data;
     let ext = imgext[blob.type];
     let fname = `${image}.${ext}`;
-    let data = await blob.arrayBuffer();
+    let data = (typeof blob == 'Blob') ? await blob.arrayBuffer() : blob;
     images.push([fname, blob.type, data]);
 
     let width = args.width || args.w;
