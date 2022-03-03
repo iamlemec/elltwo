@@ -5,7 +5,7 @@
  *
  */
 
-export { markthree, replace, divInlineParser }
+export { markthree, replace, divInlineParser, parseArgs }
 
 /**
  * Block Parser
@@ -91,12 +91,11 @@ block._item = replace(block._item)
 
 // Args Parser
 function parseArgs(argsraw, number=true, set=true) {
-    if (!argsraw) {
+    if (!(argsraw)) {
         return {
             'number': number
         };
     }
-
     let fst;
     let args = {};
     let rx = /[^a-zA-Z\d\_\-]/ //invalid chars for arg labels and id's
@@ -759,7 +758,8 @@ class DivRenderer {
 
     code(code, ln) {
         let numbered = ln ? 'numbered' : '';
-        return `<div class="code ${numbered}"><pre>${code}</pre></div>\n\n`;
+        code = escape(code)
+        return `<div class="code ${numbered}" rawCode="${code}"></div>\n\n`;
     }
 
     blockquote(quote) {

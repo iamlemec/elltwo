@@ -1,8 +1,8 @@
     /* random utilities */
 
-export { SyntaxHL, braceMatch, s }
+export { SyntaxHL, braceMatch, s, esc_html }
 
-import { replace } from './marked3.js'
+import { replace, parseArgs } from './marked3.js'
 import { gums } from 'gum.js'
 import { elltwoHL } from './render.js'
 import { state } from './state.js'
@@ -26,11 +26,16 @@ function esc_md(raw) {
               .replace(/\!/g, '&#33;');
 }
 
-function esc_html(raw) {
-    return raw.replace(/\</g, '&lt;')
-              .replace(/\>/g, '&gt;')
-              .replace(/&!L&/g, '<span class="brace">')
+function esc_brace(raw) {
+    return raw.replace(/&!L&/g, '<span class="brace">')
               .replace(/&!R&/g, '</span>');
+}
+
+function esc_html(raw, brace=true) {
+    raw = raw.replace(/\</g, '&lt;')
+             .replace(/\>/g, '&gt;')
+              
+    return brace ? esc_brace(raw) : raw;
 }
 
 function fArgs(argsraw, set=true) {
@@ -408,8 +413,12 @@ function syntaxParseBlock(raw) {
         let star = cap[1] ? s(cap[1], 'hl') : '';
         let id = cap[3] ? s(fArgs(cap[3]), 'ref') : '';
         let rest = raw.slice(cap[0].length);
-        let text = esc_html(rest);
-        return s('``', 'delimit') + star + cap[2] + id + cap[4] + s(text, 'code');
+        let text = rest;
+        if(cap[3]){
+            let lang = parseArgs(cap[3].slice(1,-1))['lang'] || null;
+            text = SyntaxHL(rest, lang)
+        }
+        return s('``', 'delimit') + star + cap[2] + id + cap[4] + text;
     }
 
     if (cap = block.comment.exec(raw)) {
@@ -480,8 +489,7 @@ let SVGrules = {
 };
 
 function shittySVG(raw) {
-    console.log('shittySVG')
-    raw = esc_html(raw);
+    raw = esc_html(raw, false);
     let n = `<div class=linenum></div>`;
 
     raw = raw.replace(SVGrules.attr, (a, b, c) => {
@@ -500,7 +508,7 @@ function shittySVG(raw) {
     raw = raw.replace(SVGrules.newline, (a) => {
         return n + '\n';
     });
-
+    raw = esc_brace(raw);
     return n + raw;
 }
 
@@ -606,15 +614,18 @@ function jsHL(src) {
 
 let HLs =  {
     'gum': jsHL,
+    'js': jsHL,
     'svg': shittySVG,
     'elltwo': syntaxParseBlock,
     'elltwoInline': syntaxParseInline,
 }
 
 function SyntaxHL(src, hl=null, callback=null) {
-    let out = null;
+    let out = src;
     if (hl in HLs) {
         out = HLs[hl](src);
+    } else {
+        out = esc_html(out);
     }
     if (callback === null) {
         return out;

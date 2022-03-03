@@ -3,7 +3,7 @@
 export {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
     unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
-    fold, makeUnEditable, hideConfirm, showConfirm
+    fold, makeUnEditable, hideConfirm, showConfirm, undoStack
 }
 
 import { config, state, cache } from './state.js'
@@ -17,7 +17,7 @@ import {
 } from './render.js'
 import {
     insertParaRaw, insertPara, deleteParas, updateRefs, toggleHistMap,
-    toggleSidebar, ccNext, ccMake, textWrap
+    toggleSidebar, ccNext, ccMake, textWrap, textUnWrap
 } from './article.js'
 import { toggleHelp } from './help.js'
 import { hideSVGEditor } from './svg.js'
@@ -60,6 +60,7 @@ function eventEditor() {
         let meta = e.metaKey;
         let shift = e.shiftKey;
         let tab = e.keyCode == 9;
+        let space = e.keyCode == 32;
 
         let wraps = {'i': ['*','*'],
                      'b': ['**','**'],
@@ -68,6 +69,15 @@ function eventEditor() {
                      'n': ['^[', ']'],
                      'k': ['[', ']()'],
                      'tab': ['\t', ''],};
+
+        let brac_wraps = {'[': ['[',']'],
+                          '{': ['{','}'],
+                          '(': ['(',')'],
+                          '$': ['$','$'],
+                          '\'': ['\'','\''],
+                          '\"': ['\"','\"'],
+                        };
+
 
         if (ctrl && key == 'enter') {
             toggleHistMap();
@@ -102,7 +112,7 @@ function eventEditor() {
         }
 
         if (!state.active_para && !state.SVGEditorOpen) { // if we are inactive
-            if (key == 'enter') {
+            if (key == 'enter' && state.writeable) {
                 let foc_para = state.last_active || $('.para').first();
                 makeActive(foc_para);
                 return false;
@@ -195,6 +205,9 @@ function eventEditor() {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
                 textWrap(state.active_para, cur, wraps[key]);
                 return false;
+            } else if (key in brac_wraps) {
+                let cur = [e.target.selectionStart, e.target.selectionEnd];
+                return textWrap(state.active_para, cur, brac_wraps[key]);
             } else if (tab) {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
                 textWrap(state.active_para, cur, wraps['tab']);
@@ -203,6 +216,18 @@ function eventEditor() {
                 if (e.target.selectionStart == e.target.selectionEnd) {
                     splitParas(e.target.selectionStart);
                 }
+                return false;
+            } else if (key == 'backspace') {
+                let cur = [e.target.selectionStart, e.target.selectionEnd];
+                return textUnWrap(state.active_para, cur, brac_wraps);
+            } else if (space) {
+                state.undoBreakpoint = true;
+            } else if ((ctrl || meta) && key == 'z') {
+                if(shift){
+                    redo(state.active_para);
+                }else{
+                    undo(state.active_para);
+                };
                 return false;
             }
         }
@@ -470,6 +495,7 @@ function trueMakeEditable(rw=true, cursor='end') {
     $('#bg').addClass('rawtext');
 
     let text = state.active_para.children('.p_input');
+    undoStack(text.val());
     resize(text[0]);
 
     if (rw) {
@@ -509,6 +535,10 @@ function makeUnEditable(unlock=true) {
     if (!state.ssv_mode) {
         para.css('min-height', '30px');
     }
+
+    state.undoStack = [];
+    state.undoPos = null;
+    state.lastUndoBreakpoint = 0;
 
     $('#bg').removeClass('rawtext');
     $('#content').focus();
@@ -806,4 +836,43 @@ function hideConfirm(unbind=false) {
         if(unbind){
             unbind.off('click');
         }
+}
+
+/// UNDUE / REDEW
+
+function undoStack(raw){
+    if(state.undoBreakpoint){ //make it easier to undo---word at a time
+        //if breakpoint is set, we collapse everything since last breakpoint
+        state.undoStack = state.undoStack.slice(0,state.lastUndoBreakpoint+2)
+        state.undoBreakpoint = false;
+        state.undoPos = state.undoStack.length - 1;
+        state.lastUndoBreakpoint = state.undoPos;
+    }
+    if(state.undoStack){
+        if(state.undoStack.length > config.max_undo){
+            state.undoStack.shift();
+        }
+        state.undoStack.push(raw)
+    }else{
+        state.undoStack = [raw]
+    }
+    state.undoPos = state.undoStack.length - 1;
+}
+
+function undo(para){
+    let input = para.children('.p_input');
+    let new_pos = Math.max(state.undoPos - 1,0);
+    input.val(state.undoStack[new_pos]);
+    state.undoPos = new_pos;
+    resize(input[0]);
+    elltwoHL(state.active_para);
+}
+
+function redo(para){
+    let input = para.children('.p_input');
+    let new_pos = Math.min(state.undoPos + 1,state.undoStack.length-1);
+    input.val(state.undoStack[new_pos]);
+    state.undoPos = new_pos;
+    resize(input[0]);
+    elltwoHL(state.active_para);
 }

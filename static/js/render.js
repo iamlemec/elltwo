@@ -14,7 +14,7 @@ import { markthree, replace, divInlineParser } from './marked3.js'
 import { fold } from './editor.js'
 import { renderKatex } from './math.js'
 import { parseSVG } from './svg.js'
-import { SyntaxHL } from './hl.js'
+import { SyntaxHL, esc_html } from './hl.js'
 import { exportMarkdown, exportLatex } from './export.js'
 
 // main rendering entry point (for all cases)
@@ -715,8 +715,8 @@ function quoteEnv(ptxt, args) {
 }
 
 function codeEnv(ptxt, args) {
-    let pre = ptxt.find('.code > pre');
-    let code = pre.html();
+    let pre = ptxt.find('.code');
+    let code = pre.attr('rawCode'); //cannot be html
 
     let js = args.lang == 'js' || args.lang == 'javascript' || args.lang == 'gum';
     let ell = args.lang == 'elltwo' || args.lang == 'l2' || args.lang == 'ell2';
@@ -729,10 +729,11 @@ function codeEnv(ptxt, args) {
     } else if (svg) {
         code = SyntaxHL(code, 'svg');
     } else {
+        code = esc_html(code);
         code = `<div class="linenum"></div>` + code.replace(/\n/g, `\n<div class=linenum></div>`);
     }
 
-    pre.html(code);
+    pre.html(`<pre>${code}</pre>`);
 }
 
 // simple envs for user creation and simpler setup

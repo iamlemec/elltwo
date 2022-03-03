@@ -378,7 +378,7 @@ a.reference {
 
 .toggle__input:checked + .toggle-track .toggle-indicator {
 	background: var(--bg-hl2-col);
-	transform: translateX(30px);
+	transform: translateX(26px);
 }
 
 .toggle__input:checked + .toggle-track {

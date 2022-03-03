@@ -73,6 +73,7 @@ async function createMarkdown(paras) {
         } else {
             md = raw;
         }
+        md = md.replace(/\n\s*\n/g, '\n');
         mds.push(md);
     }
     let text = mds.join('\n\n');
