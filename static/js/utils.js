@@ -4,7 +4,7 @@ export {
     merge, mapObject, mapValues, eachObject, attrArray, initToggleBox, toggleBox,
     ensureVisible, setCookie, cooks, getPara, getEnvParas, isMobile, noop,
     on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle, createButton,
-    smallable_butt, copyText, updateSliderValue
+    smallable_butt, copyText, updateSliderValue, unEscCharCount, cur
 }
 
 // js tricks
@@ -331,6 +331,25 @@ function smallable_butt(butts, threshold=1000) {
         $(id).text(txt).parent().attr('title', tit);
     };
 };
+
+// count unescaped chars in text 
+
+function unEscCharCount(str, char){
+    let regex = new RegExp(`(\\\\*)\\${char}`, 'g')
+    let all = [...str.matchAll(regex)] || []; //match char 
+    all=all.filter(x => (x[0].length%2==1)); //filter out escaped 
+    return all.length
+}
+
+
+//cursor position
+
+function cur(e, full=false){
+    if(full){
+        return [e.target.selectionStart, e.target.selectionEnd];
+    }
+    return e.target.selectionStart;
+}
 
 // scrolling
 

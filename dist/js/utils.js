@@ -309,7 +309,26 @@ function smallable_butt(butts, threshold=1000) {
         let txt = small ? '' : text;
         let tit = small ? text : '';
         $(id).text(txt).parent().attr('title', tit);
-    }}let scrollFudge = 25;
+    }}
+// count unescaped chars in text 
+
+function unEscCharCount(str, char){
+    let regex = new RegExp(`(\\\\*)\\${char}`, 'g');
+    let all = [...str.matchAll(regex)] || []; //match char 
+    all=all.filter(x => (x[0].length%2==1)); //filter out escaped 
+    return all.length
+}
+
+
+//cursor position
+
+function cur(e, full=false){
+    if(full){
+        return [e.target.selectionStart, e.target.selectionEnd];
+    }
+    return e.target.selectionStart;
+}
+let scrollFudge = 25;
 
 function scrollTo(elem, pos) {
     {
@@ -364,4 +383,4 @@ function isMobile() {
     }
 }
 
-export { DummyCache, KeyCache, RefCount, attrArray, cooks, copyText, createButton, createIcon, createToggle, ensureVisible, flash, getEnvParas, getPara, initToggleBox, isMobile, merge, noop, on_success, setCookie, smallable_butt, toggleBox, updateSliderValue };
+export { DummyCache, KeyCache, RefCount, attrArray, cooks, copyText, createButton, createIcon, createToggle, cur, ensureVisible, flash, getEnvParas, getPara, initToggleBox, isMobile, merge, noop, on_success, setCookie, smallable_butt, toggleBox, unEscCharCount, updateSliderValue };

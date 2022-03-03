@@ -1,4 +1,4 @@
-import { getPara, cooks, setCookie, getEnvParas, KeyCache, on_success } from './utils.js';
+import { getPara, cooks, setCookie, getEnvParas, unEscCharCount, KeyCache, on_success } from './utils.js';
 import { updateConfig, config, cache, state, updateState } from './state.js';
 import { connect, addHandler, sendCommand, schedTimeout, setTimeoutHandler } from './client.js';
 import { initUser } from './user.js';
@@ -1118,47 +1118,7 @@ function responsivefy(svg) {
     }
 }
 
-/// hotkesys
 
-function textWrap(para,cur,d) {
-    let input = para.children('.p_input');
-    let raw = input.val();
-    let escape = raw.charAt(cur[0]-1) == '\\';
-    if(escape){
-        return true;
-    }
-    raw = textWrapAbstract(raw, cur, d);
-    input.val(raw).trigger('input');
-    //resize(input[0]);
-    //elltwoHL(state.active_para);
-    let c = (cur[0]==cur[1]) ? cur[0]+d[0].length : cur[1]+d[0].length + d[1].length;
-    input[0].setSelectionRange(c,c);
-    return false;
-}
-
-function textWrapAbstract(raw, cur, d){
-    let b = raw.slice(0, cur[0]);
-    let m = raw.slice(cur[0], cur[1]);
-    let e = raw.slice(cur[1], raw.length);
-    return b + d[0] + m + d[1] + e;  
-}
-
-function textUnWrap(para,cur,d) {
-    let input = para.children('.p_input');
-    let raw = input.val();
-    let escape = raw.charAt(cur[0]-2) == '\\';
-    let delChar = raw.charAt(cur[0]-1) || null;
-    let nextChar = raw.charAt(cur[0]) || null;
-    if(delChar && !escape && delChar in d && nextChar == d[delChar][1]){
-        raw = raw.slice(0, cur[0]-1) + raw.slice(cur[1]+1, raw.length);
-        input.val(raw).trigger('input');
-        //resize(input[0]);
-        //elltwoHL(state.active_para);
-        input[0].setSelectionRange(cur[0]-1,cur[0]-1);
-        return false
-    }
-    return true
-}
 
 
 /// reference completion
@@ -1416,9 +1376,10 @@ function ccRefs(view, raw, cur, configCMD) {
                 ccSearch(ret, search, p, selchars, true);
             });
         } else if (open_cmd.exec(sel) && configCMD === 'on') {
-            let dollars = [...raw.slice(0, cur).matchAll(/(\\*)\$/g)] || []; //match dollars until cusor
-            dollars = dollars.filter(x => (x[0].length%2==1)); //filter out escaped dollars
-            if(dollars.length%2==1 || raw.startsWith('$$')){
+            //let dollars = [...raw.slice(0, cur).matchAll(/(\\*)\$/g)] || []; //match dollars until cusor
+            //dollars = dollars.filter(x => (x[0].length%2==1)); //filter out escaped dollars
+            let dollars  = unEscCharCount(raw.slice(0, cur), '$');
+            if(dollars%2==1 || raw.startsWith('$$')){
                 cap = open_cmd.exec(sel);
                 raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
                 view.html(raw);
@@ -1435,4 +1396,4 @@ function ccRefs(view, raw, cur, configCMD) {
     }
 }
 
-export { ccMake, ccNext, ccRefs, deleteParas, insertPara, insertParaRaw, loadArticle, textUnWrap, textWrap, toggleHistMap, toggleSidebar, updatePara, updateParas, updateRefs };
+export { ccMake, ccNext, ccRefs, deleteParas, insertPara, insertParaRaw, loadArticle, toggleHistMap, toggleSidebar, updatePara, updateParas, updateRefs };

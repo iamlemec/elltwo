@@ -521,6 +521,7 @@ function braceMatch(textarea, para, hl='elltwo', callback=elltwoHL) {
     let after = text[cpos];
     let before = text[cpos-1] || false;
 
+
     if (after in delimit) {
         let pos = getBracePos(text, after, delimit[after], cpos);
         if (pos) {
@@ -593,6 +594,7 @@ function braceHL(view, text, pos, para, hl, callback) {
         `\&\!R\&`,
         text.slice(pos['r']+1)
     ].join('');
+
 
     let syn = HLs[hl](new_text);
     view.html(syn);

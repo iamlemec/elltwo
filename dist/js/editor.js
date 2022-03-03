@@ -1,8 +1,8 @@
 import { state, config } from './state.js';
-import { smallable_butt, createButton, copyText, flash, attrArray, ensureVisible, setCookie, cooks, on_success, getPara } from './utils.js';
+import { smallable_butt, createButton, copyText, flash, attrArray, ensureVisible, setCookie, cooks, unEscCharCount, on_success, getPara } from './utils.js';
 import { sendCommand, schedTimeout } from './client.js';
 import { elltwoHL, getFoldLevel, renderFold, rawToRender, rawToTextarea } from './render.js';
-import { toggleHistMap, toggleSidebar, ccNext, ccMake, textWrap, textUnWrap, insertParaRaw, deleteParas, updateRefs } from './article.js';
+import { toggleHistMap, toggleSidebar, ccNext, ccMake, insertParaRaw, deleteParas, updateRefs } from './article.js';
 import { toggleHelp } from './help.js';
 import { hideSVGEditor } from './svg.js';
 
@@ -56,9 +56,9 @@ function eventEditor() {
         let brac_wraps = {'[': ['[',']'],
                           '{': ['{','}'],
                           '(': ['(',')'],
-                          '$': ['$','$'],
-                          '\'': ['\'','\''],
-                          '\"': ['\"','\"'],
+                          '$': ['$','$', true],
+                          '\'': ['\'','\'', true],
+                          '\"': ['\"','\"', true],
                         };
 
 
@@ -144,6 +144,7 @@ function eventEditor() {
                 }
             }
         } else if (state.active_para && state.rawtext && !state.SVGEditorOpen) { // we are active and rawtext
+            let input = state.active_para.children('.p_input');
             if (key == 'arrowup' || key == 'arrowleft') {
                 if (state.cc) { // if there is an open command completion window
                     ccNext('down');
@@ -186,14 +187,14 @@ function eventEditor() {
                 return false;
             } else if ((ctrl || meta) && key in wraps) {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
-                textWrap(state.active_para, cur, wraps[key]);
+                textWrap(input, cur, wraps[key]);
                 return false;
             } else if (key in brac_wraps) {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
-                return textWrap(state.active_para, cur, brac_wraps[key]);
+                return textWrap(input, cur, brac_wraps[key]);
             } else if (tab) {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
-                textWrap(state.active_para, cur, wraps['tab']);
+                textWrap(input, cur, wraps['tab']);
                 return false;
             } else if ((ctrl || meta) && key == '\\') {
                 if (e.target.selectionStart == e.target.selectionEnd) {
@@ -202,7 +203,7 @@ function eventEditor() {
                 return false;
             } else if (key == 'backspace') {
                 let cur = [e.target.selectionStart, e.target.selectionEnd];
-                return textUnWrap(state.active_para, cur, brac_wraps);
+                return textUnWrap(input, cur, brac_wraps);
             } else if (space) {
                 state.undoBreakpoint = true;
             } else if ((ctrl || meta) && key == 'z') {
@@ -812,6 +813,49 @@ function hideConfirm(unbind=false) {
         }
 }
 
+/// hotkesys
+
+function textWrap(input,cur,d) {
+    let raw = input.val();
+    let escape = raw.charAt(cur[0]-1) == '\\';
+    if(escape){
+        return true;
+    }
+    //dont match if closing open math
+    if(d[2] && unEscCharCount(raw.slice(0, cur[0]), d[0])%2==1){
+        return true
+    }
+    raw = textWrapAbstract(raw, cur, d);
+    input.val(raw).trigger('input');
+    let c = (cur[0]==cur[1]) ? cur[0]+d[0].length : cur[1]+d[0].length + d[1].length;
+    input[0].setSelectionRange(c,c);
+    return false;
+}
+
+function textWrapAbstract(raw, cur, d){
+    let b = raw.slice(0, cur[0]);
+    let m = raw.slice(cur[0], cur[1]);
+    let e = raw.slice(cur[1], raw.length);
+    return b + d[0] + m + d[1] + e;  
+}
+
+function textUnWrap(input,cur,d) {
+    let raw = input.val();
+    let escape = raw.charAt(cur[0]-2) == '\\';
+    let delChar = raw.charAt(cur[0]-1) || null;
+    let nextChar = raw.charAt(cur[0]) || null;
+    if(delChar && !escape && delChar in d && nextChar == d[delChar][1]){
+        raw = raw.slice(0, cur[0]-1) + raw.slice(cur[1]+1, raw.length);
+        input.val(raw).trigger('input');
+        //resize(input[0]);
+        //elltwoHL(state.active_para);
+        input[0].setSelectionRange(cur[0]-1,cur[0]-1);
+        return false
+    }
+    return true
+}
+
+
 /// UNDUE / REDEW
 
 function undoStack(raw){
@@ -851,4 +895,4 @@ function redo(para){
     elltwoHL(state.active_para);
 }
 
-export { eventEditor, fold, hideConfirm, initEditor, lockParas, makeActive, makeUnEditable, placeCursor, resize, sendMakeEditable, sendUpdatePara, showConfirm, storeChange, undoStack, unlockParas };
+export { eventEditor, fold, hideConfirm, initEditor, lockParas, makeActive, makeUnEditable, placeCursor, resize, sendMakeEditable, sendUpdatePara, showConfirm, storeChange, textUnWrap, textWrap, undoStack, unlockParas };

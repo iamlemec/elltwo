@@ -152,16 +152,6 @@ function eventImage() {
         }
     });
 
-    $(document).on('keydown', function(e) {
-        let input = document.getElementById('SVGEditorInputText')
-        let inputfocus = (document.activeElement === input);
-        let tab = e.keyCode == 9;
-        if(tab && inputfocus){
-            raw = input.val()
-        }
-
-
-    });
 
     $(document).on('click', '#img_update', function() {
         let key = state.key;

@@ -2,11 +2,12 @@
 
 export { initSVGEditor, hideSVGEditor, parseSVG }
 
-import { on_success, createIcon, createToggle, createButton, smallable_butt, updateSliderValue } from './utils.js'
+import { on_success, createIcon, createToggle, createButton,
+ smallable_butt, updateSliderValue, cur } from './utils.js'
 import { config, state } from './state.js'
 import { sendCommand } from './client.js'
 import { replace } from './marked3.js'
-import { showConfirm, makeActive, sendUpdatePara} from './editor.js'
+import { showConfirm, makeActive, sendUpdatePara, textWrap, textUnWrap } from './editor.js'
 import { deleteImage } from './img.js'
 import { s, SyntaxHL, braceMatch } from './hl.js'
 import { SVG, Element, InterActive, parseGum } from 'gum.js'
@@ -117,6 +118,43 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
             } else {
                 $('#SVGEditorTag').addClass('input_err');
             }
+        });
+
+        $(document).on('keydown', '#SVGEditorInputText', function(e) {
+        let input = $(this);
+        let key = e.key.toLowerCase();
+        let ctrl = e.ctrlKey;
+        let alt = e.altKey;
+        let meta = e.metaKey;
+        let tab = e.keyCode == 9;
+        let space = e.keyCode == 32;
+        let shift = e.shiftKey;
+        let raw, c, indent;
+        if(tab){
+                c = cur(e)
+                raw = input.val()
+                raw = raw.substring(0,c) + '\t' + raw.substring(c);
+                input.val(raw).trigger('input');
+                input[0].setSelectionRange(c+1,c+1);
+                return false;
+        }else if (key in brac_wraps) {
+                c = cur(e, true);
+                return textWrap(input, c, brac_wraps[key]);
+        } else if (key == 'backspace') {
+            let c = cur(e, true);
+            return textUnWrap(input, c, brac_wraps);
+        } else if (space) {
+            state.undoBreakpoint = true;
+        }else if (key == 'enter') {
+            return getindent(input, cur(e))
+        } else if ((ctrl || meta) && key == 'z') {
+            if(shift){
+                redo(state.active_para);
+            }else{
+                undo(state.active_para);
+            };
+            return false;
+        }
         });
 
         let mid = document.querySelector('#SVGWidthControl');
@@ -245,4 +283,38 @@ function svgSyntaxHL() {
     let src = $('#SVGEditorInputText').val();
     let out = SyntaxHL(src, 'gum')
     $('#SVGEditorInputView').html(out);
+}
+
+///editor fucntions
+
+let brac_wraps = {'[': ['[',']'],
+                '{': ['{','}'],
+                '(': ['(',')'],
+                '\'': ['\'','\'', true],
+                '\"': ['\"','\"', true],
+                '\`': ['\`','\`', true],
+            };
+
+function getindent(input,c) {
+    let raw = input.val()
+    let beg = raw.slice(0,c)
+    let line = beg.split('\n').at(-1);
+    let indent = line.match(/^([\t| ]*)(?:$|\S)/);
+    let out, loc
+    indent = indent ? indent[1] : ""
+    if(raw[c-1] in brac_wraps && !brac_wraps[raw[c-1]][2] ){
+        if(raw[c] == brac_wraps[raw[c-1]][1]){
+        out = beg + '\n\t' + indent + '\n' + indent + raw.slice(c)
+        loc = (beg + '\n\t' + indent).length;
+        }else{
+        out = beg + '\n\t' + indent + raw.slice(c)
+        loc = out.length - raw.slice(c).length;
+        }
+    } else {
+        out = beg + '\n' + indent + raw.slice(c)
+        loc = out.length - raw.slice(c).length;
+    }
+    input.val(out).trigger('input');
+    input[0].setSelectionRange(loc,loc);
+    return false
 }
