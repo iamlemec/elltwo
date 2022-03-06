@@ -24,4 +24,4 @@ config/local.toml
 # node
 /node_modules
 package-lock.json
-exper/*.zip
+exper/output

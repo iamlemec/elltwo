@@ -39,7 +39,9 @@ async function mdEnv(raw, env) {
         let image = args.image || args.img;
         if (image != null) {
             let img = cache.img.see(image);
-            if (img.mime == 'image/svg+gum') {
+            if (img == null) {
+                return raw;
+            } else  if (img.mime == 'image/svg+gum') {
                 return `!gum\n${img.data.trim()}`;
             } else {
                 let blob = img.data;
@@ -240,19 +242,25 @@ async function texImageLocal(src, env) {
     let image = args.image || args.img;
     if (image == null) return;
 
-    let img = cache.img.see(image);
-    let blob = img.data;
-    let ext = imgext[blob.type];
-    let fname = `${image}.${ext}`;
-    let data = (typeof blob == 'Blob') ? await blob.arrayBuffer() : blob;
-    images.push([fname, blob.type, data]);
-
     let width = args.width || args.w;
     let opts = width ? `[width=${width/100}\\textwidth]` : '';
     let cap = (args.caption == 'none') ? null : args.caption;
     let caption = (cap != null) ? `\\caption{${cap}}\n` : '';
 
-    return `\\begin{figure}[h]\n\\begin{center}\n\\includegraphics${opts}{${fname}}\n\\end{center}\n${caption}\\end{figure}`;
+    let img = cache.img.see(image);
+    let itex;
+    if (img != null) {
+        let blob = img.data;
+        let ext = imgext[blob.type];
+        let fname = `${image}.${ext}`;
+        let data = (typeof blob == 'Blob') ? await blob.arrayBuffer() : blob;
+        images.push([fname, blob.type, data]);
+        itex = `\\includegraphics${opts}{${fname}}`;
+    } else {
+        itex = `[Image \\texttt{${image}} not found]`;
+    }
+
+    return `\\begin{figure}[h]\n\\begin{center}\n${itex}\n\\end{center}\n${caption}\\end{figure}`;
 }
 
 function texSvg(src, env) {
