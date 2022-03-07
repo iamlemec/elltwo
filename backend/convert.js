@@ -1,44 +1,36 @@
 import AdmZip from 'adm-zip'
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
 import * as NodeBuffer from 'node:buffer'
 import * as fs from 'node:fs'
 import { program } from 'commander'
-import { createMarkdown, createLatex } from './static/js/export.js'
-import { cache } from './static/js/state.js'
-import { DummyCache } from './static/js/utils.js'
 let { Buffer } = NodeBuffer;
 
-// TODO: use sequelize as ORM
+import { createMarkdown, createLatex } from '../static/js/export.js'
+import { cache } from '../static/js/state.js'
+import { DummyCache } from '../static/js/utils.js'
+import { init_schemas } from './schema.js'
 
 // dummy cache for images (TODO: link this to database)
 cache.img = new DummyCache();
 
-// convert markdown file
-program
-    .command('convert')
-    .argument('<string>', 'input file')
-    .option('-o, --out <path>', 'output file')
-    .option('-f, --format <format>', 'output file format', 'latex')
-    .option('-z, --zip', 'zip output')
-    .action(async function(fin, options) {
-        let input = fs.readFileSync(fin, 'utf8');
-        await convertMarkdown(input, options.out, options.format, options.zip);
-    });
-
 // export elltwo article
 program
     .command('export')
-    .option('--db <path>', 'database to use', 'elltwo.db')
-    .option('-i, --aid <aid>', 'article id')
+    .option('--db <path>', 'database to use', '../elltwo.db')
+    .option('-a, --aid <aid>', 'article id')
     .option('-t, --title <title>', 'article title')
-    .option('-o, --out <path>', 'output file')
+    .option('-i, --input <path>', 'input file')
+    .option('-o, --output <path>', 'output file')
     .option('-f, --format <format>', 'output file format', 'latex')
     .option('-z, --zip', 'zip output')
     .action(async function(options) {
-        let db = await openDb(options.db);
-        let aid = options.aid ?? await getAid(db, options.title);
-        let input = await articleText(db, aid);
+        let input;
+        if (options.input == null) {
+            let db = await init_schemas(options.db);
+            let aid = options.aid ?? await getAid(db, options.title);
+            input = await articleText(db, aid);
+        } else {
+            input = fs.readFileSync(options.input, 'utf8');
+        }
         convertMarkdown(input, options.out, options.format, options.zip);
     });
 
@@ -72,16 +64,12 @@ function writeOrPrint(data, file) {
     }
 }
 
-async function openDb(dbpath) {
-    return await open({filename: dbpath, driver: sqlite3.Database});
-}
-
 function d(date) {
     return (date != null) ? new Date(date) : null;
 }
 
 function filterByTime(rows, time) {
-    time = d(time) ?? Date();
+    time = d(time) ?? new Date();
     let tlim = rows.map(r => [d(r.create_time), d(r.delete_time)]);
     return rows.filter(r =>
         r.create_time <= time &&
@@ -110,20 +98,20 @@ function link_sort(links) {
 }
 
 async function getAid(db, title) {
-    let art = await db.get(`SELECT * FROM article WHERE short_title="${title}"`);
+    let art = await db.Article.findOne({ where: { short_title: title } });
     return art.aid;
 }
 
 async function articleText(db, aid, time) {
-    let links = await db.all(`SELECT * FROM paralink WHERE aid="${aid}"`);
+    let links = await db.Paralink.findAll({ where: { aid: aid }});
     let layout = link_sort(filterByTime(links, time)).map(p => p.pid);
-    let paras = await db.all(`SELECT * FROM paragraph WHERE pid IN (${layout.join(', ')})`);
+    let paras = await db.Paragraph.findAll({ where: { pid: layout } });
     let pmap = new Map(paras.map(p => [p.pid, p.text]));
     return layout.map(p => pmap.get(p));
 }
 
 async function convertMarkdown(input, fout, format, zip) {
-    // split paras
+    // possibly split paras
     let paras = (typeof input == 'string') ? input.split('\n\n') : input;
 
     // render to output format

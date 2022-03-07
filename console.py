@@ -312,8 +312,8 @@ class Ingest:
                 self.markdown(f'{path}/{name}')
 
 class Main:
-    def __init__(self, db='elltwo.db'):
-        edb = dbq.ElltwoDB(path=db)
+    def __init__(self, db='elltwo.db', init=False):
+        edb = dbq.ElltwoDB(path=db, create=init)
         edb.path = db
 
         self.config = Config()

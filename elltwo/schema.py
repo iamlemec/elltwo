@@ -47,7 +47,6 @@ class Paralink(Base):
     def __repr__(self):
         return f'{self.aid}/{self.lid} [{self.create_time} → {self.delete_time}]: {self.prev}—{self.pid}—{self.next}'
 
-
 class Bib(Base):
     __tablename__ = 'bib'
 
