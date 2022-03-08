@@ -506,7 +506,7 @@ function insertParaRaw(pid, new_pid, raw='', after=true) {
     return new_para;
 }
 
-function insertPara(pid, new_pid, raw='', after=true) {
+function insertPara(pid, new_pid, raw='fff', after=true) {
     let new_para = insertParaRaw(pid, new_pid, raw, after);
     rawToRender(new_para);
     return new_para;

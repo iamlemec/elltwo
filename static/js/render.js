@@ -197,6 +197,9 @@ const innerPara = `
 </div>
 </div>
 <div class="lock_icon"></div>
+<div class="move_here_icon"><svg>
+<use xlink:href="/dist/img/icons.svg#move_here"></use>
+</svg></div>
 `;
 
 function barePara(pid, raw='') {

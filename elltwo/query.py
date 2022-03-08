@@ -562,6 +562,54 @@ class ElltwoDB:
 
         return par1
 
+    def move_para(self, aid, drag_pid, targ_pid, time=None):
+        if time is None:
+            time = datetime.utcnow()
+
+        if (drag_par := self.get_para(drag_pid, time=time)) is None:
+            return
+
+        if (targ_par := self.get_para(targ_pid, time=time)) is None:
+            return
+
+        if (targ_lin := self.get_link(targ_pid, time=time)) is None:
+            return
+
+        if (drag_lin := self.get_link(drag_pid, time=time)) is None:
+            return
+
+        ##delete extant drag link, and stitch
+
+        d_linp = self.get_link(drag_lin.prev, time)
+        d_linn = self.get_link(drag_lin.next, time)
+
+        if d_linp is not None:
+            d_linp1 = splice_link(d_linp, time, next=drag_lin.next)
+            self.session.add(d_linp1)
+        if d_linn is not None:
+            d_linn1 = splice_link(d_linn, time, prev=drag_lin.prev)
+            self.session.add(d_linn1)
+
+        ## change dragged paras link and targ paras link
+
+        d_lin1 = splice_link(drag_lin, time, prev=targ_pid, next=targ_lin.next)
+        t_lin1 = splice_link(targ_lin, time, next=drag_pid)
+        self.session.add(t_lin1)
+        self.session.add(d_lin1)
+
+        ##clean up next para link 
+
+        t_linn = self.get_link(targ_lin.next, time=time)
+
+        if t_linn is not None:
+            linn1 = splice_link(t_linn, time, prev=drag_pid)
+            self.session.add(linn1)
+
+        self.session.commit()
+        return True
+
+
+
     def paste_after(self, pid, adds, time=None):
         if time is None:
             time = datetime.utcnow()

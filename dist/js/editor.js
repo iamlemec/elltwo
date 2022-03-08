@@ -421,6 +421,7 @@ async function sendInsertPara(para, after=true, edit=true, raw='', cur='end') {
     let new_pid = await sendCommand('insert_para', data);
     if (new_pid !== undefined) {
         let new_para = insertParaRaw(pid, new_pid, raw, after);
+        initDrag();
         makeActive(new_para);
         if (edit) {
             trueMakeEditable(true, cur);
@@ -893,30 +894,50 @@ function redo(para){
 
 function initDrag(){
 
+    console.log('dragInit');
+
+    //remove old event listers, to prevent pileup
+    $('.controlZone').off('mousedown');
+    $('.controlZone').off('mouseup');
+    $(document).off('dragover');
+    $('.para').off('dragover');
+    $('.para').off('drop');
+
     $('.controlZone').on('mousedown', (e) => {
         let dragger = e.target;
-        let para = dragger.closest('.para');
-        $(para).attr('draggable', true);
-        $(para).addClass('dragging');
+        let para = $(dragger.closest('.para'));
+        para.attr('draggable', true);
+        para.addClass('dragging');
+        state.dragPara = para;
         $(dragger).css('cursor', 'grabbing');
     });
 
     $('.controlZone').on('mouseup', (e) => {
         let dragger = e.target;
         let para = dragger.closest('.para');
+        state.dragPara = null;
         $(para).attr('draggable', false);
         $(para).removeClass('dragging');
         $(dragger).css('cursor', 'grab');
     });
 
+    //to prevent default drag behavior
     $(document).on('dragover', (e) => {
         e.preventDefault();
     });
 
     $('.para').on('dragover', (e) => {
         e.preventDefault();
-        let para = e.target.closest('.para');
-        $(para).addClass('dropTarg');
+        let targ = $(e.target.closest('.para'));
+        let targPID = targ.attr('pid');
+        let nextPID = getNextPara(targ).attr('pid') || null;
+        let drag = state.dragPara;
+        let dragPID = drag.attr('pid');
+        if(targPID == dragPID || nextPID == dragPID){
+            return false;
+        }else {
+            targ.addClass('dropTarg');
+        }
     });
 
     $('.para').on('dragleave', (e) => {
@@ -926,12 +947,28 @@ function initDrag(){
     });
 
 
-    $('.para').on('drop', (e) => {
+    $('.para').on('drop', (e,t) => {
+
+        let targ = $(e.target.closest('.para'));
+        let targPID = targ.attr('pid');
+        let nextPID = getNextPara(targ).attr('pid') || null;
+
+        let drag = state.dragPara;
+        let dragPID = drag.attr('pid');
         e.stopPropagation();
         $('.para').attr('draggable', false)
         .removeClass('dragging')
         .removeClass('dropTarg');
         $('.controlZone').css('cursor', 'grab');
+        state.dragPara = null;
+
+        if(targPID == dragPID || nextPID == dragPID){
+            console.log('no change');
+        }else {
+            drag.insertAfter(targ);
+            let data = {aid: config.aid, drag_pid: dragPID, targ_pid: targPID};
+            sendCommand('move_para', data);
+            }
     });
 
 
