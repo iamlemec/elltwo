@@ -7,7 +7,6 @@ import { divInlineParser } from './marked3.js';
 
 /* bibtex library browswer */
 
-
 function initBib() {
     cacheBib();
     connectBib();
@@ -16,22 +15,18 @@ function initBib() {
 }
 
 function cacheBib() {
-    cache.cite = new KeyCache('cite', function(key, callback) {
-        sendCommand('get_cite', {key: key}, function(ret) {
-            let cite = (ret !== undefined) ? ret : null;
-            callback(cite);
-        });
-    }, function(keys, callback) {
-        sendCommand('get_bib', {keys: keys}, function(ret) {
-            let cites = Object.fromEntries(keys.map(k =>
-                [k, (k in ret) ? ret[k] : null]
-            ));
-            callback(cites);
-        });
+    cache.cite = new KeyCache('cite', async function(key) {
+        let ret = await sendCommand('get_cite', {key: key});
+        return (ret !== undefined) ? ret : null;
+    }, async function(keys) {
+        let ret = await sendCommand('get_bib', {keys: keys});
+        return Object.fromEntries(keys.map(k =>
+            [k, (k in ret) ? ret[k] : null]
+        ));
     });
-    cache.list = new KeyCache('list', function(key, callback) {
+    cache.list = new KeyCache('list', async function(key) {
         if (key == '__bib') {
-            sendCommand('get_bibs', {}, callback);
+            return await sendCommand('get_bibs', {});
         }
     });
 }
@@ -147,6 +142,7 @@ function runQuery() {
     } else {
         $('.cite').removeClass('dull');
     }}
+
 function wordSearch(bib, list) {
     let value = 0;
     let text = $(bib).children('.cite_text');
@@ -162,9 +158,12 @@ function wordSearch(bib, list) {
     text.html(raw);
     return value;
 }
+
 function connectBib() {
     let url = `//${document.domain}:${location.port}`;
-    connect(url, () => { fetchBib([]); });
+    connect(url, () => {
+        fetchBib([]);
+    });
 
     addHandler('invalidateRef', function(data) {
         let [type, key] = data;
@@ -202,6 +201,7 @@ function generateJson(src) {
 function clearQuery() {
     $('#query').val('');
 }
+
 /// editing
 
 function renderBib(data) {
@@ -222,20 +222,20 @@ function renderBib(data) {
     }
 }
 
-function fetchBib(old_bib) {
-    cache.list.get('__bib', function(bib) {
-        if (old_bib !== undefined) {
-            let net_add = bib.filter(x => !old_bib.includes(x));
-            let net_del = old_bib.filter(x => !bib.includes(x));
-            net_add.forEach(key => {
-                sendCommand('track_ref', {key: `@@[${key}]`});
-            });
-            net_del.forEach(key => {
-                sendCommand('untrack_ref', {key: `@@[${key}]`});
-            });
-        }
-        cache.cite.bulk(bib, renderBib);
-    });
+async function fetchBib(old_bib) {
+    let bib = await cache.list.get('__bib');
+    if (old_bib !== undefined) {
+        let net_add = bib.filter(x => !old_bib.includes(x));
+        let net_del = old_bib.filter(x => !bib.includes(x));
+        net_add.forEach(key => {
+            sendCommand('track_ref', {key: `@@[${key}]`});
+        });
+        net_del.forEach(key => {
+            sendCommand('untrack_ref', {key: `@@[${key}]`});
+        });
+    }
+    let ret = await cache.cite.bulk(bib);
+    renderBib(ret);
 }
 
 function createBibInfo(cite) {

@@ -1,8 +1,10 @@
 import { config } from './state.js';
 import { noop } from './utils.js';
+import { promisify } from 'es6-promisify';
 
 // socketio connection
 let socket = null;
+let emit = null;
 
 // dummy callbacks
 let dummy = {};
@@ -16,6 +18,9 @@ function connect(url, on_connect=noop) {
     console.log(url);
 
     socket = io(url);
+    emit = promisify((cmd, data, ack) => {
+        return socket.emit(cmd, data, ret => ack(undefined, ret));
+    });
 
     socket.on('connect', () => {
         console.log(`socket connect: ${socket.id}`);
@@ -48,14 +53,14 @@ function addDummy(cmd, callback) {
     dummy[cmd] = callback;
 }
 
-function sendCommand(cmd, data='', ack=noop) {
+async function sendCommand(cmd, data='') {
     JSON.stringify(data);
     if (cmd in dummy) {
         console.log(`dummy: ${cmd}`);
-        dummy[cmd](data, ack);
+        return await dummy[cmd](data);
     } else if (socket !== null) {
         console.log(`sending: ${cmd}`);
-        socket.emit(cmd, data, ack);
+        return await emit(cmd, data);
     } else {
         console.log(`tried to send "${cmd}" without connection or dummy handler`);
         console.log(console.trace());

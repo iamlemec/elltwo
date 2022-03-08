@@ -21,10 +21,8 @@ function initHome(args) {
 
 function connectHome() {
     let url = `//${document.domain}:${location.port}`;
-    connect(url, () => {
-        sendCommand('join_room', {'room': '__home'}, (response) => {
-            // console.log(response);
-        });
+    connect(url, async function() {
+        sendCommand('join_room', {'room': '__home'});
     });
 }
 
@@ -81,70 +79,70 @@ let elltwo = `<span class="katex"><span class="katex-mathml"><math xmlns="http:/
 let blurb_img = `<div><div class="title">${elltwo} Image Library</div>Upload new images, or search and edit uploaded images.</div>`;
 let blurb_bib = `<div><div class="title">${elltwo} Bibliography</div>Enter new bibliographic citations manually or via a web search; search and edit existing citations.</div>`;
 
-function searchTitle(query, last_url) {
-    sendCommand('search_title', query, function(response) {
-       let title_text = "Search Results (Title)";
-       let  q = query.toLowerCase();
-        if ('image library'.startsWith(q) || 'img'.startsWith(q) || 'elltwo'.startsWith(q)) {
-            response.push({
-                short: 'img',
-                blurb: blurb_img,
-            });
-        }        if ('bibliography'.startsWith(q) || 'elltwo'.startsWith(q)) {
-            response.push({
-                short: 'bib',
-                blurb: blurb_bib,
-            });
-        }       buildBlurbs(response, last_url, title_text);
-    });
+async function searchTitle(query, last_url) {
+    let ret = await sendCommand('search_title', query);
+    let title_text = 'Search Results (Title)';
+    let q = query.toLowerCase();
+    if ('image library'.startsWith(q) || 'img'.startsWith(q) || 'elltwo'.startsWith(q)) {
+        ret.push({
+            short: 'img',
+            blurb: blurb_img,
+        });
+    }
+    if ('bibliography'.startsWith(q) || 'elltwo'.startsWith(q)) {
+        ret.push({
+            short: 'bib',
+            blurb: blurb_bib,
+        });
+    }
+    buildBlurbs(ret, last_url, title_text);
 }
 
-function searchRecent(last_url) {
-    sendCommand('recent_arts', null,  function(response, last_url) {
-       if(response.length > 0){
-            let title_text = "Recently Edited Articles";
-            buildBlurbs(response, last_url, title_text);
-        }    });
+async function searchRecent(last_url) {
+    let ret = await sendCommand('recent_arts', null);
+    if (ret.length > 0) {
+        let title_text = 'Recently Edited Articles';
+        buildBlurbs(ret, last_url, title_text);
+    }
 }
 
-function searchText(query, last_pid) {
-    sendCommand('search_text', query, function(response) {
-        $('#results').empty();
-        let res_title = $('<div>', {class: 'res_title', text: 'Search Results (Full Text)'});
-        $('#results').append(res_title);
-        let nres = Object.keys(response).length;
-        if (nres > 0) {
-            for (let idx in response) {
-                let par = response[idx];
-                let pid = par.pid;
-                let short = par.short;
-                let url = `a/${short}?pid=${pid}`;
-                let raw = par.raw;
-                query.split(' ').forEach(q => {
-                    if (q.length > 0) {
-                        let re = new RegExp(q, 'i');
-                        raw = raw.replace(re, '<span class="hl">$&</span>');
-                    }
-                });
-                let art_div = $('<a>', {class: 'result par_link', href: url, pid: pid});
-                let art_blurb = $('<div>', {class: 'par_text', html: raw});
-                let art_title = $('<div>', {class: 'blurb_name', text: short});
-                art_div.append([art_title, art_blurb]);
-                $('#results').append(art_div);
-            }
+async function searchText(query, last_pid) {
+    let ret = await sendCommand('search_text', query);
 
-            let sel;
-            if (last_pid == undefined) {
-                sel = $('.par_link').first();
-            } else {
-                sel = $(`.par_link[pid="${last_pid}"]`);
-                if (sel.length == 0) {
-                    sel = $('.par_link').first();
-                }
+    $('#results').empty();
+    let res_title = $('<div>', {class: 'res_title', text: 'Search Results (Full Text)'});
+    $('#results').append(res_title);
+
+    if (Object.keys(ret).length == 0) return;
+    for (let idx in ret) {
+        let par = ret[idx];
+        let pid = par.pid;
+        let short = par.short;
+        let url = `a/${short}?pid=${pid}`;
+        let raw = par.raw;
+        query.split(' ').forEach(q => {
+            if (q.length > 0) {
+                let re = new RegExp(q, 'i');
+                raw = raw.replace(re, '<span class="hl">$&</span>');
             }
-            sel.addClass('selected');
+        });
+        let art_div = $('<a>', {class: 'result par_link', href: url, pid: pid});
+        let art_blurb = $('<div>', {class: 'par_text', html: raw});
+        let art_title = $('<div>', {class: 'blurb_name', text: short});
+        art_div.append([art_title, art_blurb]);
+        $('#results').append(art_div);
+    }
+
+    let sel;
+    if (last_pid == undefined) {
+        sel = $('.par_link').first();
+    } else {
+        sel = $(`.par_link[pid="${last_pid}"]`);
+        if (sel.length == 0) {
+            sel = $('.par_link').first();
         }
-    });
+    }
+    sel.addClass('selected');
 }
 
 function buildBlurbs(response, last_url, title_text){
@@ -195,17 +193,16 @@ function runQuery() {
             searchTitle(query, last_pid);
         }
     } else {
-        searchRecent();
+        searchRecent(last_url);
         //$('#results').empty();
     }
 }
 
-function createArt() {
+async function createArt() {
     let query = $('#query').val();
     if (query.length > 0) {
-        sendCommand('create_art', query, function(response) {
-            window.location = response;
-        });
+        let ret = await sendCommand('create_art', query);
+        window.location = ret;
     }
 }
 

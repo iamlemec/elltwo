@@ -38,7 +38,7 @@ async function mdEnv(raw, env) {
         let args = env.args;
         let image = args.image || args.img;
         if (image != null) {
-            let img = cache.img.see(image);
+            let img = cache.img.get(image);
             if (img == null) {
                 return raw;
             } else  if (img.mime == 'image/svg+gum') {
@@ -108,7 +108,7 @@ async function createLatex(paras) {
 
     let rawBibTex = null;
     if (cites.length > 0) {
-        let usedCites = cache.cite.many(cites);
+        let usedCites = await cache.cite.many(cites);
         rawBibTex = Object.values(usedCites).map(bib => bib.raw).join('\n');
     }
 
@@ -246,14 +246,14 @@ async function texImageLocal(src, env) {
     let cap = (args.caption == 'none') ? null : args.caption;
     let caption = (cap != null) ? `\\caption{${cap}}\n` : '';
 
-    let img = cache.img.see(image);
+    let img = await cache.img.get(image);
     let itex;
     if (img != null) {
-        let blob = img.data;
-        let ext = imgext[blob.type];
+        let { mime, data } = img;
+        let ext = imgext[mime];
         let fname = `${image}.${ext}`;
-        let data = (typeof blob == 'Blob') ? await blob.arrayBuffer() : blob;
-        images.push([fname, blob.type, data]);
+        data = (typeof data == 'Blob') ? await data.arrayBuffer() : data;
+        images.push([fname, mime, data]);
         itex = `\\includegraphics${opts}{${fname}}`;
     } else {
         itex = `[Image \\texttt{${image}} not found]`;

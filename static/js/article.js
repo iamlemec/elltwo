@@ -18,7 +18,7 @@ import {
 import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, envGlobal, createTOC, getTro, troFromKey, popText, elltwoHL,
+    envClasses, envGlobal, createTOC, troFromKey, popText, elltwoHL,
     renderRefText, getRefTags, untrackRef, doRenderRef, barePara
 } from './render.js'
 import { braceMatch } from './hl.js'
@@ -78,61 +78,52 @@ function stateArticle() {
 
 function cacheArticle() {
     // external references/popups
-    cache.ext = new KeyCache('ext', function(key, callback) {
+    cache.ext = new KeyCache('ext', async function(key) {
         let [title, refkey] = key.split(':');
-        sendCommand('get_ref', {title: title, key: refkey}, function(ret) {
-            let data = (ret !== undefined) ? ret : null;
-            callback(data);
-        });
+        let ret = await sendCommand('get_ref', {title: title, key: refkey});
+        return (ret !== undefined) ? ret : null;
     });
 
     // article link/blurb
-    cache.link = new KeyCache('link', function(key, callback) {
-        sendCommand('get_link', {title: key}, function(ret) {
-            let data = (ret !== undefined) ? ret : null;
-            callback(data);
-        });
+    cache.link = new KeyCache('link', async function(key) {
+        let ret = await sendCommand('get_link', {title: key});
+        return (ret !== undefined) ? ret : null;
     });
 
     // bibliography (external citations)
-    cache.cite = new KeyCache('cite', function(key, callback) {
-        sendCommand('get_cite', {key: key}, function(ret) {
-            let cite = (ret !== undefined) ? createBibInfo(ret) : null;
-            callback(cite);
-        });
-    }, function(keys, callback) {
-        sendCommand('get_bib', {keys: keys}, function(ret) {
-            let cites = Object.fromEntries(keys.map(k =>
-                [k, (k in ret) ? createBibInfo(ret[k]) : null]
-            ));
-            callback(cites);
-        });
+    cache.cite = new KeyCache('cite', async function(key) {
+        let ret = await sendCommand('get_cite', {key: key});
+        return (ret !== undefined) ? createBibInfo(ret) : null;
+    }, async function(keys) {
+        let ret = await sendCommand('get_bib', {keys: keys});
+        return Object.fromEntries(keys.map(k =>
+            [k, (k in ret) ? createBibInfo(ret[k]) : null]
+        ));
     });
 
     // image cache
-    cache.img = new KeyCache('img', function(key, callback) {
-        sendCommand('get_image', {key: key}, function(ret) {
-            if (ret == null) {
-                callback(null);
-            } else if (ret.mime.startsWith('image/svg+gum')) {
-                callback({mime: ret.mime, data: ret.data});
-            } else {
-                let data = new Blob([ret.data], {type: ret.mime});
-                callback({mime: ret.mime, data: data});
-            }
-        });
+    cache.img = new KeyCache('img', async function(key) {
+        let ret = await sendCommand('get_image', {key: key});
+        if (ret == null) {
+            return null;
+        } else if (ret.mime.startsWith('image/svg+gum')) {
+            return {mime: ret.mime, data: ret.data};
+        } else {
+            let data = new Blob([ret.data], {type: ret.mime});
+            return {mime: ret.mime, data: data};
+        }
     });
 
     // external reference completion
-    cache.list = new KeyCache('list', function(key, callback) {
+    cache.list = new KeyCache('list', async function(key) {
         if (key == '__art') {
-            sendCommand('get_arts', {}, callback);
+            return await sendCommand('get_arts', {});
         } else if (key == '__bib') {
-            sendCommand('get_bibs', {}, callback);
+            return await sendCommand('get_bibs', {});
         } else if (key == '__img') {
-            sendCommand('get_imgs', {}, callback);
+            return await sendCommand('get_imgs', {});
         } else {
-            sendCommand('get_refs', {title: key}, callback);
+            return await sendCommand('get_refs', {title: key});
         }
     });
 }
@@ -210,7 +201,7 @@ function setEditMode(ro) {
     setWriteable();
 }
 
-function setWriteable() {
+async function setWriteable() {
     let wr = !config.readonly && !state.hist_show && state.edit_mode;
 
     let wr_old = state.writeable;
@@ -224,13 +215,11 @@ function setWriteable() {
 
         if (wr && !wr_old) {
             let data = {pid: pid, aid: config.aid};
-            sendCommand('lock', data, function(response) {
-                if (response) {
-                    text.prop('readonly', false);
-                    placeCursor('end');
-                    schedTimeout();
-                }
-            });
+            if (await sendCommand('lock', data)) {
+                text.prop('readonly', false);
+                placeCursor('end');
+                schedTimeout();
+            }
         } else if (!wr && wr_old) {
             text.prop('readonly', true);
             storeChange(para);
@@ -240,10 +229,9 @@ function setWriteable() {
 
 function connectServer() {
     let url = `//${document.domain}:${location.port}`;
-    connect(url, () => {
-        sendCommand('join_room', {'room': config.aid, 'get_locked': true}, (response) => {
-            lockParas(response);
-        });
+    connect(url, async function() {
+        let paras = await sendCommand('join_room', {'room': config.aid, 'get_locked': true});
+        lockParas(paras);
     });
 
     setTimeoutHandler(function() {
@@ -295,15 +283,14 @@ function connectServer() {
     });
 }
 
-function syncRefs() {
+async function syncRefs() {
     console.log('init global refs');
     $('.para:not(.folder)').each(function() {
         let para = $(this);
         updateRefs(para);
     });
-    sendCommand('update_g_ref', {'aid': config.aid, 'g_ref': false}, function(response) {
-        console.log(`g_ref set to '${response}'`);
-    });
+    let ret = await sendCommand('update_g_ref', {'aid': config.aid, 'g_ref': false});
+    console.log(`g_ref set to "${ret}"`);
 }
 
 function eventArticle() {
@@ -352,16 +339,16 @@ function eventArticle() {
     });
 
     // drop to upload
-    connectDrops(function(box, ret) {
+    connectDrops(async function(box, ret) {
         let para = box.closest('.para');
         let pid = para.attr('pid');
         let data = {pid: pid, aid: config.aid};
-        sendCommand('lock', data, on_success(function() {
+        if (await sendCommand('lock', data)) {
             let raw = `! [id=${ret.key}|caption=none]`;
             para.attr('raw', raw);
             rawToTextarea(para);
             storeChange(para, true, true);
-        }));
+        }
     });
 
     // upload replacement image
@@ -452,7 +439,7 @@ function updateParas(para_dict) {
     }
 }
 
-function deleteParas(pids) {
+async function deleteParas(pids) {
     let do_env = false;
 
     for (const pid of pids) {
@@ -465,9 +452,9 @@ function deleteParas(pids) {
         let old_id = para.attr('id');
         if (old_id) {
             let ref = {aid: config.aid, key: old_id};
-            sendCommand('delete_ref', ref, function(success) {
+            if (await sendCommand('delete_ref', ref)) {
                 console.log('success: deleted ref');
-            });
+            }
         }
 
         let old_ref = getRefTags(para);
@@ -612,16 +599,12 @@ function createExtRef(id) {
 
 function sendUpdateRef(pid) {
     let ref = createExtRef(pid);
-    sendCommand('update_ref', ref, function(success) {
-        console.log(`updated ref ${pid}`);
-    });
+    sendCommand('update_ref', ref);
 }
 
 function sendDeleteRef(pid) {
     let ref = {aid: config.aid, key: pid};
-    sendCommand('delete_ref', ref, function(success) {
-        console.log(`deleted ref ${pid}`);
-    });
+    sendCommand('delete_ref', ref);
 }
 
 // push reference/blurb changes to server
@@ -689,8 +672,10 @@ function getBlurb(len=200, max=5) {
 }
 
 function setBlurb() {
-    let blurb = getBlurb();
-    sendCommand('set_blurb', {'aid': config.aid, 'blurb': blurb});
+    sendCommand('set_blurb', {
+        'aid': config.aid,
+        'blurb': getBlurb(),
+    });
 }
 
 /// sidebar
@@ -990,7 +975,7 @@ function initHistory(data) {
         d3.select(`#hp_${i}`).remove();  // Remove text location
     }
 
-    function handleClick(d, i) {
+    async function handleClick(d, i) {
         console.log('history clicked:', d.commit);
 
         d3.selectAll('circle.active')
@@ -1001,7 +986,8 @@ function initHistory(data) {
 
         d3.select('#revert_hist').classed('selected', true);
 
-        sendCommand('get_history', {'aid': config.aid, 'date': d.commit}, renderPreview);
+        let ret = await sendCommand('get_history', {'aid': config.aid, 'date': d.commit});
+        renderPreview(ret);
     }
 
     function generalClick(d, i) {
@@ -1054,16 +1040,13 @@ function initHistory(data) {
     updateHistMap = updateCommits;
 }
 
-function launchHistMap() {
-    sendCommand('get_commits', {'aid': config.aid}, function(dates) {
-        updateHistMap(
-            dates.map(d => ({
-                'commit': d,
-                'date': localDate(d)
-            }))
-        );
-        $('#hist').show();
-    });
+async function launchHistMap() {
+    let dates = await sendCommand('get_commits', {'aid': config.aid});
+    updateHistMap(dates.map(d => ({
+        'commit': d,
+        'date': localDate(d)
+    })));
+    $('#hist').show();
 }
 
 function hideHistPreview() {
@@ -1108,18 +1091,18 @@ function toggleHistMap() {
     setWriteable();
 }
 
-function revertHistory() {
+async function revertHistory() {
     let act = d3.selectAll('circle.active');
     if (act.empty()) {
         return;
     }
     let data = act.datum();
     let args = {aid: config.aid, date: data.commit};
-    sendCommand('revert_history', args, on_success(() => {
+    if (await sendCommand('revert_history', args)) {
         hideHistPreview();
         launchHistMap();
         $('#content').focus();
-    }));
+    }
 }
 
 function responsivefy(svg) {
@@ -1322,7 +1305,7 @@ function ccSearch(list, search, placement, selchars, env_display=false) {
 }
 
 // show command completion popup for references (@[]) and article links ([[]])
-function ccRefs(view, raw, cur, configCMD) {
+async function ccRefs(view, raw, cur, configCMD) {
     if(configCMD === 'off'){
         return false;
     }
@@ -1343,64 +1326,59 @@ function ccRefs(view, raw, cur, configCMD) {
     let open_cmd = /\\([\w-\|\=^]+)(?:[\s\n]|$)/;
     let cap;
     if (cap = open_ref.exec(sel)) {
-            raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
-            view.html(raw);
-            let off = $('#cc_pos').offset();
-            let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-            if (cap[1] == '@') { // bib search
-                let search = cap[2] || '';
-                cache.list.get('__bib', function(ret) {
-                ret = ret.map(x => {
-                    return {name:x, type:'bib'}
-                });
-                    ccSearch(ret, search, p, selchars, true);
-                });
-            } else if (cap[3] && !cap[2]) { // searching for ext page
-                let search = cap[4] || '';
-                cache.list.get('__art', function(ret) {
-                ret = ret.map(x => {
-                    return {name:x, type:'title'}
-                });
-                    ccSearch(ret, search, p, selchars, true);
-                });
-            } else if (cap[2] && cap[3]) {
-                let title = cap[2];
-                let search = cap[4] || "";
-                cache.list.get(title, function(ret) {
-                ret = ret.map(x => {
-                    return {name:x[0], type:x[1]}
-                });
-                    ccSearch(ret, search, p, selchars, true);
-                });
-            } else {
-                let search = cap[4] || cap[2] || '';
-                let in_refs = getInternalRefs();
-                ccSearch(in_refs, search, p, selchars, true);
-            }
-    } else if (cap = open_i_link.exec(sel)) {
-            raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
-            view.html(raw);
-            let off = $('#cc_pos').offset();
-            let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-            let search = cap[1] || '';
-            let ex_keys = cache.list.get('__art', function(ret) {
-                ret = ret.map(x => {
-                    return {name:x, type:'title'}
-                });
-                ccSearch(ret, search, p, selchars, true);
-            });
-    } else if (cap = open_img.exec(sel)) {
-            raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
-            view.html(raw);
-            let off = $('#cc_pos').offset();
-            let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+        raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
+        view.html(raw);
+        let off = $('#cc_pos').offset();
+        let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+        if (cap[1] == '@') { // bib search
             let search = cap[2] || '';
-            let ex_keys = cache.list.get('__img', function(ret) {
-                ret = ret.map(x => {
-                    return {name:x, type:'image'}
-                });
-                ccSearch(ret, search, p, selchars, true);
+            let ret = await cache.list.get('__bib');
+            ret = ret.map(x => {
+                return {name: x, type: 'bib'};
             });
+            ccSearch(ret, search, p, selchars, true);
+        } else if (cap[3] && !cap[2]) { // searching for ext page
+            let search = cap[4] || '';
+            let ret = await cache.list.get('__art');
+            ret = ret.map(x => {
+                return {name:x, type:'title'};
+            });
+            ccSearch(ret, search, p, selchars, true);
+        } else if (cap[2] && cap[3]) {
+            let title = cap[2];
+            let search = cap[4] || "";
+            let ret = await cache.list.get(title);
+            ret = ret.map(x => {
+                return {name:x[0], type:x[1]}
+            });
+            ccSearch(ret, search, p, selchars, true);
+        } else {
+            let search = cap[4] || cap[2] || '';
+            let in_refs = getInternalRefs();
+            ccSearch(in_refs, search, p, selchars, true);
+        }
+    } else if (cap = open_i_link.exec(sel)) {
+        raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
+        view.html(raw);
+        let off = $('#cc_pos').offset();
+        let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+        let search = cap[1] || '';
+        let ret = await cache.list.get('__art');
+        ret = ret.map(x => {
+            return {name:x, type:'title'};
+        });
+        ccSearch(ret, search, p, selchars, true);
+    } else if (cap = open_img.exec(sel)) {
+        raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
+        view.html(raw);
+        let off = $('#cc_pos').offset();
+        let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+        let search = cap[2] || '';
+        let ret = await cache.list.get('__img');
+        ret = ret.map(x => {
+            return {name:x, type:'image'};
+        });
+        ccSearch(ret, search, p, selchars, true);
         } else if (open_cmd.exec(sel) && configCMD === 'on') {
             let dollars  = unEscCharCount(raw.slice(0, cur), '$')
             if(dollars%2==1 || raw.startsWith('$$')){

@@ -13,6 +13,7 @@
     "@sequelize/core": "^7.0.0-alpha.10",
     "@zip.js/zip.js": "^2.4.4",
     "adm-zip": "^0.5.9",
+    "es6-promisify": "^7.0.0",
     "gum.js": "github:iamlemec/gum.js",
     "katex": "^0.15.2",
     "sqlite3": "^5.0.2"

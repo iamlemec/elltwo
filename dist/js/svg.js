@@ -2,7 +2,7 @@ import { createToggle, createButton, smallable_butt, cur, updateSliderValue } fr
 import { state, config } from './state.js';
 import { sendCommand } from './client.js';
 import './marked3.js';
-import { makeActive, showConfirm, textWrap, textUnWrap, sendUpdatePara } from './editor.js';
+import { makeActive, showConfirm, sendUpdatePara, textWrap, textUnWrap } from './editor.js';
 import { deleteImage } from './img.js';
 import { s, braceMatch, SyntaxHL } from './hl.js';
 import { parseGum, InterActive, Element, SVG } from '../node_modules/gum.js/js/gum.js';
@@ -101,16 +101,15 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
             $(this).removeClass('input_err');
         });
 
-        $(document).on('click', '#SVGEditorCommit', function(e) {
+        $(document).on('click', '#SVGEditorCommit', async function(e) {
             if (key = $('#SVGEditorTag').val()) {
                 let raw = $('#SVGEditorInputText').val();
                 let data = {'key': key, 'mime': 'image/svg+gum', 'raw': raw};
                 sendCommand('save_svg', data);
-                if(updatePara){
-                    let data = {pid: updatePara.attr('pid'), aid: config.aid};
-                    sendCommand('lock', data, function(response) {
-                        sendUpdatePara(updatePara, `![${key}]`, true);
-                    });
+                if (updatePara) {
+                    let pid = updatePara.attr('pid');
+                    await sendCommand('lock', {pid: pid, aid: config.aid});
+                    sendUpdatePara(updatePara, `![${key}]`, true);
                 }
             } else {
                 $('#SVGEditorTag').addClass('input_err');

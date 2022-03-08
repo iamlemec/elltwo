@@ -3,8 +3,8 @@
 export {
     merge, mapObject, mapValues, eachObject, attrArray, initToggleBox, toggleBox,
     ensureVisible, setCookie, cooks, getPara, getEnvParas, isMobile, noop,
-    on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle, createButton,
-    smallable_butt, copyText, updateSliderValue, unEscCharCount, cur
+    on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle,
+    createButton, smallable_butt, copyText, updateSliderValue, unEscCharCount, cur
 }
 
 // js tricks
@@ -83,19 +83,18 @@ class KeyCache {
         return this.data.get(key);
     }
 
-    get(key, callback) {
+    async get(key) {
         let kc = this;
+        let val;
         if (this.data.has(key)) {
-            let val = this.data.get(key);
-            callback(val);
+            val = this.data.get(key);
         } else {
-            this.getter(key, function(val) {
-                if (val !== undefined) {
-                    kc.data.set(key, val);
-                }
-                callback(val);
-            });
+            val = await this.getter(key);
+            if (val !== undefined) {
+                kc.data.set(key, val);
+            }
         }
+        return val;
     }
 
     del(key) {
@@ -110,28 +109,23 @@ class KeyCache {
         return Object.fromEntries(keys.map(k => [k, this.data.get(k)]));
     }
 
-    bulk(keys, callback) {
+    async bulk(keys) {
         if (this.bulker === undefined) {
             console.log(`KeyCache ${this.name} is not bulked`);
             return;
         }
 
-        let kc = this;
         let rest = keys.filter(k => !this.has(k));
         if (rest.length > 0) {
-            this.bulker(rest, function(vals) {
-                for (const [k, v] of Object.entries(vals)) {
-                    if (v !== undefined) {
-                        kc.data.set(k, v);
-                    }
+            let vals = await this.bulker(rest);
+            for (const [k, v] of Object.entries(vals)) {
+                if (v !== undefined) {
+                    this.data.set(k, v);
                 }
-                let ret = kc.many(keys);
-                callback(ret);
-            });
-        } else {
-            let ret = this.many(keys);
-            callback(ret);
+            }
         }
+
+        return this.many(keys);
     }
 
     keys() {
@@ -156,8 +150,8 @@ class DummyCache {
         return;
     }
 
-    get(key, callback) {
-        callback(null);
+    get(key) {
+        return null;
     }
 
     del(key) {
@@ -171,8 +165,8 @@ class DummyCache {
         return Object.fromEntries(keys.map(k => [k, null]));
     }
 
-    bulk(keys, callback) {
-        callback(this.many(keys));
+    bulk(keys) {
+        return {};
     }
 
     keys() {
@@ -263,8 +257,6 @@ function createButton(id, text, iconName, smallable=false) {
     return but;
 }
 
-
-
 // para tools
 
 function getPara(pid) {
@@ -309,7 +301,7 @@ function initToggleBox(button, box) {
     });
 };
 
-///slider shit
+// slider shit
 
 function updateSliderValue(slider) {
     let pos = (slider.value - slider.min) / (slider.max - slider.min);
@@ -320,7 +312,7 @@ function updateSliderValue(slider) {
     lab.style.left = `${lef}%`; //in prec for window resize events
 }
 
-//button smalling
+// button smalling
 
 function smallable_butt(butts, threshold=1000) {
     let small = $(window).width() < threshold;
@@ -332,17 +324,16 @@ function smallable_butt(butts, threshold=1000) {
     };
 };
 
-// count unescaped chars in text 
+// count unescaped chars in text
 
 function unEscCharCount(str, char){
     let regex = new RegExp(`(\\\\*)\\${char}`, 'g')
-    let all = [...str.matchAll(regex)] || []; //match char 
-    all=all.filter(x => (x[0].length%2==1)); //filter out escaped 
+    let all = [...str.matchAll(regex)] || []; //match char
+    all=all.filter(x => (x[0].length%2==1)); //filter out escaped
     return all.length
 }
 
-
-//cursor position
+// cursor position
 
 function cur(e, full=false){
     if(full){
