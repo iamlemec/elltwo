@@ -2,7 +2,7 @@
 
 export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender, rawToTextarea,
-    envClasses, envGlobal, renderRefText, createTOC, getTro, troFromKey, popText, renderPop,
+    envClasses, envGlobal, renderRefText, createTOC, troFromKey, popText, renderPop,
     s_env_spec, getFoldLevel, renderFold, barePara, makePara, connectCallbacks, getRefTags,
     trackRef, untrackRef, doRenderRef, elltwoHL, exportMarkdown, exportLatex
 }
@@ -40,12 +40,13 @@ function initRender() {
 function eventRender() {
     // popup previews split by mobile status
     if (config.mobile) {
-        $(document).on('click', '.pop_anchor', function(e) {
+        $(document).on('click', '.pop_anchor', async function(e) {
             e.preventDefault();
             $('#pop').remove();
             let ref = $(this);
             ref.data('show_pop', true);
-            getTro(ref, renderPop);
+            let tro = await getTro(ref);
+            renderPop(ref, tro);
             return false;
         });
 
@@ -59,11 +60,12 @@ function eventRender() {
         });
     } else {
         $(document).on({
-            mouseenter: function() {
+            mouseenter: async function() {
                 let ref = $(this);
                 if(!ref.hasClass('sidenote')) {
                     ref.data('show_pop', true);
-                    getTro(ref, renderPop);
+                    let tro = await getTro(ref);
+                    renderPop(ref, tro);
                 }
             },
             mouseleave: function() {
@@ -837,7 +839,7 @@ function createTOC(outer) {
 
 /// REFERENCING and CITATIONS
 
-async function getTro(ref, callback) {
+async function getTro(ref) {
     let tro = {};
     let key = ref.attr('refkey');
     let type = ref.attr('reftype');
@@ -845,7 +847,6 @@ async function getTro(ref, callback) {
     if (type == 'self') {
         tro.tro = ref;
         tro.cite_type = 'self';
-        callback(ref, tro);
     } else if (type == 'link') {
         let short = ref.attr('href');
         let ret = await cache.link.get(short);
@@ -858,7 +859,6 @@ async function getTro(ref, callback) {
             tro.cite_err = 'art_not_found';
             tro.ref_text = `[[${short}]]`;
         }
-        callback(ref, tro);
     } else if (type == 'cite') {
         let ret = await cache.cite.get(key);
         if (ret !== null) {
@@ -872,7 +872,6 @@ async function getTro(ref, callback) {
             tro.cite_err = 'cite_not_found';
             tro.ref_text = `@@[${key}]`;
         }
-        callback(ref, tro);
     } else if (type == 'ext') {
         let ret = await cache.ext.get(key);
         if (ret !== null) {
@@ -887,13 +886,14 @@ async function getTro(ref, callback) {
             tro.cite_err = 'ref_not_found';
             tro.ref_text = `@[${key}]`;
         }
-        callback(ref, tro);
     } else if (type == 'int') {
         tro = troFromKey(key, tro);
-        callback(ref, tro);
     } else {
         console.log('unknown reference type');
+        return;
     }
+
+    return tro;
 }
 
 function troFromKey(key, tro={}) {
@@ -920,8 +920,9 @@ function troFromKey(key, tro={}) {
     return tro;
 }
 
-function doRenderRef(ref) {
-    getTro(ref, renderRef);
+async function doRenderRef(ref) {
+    let tro = await getTro(ref);
+    renderRef(ref, tro);
 }
 
 function renderRefText(outer) {

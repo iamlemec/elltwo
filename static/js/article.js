@@ -18,7 +18,7 @@ import {
 import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, envGlobal, createTOC, getTro, troFromKey, popText, elltwoHL,
+    envClasses, envGlobal, createTOC, troFromKey, popText, elltwoHL,
     renderRefText, getRefTags, untrackRef, doRenderRef, barePara
 } from './render.js'
 import { braceMatch } from './hl.js'

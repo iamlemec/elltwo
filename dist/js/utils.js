@@ -56,7 +56,7 @@ class KeyCache {
         return this.data.get(key);
     }
 
-    async get(key, callback) {
+    async get(key) {
         let kc = this;
         let val;
         if (this.data.has(key)) {
@@ -123,8 +123,8 @@ class DummyCache {
         return;
     }
 
-    get(key, callback) {
-        callback(null);
+    get(key) {
+        return null;
     }
 
     del(key) {
@@ -138,8 +138,8 @@ class DummyCache {
         return Object.fromEntries(keys.map(k => [k, null]));
     }
 
-    bulk(keys, callback) {
-        callback(this.many(keys));
+    bulk(keys) {
+        return {};
     }
 
     keys() {
