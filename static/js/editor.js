@@ -413,19 +413,19 @@ function applyChange(para, raw) {
 
 /// server comms and callbacks
 
-function sendUpdatePara(para, text, rerender=false) {
+async function sendUpdatePara(para, text, rerender=false) {
     let pid = para.attr('pid');
     let data = {aid: config.aid, pid: pid, text: text};
-    sendCommand('update_para', data, on_success(() => {
+    if (await sendCommand('update_para', data)) {
         applyChange(para, text);
-        if(rerender){
+        if (rerender) {
             rawToRender(para);
             rawToTextarea(para);
-        };
-    }));
+        }
+    }
 }
 
-function sendInsertPara(para, after=true, edit=true, raw='', cur='end') {
+async function sendInsertPara(para, after=true, edit=true, raw='', cur='end') {
     let fold_pid = para.attr('fold_pid');
     let head;
     if (fold_pid) {
@@ -436,32 +436,31 @@ function sendInsertPara(para, after=true, edit=true, raw='', cur='end') {
     }
     let pid = head.attr('pid');
     let data = {aid: config.aid, pid: pid, after: after, edit: edit, text: raw};
-    sendCommand('insert_para', data, (new_pid) => {
-        if (new_pid !== undefined) {
-            let new_para = insertParaRaw(pid, new_pid, raw, after);
-            makeActive(new_para);
-            if (edit) {
-                trueMakeEditable(true, cur);
-            } else {
-                rawToRender(new_para);
-            }
+    let new_pid = await sendCommand('insert_para', data);
+    if (new_pid !== undefined) {
+        let new_para = insertParaRaw(pid, new_pid, raw, after);
+        makeActive(new_para);
+        if (edit) {
+            trueMakeEditable(true, cur);
+        } else {
+            rawToRender(new_para);
         }
-    });
+    }
 }
 
-function sendDeleteParas(paras) {
+async function sendDeleteParas(paras) {
     let pids = attrArray(paras, 'pid');
     let data = {aid: config.aid, pids: pids};
     let next = getNextPara(paras.last());
     if (next.length == 0) {
         next = getPrevPara(paras.first());
     }
-    sendCommand('delete_paras', data, on_success(() => {
+    if (await sendCommand('delete_paras', data)) {
         if (next) {
             makeActive(next);
         }
         deleteParas(pids);
-    }));
+    }
 }
 
 // revertChange?
@@ -508,7 +507,7 @@ function trueMakeEditable(rw=true, cursor='end') {
     elltwoHL(state.active_para);
 }
 
-function sendMakeEditable(cursor='end') {
+async function sendMakeEditable(cursor='end') {
     $('.para').removeClass('rawtext');
     $('.para').removeClass('copy_sel');
     if (state.active_para) {
@@ -518,9 +517,8 @@ function sendMakeEditable(cursor='end') {
         if (state.writeable) {
             let pid = state.active_para.attr('pid');
             let data = {pid: pid, aid: config.aid};
-            sendCommand('lock', data, function(response) {
-                trueMakeEditable(response, cursor);
-            });
+            let rw = await sendCommand('lock', data);
+            trueMakeEditable(rw, cursor);
         } else {
             trueMakeEditable(false);
         }
@@ -568,9 +566,7 @@ function lockParas(pids) {
 
 function sendUnlockPara(pid) {
     let data = {aid: config.aid, pid: pid};
-    sendCommand('unlock', data, function(response) {
-        // console.log(response);
-    });
+    sendCommand('unlock', data);
 }
 
 function unlockParas(pids) {
@@ -708,10 +704,7 @@ function pasteParas() {
     let pid = state.active_para.attr('pid');
     let ccb = cooks('cb') || state.cb;
     if (ccb && pid) {
-        let data = {aid: config.aid, pid: pid, cb: ccb};
-        sendCommand('paste_paras', data, function(response) {
-            // console.log(response);
-        });
+        sendCommand('paste_paras', {aid: config.aid, pid: pid, cb: ccb});
     }
 }
 
@@ -862,7 +855,7 @@ function textWrapAbstract(raw, cur, d){
     let b = raw.slice(0, cur[0])
     let m = raw.slice(cur[0], cur[1])
     let e = raw.slice(cur[1], raw.length)
-    return b + d[0] + m + d[1] + e;  
+    return b + d[0] + m + d[1] + e;
 }
 
 function textUnWrap(input,cur,d) {

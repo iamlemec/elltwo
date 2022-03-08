@@ -1,5 +1,5 @@
 export {
-    connect, addHandler, addDummy, sendCommand, sendCommandAsync, schedTimeout, setTimeoutHandler
+    connect, addHandler, addDummy, sendCommand, schedTimeout, setTimeoutHandler
 }
 
 import { config } from './state.js'
@@ -64,21 +64,7 @@ function addDummy(cmd, callback) {
     dummy[cmd] = callback;
 }
 
-function sendCommand(cmd, data='', ack=noop) {
-    let sdat = JSON.stringify(data);
-    if (cmd in dummy) {
-        console.log(`dummy: ${cmd}`);
-        dummy[cmd](data, ack);
-    } else if (socket !== null) {
-        console.log(`sending: ${cmd}`);
-        socket.emit(cmd, data, ack);
-    } else {
-        console.log(`tried to send "${cmd}" without connection or dummy handler`);
-        console.log(console.trace());
-    }
-}
-
-async function sendCommandAsync(cmd, data='') {
+async function sendCommand(cmd, data='') {
     let sdat = JSON.stringify(data);
     if (cmd in dummy) {
         console.log(`dummy: ${cmd}`);

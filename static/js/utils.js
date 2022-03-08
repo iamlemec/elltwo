@@ -68,9 +68,10 @@ function copyText(txt) {
 // key cache
 
 class KeyCache {
-    constructor(name, getter) {
+    constructor(name, getter, bulker) {
         this.name = name;
         this.getter = getter;
+        this.bulker = bulker;
         this.data = new Map();
     }
 
@@ -256,8 +257,6 @@ function createButton(id, text, iconName, smallable=false) {
     return but;
 }
 
-
-
 // para tools
 
 function getPara(pid) {
@@ -302,7 +301,7 @@ function initToggleBox(button, box) {
     });
 };
 
-///slider shit
+// slider shit
 
 function updateSliderValue(slider) {
     let pos = (slider.value - slider.min) / (slider.max - slider.min);
@@ -313,7 +312,7 @@ function updateSliderValue(slider) {
     lab.style.left = `${lef}%`; //in prec for window resize events
 }
 
-//button smalling
+// button smalling
 
 function smallable_butt(butts, threshold=1000) {
     let small = $(window).width() < threshold;
@@ -334,8 +333,7 @@ function unEscCharCount(str, char){
     return all.length
 }
 
-
-//cursor position
+// cursor position
 
 function cur(e, full=false){
     if(full){

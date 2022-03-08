@@ -58,7 +58,7 @@ function cacheImage() {
 
 function connectImage() {
     let url = `//${document.domain}:${location.port}`;
-    connect(url, () => {
+    connect(url, async function() {
         sendCommand('join_room', {'room': '__img'});
     });
 
@@ -72,17 +72,15 @@ function connectImage() {
     });
 }
 
-function deleteImage(key) {
-    sendCommand('delete_image', {'key': key}, (ret) => {
-        if (ret) {
-            let img = $(`#${key}`);
-            cache.img.del('__img');
-            img.parent('.img_cont').remove();
-            hideDisplay();
-            hideSVGEditor();
-            $('#query').focus();
-        }
-    });
+async function deleteImage(key) {
+    if (await sendCommand('delete_image', {'key': key})) {
+        let img = $(`#${key}`);
+        cache.img.del('__img');
+        img.parent('.img_cont').remove();
+        hideDisplay();
+        hideSVGEditor();
+        $('#query').focus();
+    }
 }
 
 function eventImage() {
@@ -150,26 +148,22 @@ function eventImage() {
         }
     });
 
-
-    $(document).on('click', '#img_update', function() {
+    $(document).on('click', '#img_update', async function() {
         let key = state.key;
         let kw = state.kw;
         let new_key = $('input#key').val();
         let new_kw = $('input#keywords').val();
         if (key != new_key || kw != new_kw) {
-            let data = {'key': key, 'new_key': new_key, 'new_kw': new_kw};
-            sendCommand('update_image_key', data, (ret) => {
-                if (ret) {
-                    let img = $(`#${key}`);
-                    img.attr('id', new_key);
-                    img.attr('kw', new_kw);
-                    img.siblings('.keyspan').text(new_key);
-                    cache.img.del('__img');
-                    $('#display').hide();
-                    $('#query').focus();
-                    imageQuery();
-                }
-            });
+            if (await sendCommand('update_image_key', {key, new_key, new_kw})) {
+                let img = $(`#${key}`);
+                img.attr('id', new_key);
+                img.attr('kw', new_kw);
+                img.siblings('.keyspan').text(new_key);
+                cache.img.del('__img');
+                $('#display').hide();
+                $('#query').focus();
+                imageQuery();
+            }
         }
     });
 
@@ -214,20 +208,19 @@ function eventImage() {
 
 // rendering
 
-function imageQuery(query) {
+async function imageQuery(query) {
     if (query == undefined) {
         query = $('#query').val();
     }
-    cache.img.get('__img', function(ret) {
-        let img_sel;
-        if (query.length > 0) {
-            let terms = query.split(' ');
-            img_sel = ret.filter(img => wordSearch(img, terms) > 0);
-        } else {
-            img_sel = ret;
-        }
-        renderImages(img_sel);
-    });
+    let ret = await cache.img.get('__img');
+    let img_sel;
+    if (query.length > 0) {
+        let terms = query.split(' ');
+        img_sel = ret.filter(img => wordSearch(img, terms) > 0);
+    } else {
+        img_sel = ret;
+    }
+    renderImages(img_sel);
 }
 
 function renderImages(img_list) {
@@ -241,34 +234,30 @@ function renderImages(img_list) {
     });
 };
 
-function renderBox(elem, key, kws, mime) {
+async function renderBox(elem, key, kws, mime) {
     elem.attr('id', key);
     elem.attr('kw', kws);
     let keyspan = $('<div>', {class: 'keyspan', text: key});
     elem.append(keyspan);
-        console.log('sdfd')
 
     if (mime == 'image/svg+gum') {
-        cache.img.get(key, function(ret) {
-            let size = elem.height();
-            let svg = parseSVG(mime, ret, size);
-            if (!svg.success) {
-                elem.html(svg.message);
-            } else {
-                elem.html(svg.svg);
-                elem.addClass('svg');
-                elem.attr('mime', mime);
-                elem.attr('raw', ret);
-            }
-
-        });
+        let ret = await cache.img.get(key);
+        let size = elem.height();
+        let svg = parseSVG(mime, ret, size);
+        if (!svg.success) {
+            elem.html(svg.message);
+        } else {
+            elem.html(svg.svg);
+            elem.addClass('svg');
+            elem.attr('mime', mime);
+            elem.attr('raw', ret);
+        }
     } else {
         let img = $('<img>');
         elem.append(img);
-        cache.img.get(key, function(ret) {
-            let url = URL.createObjectURL(ret);
-            img.attr('src', url);
-        });
+        let ret = await cache.img.get(key);
+        let url = URL.createObjectURL(ret);
+        img.attr('src', url);
     }
  }
 

@@ -7,7 +7,6 @@ import { divInlineParser } from './marked3.js';
 
 /* bibtex library browswer */
 
-
 function initBib() {
     cacheBib();
     connectBib();
@@ -143,6 +142,7 @@ function runQuery() {
     } else {
         $('.cite').removeClass('dull');
     }}
+
 function wordSearch(bib, list) {
     let value = 0;
     let text = $(bib).children('.cite_text');
@@ -158,9 +158,12 @@ function wordSearch(bib, list) {
     text.html(raw);
     return value;
 }
+
 function connectBib() {
     let url = `//${document.domain}:${location.port}`;
-    connect(url, () => { fetchBib([]); });
+    connect(url, () => {
+        fetchBib([]);
+    });
 
     addHandler('invalidateRef', function(data) {
         let [type, key] = data;
@@ -198,6 +201,7 @@ function generateJson(src) {
 function clearQuery() {
     $('#query').val('');
 }
+
 /// editing
 
 function renderBib(data) {

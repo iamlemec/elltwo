@@ -53,21 +53,7 @@ function addDummy(cmd, callback) {
     dummy[cmd] = callback;
 }
 
-function sendCommand(cmd, data='', ack=noop) {
-    JSON.stringify(data);
-    if (cmd in dummy) {
-        console.log(`dummy: ${cmd}`);
-        dummy[cmd](data, ack);
-    } else if (socket !== null) {
-        console.log(`sending: ${cmd}`);
-        socket.emit(cmd, data, ack);
-    } else {
-        console.log(`tried to send "${cmd}" without connection or dummy handler`);
-        console.log(console.trace());
-    }
-}
-
-async function sendCommandAsync(cmd, data='') {
+async function sendCommand(cmd, data='') {
     JSON.stringify(data);
     if (cmd in dummy) {
         console.log(`dummy: ${cmd}`);
@@ -101,4 +87,4 @@ function schedTimeout() {
     timeout_id = setTimeout(autoLockout, 1000*config.timeout);
 }
 
-export { addDummy, addHandler, connect, schedTimeout, sendCommand, sendCommandAsync, setTimeoutHandler };
+export { addDummy, addHandler, connect, schedTimeout, sendCommand, setTimeoutHandler };

@@ -1,5 +1,4 @@
 import { config, state } from './state.js';
-import '../node_modules/es6-promisify/dist/promisify.mjs.js';
 
 // drop to upload — used in article and img
 

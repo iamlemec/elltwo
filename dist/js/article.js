@@ -1,6 +1,6 @@
-import { getPara, cooks, setCookie, getEnvParas, unEscCharCount, KeyCache, on_success } from './utils.js';
+import { getPara, cooks, setCookie, getEnvParas, unEscCharCount, KeyCache } from './utils.js';
 import { updateConfig, config, cache, state, updateState } from './state.js';
-import { connect, addHandler, sendCommand, schedTimeout, sendCommandAsync, setTimeoutHandler } from './client.js';
+import { connect, addHandler, sendCommand, schedTimeout, setTimeoutHandler } from './client.js';
 import { initUser } from './user.js';
 import { eventRender, elltwoHL, rawToRender, rawToTextarea, getRefTags, envClasses, barePara, innerPara, stateRender, initRender, doRenderRef, createTOC, troFromKey, popText, envGlobal } from './render.js';
 import { braceMatch } from './hl.js';
@@ -59,22 +59,22 @@ function cacheArticle() {
     // external references/popups
     cache.ext = new KeyCache('ext', async function(key) {
         let [title, refkey] = key.split(':');
-        let ret = await sendCommandAsync('get_ref', {title: title, key: refkey});
+        let ret = await sendCommand('get_ref', {title: title, key: refkey});
         return (ret !== undefined) ? ret : null;
     });
 
     // article link/blurb
     cache.link = new KeyCache('link', async function(key) {
-        let ret = await sendCommandAsync('get_link', {title: key});
+        let ret = await sendCommand('get_link', {title: key});
         return (ret !== undefined) ? ret : null;
     });
 
     // bibliography (external citations)
     cache.cite = new KeyCache('cite', async function(key) {
-        let ret = await sendCommandAsync('get_cite', {key: key});
+        let ret = await sendCommand('get_cite', {key: key});
         return (ret !== undefined) ? createBibInfo(ret) : null;
     }, async function(keys) {
-        let ret = await sendCommandAsync('get_bib', {keys: keys});
+        let ret = await sendCommand('get_bib', {keys: keys});
         return Object.fromEntries(keys.map(k =>
             [k, (k in ret) ? createBibInfo(ret[k]) : null]
         ));
@@ -82,7 +82,7 @@ function cacheArticle() {
 
     // image cache
     cache.img = new KeyCache('img', async function(key) {
-        let ret = await sendCommandAsync('get_image', {key: key});
+        let ret = await sendCommand('get_image', {key: key});
         if (ret == null) {
             return null;
         } else if (ret.mime.startsWith('image/svg+gum')) {
@@ -96,13 +96,13 @@ function cacheArticle() {
     // external reference completion
     cache.list = new KeyCache('list', async function(key) {
         if (key == '__art') {
-            return await sendCommandAsync('get_arts', {});
+            return await sendCommand('get_arts', {});
         } else if (key == '__bib') {
-            return await sendCommandAsync('get_bibs', {});
+            return await sendCommand('get_bibs', {});
         } else if (key == '__img') {
-            return await sendCommandAsync('get_imgs', {});
+            return await sendCommand('get_imgs', {});
         } else {
-            return await sendCommandAsync('get_refs', {title: key});
+            return await sendCommand('get_refs', {title: key});
         }
     });
 }
@@ -178,7 +178,7 @@ function setEditMode(ro) {
     setWriteable();
 }
 
-function setWriteable() {
+async function setWriteable() {
     let wr = !config.readonly && !state.hist_show && state.edit_mode;
 
     let wr_old = state.writeable;
@@ -192,13 +192,11 @@ function setWriteable() {
 
         if (wr && !wr_old) {
             let data = {pid: pid, aid: config.aid};
-            sendCommand('lock', data, function(response) {
-                if (response) {
-                    text.prop('readonly', false);
-                    placeCursor('end');
-                    schedTimeout();
-                }
-            });
+            if (await sendCommand('lock', data)) {
+                text.prop('readonly', false);
+                placeCursor('end');
+                schedTimeout();
+            }
         } else if (!wr && wr_old) {
             text.prop('readonly', true);
             storeChange(para);
@@ -208,10 +206,9 @@ function setWriteable() {
 
 function connectServer() {
     let url = `//${document.domain}:${location.port}`;
-    connect(url, () => {
-        sendCommand('join_room', {'room': config.aid, 'get_locked': true}, (response) => {
-            lockParas(response);
-        });
+    connect(url, async function() {
+        let paras = await sendCommand('join_room', {'room': config.aid, 'get_locked': true});
+        lockParas(paras);
     });
 
     setTimeoutHandler(function() {
@@ -263,15 +260,14 @@ function connectServer() {
     });
 }
 
-function syncRefs() {
+async function syncRefs() {
     console.log('init global refs');
     $('.para:not(.folder)').each(function() {
         let para = $(this);
         updateRefs(para);
     });
-    sendCommand('update_g_ref', {'aid': config.aid, 'g_ref': false}, function(response) {
-        console.log(`g_ref set to '${response}'`);
-    });
+    let ret = await sendCommand('update_g_ref', {'aid': config.aid, 'g_ref': false});
+    console.log(`g_ref set to "${ret}"`);
 }
 
 function eventArticle() {
@@ -320,16 +316,16 @@ function eventArticle() {
     });
 
     // drop to upload
-    connectDrops(function(box, ret) {
+    connectDrops(async function(box, ret) {
         let para = box.closest('.para');
         let pid = para.attr('pid');
         let data = {pid: pid, aid: config.aid};
-        sendCommand('lock', data, on_success(function() {
+        if (await sendCommand('lock', data)) {
             let raw = `! [id=${ret.key}|caption=none]`;
             para.attr('raw', raw);
             rawToTextarea(para);
             storeChange(para, true, true);
-        }));
+        }
     });
 
     // upload replacement image
@@ -420,7 +416,7 @@ function updateParas(para_dict) {
     }
 }
 
-function deleteParas(pids) {
+async function deleteParas(pids) {
     let do_env = false;
 
     for (const pid of pids) {
@@ -433,9 +429,9 @@ function deleteParas(pids) {
         let old_id = para.attr('id');
         if (old_id) {
             let ref = {aid: config.aid, key: old_id};
-            sendCommand('delete_ref', ref, function(success) {
+            if (await sendCommand('delete_ref', ref)) {
                 console.log('success: deleted ref');
-            });
+            }
         }
 
         let old_ref = getRefTags(para);
@@ -579,16 +575,12 @@ function createExtRef(id) {
 
 function sendUpdateRef(pid) {
     let ref = createExtRef(pid);
-    sendCommand('update_ref', ref, function(success) {
-        console.log(`updated ref ${pid}`);
-    });
+    sendCommand('update_ref', ref);
 }
 
 function sendDeleteRef(pid) {
     let ref = {aid: config.aid, key: pid};
-    sendCommand('delete_ref', ref, function(success) {
-        console.log(`deleted ref ${pid}`);
-    });
+    sendCommand('delete_ref', ref);
 }
 
 // push reference/blurb changes to server
@@ -656,8 +648,10 @@ function getBlurb(len=200, max=5) {
 }
 
 function setBlurb() {
-    let blurb = getBlurb();
-    sendCommand('set_blurb', {'aid': config.aid, 'blurb': blurb});
+    sendCommand('set_blurb', {
+        'aid': config.aid,
+        'blurb': getBlurb(),
+    });
 }
 
 /// sidebar
@@ -957,7 +951,7 @@ function initHistory(data) {
         d3.select(`#hp_${i}`).remove();  // Remove text location
     }
 
-    function handleClick(d, i) {
+    async function handleClick(d, i) {
         console.log('history clicked:', d.commit);
 
         d3.selectAll('circle.active')
@@ -968,7 +962,8 @@ function initHistory(data) {
 
         d3.select('#revert_hist').classed('selected', true);
 
-        sendCommand('get_history', {'aid': config.aid, 'date': d.commit}, renderPreview);
+        let ret = await sendCommand('get_history', {'aid': config.aid, 'date': d.commit});
+        renderPreview(ret);
     }
 
     function generalClick(d, i) {
@@ -1021,16 +1016,13 @@ function initHistory(data) {
     updateHistMap = updateCommits;
 }
 
-function launchHistMap() {
-    sendCommand('get_commits', {'aid': config.aid}, function(dates) {
-        updateHistMap(
-            dates.map(d => ({
-                'commit': d,
-                'date': localDate(d)
-            }))
-        );
-        $('#hist').show();
-    });
+async function launchHistMap() {
+    let dates = await sendCommand('get_commits', {'aid': config.aid});
+    updateHistMap(dates.map(d => ({
+        'commit': d,
+        'date': localDate(d)
+    })));
+    $('#hist').show();
 }
 
 function hideHistPreview() {
@@ -1075,18 +1067,18 @@ function toggleHistMap() {
     setWriteable();
 }
 
-function revertHistory() {
+async function revertHistory() {
     let act = d3.selectAll('circle.active');
     if (act.empty()) {
         return;
     }
     let data = act.datum();
     let args = {aid: config.aid, date: data.commit};
-    sendCommand('revert_history', args, on_success(() => {
+    if (await sendCommand('revert_history', args)) {
         hideHistPreview();
         launchHistMap();
         $('#content').focus();
-    }));
+    }
 }
 
 function responsivefy(svg) {

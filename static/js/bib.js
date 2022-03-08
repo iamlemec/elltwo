@@ -9,7 +9,6 @@ import { renderKatex } from './math.js'
 import { KeyCache, flash, copyText, createIcon } from './utils.js'
 import { divInlineParser } from './marked3.js'
 
-
 function initBib() {
     cacheBib();
     connectBib();
@@ -146,7 +145,7 @@ function runQuery() {
     } else {
         $('.cite').removeClass('dull');
     };
-};
+}
 
 function wordSearch(bib, list) {
     let value = 0;
@@ -160,13 +159,15 @@ function wordSearch(bib, list) {
         raw = raw.replace(re, '<span class="hl">$&</span>');
       }
     });
-    text.html(raw)
+    text.html(raw);
     return value;
-};
+}
 
 function connectBib() {
     let url = `//${document.domain}:${location.port}`;
-    connect(url, () => { fetchBib([]); });
+    connect(url, () => {
+        fetchBib([]);
+    });
 
     addHandler('invalidateRef', function(data) {
         let [type, key] = data;
@@ -203,7 +204,7 @@ function generateJson(src) {
 
 function clearQuery() {
     $('#query').val('');
-};
+}
 
 /// editing
 

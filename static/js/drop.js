@@ -3,7 +3,6 @@
 export { connectDrops, promptUpload, uploadImage }
 
 import { config, state, cache } from './state.js'
-import { sendCommand } from './client.js'
 
 /// handle images
 
