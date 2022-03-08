@@ -252,7 +252,10 @@
     width: 70px;
     height: 100%;
     z-index: -1;
-    cursor: grab;
+}
+
+#bg.writeable .controlZone{
+   cursor: grab;
 }
 
 .controlButs {

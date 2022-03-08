@@ -2,7 +2,7 @@ import { createToggle, createButton, smallable_butt, cur, updateSliderValue } fr
 import { state, config } from './state.js';
 import { sendCommand } from './client.js';
 import './marked3.js';
-import { makeActive, showConfirm, sendUpdatePara, textWrap, textUnWrap } from './editor.js';
+import { makeActive, showConfirm, undoStack, sendUpdatePara, textWrap, textUnWrap, undo } from './editor.js';
 import { deleteImage } from './img.js';
 import { s, braceMatch, SyntaxHL } from './hl.js';
 import { parseGum, InterActive, Element, SVG } from '../node_modules/gum.js/js/gum.js';
@@ -86,6 +86,8 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
         });
 
         $(document).on('input', '#SVGEditorInputText', function(e) {
+            raw = $(this).val();
+            undoStack(raw);
             svgSyntaxHL();
             renderInput();
         });
@@ -144,11 +146,8 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
         }else if (key == 'enter') {
             return getindent(input, cur(e))
         } else if ((ctrl || meta) && key == 'z') {
-            if(shift){
-                redo(state.active_para);
-            }else {
-                undo(state.active_para);
-            }            return false;
+            undo($('#SVGEditorInputBox'), 'gum', shift);
+            return false;
         }
         });
 

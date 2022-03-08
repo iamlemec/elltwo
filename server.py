@@ -602,8 +602,7 @@ def revert_history(data):
 def move_para(data):
     aid, drag_pid, targ_pid = data['aid'], data['drag_pid'], data['targ_pid']
     edb.move_para(aid, drag_pid, targ_pid)
-    print('xxx\n'*10, edb.get_links(aid))
-    # emit('pasteParas', [pid, pid_map], room=str(aid))
+    emit('movePara', [drag_pid,targ_pid], room=str(aid))
     return True
 
 ###

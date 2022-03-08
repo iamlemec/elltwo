@@ -3,8 +3,8 @@
 export {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
     unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
-    fold, makeUnEditable, hideConfirm, showConfirm, undoStack, textWrap, textUnWrap,
-    initDrag
+    fold, makeUnEditable, hideConfirm, showConfirm, undoStack, undo,
+    textWrap, textUnWrap, initDrag
 }
 
 import { config, state, cache } from './state.js'
@@ -16,6 +16,7 @@ import { sendCommand, schedTimeout } from './client.js'
 import {
     rawToRender, rawToTextarea, envClasses, elltwoHL, getFoldLevel, renderFold
 } from './render.js'
+import { SyntaxHL } from './hl.js'
 import {
     insertParaRaw, insertPara, deleteParas, updateRefs, toggleHistMap,
     toggleSidebar, ccNext, ccMake,
@@ -225,11 +226,7 @@ function eventEditor() {
             } else if (space) {
                 state.undoBreakpoint = true;
             } else if ((ctrl || meta) && key == 'z') {
-                if(shift){
-                    redo(state.active_para);
-                }else{
-                    undo(state.active_para);
-                };
+                undo(state.active_para, 'elltwo', shift);
                 return false;
             }
         }
@@ -877,7 +874,7 @@ function textUnWrap(input,cur,d) {
 
 /// UNDUE / REDEW
 
-function undoStack(raw){
+function undoStack(raw, para, cur=0){
     if(state.undoBreakpoint){ //make it easier to undo---word at a time
         //if breakpoint is set, we collapse everything since last breakpoint
         state.undoStack = state.undoStack.slice(0,state.lastUndoBreakpoint+2)
@@ -889,29 +886,30 @@ function undoStack(raw){
         if(state.undoStack.length > config.max_undo){
             state.undoStack.shift();
         }
-        state.undoStack.push(raw)
+        state.undoStack.push([raw,cur])
     }else{
-        state.undoStack = [raw]
+        state.undoStack = [[raw,cur]]
     }
     state.undoPos = state.undoStack.length - 1;
 }
 
-function undo(para){
+function undo(para, hl="elltwo", redo=false){
     let input = para.children('.p_input');
-    let new_pos = Math.max(state.undoPos - 1,0);
-    input.val(state.undoStack[new_pos]);
+    let view = para.children('.p_input_view');
+    let new_pos;
+    if(redo){
+        new_pos = Math.min(state.undoPos + 1,state.undoStack.length-1);
+    }else{
+        new_pos = Math.max(state.undoPos - 1,0);
+    };
+    let raw = state.undoStack[new_pos][0];
+    let c = state.undoStack[new_pos][1] || raw.length;
+    input.val(raw);
+    input[0].setSelectionRange(c,c);
     state.undoPos = new_pos;
     resize(input[0]);
-    elltwoHL(state.active_para);
-}
-
-function redo(para){
-    let input = para.children('.p_input');
-    let new_pos = Math.min(state.undoPos + 1,state.undoStack.length-1);
-    input.val(state.undoStack[new_pos]);
-    state.undoPos = new_pos;
-    resize(input[0]);
-    elltwoHL(state.active_para);
+    let parsed = SyntaxHL(raw, hl);
+    view.html(parsed);
 }
 
 /// DRAG
@@ -928,12 +926,18 @@ function initDrag(){
     $('.para').off('drop');
 
     $('.controlZone').on('mousedown', (e) => {
-        let dragger = e.target;
-        let para = $(dragger.closest('.para'));
-        para.attr('draggable', true);
-        para.addClass('dragging');
-        state.dragPara = para;
-        $(dragger).css('cursor', 'grabbing');
+        if(state.writeable){
+            let dragger = e.target;
+            let para = $(dragger.closest('.para'));
+
+            // let data = {pid: para.attr('pid'), aid: config.aid};
+            // let rw = sendCommand('lock', data);
+
+            para.attr('draggable', true);
+            para.addClass('dragging');
+            state.dragPara = para;
+            $(dragger).css('cursor', 'grabbing');
+        }
     });
 
     $('.controlZone').on('mouseup', (e) => {
@@ -942,7 +946,7 @@ function initDrag(){
         state.dragPara = null;
         $(para).attr('draggable', false)
         $(para).removeClass('dragging')
-        $(dragger).css('cursor', 'grab')
+        $(dragger).css('cursor', '');
     });
 
     //to prevent default drag behavior
@@ -989,7 +993,6 @@ function initDrag(){
         if(targPID == dragPID || nextPID == dragPID){
             console.log('no change')
         }else{
-            drag.insertAfter(targ);
             let data = {aid: config.aid, drag_pid: dragPID, targ_pid: targPID};
             sendCommand('move_para', data);
             }

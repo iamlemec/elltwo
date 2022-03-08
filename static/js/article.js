@@ -258,6 +258,10 @@ function connectServer() {
         deleteParas(data);
     });
 
+    addHandler('movePara', function(data) {
+        movePara(...data);
+    });
+
     addHandler('applyDiff', function(data) {
         applyDiff(data);
     });
@@ -391,7 +395,7 @@ function eventArticle() {
         schedTimeout();
         ccRefs(view, raw, cur, config.cmd);
         elltwoHL(para);
-        undoStack(raw);
+        undoStack(raw, cur);
         if (state.ssv_mode) {
             rawToRender(para, false, false, raw);
         }
@@ -469,6 +473,13 @@ async function deleteParas(pids) {
         envClasses();
     }
 };
+
+async function movePara(dragPID, targPID) {
+        let drag = getPara(dragPID);
+        let targ = getPara(targPID)
+        drag.insertAfter(targ);
+        console.log('success: para moved');
+    }
 
 function insertParaRaw(pid, new_pid, raw='', after=true) {
     let para = getPara(pid);
