@@ -240,6 +240,27 @@
     display: block;
 }
 
+.container:not(.ssv) .para.dragging {
+    box-shadow: -3px 0px var(--delimit-col);
+}
+
+.move_here_icon {
+    width: 100%;
+    margin-top: 30px;
+    display: none;
+}
+
+.para.dropTarg .move_here_icon {
+    display: block;
+}
+
+.move_here_icon svg {
+    width: 100%;
+    height: 50px;
+    stroke: var(--hl-col);
+    fill: none;
+}
+
 /* side-by-side view paras */
 
 .container.ssv {

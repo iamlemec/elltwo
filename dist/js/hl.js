@@ -32,7 +32,7 @@ function esc_brace(raw) {
 function esc_html(raw, brace=true) {
     raw = raw.replace(/\</g, '&lt;')
              .replace(/\>/g, '&gt;');
-              
+
     return brace ? esc_brace(raw) : raw;
 }
 

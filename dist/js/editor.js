@@ -393,7 +393,7 @@ function applyChange(para, raw) {
     para.removeClass('changed');
 }
 
-/// server comms and callbacks
+/// server comms
 
 async function sendUpdatePara(para, text, rerender=false) {
     let pid = para.attr('pid');
@@ -770,9 +770,9 @@ function unfold() {
 
 /// confirm dialog
 
-function showConfirm(button, action, text){
+function showConfirm(button, action, text) {
     state.confirm = true;
-    //let del = createButton('ConfirmDelete', 'Delete', 'delete');
+    // let del = createButton('ConfirmDelete', 'Delete', 'delete');
     let exit = createButton('ConfirmCancel', 'Cancel', 'exit');
     $('#bg').addClass('blur');
     let txt = $('<div>', {text: text});
@@ -780,16 +780,14 @@ function showConfirm(button, action, text){
     $('#confirm_popup').show();
     $('#ConfirmCancel').on('click', (e) => {hideConfirm();});
 
-    let callback = function(){
+    button.on('click', function() {
         action();
         hideConfirm(button);
-    };
-
-    button.on('click',callback);
+    });
 
     $('#confirm_popup').on('click', function(e) {
         let targ = $(e.target);
-        if (targ.closest('#cp_inner').length == 0){
+        if (targ.closest('#cp_inner').length == 0) {
             hideConfirm();
         }
     });
@@ -803,7 +801,7 @@ function hideConfirm(unbind=false) {
         //unbind click events
         $('#ConfirmCancel').off('click');
         $('#confirm_popup').off('click');
-        if(unbind){
+        if (unbind) {
             unbind.off('click');
         }
 }

@@ -47,44 +47,44 @@ let default_state = {
 };
 
 let dummy_callbacks = {
-    lock: (data, ack) => {
+    lock: data => {
         console.log('dummy lock:', data.pid);
-        ack(true);
+        return true;
     },
-    unlock: (data, ack) => {
+    unlock: data => {
         console.log('dummy unlock:', data.pid);
-        ack(true);
+        return true;
     },
-    update_para: (data, ack) => {
+    update_para: data => {
         console.log('dummy update_para:', data.pid);
-        ack(true);
+        return true;
     },
-    update_ref: (data, ack) => {
+    update_ref: data => {
         console.log('dummy update_ref:', data.key);
-        ack(true);
+        return true;
     },
-    timeout: (data, ack) => {
+    timeout: data => {
         console.log('dummy timeout');
     },
-    get_image: (data, ack) => {
+    get_image: data => {
         console.log('dummy get_image:', data.key);
-        ack({found: false});
+        return {found: false};
     },
-    get_link: (data, ack) => {
+    get_link: data => {
         console.log('dummy get_link:', data.title, data.blurb);
-        ack({found: false});
+        return {found: false};
     },
-    get_ref: (data, ack) => {
+    get_ref: data => {
         console.log('dummy get_ref:', data.title, data.key);
-        ack({cite_type: 'err', cite_err: 'art_not_found'});
+        return {cite_type: 'err', cite_err: 'art_not_found'};
     },
-    get_cite: (data, ack) => {
+    get_cite: data => {
         console.log('dummy get_cite:', data.keys);
-        ack([]);
+        return [];
     },
-    get_arts: (data, ack) => {
+    get_arts: data => {
         console.log('dummy get_article:', data);
-        ack([]);
+        return [];
     },
 };
 
@@ -128,7 +128,6 @@ function initIndex() {
     $('.para').each(function() {
         let para = $(this);
         makePara(para, false);
-        SyntaxHL(para);
     });
 
     //make editor work
@@ -157,7 +156,8 @@ function eventIndex() {
         let raw = text.val();
         let cur = e.target.selectionStart;
         ccRefs(view, raw, cur);
-        SyntaxHL(para);
+        let hl = SyntaxHL(raw, 'elltwo');
+        view.html(hl);
         rawToRender(para, true, false, raw); // local changes only
         envClasses();
     });
@@ -232,8 +232,10 @@ function genExample(example) {
         $('#content').append(para);
         makePara(para);
         let input = para.children('.p_input');
+        let view = para.children('.p_input_view');
         resize(input[0]);
-        SyntaxHL(para);
+        let hl = SyntaxHL(raw, 'elltwo');
+        view.html(hl);
     });
     envClasses();
 }
