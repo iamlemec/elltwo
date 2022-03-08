@@ -6,7 +6,7 @@ let { Buffer } = NodeBuffer;
 
 import { createMarkdown, createLatex } from '../static/js/export.js'
 import { cache } from '../static/js/state.js'
-import { KeyCacheAsync, DummyCache } from '../static/js/utils.js'
+import { KeyCache, DummyCache } from '../static/js/utils.js'
 import { initSchemas } from './schema.js'
 import { getAid, getImage, articleText } from './query.js'
 
@@ -25,7 +25,7 @@ program
         let input;
         if (options.input == null) {
             let db = await initSchemas(options.db);
-            cache.img = new AsyncKeyCache('img', async function(key) {
+            cache.img = new KeyCache('img', async function(key) {
                 let image = await getImage(db, key);
                 return {mime: image.mime, data: image.data};
             });
