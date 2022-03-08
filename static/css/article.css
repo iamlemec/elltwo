@@ -45,6 +45,15 @@
     box-shadow: -1px 0px var(--hl-col);
 }
 
+.container:not(.ssv) .para.dragging {
+    box-shadow: -3px 0px var(--delimit-col);
+}
+
+.container:not(.ssv) .para.dropTarg {
+    padding-bottom: 20px;
+    box-shadow: 0px 3px var(--delimit-col);
+}
+
 .container:not(.ssv) .p_text {
     /* cursor: pointer; */
     line-height: 1.5;
@@ -174,6 +183,11 @@
     display: block;
 }
 
+
+.para.dragging {
+    opacity: .4;
+}
+
 .folded {
     display: none;
 }
@@ -226,6 +240,7 @@
     width: 70px;
     height: 100%;
     z-index: -1;
+    cursor: grab;
 }
 
 .controlButs {
@@ -242,9 +257,9 @@
 #bg.hover .para:hover .controlButs,
 #bg.hover .controlZone:hover + .controlButs,
 #bg.hover .controlButs:hover,
-#bg.active .para.active:hover .controlButs,
-#bg.active .para.active .controlZone:hover + .controlButs,
-#bg.active .para.active .controlButs:hover
+#bg.active .para:not(.dragging).active:hover .controlButs,
+#bg.active .para:not(.dragging).active .controlZone:hover + .controlButs,
+#bg.active .para:not(.dragging).active .controlButs:hover
 {
     display: flex;
 }

@@ -895,4 +895,56 @@ function redo(para){
     elltwoHL(state.active_para);
 }
 
-export { eventEditor, fold, hideConfirm, initEditor, lockParas, makeActive, makeUnEditable, placeCursor, resize, sendMakeEditable, sendUpdatePara, showConfirm, storeChange, textUnWrap, textWrap, undoStack, unlockParas };
+/// DRAG
+
+function initDrag(){
+
+    $('.controlZone').on('mousedown', (e) => {
+        let dragger = e.target;
+        let para = dragger.closest('.para');
+        $(para).attr('draggable', true);
+        $(para).addClass('dragging');
+        $(dragger).css('cursor', 'grabbing');
+    });
+
+    $('.controlZone').on('mouseup', (e) => {
+        let dragger = e.target;
+        let para = dragger.closest('.para');
+        $(para).attr('draggable', false);
+        $(para).removeClass('dragging');
+        $(dragger).css('cursor', 'grab');
+    });
+
+    $(document).on('dragover', (e) => {
+        e.preventDefault();
+    });
+
+    $('.para').on('dragover', (e) => {
+        e.preventDefault();
+        let para = e.target.closest('.para');
+        $(para).addClass('dropTarg');
+    });
+
+    $('.para').on('dragleave', (e) => {
+        e.preventDefault();
+        let para = e.target.closest('.para');
+        $(para).removeClass('dropTarg');
+    });
+
+
+    $('.para').on('drop', (e) => {
+        e.stopPropagation();
+        $('.para').attr('draggable', false)
+        .removeClass('dragging')
+        .removeClass('dropTarg');
+        $('.controlZone').css('cursor', 'grab');
+    });
+
+
+
+
+
+
+}
+
+export { eventEditor, fold, hideConfirm, initDrag, initEditor, lockParas, makeActive, makeUnEditable, placeCursor, resize, sendMakeEditable, sendUpdatePara, showConfirm, storeChange, textUnWrap, textWrap, undoStack, unlockParas };

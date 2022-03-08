@@ -25,7 +25,7 @@ import { braceMatch } from './hl.js'
 import {
     initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
     unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
-    makeUnEditable, undoStack
+    makeUnEditable, undoStack, initDrag
 } from './editor.js'
 import { connectDrops, promptUpload, uploadImage } from './drop.js'
 import { initExport } from './export.js'
@@ -145,6 +145,7 @@ function initArticle() {
     initExport();
     initHelp();
     initEditor();
+    initDrag();
 }
 
 function loadArticle(args) {
@@ -1401,8 +1402,6 @@ function ccRefs(view, raw, cur, configCMD) {
                 ccSearch(ret, search, p, selchars, true);
             });
         } else if (open_cmd.exec(sel) && configCMD === 'on') {
-            //let dollars = [...raw.slice(0, cur).matchAll(/(\\*)\$/g)] || []; //match dollars until cusor
-            //dollars = dollars.filter(x => (x[0].length%2==1)); //filter out escaped dollars
             let dollars  = unEscCharCount(raw.slice(0, cur), '$')
             if(dollars%2==1 || raw.startsWith('$$')){
                 cap = open_cmd.exec(sel)

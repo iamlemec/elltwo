@@ -4,7 +4,7 @@ import { connect, addHandler, sendCommand, schedTimeout, setTimeoutHandler } fro
 import { initUser } from './user.js';
 import { eventRender, elltwoHL, rawToRender, rawToTextarea, getRefTags, envClasses, barePara, innerPara, stateRender, initRender, doRenderRef, createTOC, troFromKey, popText, envGlobal } from './render.js';
 import { braceMatch } from './hl.js';
-import { makeActive, eventEditor, undoStack, resize, initEditor, placeCursor, storeChange, lockParas, unlockParas, makeUnEditable } from './editor.js';
+import { makeActive, eventEditor, undoStack, resize, initEditor, initDrag, placeCursor, storeChange, lockParas, unlockParas, makeUnEditable } from './editor.js';
 import { connectDrops, promptUpload, uploadImage } from './drop.js';
 import { initExport } from './export.js';
 import { initHelp } from './help.js';
@@ -124,6 +124,7 @@ function initArticle() {
     initExport();
     initHelp();
     initEditor();
+    initDrag();
 }
 
 function loadArticle(args) {
@@ -1376,8 +1377,6 @@ function ccRefs(view, raw, cur, configCMD) {
                 ccSearch(ret, search, p, selchars, true);
             });
         } else if (open_cmd.exec(sel) && configCMD === 'on') {
-            //let dollars = [...raw.slice(0, cur).matchAll(/(\\*)\$/g)] || []; //match dollars until cusor
-            //dollars = dollars.filter(x => (x[0].length%2==1)); //filter out escaped dollars
             let dollars  = unEscCharCount(raw.slice(0, cur), '$');
             if(dollars%2==1 || raw.startsWith('$$')){
                 cap = open_cmd.exec(sel);
