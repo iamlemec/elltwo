@@ -49,10 +49,9 @@ function copyText(txt) {
 // key cache
 
 class KeyCache {
-    constructor(name, getter, bulker) {
+    constructor(name, getter) {
         this.name = name;
         this.getter = getter;
-        this.bulker = bulker;
         this.data = new Map();
     }
 
@@ -64,19 +63,18 @@ class KeyCache {
         return this.data.get(key);
     }
 
-    get(key, callback) {
+    async get(key, callback) {
         let kc = this;
+        let val;
         if (this.data.has(key)) {
-            let val = this.data.get(key);
-            callback(val);
+            val = this.data.get(key);
         } else {
-            this.getter(key, function(val) {
-                if (val !== undefined) {
-                    kc.data.set(key, val);
-                }
-                callback(val);
-            });
+            val = await this.getter(key);
+            if (val !== undefined) {
+                kc.data.set(key, val);
+            }
         }
+        return val;
     }
 
     del(key) {
@@ -91,28 +89,23 @@ class KeyCache {
         return Object.fromEntries(keys.map(k => [k, this.data.get(k)]));
     }
 
-    bulk(keys, callback) {
+    async bulk(keys) {
         if (this.bulker === undefined) {
             console.log(`KeyCache ${this.name} is not bulked`);
             return;
         }
 
-        let kc = this;
         let rest = keys.filter(k => !this.has(k));
         if (rest.length > 0) {
-            this.bulker(rest, function(vals) {
-                for (const [k, v] of Object.entries(vals)) {
-                    if (v !== undefined) {
-                        kc.data.set(k, v);
-                    }
+            let vals = await this.bulker(rest);
+            for (const [k, v] of Object.entries(vals)) {
+                if (v !== undefined) {
+                    this.data.set(k, v);
                 }
-                let ret = kc.many(keys);
-                callback(ret);
-            });
-        } else {
-            let ret = this.many(keys);
-            callback(ret);
+            }
         }
+
+        return this.many(keys);
     }
 
     keys() {
@@ -310,12 +303,12 @@ function smallable_butt(butts, threshold=1000) {
         let tit = small ? text : '';
         $(id).text(txt).parent().attr('title', tit);
     }}
-// count unescaped chars in text 
+// count unescaped chars in text
 
 function unEscCharCount(str, char){
     let regex = new RegExp(`(\\\\*)\\${char}`, 'g');
-    let all = [...str.matchAll(regex)] || []; //match char 
-    all=all.filter(x => (x[0].length%2==1)); //filter out escaped 
+    let all = [...str.matchAll(regex)] || []; //match char
+    all=all.filter(x => (x[0].length%2==1)); //filter out escaped
     return all.length
 }
 

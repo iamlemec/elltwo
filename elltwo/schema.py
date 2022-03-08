@@ -100,7 +100,6 @@ class Image(Base):
     def __repr__(self):
         return f'{self.key} ({self.mime}) [{self.create_time} → {self.delete_time}]'
 
-
 # user management
 class User(UserMixin, Base):
     __tablename__ = 'user'

@@ -37,21 +37,19 @@ function initImage(args) {
 }
 
 function cacheImage() {
-    cache.img = new KeyCache('img', function(key, callback) {
+    cache.img = new KeyCache('img', async function(key) {
         if (key == '__img') {
             console.log('cacheImage::__img');
-            sendCommand('get_images', {}, callback);
+            return await sendCommand('get_images', {});
         } else {
-            sendCommand('get_image', {key: key}, function(ret) {
-                if (ret == null) {
-                    callback(null);
-                } else if (ret.mime == 'image/svg+gum') {
-                    callback(ret.data);
-                } else {
-                    let url = new Blob([ret.data], {type: ret.mime});
-                    callback(url);
-                }
-            });
+            let ret = await sendCommand('get_image', {key: key});
+            if (ret == null) {
+                return null;
+            } else if (ret.mime == 'image/svg+gum') {
+                return ret.data;
+            } else {
+                return new Blob([ret.data], {type: ret.mime});
+            }
         }
     });
 }

@@ -1,4 +1,4 @@
-export { init_schemas }
+export { initSchemas }
 
 import { Sequelize, DataTypes, Model } from '@sequelize/core'
 
@@ -55,14 +55,28 @@ const schema_paralink = {
     prev: DataTypes.INTEGER,
     next: DataTypes.INTEGER,
     ...time_cols
-}
+};
 
-async function init_schemas(db_path) {
+const schema_image = {
+    iid: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    key: DataTypes.TEXT,
+    keywords: DataTypes.TEXT,
+    mime: DataTypes.TEXT,
+    data: DataTypes.BLOB,
+    ...time_cols
+};
+
+async function initSchemas(db_path) {
     const sequelize = new Sequelize(`sqlite://${db_path}`);
     const opts = { sequelize, ...options };
     const Article = sequelize.define('article', schema_article, opts);
     const Paragraph = sequelize.define('paragraph', schema_paragraph, opts);
     const Paralink = sequelize.define('paralink', schema_paralink, opts);
+    const Image = sequelize.define('image', schema_image, opts);
     await sequelize.sync();
-    return { Article, Paragraph, Paralink }
+    return { Article, Paragraph, Paralink, Image }
 }

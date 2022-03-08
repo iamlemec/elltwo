@@ -1,6 +1,6 @@
 import { getPara, cooks, setCookie, getEnvParas, unEscCharCount, KeyCache, on_success } from './utils.js';
 import { updateConfig, config, cache, state, updateState } from './state.js';
-import { connect, addHandler, sendCommand, schedTimeout, setTimeoutHandler } from './client.js';
+import { connect, addHandler, sendCommand, schedTimeout, sendCommandAsync, setTimeoutHandler } from './client.js';
 import { initUser } from './user.js';
 import { eventRender, elltwoHL, rawToRender, rawToTextarea, getRefTags, envClasses, barePara, innerPara, stateRender, initRender, doRenderRef, createTOC, troFromKey, popText, envGlobal } from './render.js';
 import { braceMatch } from './hl.js';
@@ -57,61 +57,52 @@ function stateArticle() {
 
 function cacheArticle() {
     // external references/popups
-    cache.ext = new KeyCache('ext', function(key, callback) {
+    cache.ext = new KeyCache('ext', async function(key) {
         let [title, refkey] = key.split(':');
-        sendCommand('get_ref', {title: title, key: refkey}, function(ret) {
-            let data = (ret !== undefined) ? ret : null;
-            callback(data);
-        });
+        let ret = await sendCommandAsync('get_ref', {title: title, key: refkey});
+        return (ret !== undefined) ? ret : null;
     });
 
     // article link/blurb
-    cache.link = new KeyCache('link', function(key, callback) {
-        sendCommand('get_link', {title: key}, function(ret) {
-            let data = (ret !== undefined) ? ret : null;
-            callback(data);
-        });
+    cache.link = new KeyCache('link', async function(key) {
+        let ret = await sendCommandAsync('get_link', {title: key});
+        return (ret !== undefined) ? ret : null;
     });
 
     // bibliography (external citations)
-    cache.cite = new KeyCache('cite', function(key, callback) {
-        sendCommand('get_cite', {key: key}, function(ret) {
-            let cite = (ret !== undefined) ? createBibInfo(ret) : null;
-            callback(cite);
-        });
-    }, function(keys, callback) {
-        sendCommand('get_bib', {keys: keys}, function(ret) {
-            let cites = Object.fromEntries(keys.map(k =>
-                [k, (k in ret) ? createBibInfo(ret[k]) : null]
-            ));
-            callback(cites);
-        });
+    cache.cite = new KeyCache('cite', async function(key) {
+        let ret = await sendCommandAsync('get_cite', {key: key});
+        return (ret !== undefined) ? createBibInfo(ret) : null;
+    }, async function(keys) {
+        let ret = await sendCommandAsync('get_bib', {keys: keys});
+        return Object.fromEntries(keys.map(k =>
+            [k, (k in ret) ? createBibInfo(ret[k]) : null]
+        ));
     });
 
     // image cache
-    cache.img = new KeyCache('img', function(key, callback) {
-        sendCommand('get_image', {key: key}, function(ret) {
-            if (ret == null) {
-                callback(null);
-            } else if (ret.mime.startsWith('image/svg+gum')) {
-                callback({mime: ret.mime, data: ret.data});
-            } else {
-                let data = new Blob([ret.data], {type: ret.mime});
-                callback({mime: ret.mime, data: data});
-            }
-        });
+    cache.img = new KeyCache('img', async function(key) {
+        let ret = await sendCommandAsync('get_image', {key: key});
+        if (ret == null) {
+            return null;
+        } else if (ret.mime.startsWith('image/svg+gum')) {
+            return {mime: ret.mime, data: ret.data};
+        } else {
+            let data = new Blob([ret.data], {type: ret.mime});
+            return {mime: ret.mime, data: data};
+        }
     });
 
     // external reference completion
-    cache.list = new KeyCache('list', function(key, callback) {
+    cache.list = new KeyCache('list', async function(key) {
         if (key == '__art') {
-            sendCommand('get_arts', {}, callback);
+            return await sendCommandAsync('get_arts', {});
         } else if (key == '__bib') {
-            sendCommand('get_bibs', {}, callback);
+            return await sendCommandAsync('get_bibs', {});
         } else if (key == '__img') {
-            sendCommand('get_imgs', {}, callback);
+            return await sendCommandAsync('get_imgs', {});
         } else {
-            sendCommand('get_refs', {title: key}, callback);
+            return await sendCommandAsync('get_refs', {title: key});
         }
     });
 }
@@ -1296,7 +1287,7 @@ function ccSearch(list, search, placement, selchars, env_display=false) {
 }
 
 // show command completion popup for references (@[]) and article links ([[]])
-function ccRefs(view, raw, cur, configCMD) {
+async function ccRefs(view, raw, cur, configCMD) {
     if(configCMD === 'off'){
         return false;
     }
@@ -1317,82 +1308,77 @@ function ccRefs(view, raw, cur, configCMD) {
     let open_cmd = /\\([\w-\|\=^]+)(?:[\s\n]|$)/;
     let cap;
     if (cap = open_ref.exec(sel)) {
-            raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
-            view.html(raw);
-            let off = $('#cc_pos').offset();
-            let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-            if (cap[1] == '@') { // bib search
-                let search = cap[2] || '';
-                cache.list.get('__bib', function(ret) {
-                ret = ret.map(x => {
-                    return {name:x, type:'bib'}
-                });
-                    ccSearch(ret, search, p, selchars, true);
-                });
-            } else if (cap[3] && !cap[2]) { // searching for ext page
-                let search = cap[4] || '';
-                cache.list.get('__art', function(ret) {
-                ret = ret.map(x => {
-                    return {name:x, type:'title'}
-                });
-                    ccSearch(ret, search, p, selchars, true);
-                });
-            } else if (cap[2] && cap[3]) {
-                let title = cap[2];
-                let search = cap[4] || "";
-                cache.list.get(title, function(ret) {
-                ret = ret.map(x => {
-                    return {name:x[0], type:x[1]}
-                });
-                    ccSearch(ret, search, p, selchars, true);
-                });
-            } else {
-                let search = cap[4] || cap[2] || '';
-                let in_refs = getInternalRefs();
-                ccSearch(in_refs, search, p, selchars, true);
-            }
+        raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
+        view.html(raw);
+        let off = $('#cc_pos').offset();
+        let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+        if (cap[1] == '@') { // bib search
+            let search = cap[2] || '';
+            let ret = await cache.list.get('__bib');
+            ret = ret.map(x => {
+                return {name: x, type: 'bib'};
+            });
+            ccSearch(ret, search, p, selchars, true);
+        } else if (cap[3] && !cap[2]) { // searching for ext page
+            let search = cap[4] || '';
+            let ret = await cache.list.get('__art');
+            ret = ret.map(x => {
+                return {name:x, type:'title'};
+            });
+            ccSearch(ret, search, p, selchars, true);
+        } else if (cap[2] && cap[3]) {
+            let title = cap[2];
+            let search = cap[4] || "";
+            let ret = await cache.list.get(title);
+            ret = ret.map(x => {
+                return {name:x[0], type:x[1]}
+            });
+            ccSearch(ret, search, p, selchars, true);
+        } else {
+            let search = cap[4] || cap[2] || '';
+            let in_refs = getInternalRefs();
+            ccSearch(in_refs, search, p, selchars, true);
+        }
     } else if (cap = open_i_link.exec(sel)) {
+        raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
+        view.html(raw);
+        let off = $('#cc_pos').offset();
+        let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+        let search = cap[1] || '';
+        let ret = await cache.list.get('__art');
+        ret = ret.map(x => {
+            return {name:x, type:'title'};
+        });
+        ccSearch(ret, search, p, selchars, true);
+    } else if (cap = open_img.exec(sel)) {
+        raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
+        view.html(raw);
+        let off = $('#cc_pos').offset();
+        let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+        let search = cap[2] || '';
+        let ret = await cache.list.get('__img');
+        ret = ret.map(x => {
+            return {name:x, type:'image'};
+        });
+        ccSearch(ret, search, p, selchars, true);
+    } else if (open_cmd.exec(sel) && configCMD === 'on') {
+        // let dollars = [...raw.slice(0, cur).matchAll(/(\\*)\$/g)] || []; //match dollars until cusor
+        // dollars = dollars.filter(x => (x[0].length%2==1)); //filter out escaped dollars
+        let dollars = unEscCharCount(raw.slice(0, cur), '$');
+        if (dollars % 2 == 1 || raw.startsWith('$$')) {
+            cap = open_cmd.exec(sel);
             raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
             view.html(raw);
             let off = $('#cc_pos').offset();
             let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
             let search = cap[1] || '';
-            cache.list.get('__art', function(ret) {
-                ret = ret.map(x => {
-                    return {name:x, type:'title'}
-                });
-                ccSearch(ret, search, p, selchars, true);
+            let ret = tex_cmd.syms.map(x => {
+                return {name: x, type: 'cmd', sym: `\\${x}`};
             });
-    } else if (cap = open_img.exec(sel)) {
-            raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
-            view.html(raw);
-            let off = $('#cc_pos').offset();
-            let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-            let search = cap[2] || '';
-            cache.list.get('__img', function(ret) {
-                ret = ret.map(x => {
-                    return {name:x, type:'image'}
-                });
-                ccSearch(ret, search, p, selchars, true);
-            });
-        } else if (open_cmd.exec(sel) && configCMD === 'on') {
-            //let dollars = [...raw.slice(0, cur).matchAll(/(\\*)\$/g)] || []; //match dollars until cusor
-            //dollars = dollars.filter(x => (x[0].length%2==1)); //filter out escaped dollars
-            let dollars  = unEscCharCount(raw.slice(0, cur), '$');
-            if(dollars%2==1 || raw.startsWith('$$')){
-                cap = open_cmd.exec(sel);
-                raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
-                view.html(raw);
-                let off = $('#cc_pos').offset();
-                let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-                let search = cap[1] || '';
-                let ret = tex_cmd.syms.map(x => {
-                    return {name:x, type:'cmd', sym:`\\${x}`,}
-                });
-                let ops = tex_cmd.ops;
-                ret = ret.concat(ops);
-                ccSearch(ret, search, p, selchars, true);
-            }
+            let ops = tex_cmd.ops;
+            ret = ret.concat(ops);
+            ccSearch(ret, search, p, selchars, true);
+        }
     }
 }
 

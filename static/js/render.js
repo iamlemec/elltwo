@@ -45,7 +45,7 @@ function eventRender() {
             $('#pop').remove();
             let ref = $(this);
             ref.data('show_pop', true);
-            let html = getTro(ref, renderPop);
+            getTro(ref, renderPop);
             return false;
         });
 
@@ -61,9 +61,9 @@ function eventRender() {
         $(document).on({
             mouseenter: function() {
                 let ref = $(this);
-                if(!ref.hasClass('sidenote')){
+                if(!ref.hasClass('sidenote')) {
                     ref.data('show_pop', true);
-                    let html = getTro(ref, renderPop);
+                    getTro(ref, renderPop);
                 }
             },
             mouseleave: function() {
@@ -644,34 +644,33 @@ function figEnv(ptxt, args) {
     }
 }
 
-function imgEnv(ptxt, args) {
+async function imgEnv(ptxt, args) {
     figEnv(ptxt, args);
 
     let fig = ptxt.find('.fig_cont');
     let img = fig.children('img');
     let key = args.image || args.img || ptxt.parent().attr('id');
 
-    cache.img.get(key, function(ret) {
-        if (ret == null) {
-            img.attr('src', '');
-            let msg = `Error: image "${key}" not found`;
-            let err = $('<span>', {class: 'env_add img_err', text: msg});
-            fig.append(err);
+    let ret = await cache.img.get(key);
+    if (ret == null) {
+        img.attr('src', '');
+        let msg = `Error: image "${key}" not found`;
+        let err = $('<span>', {class: 'env_add img_err', text: msg});
+        fig.append(err);
+    } else {
+        if (ret.mime == 'image/svg+gum') {
+            args['svg'] = ret.data;
+            args['mime'] = ret.mime;
+            svgEnv(ptxt, args, false);
         } else {
-            if (ret.mime == 'image/svg+gum') {
-                args['svg'] = ret.data;
-                args['mime'] = ret.mime;
-                svgEnv(ptxt, args, false);
-            } else {
-                let url = URL.createObjectURL(ret.data);
-                img.attr('src', url);
-            }
-            let upd = $('<div>', {class: `env_add img_update update_${ret.mime}`});
-            let ico = $('<svg><use xlink:href="/dist/img/icons.svg#upload"></use></svg>');
-            upd.append(ico);
-            fig.append(upd);
+            let url = URL.createObjectURL(ret.data);
+            img.attr('src', url);
         }
-    });
+        let upd = $('<div>', {class: `env_add img_update update_${ret.mime}`});
+        let ico = $('<svg><use xlink:href="/dist/img/icons.svg#upload"></use></svg>');
+        upd.append(ico);
+        fig.append(upd);
+    }
 }
 
 function svgEnv(ptxt, args, outer=true) {
@@ -838,7 +837,7 @@ function createTOC(outer) {
 
 /// REFERENCING and CITATIONS
 
-function getTro(ref, callback) {
+async function getTro(ref, callback) {
     let tro = {};
     let key = ref.attr('refkey');
     let type = ref.attr('reftype');
@@ -849,49 +848,46 @@ function getTro(ref, callback) {
         callback(ref, tro);
     } else if (type == 'link') {
         let short = ref.attr('href');
-        cache.link.get(short, function(ret) {
-            if (ret !== null) {
-                tro.cite_type = 'link';
-                tro.ref_text = ret.title;
-                tro.pop_text = ret.blurb;
-            } else {
-                tro.cite_type = 'err';
-                tro.cite_err = 'art_not_found';
-                tro.ref_text = `[[${short}]]`;
-            }
-            callback(ref, tro);
-        });
+        let ret = await cache.link.get(short);
+        if (ret !== null) {
+            tro.cite_type = 'link';
+            tro.ref_text = ret.title;
+            tro.pop_text = ret.blurb;
+        } else {
+            tro.cite_type = 'err';
+            tro.cite_err = 'art_not_found';
+            tro.ref_text = `[[${short}]]`;
+        }
+        callback(ref, tro);
     } else if (type == 'cite') {
-        cache.cite.get(key, function(ret) {
-            if (ret !== null) {
-                tro.cite_type = 'cite';
-                tro.cite_author = ret.author;
-                tro.cite_year = ret.year;
-                tro.cite_doi = ret.doi;
-                tro.pop_text = ret.entry;
-            } else {
-                tro.cite_type = 'err';
-                tro.cite_err = 'cite_not_found';
-                tro.ref_text = `@@[${key}]`;
-            }
-            callback(ref, tro);
-        });
+        let ret = await cache.cite.get(key);
+        if (ret !== null) {
+            tro.cite_type = 'cite';
+            tro.cite_author = ret.author;
+            tro.cite_year = ret.year;
+            tro.cite_doi = ret.doi;
+            tro.pop_text = ret.entry;
+        } else {
+            tro.cite_type = 'err';
+            tro.cite_err = 'cite_not_found';
+            tro.ref_text = `@@[${key}]`;
+        }
+        callback(ref, tro);
     } else if (type == 'ext') {
-        cache.ext.get(key, function(ret) {
-            if (ret !== null) {
-                tro.tro = $($.parseHTML(ret.text));
-                tro.cite_type = ret.cite_type;
-                tro.cite_env = ret.cite_env;
-                tro.cite_err = ret.cite_err;
-                tro.ref_text = ret.ref_text;
-                tro.ext_title = ret.title;
-            } else {
-                tro.cite_type = 'err';
-                tro.cite_err = 'ref_not_found';
-                tro.ref_text = `@[${key}]`;
-            }
-            callback(ref, tro);
-        });
+        let ret = await cache.ext.get(key);
+        if (ret !== null) {
+            tro.tro = $($.parseHTML(ret.text));
+            tro.cite_type = ret.cite_type;
+            tro.cite_env = ret.cite_env;
+            tro.cite_err = ret.cite_err;
+            tro.ref_text = ret.ref_text;
+            tro.ext_title = ret.title;
+        } else {
+            tro.cite_type = 'err';
+            tro.cite_err = 'ref_not_found';
+            tro.ref_text = `@[${key}]`;
+        }
+        callback(ref, tro);
     } else if (type == 'int') {
         tro = troFromKey(key, tro);
         callback(ref, tro);
