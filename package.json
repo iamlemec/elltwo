@@ -10,6 +10,8 @@
     "dev": "npx gulp dev"
   },
   "dependencies": {
+    "@codemirror/basic-setup": "^0.19.1",
+    "@codemirror/lang-markdown": "^0.19.6",
     "@sequelize/core": "^7.0.0-alpha.10",
     "@zip.js/zip.js": "^2.4.4",
     "adm-zip": "^0.5.9",

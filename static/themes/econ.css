@@ -93,12 +93,9 @@ button,
     border-bottom: 1px solid black;
 }
 
-.container:not(.ssv) .para.active {
-    box-shadow: -4px 0px var(--hl-col);
-}
-
-.container.ssv .para.active .p_input_view {
-    box-shadow: -4px 0px var(--hl-col);
+.container:not(.ssv) .para {
+    padding: 0;
+    border: 0;
 }
 
 .para.active {

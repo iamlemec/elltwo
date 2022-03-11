@@ -4,7 +4,7 @@ export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender, rawToTextarea,
     envClasses, envGlobal, renderRefText, createTOC, troFromKey, popText, renderPop,
     s_env_spec, getFoldLevel, renderFold, barePara, makePara, connectCallbacks, getRefTags,
-    trackRef, untrackRef, doRenderRef, elltwoHL, exportMarkdown, exportLatex
+    trackRef, untrackRef, doRenderRef, elltwoHL, exportMarkdown, exportLatex, makeEditor, getEditor
 }
 
 import { merge, cooks, getPara, RefCount, DummyCache, updateSliderValue } from './utils.js'
@@ -16,6 +16,7 @@ import { renderKatex } from './math.js'
 import { parseSVG } from './svg.js'
 import { SyntaxHL, esc_html } from './hl.js'
 import { exportMarkdown, exportLatex } from './export.js'
+import { TextEditor } from './text.js'
 
 // main rendering entry point (for all cases)
 
@@ -173,8 +174,7 @@ async function loadMarkdown(args) {
 // inner HTML for para structure. Included here for updating paras
 const innerPara = `
 <div class="p_text"></div>
-<div class="p_input_view"></div>
-<textarea readonly class="p_input"></textarea>
+<div class="p_input"></div>
 <div class="control">
 <div class="controlZone"></div>
 <div class="controlButs">
@@ -208,10 +208,23 @@ function barePara(pid, raw='') {
     });
 }
 
+function makeEditor(para) {
+    let [input] = para.children('.p_input');
+    let editor = new TextEditor(input);
+    let pid = para.attr('pid');
+    state.editors.set(pid, editor);
+}
+
+function getEditor(para) {
+    let pid = para.attr('pid');
+    return state.editors.get(pid);
+}
+
 function makePara(para, defer=true) {
     para.html(innerPara);
+    makeEditor(para);
     let anc = $('<span>', {id: `pid-${para.attr('pid')}`});
-    para.prepend(anc)
+    para.prepend(anc);
     rawToTextarea(para);
     rawToRender(para, defer); // postpone formatting
 }
@@ -312,12 +325,10 @@ function rawToRender(para, defer=false, track=true, raw=null) {
 }
 
 function rawToTextarea(para) {
-    var textArea = para.children('.p_input');
-    var raw = para.attr('raw');
-    textArea.val(raw);
-    elltwoHL(para);
+    let raw = para.attr('raw');
+    let editor = getEditor(para);
+    editor.setText(raw);
 }
-
 
 ///////////////// ENVS /////////
 

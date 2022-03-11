@@ -20,13 +20,12 @@ import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
     envClasses, envGlobal, createTOC, troFromKey, popText, elltwoHL,
-    renderRefText, getRefTags, untrackRef, doRenderRef, barePara
+    renderRefText, getRefTags, untrackRef, doRenderRef, barePara, makeEditor, getEditor
 } from './render.js'
-import { braceMatch } from './hl.js'
 import {
-    initEditor, stateEditor, eventEditor, resize, makeActive, lockParas,
+    initEditor, stateEditor, eventEditor, makeActive, lockParas,
     unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
-    makeUnEditable, undoStack, initDrag
+    makeUnEditable, initDrag
 } from './editor.js'
 import { connectDrops, promptUpload, uploadImage } from './drop.js'
 import { initExport } from './export.js'
@@ -35,7 +34,6 @@ import { createBibInfo } from './bib.js'
 import { initSVGEditor, hideSVGEditor, parseSVG, openSVGFromKey } from './svg.js'
 import { renderKatex} from './math.js'
 import { tex_cmd } from '../libs/tex_cmd.js'
-
 
 // history
 let updateHistMap;
@@ -48,7 +46,6 @@ let default_config = {
     cmd: 'on', //
     timeout: 180, // para lock timeout
     max_size: 1024, // max image size
-    max_undo: 30, // max undo steps
     readonly: true, // is session readonly
     ssv_persist: false, // start in ssv mode
     edit_persist: false, // start in edit mode
@@ -69,6 +66,7 @@ let default_state = {
     writeable: false, // can we actually modify contents
     cc: false, // is there a command completion window open
     cb: [], // clipboard for cell copy
+    editors: new Map(), // pid → editor map
 };
 
 function stateArticle() {
@@ -196,8 +194,6 @@ function setSsvMode(val) {
     $('.para:not(.folded):not(.folder)').each(function() {
         let para = $(this);
         let input = para.children('.p_input');
-        elltwoHL(para);
-        resize(input[0]);
         placeCursor('end');
     });
 }
@@ -384,34 +380,23 @@ function eventArticle() {
     $(document).on('click', '.open_svg_editor', function() {
         let key = $(this).attr('key');
         let pid = $(this).closest('.para');
-        initSVGEditor($('#bg'), "", key, true, pid);
+        initSVGEditor($('#bg'), '', key, true, pid);
         return false;
     });
-
-
 
     // syntax highlighting and brace matching
     $(document).on('input', '.p_input:not(.svgE)', function(e) {
         let cur = e.currentTarget.selectionStart;
         let para = $(this).parent('.para');
-        let text = para.children('.p_input');
-        let view = para.children('.p_input_view');
-        let raw = text.val();
-        schedTimeout();
-        ccRefs(view, raw, cur, config.cmd);
-        elltwoHL(para);
-        undoStack(raw, cur);
+        let editor = getEditor(para);
+        let raw = editor.getText();
+
+        // ccRefs(view, raw, cur, config.cmd); TODO: CC
         if (state.ssv_mode) {
             rawToRender(para, false, false, raw);
         }
-    });
 
-    $(document).on('keyup', '.p_input:not(.svgE)', function(e) {
-        let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
-        if (arrs.includes(e.keyCode)) {
-            var para = $(this).parent('.para');
-            braceMatch(this, para);
-        }
+        schedTimeout();
     });
 
     $(document).on('change', '#ssv_check', function() {
@@ -480,12 +465,12 @@ async function deleteParas(pids) {
 };
 
 async function movePara(dragPID, targPID) {
-        let drag = getPara(dragPID);
-        let targ = getPara(targPID)
-        drag.insertAfter(targ);
-        envClasses();
-        console.log('success: para moved');
-    }
+    let drag = getPara(dragPID);
+    let targ = getPara(targPID);
+    drag.insertAfter(targ);
+    envClasses();
+    console.log('success: para moved');
+}
 
 function insertParaRaw(pid, new_pid, raw='', after=true) {
     let para = getPara(pid);
@@ -513,6 +498,7 @@ function insertParaRaw(pid, new_pid, raw='', after=true) {
     }
 
     new_para.html(innerPara);
+    makeEditor(new_para);
     rawToTextarea(new_para);
 
     if (do_env) {
@@ -1159,16 +1145,17 @@ function ccNext(dir) {
 }
 
 function ccMake(cctxt=null, addText=false, offset_chars=0) {
-    if (cctxt===null){
+    if (cctxt === null) {
         cctxt = $('.cc_row').first().attr('ref');
         offset_chars=$('.cc_row').first().attr('offset_chars') || 0;
     }
+
     let para = state.active_para;
     let input = para.children('.p_input');
     let raw = input.val();
 
-    let [l,u] = state.cc
-    let sel = raw.substring(l, u)
+    let [l, u] = state.cc;
+    let sel = raw.substring(l, u);
 
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?:\])?/;
     let open_i_link = /\[\[([\w-\|\=^]+)?(?:\]\])?/;
@@ -1176,11 +1163,9 @@ function ccMake(cctxt=null, addText=false, offset_chars=0) {
     let open_cmd = /\\([\w-\|\=^]+)/;
 
     let cap;
-    let iter = false //true iterates the process (for ext art refs)
-    let at = "";
-    if (addText){
-        at = '|text=';
-    };
+    let iter = false; //true iterates the process (for ext art refs)
+    let at = addText ? '|text=' : '';
+
     if (cap = open_ref.exec(sel)) {
         l += cap.index;
         if (cap[3] && !cap[2]) { // start ext page
@@ -1232,24 +1217,28 @@ function ccMake(cctxt=null, addText=false, offset_chars=0) {
             return out;
         });
     }
-    raw = raw.substring(0,state.cc[0]) + sel + raw.substring(u);
+
+    raw = raw.substring(0, state.cc[0]) + sel + raw.substring(u);
     input.val(raw).trigger('input');
-    resize(input[0]);
-    elltwoHL(state.active_para);
+
     state.cc = false;
     $('#cc_pop').remove();
-    if(addText && !iter){
+
+    if (addText && !iter) {
         l -= 1;
     }
     l -= offset_chars;
     input[0].setSelectionRange(l, l);
-    if(iter){
+
+    if (iter) {
         let view = para.children('.p_input_view');
         ccRefs(view, raw, l);
     }
+
     if (state.ssv_mode) {
             rawToRender(para, false, false, raw);
     }
+
     return l;
 }
 
@@ -1324,7 +1313,7 @@ function ccSearch(list, search, placement, selchars, env_display=false) {
 
 // show command completion popup for references (@[]) and article links ([[]])
 async function ccRefs(view, raw, cur, configCMD) {
-    if(configCMD === 'off'){
+    if (configCMD == 'off') {
         return false;
     }
     state.cc = false;
@@ -1397,21 +1386,21 @@ async function ccRefs(view, raw, cur, configCMD) {
             return {name:x, type:'image'};
         });
         ccSearch(ret, search, p, selchars, true);
-        } else if (open_cmd.exec(sel) && configCMD === 'on') {
-            let dollars  = unEscCharCount(raw.slice(0, cur), '$')
-            if(dollars%2==1 || raw.startsWith('$$')){
-                cap = open_cmd.exec(sel)
-                raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
-                view.html(raw);
-                let off = $('#cc_pos').offset();
-                let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-                let search = cap[1] || '';
-                let ret = tex_cmd.syms.map(x => {
-                    return {name:x, type:'cmd', sym:`\\${x}`,}
-                })
-                let ops = tex_cmd.ops
-                ret = ret.concat(ops)
-                ccSearch(ret, search, p, selchars, true);
-            }
+    } else if (open_cmd.exec(sel) && configCMD === 'on') {
+        let dollars = unEscCharCount(raw.slice(0, cur), '$');
+        if (dollars%2==1 || raw.startsWith('$$')) {
+            cap = open_cmd.exec(sel)
+            raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
+            view.html(raw);
+            let off = $('#cc_pos').offset();
+            let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+            let search = cap[1] || '';
+            let ret = tex_cmd.syms.map(x => {
+                return {name:x, type:'cmd', sym:`\\${x}`,}
+            });
+            let ops = tex_cmd.ops
+            ret = ret.concat(ops)
+            ccSearch(ret, search, p, selchars, true);
+        }
     }
 }

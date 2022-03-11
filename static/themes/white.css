@@ -4,11 +4,11 @@
     --hl2-col: rgb(255, 13, 87);
     --hl3-col: mediumseagreen;
     --bg-col: white;
-    --bg-hl-col: whitesmoke;
-    --bg-hl2-col: rgb(200,200,200);
-    --comment: rgb(150,150,150);
+    --bg-hl-col: rgb(240, 240, 240);
+    --bg-hl2-col: rgb(200, 200, 200);
+    --comment: rgb(150, 150, 150);
     --delimit-col: tomato;
-    --pop-bg-col: rgba(0,0,0,.95);
+    --pop-bg-col: rgba(0, 0, 0, 0.95);
     --pop-fg-col: white;
     --font-col-int: goldenrod;
     --brace-col: rgba(33, 150, 243, 0.3);
@@ -125,6 +125,10 @@ button,
 
 /* paras */
 
+.p_text {
+    padding: 0 4px;
+}
+
 .env__title > .p_text {
     text-align: center;
     border-bottom: 2px solid black;
@@ -135,12 +139,9 @@ button,
     border-bottom: 1px solid black;
 }
 
-.container:not(.ssv) .para.active {
-    box-shadow: -4px 0px var(--hl-col);
-}
-
-.container.ssv .para.active .p_input_view {
-    box-shadow: -4px 0px var(--hl-col);
+.container:not(.ssv) .para {
+    padding: 0;
+    border: 0;
 }
 
 .para.active {

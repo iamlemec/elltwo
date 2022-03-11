@@ -3,7 +3,7 @@ import { updateState, updateCache, state, config } from './state.js';
 import { stateRender, connectCallbacks, makePara, eventRender, rawToRender, envClasses, barePara } from './render.js';
 import { SyntaxHL, braceMatch } from './hl.js';
 import { renderKatex } from './math.js';
-import { initEditor, eventEditor, makeActive, sendMakeEditable, resize } from './editor.js';
+import { initEditor, eventEditor, makeActive, sendMakeEditable } from './editor.js';
 import { ccRefs } from './article.js';
 
 /* main article entry point */

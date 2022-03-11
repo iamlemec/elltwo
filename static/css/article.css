@@ -30,12 +30,12 @@
     transform: translateX(calc(.5 * var(--sb_off) - 40px));
 }
 
-.container.ssv.sb_content .p_input_view, .container.ssv.sb_content .p_input, .container.ssv.sb_content .control {
+.container.ssv.sb_content .p_input, .container.ssv.sb_content .control {
     transform: translateX(calc(.5 * var(--sb_off) - 30px));
 }
 
 .container:not(.ssv) .para.active {
-    box-shadow: -1px 0px var(--hl-col);
+    /* box-shadow: -1px 0px var(--hl-col); */
 }
 
 .container:not(.ssv) .para.dragging {
@@ -67,10 +67,8 @@
 .container:not(.ssv) .p_input:not(.svgE),
 .container:not(.ssv) .p_input_view:not(.svgE) {
     white-space: pre-wrap;
-    position: absolute;
-    width: calc(100% - 10px);
-    min-height: 40px;
-    font-size: 85%;
+    width: 100%;
+    font-size: 80%;
     overflow: hidden;
     display: none;
     border: 0;
@@ -84,21 +82,23 @@
     color: inherit;
     background-color: inherit;
     caret-color: inherit;
-    color: rgba(0, 0, 0, 0);
-    background-color: rgba(0, 0, 0, 0);
-}
-
-.container:not(.ssv) .p_input_view:not(.svgE) {
-    font-family: monospace;
+    padding-right: 5px;
+    overflow-wrap: anywhere;
+    outline: 1px solid var(--hl-col);
 }
 
 .container:not(.ssv) > .para.rawtext > .p_text {
     display: none;
 }
 
-.container:not(.ssv) > .para.rawtext > .p_input,
-.container:not(.ssv) > .para.rawtext > .p_input_view {
+.container:not(.ssv) > .para.rawtext > .p_input {
     display: block;
+}
+
+/* codemirror editor */
+
+.cm-focused {
+    outline: 0 !important;
 }
 
 /* side-by-side view paras */
@@ -121,15 +121,6 @@
     padding: 5px;
 }
 
-.container.ssv .para.active .p_input_view {
-    box-shadow: -2px 0px var(--hl-col);
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-.container.ssv .para.rawtext .p_input_view {
-    background-color: rgba(0, 0, 0, 0.15);
-}
-
 .container.ssv .p_text {
     line-height: 20px;
     text-align: justify;
@@ -140,7 +131,7 @@
     line-height: 25px;
 }
 
-.container.ssv .p_input_view, .container.ssv .p_input {
+.container.ssv .p_input {
     white-space: pre-wrap;
     position: absolute;
     top: 0;
@@ -151,21 +142,7 @@
     font-size: 85%;
     overflow: hidden;
     border: none;
-}
-
-.container.ssv .p_input {
-    color: inherit;
-    background-color: inherit;
-    caret-color: inherit;
-    color: rgba(0, 0, 0, 0);
-    background-color: rgba(0, 0, 0, 0);
-    line-height: 20px;
-}
-
-.container.ssv .p_input_view {
-    font-family: monospace;
-    display: inline-block;
-    background-color: rgba(0,0,0,.03);
+    padding-right: 5px;
     line-height: 20px;
 }
 
@@ -197,16 +174,6 @@
 
 .comment.fold_text::after {
     content: "env folded, [ ⇧ + f ] to unfold";
-}
-
-/* cursor lag hack for firefox */
-
-@-moz-document url-prefix() {
-    .container.ssv .p_input,
-    .container:not(.ssv) .p_input
-    {
-        color: rgba(0, 0, 0, 0.01);
-    }
 }
 
 /* control buttons */
@@ -663,10 +630,6 @@ button {
     counter-reset: line;
     background-color: inherit;
     background-color: rgba(0,0,0,.1);
-}
-
-.para .p_input_view .linenum{
-    display: none;
 }
 
 .code.numbered > pre {
