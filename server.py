@@ -68,7 +68,7 @@ config = {
     'always_hover': False, # hover bar in read-only mode
     'default_theme': 'white', # default theme
     'default_font': 'default', # default font
-    'demo_path': 'testing/demo.md', # path to demo content
+    'demo_path': 'default/demo.md', # path to demo content
     'themes': themes, # all themes by default
     'macros': {}, # no latex macros by default
 }

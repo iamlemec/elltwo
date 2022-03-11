@@ -1,12 +1,27 @@
 # Use an official Python runtime as a parent image
-FROM python:3.9-slim
+FROM python:3.9
 
 # Set the working directory
 WORKDIR /opt/elltwo
 
-# Install any needed packages specified in requirements.txt
+# Install Python packages
 COPY requirements.txt .
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
+
+# Install NodeJS
+ENV NVM_DIR /opt/nvm
+RUN mkdir $NVM_DIR
+RUN curl -sL -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+RUN . $NVM_DIR/nvm.sh && nvm install node && nvm use node
+
+# Install Node packages
+COPY package.json .
+RUN . $NVM_DIR/nvm.sh && npm install
+
+# Build web content
+COPY static static
+COPY gulpfile.js .
+RUN . $NVM_DIR/nvm.sh && npm run build
 
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
@@ -15,10 +30,10 @@ EXPOSE 5000
 COPY server.py .
 COPY console.py .
 COPY elltwo elltwo
-COPY static static
+COPY dist dist
 COPY templates templates
-COPY testing testing
 
 # Demo entry point
+COPY default default
 COPY docker/demo.sh demo.sh
 CMD ["bash", "demo.sh"]

@@ -78,5 +78,5 @@ async function initSchemas(db_path) {
     const Paralink = sequelize.define('paralink', schema_paralink, opts);
     const Image = sequelize.define('image', schema_image, opts);
     await sequelize.sync();
-    return { Article, Paragraph, Paralink, Image }
+    return { Article, Paragraph, Paralink, Image };
 }
