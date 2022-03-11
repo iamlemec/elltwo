@@ -1,6 +1,6 @@
 {
   "name": "elltwo",
-  "version": "0.1",
+  "version": "0.1.0",
   "description": "Elltwo markdown parser.",
   "type": "module",
   "author": "Doug Hanley and Evan Piermont",
