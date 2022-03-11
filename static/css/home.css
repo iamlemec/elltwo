@@ -16,9 +16,10 @@
 .notification {
     position: relative;
     width: 100%;
-    min-height: 50px;
-    top: -10%;
+    min-height: 0px;
+    top: 30px;
     text-align: center;
+    color: var(--hl2-col)
 }
 
 #title {

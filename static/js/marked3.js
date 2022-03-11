@@ -23,7 +23,7 @@ let block = {
     title: /^#! *(?:refargs)?\s*([^\n]*)\s*/,
     upload: /^!!(gum)? *(?:refargs)?\s*$/,
     svg: /^\!(svg|gum)(\*)? *(?:refargs)?\s*/,
-    image: /^!(\*)? *(?:refargs)? *\(href\)\s*$/,
+    image: /^!(yt|youtube)?(\*)? *(?:refargs)? *\(href\)\s*$/,
     imagelocal: /^!(\*)? *(?:refargs)\s*$/,
     figtab: /^@\| *(?:refargs)? *\n(?:table)/,
     envbeg: /^\>\>(\!)? *([\w-]+)(\*)? *(?:refargs)?\s*/,
@@ -263,16 +263,23 @@ class BlockParser {
 
         // image
         if (cap = this.rules.image.exec(src)) {
-            let number = cap[1] == undefined;
-            let argsraw = cap[2] || '';
+            let env = cap[1] || 'image'
+            env = env='youtube'?'yt':env;
+            let number = cap[2] == undefined;
+            let argsraw = cap[3] || '';
             let args = parseArgs(argsraw, number);
-            let href = cap[3];
+            let href = cap[4];
+            if(env='yt'){
+                href = href.replace('watch?v=', 'embed/');
+                args.caption = args.caption || 'none';
+                args.figtype = args.figtype || 'none';
+            }
             this.env = {
                 type: 'env_one',
-                env: 'image',
+                env: env,
                 args: args,
             }
-            return this.renderer.image(href);
+            return this.renderer.image(href, env='yt');
         }
 
         // imagelocal
@@ -907,7 +914,12 @@ class DivRenderer {
         //return `<div class="sidenote">${text}</div>`;
     }
 
-    image(href) {
+    image(href, yt=false) {
+        if(yt){
+            return `<div class="fig_cont">
+                <iframe width="560" height="315" src="${href}"
+             frameborder="0" allowfullscreen></iframe></div>`;
+        }
         return `<div class="fig_cont"><img src="${href}" /></div>`;
     }
 

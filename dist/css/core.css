@@ -356,10 +356,10 @@ a.reference {
 	border-radius: 100px;
 	cursor: pointer;
 	display: flex;
-	height: 30px;
+	height: 25px;
 	position: relative;
-    width: 56px;
-    min-width: 56px;
+    width: 45px;
+    min-width: 45px;
 }
 
 .toggle-indicator {
@@ -368,17 +368,17 @@ a.reference {
 	border-radius: 24px;
 	bottom: 2px;
 	display: flex;
-	height: 24px;
+	height: 20px;
 	justify-content: center;
 	left: 2px;
 	position: absolute;
 	transition: 200ms;
-	width: 24px;
+	width: 20px;
 }
 
 .toggle__input:checked + .toggle-track .toggle-indicator {
 	background: var(--bg-hl2-col);
-	transform: translateX(26px);
+	transform: translateX(20px);
 }
 
 .toggle__input:checked + .toggle-track {

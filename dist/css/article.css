@@ -4,10 +4,6 @@
     --sb_off: 180px;
 }
 
-#SVGEditorOuter {
-    border-left: 45px solid rgba(0,0,0,.15);
-}
-
 .container.sb_content #SVGEditorOuter {
    left: calc(.5  * var(--sb_off));
    width: calc(100% - var(--sb_off));
@@ -72,7 +68,7 @@
     text-align: justify;
 }
 
-.container:not(.ssv) .p_input {
+.container:not(.ssv) .p_input:not(.svgE) {
     white-space: pre-wrap;
     position: absolute;
     width: 100%;
@@ -1204,33 +1200,21 @@ circle.commit.active {
 
 #ssv_text {
     text-align: right;
-    min-width: 60px;
-    margin-right: 5px;
 }
 
 #ssv_label {
-    margin-right: 10px;
+    text-align: right;
 }
 
 #edit_text {
     text-align: right;
     min-width: 60px;
-    margin-right: 5px;
 }
 
 #edit_label {
     margin-right: 15px;
 }
 
-.toggle-track {
-    height: 25px;
-    width: 45px;
-}
-
-.toggle-indicator {
-    height: 19px;
-    width: 19px;
-}
 
 /* tables */
 

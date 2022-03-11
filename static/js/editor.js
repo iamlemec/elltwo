@@ -78,6 +78,9 @@ function eventEditor() {
                           '$': ['$','$', true],
                           '\'': ['\'','\'', true],
                           '\"': ['\"','\"', true],
+                          ']': ['',']', true],
+                          '}': ['','}', true],
+                          ')': ['',')', true],
                         };
 
 
@@ -837,13 +840,21 @@ function textWrap(input,cur,d) {
     if(escape){
         return true;
     }
+
+    //overwrite extant close bracket
+    if(d[2] && raw.charAt(cur[0]) == d[1]){
+        input[0].setSelectionRange(cur[0]+1,cur[0]+1);
+        return false
+    }
+
     //dont match if closing open math
-    if(d[2] && unEscCharCount(raw.slice(0, cur[0]), d[0])%2==1){
+    if(d[0] && d[2] && unEscCharCount(raw.slice(0, cur[0]), d[0])%2==1){
         return true
     }
     raw = textWrapAbstract(raw, cur, d)
     input.val(raw).trigger('input');
-    let c = (cur[0]==cur[1]) ? cur[0]+d[0].length : cur[1]+d[0].length + d[1].length
+    let off = Math.max(1,d[0].length);
+    let c = (cur[0]==cur[1]) ? cur[0]+off : cur[1]+d[0].length + d[1].length
     input[0].setSelectionRange(c,c);
     return false;
 }

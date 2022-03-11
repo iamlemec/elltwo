@@ -13,6 +13,7 @@ let svg_butts = {};
 
 function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
     $('#hoot').html(`[201p // iamlemec ${s('// gum.js editor','math')}]`);
+    $('#logo').hide();
     makeActive(false);
 
     if (state.SVGEditor) {
@@ -176,7 +177,6 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
         }, false);
 
         ipt.addEventListener('scroll', evt => {
-            console.log(evt.target.scrollTop);
             view.scrollTop = evt.target.scrollTop;
         }, false);
     }
@@ -186,6 +186,7 @@ function hideSVGEditor() {
     state.SVGEditorOpen = false;
     state.key = null;
     $('#hoot').html('[201p // iamlemec]');
+    $('#logo').show();
     $('#SVGEditorOuter').hide();
 }
 let size0 = 500;
@@ -284,6 +285,9 @@ let brac_wraps = {'[': ['[',']'],
                 '\'': ['\'','\'', true],
                 '\"': ['\"','\"', true],
                 '\`': ['\`','\`', true],
+                ']': ['',']', true],
+                '}': ['','}', true],
+                ')': ['',')', true],                
             };
 
 function getindent(input,c) {

@@ -61,8 +61,11 @@
 }
 
 .toggle {
-    font-size: 100%;
-    margin: 0 10px 0 10px;
+    margin: 0 0px 0 4px;
+}
+
+.toggle-track{
+    margin-left: 10px;
 }
 
 #SVGEditorNav .foot_butt {
@@ -84,11 +87,11 @@
     white-space: pre-wrap;
     position: absolute;
     font-family: monospace;
-    font-size: 75%;
+    font-size: 65%;
     height: 100%;
     width: 100%;
     padding: 10px;
-    padding-left: 30px;
+    padding-left: 35px;
     overflow: scroll;
 }
 
@@ -105,10 +108,10 @@
     height: 100%;
 }
 
-#SVGEditorInputView {
+#SVGEditorInputView, #SVGEditorParsedView{
     background-color: var(--bg-col);
     counter-reset: line;
-    -webkit-box-shadow:inset 25px 0px 0px 0px rgba(0,0,0,.15);
+    -webkit-box-shadow:inset 29px 0px 0px 0px var(--bg-hl2-col),inset 30px 0px 0px 0px var(--hl-col);
 }
 
 #SVGEditorInputText {
@@ -124,7 +127,7 @@
 .linenum {
     position: absolute;
     text-align: right;
-    width: 20px;
+    width: 25px;
     left: 0;
     font-size: 100%;
     opacity: .3;
@@ -145,14 +148,13 @@
     color: var(--font-col);
     border-top: 1px solid var(--hl-col);
     font-family: monospace;
-    font-size: 80%;
+    font-size: 65%;
     position: relative;
     top: 0%;
     width: 100% !important;
     height: 50% !important;
     padding: 10px;
-    padding-left: 30px;
-    -webkit-box-shadow:inset 25px 0px 0px 0px rgba(0,0,0,.15);
+    padding-left: 35px;
     overflow: scroll;
     counter-reset: line;
 }
@@ -191,7 +193,8 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: 50%; /* works somehow */
+    max-height: 50%; /* works somehow */
+    margin-bottom: 20px;
 }
 
 #SVGEditorOutput svg {
@@ -221,11 +224,10 @@
 
 #interActiveControl {
     display: flex;
-    justify-content: center;
     flex-direction: column;
     align-items: center;
     width: 100%;
-    height: 30%;
+    height: 40%;
     overflow-y: scroll;
 }
 
@@ -238,15 +240,16 @@
     margin-left: 30px;
     margin-top: 10px;
     margin-bottom: 10px;
-    background-color: var(--brace-col);
+    background-color: var(--bg-hl2-col);
+    color: var(--pop-fg-col);
     border-radius: 10px;
+    height: auto;
 }
 
 .var_title {
     position: relative;
     font-family: monospace;
     font-size: 60%;
-    margin-bottom: 5px;
     line-height: 20px;
     background-color: rgba(0,0,0,.1);
     width: 100%;
@@ -286,7 +289,7 @@ input[type=range]::-moz-range-thumb {
 
 .phantom_track_wrap{
     display: flex;
-    margin-bottom: -40px;
+    margin-bottom: -50px;
     width: calc(100% + 30px);
     transform: translateX(-15px)
 }
@@ -329,7 +332,7 @@ input[type=range]::-moz-range-thumb {
     box-sizing: border-box;
     border: 1px solid var(--font-col-int);
     left: 50%;
-    top: 26px;
+    top: 34px;
     color: var(--font-col-int);
     font-size: 15px;
 }
@@ -344,4 +347,8 @@ input[type=range]::-moz-range-thumb {
 
 .list_cont .custom-select-wrapper{
     position: unset !important;
+}
+
+.list_cont .custom-select-trigger{
+    background-color: var(--brace-col);
 }

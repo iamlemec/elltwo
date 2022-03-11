@@ -619,13 +619,17 @@ function equationEnv(ptxt, args) {
 
 function figEnv(ptxt, args) {
     if (args.caption != 'none') {
-        var num = (args.number) ? makeCounter('figure') : '';
-        var space = (num) ? ' ' : '';
-        var caption = args.caption || '';
+        let caption = args.caption || '';
+        let figtype,space,num,span;
+        if(args.figtype != 'none'){
+            num = (args.number) ? makeCounter('figure') : '';
+            space = (num) ? ' ' : '';
+            figtype = args.figtype || 'Figure';
+            span = $('<span>', {class: 'strong'});
+            span.append([figtype, space, num, '. ']);
+        }
         caption = divInlineParser.output(caption);
-        var div = $('<div>', {class: 'env_add fig_cap'});
-        var span = $('<span>', {class: 'strong'});
-        span.append(['Figure', space, num, '. ']);
+        let div = $('<div>', {class: 'env_add fig_cap'});
         div.append([span, caption]);
         ptxt.append(div);
         renderKatex(ptxt.children('.fig_cap'));
@@ -745,6 +749,7 @@ let env_spec = {
     title: titleEnv,
     svg: svgEnv,
     image: figEnv,
+    yt: figEnv,
     table: figEnv,
     quote: quoteEnv,
     code: codeEnv,

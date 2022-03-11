@@ -201,7 +201,7 @@ class GumLexer {
                 continue;
             }
 
-            // tokens to do nothing with
+            //tokens to do nothing with
             if (cap = this.rules.text.exec(src)
                 || this.rules.space.exec(src)) {
                 src = src.substring(cap[0].length);
@@ -213,6 +213,7 @@ class GumLexer {
                 throw new Error('Infinite loop on byte: ' + src.charCodeAt(0));
             }
         }
+
 
         return l1 + out;
     }
@@ -240,6 +241,7 @@ class GumRenderer {
     }
 
     nothing(text) {
+        text = text.replace(/\n/g, '\n<div class=linenum></div>')
         return text;
     }
 }
@@ -361,7 +363,7 @@ let block = {
     code: /^``(\*)?( *)(?:refargs)?((\s|\n)?)/,
     comment: /^\/\/( ?)/,
     equation: /^\$\$(\*?)( *)(?:refargs)?(\s*)/,
-    image: /^(!{1,2})(\*)?( *)(?:refargs)?( *)(\()?([\w-:#/.&%=]*)(\))?(\s*)$/,
+    image: /^(!{1,2})(yt|youtube)?(\*)?( *)(?:refargs)?( *)(\()?([\w-:#/.&%=]*)(\))?(\s*)$/,
     svg: /^\!(svg|gum)(\*)?( *)(?:refargs)?/,
     envbeg: /^\>\>(\!)?( *)([\w-]+)(\*)?( *)(?:refargs)?/,
     envend: /^\<\<( ?)/,
@@ -439,12 +441,13 @@ function syntaxParseBlock(raw) {
 
     if (cap = block.image.exec(raw)) {
         let excl = cap[1] ? s(cap[1], 'hl') : '';
-        let star = cap[2] ? s('*', 'hl') : '';
-        let id = cap[4] ? s(fArgs(cap[4]), 'ref'): '';
-        let l = cap[6] ? s('(', 'delimit') : '';
-        let href = cap[7] ? s(cap[7], 'hl') : '';
-        let r = cap[8] ? s(')', 'delimit') : '';
-        return excl + star + cap[3] + id + cap[5] + l + href + r + cap[9];
+        let yt = cap[2] ? s(cap[2], 'math') : '';
+        let star = cap[3] ? s('*', 'hl') : '';
+        let id = cap[5] ? s(fArgs(cap[5]), 'ref'): '';
+        let l = cap[7] ? s('(', 'delimit') : '';
+        let href = cap[8] ? s(cap[8], 'hl') : '';
+        let r = cap[9] ? s(')', 'delimit') : '';
+        return excl + yt + star + cap[4] + id + cap[6] + l + href + r + cap[10];
     }
 
     if (cap = block.svg.exec(raw)) {
@@ -458,7 +461,7 @@ function syntaxParseBlock(raw) {
         } else {
             text = SyntaxHL(rest, 'svg');
         }
-        return s('!', 'hl') + s(mime, 'delimit') + star + cap[3] + id + text;
+        return s('!', 'hl') + s(mime, 'math') + star + cap[3] + id + text;
     }
 
     if (cap = block.envbeg.exec(raw)) {

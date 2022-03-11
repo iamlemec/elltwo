@@ -364,7 +364,7 @@ function eventArticle() {
 
 
     // syntax highlighting and brace matching
-    $(document).on('input', '.p_input', function(e) {
+    $(document).on('input', '.p_input:not(.svgE)', function(e) {
         let cur = e.currentTarget.selectionStart;
         let para = $(this).parent('.para');
         let text = para.children('.p_input');
@@ -379,7 +379,7 @@ function eventArticle() {
         }
     });
 
-    $(document).on('keyup', '.p_input', function(e) {
+    $(document).on('keyup', '.p_input:not(.svgE)', function(e) {
         let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
         if (arrs.includes(e.keyCode)) {
             var para = $(this).parent('.para');
@@ -455,6 +455,7 @@ async function movePara(dragPID, targPID) {
         let drag = getPara(dragPID);
         let targ = getPara(targPID);
         drag.insertAfter(targ);
+        envClasses();
         console.log('success: para moved');
     }
 
