@@ -14,10 +14,17 @@ Try the live editing demo at: [elltwo.io/demo](http://elltwo.io/demo). Here's a 
 
 ## Setup
 
-To install, simply clone this repository locally. Make sure you have the appropriate packages installed by running
+To install, simply clone this repository locally. Install the necessary Python packages with
 
 ```
 pip install -r requirements.txt
+```
+
+Install and build the web content with
+
+```
+node install
+npm run build
 ```
 
 Start a locally usable server by running

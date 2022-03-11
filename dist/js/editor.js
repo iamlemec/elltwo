@@ -900,7 +900,7 @@ function initDrag(){
     $('.para').off('drop');
 
     $('.controlZone').on('mousedown', (e) => {
-        if(state.writeable){
+        if (state.writeable) {
             let dragger = e.target;
             let para = $(dragger.closest('.para'));
 
