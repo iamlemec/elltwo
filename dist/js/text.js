@@ -9,19 +9,18 @@ import { history, historyKeymap } from '../node_modules/@codemirror/history/dist
 import { indentWithTab, defaultKeymap } from '../node_modules/@codemirror/commands/dist/index.js';
 
 class TextEditor {
-    constructor(parent) {
+    constructor(parent, eventHandler) {
         this.lang = 'markdown';
         this.editable = new Compartment();
         this.language = new Compartment();
+        this.eventHandler = eventHandler;
 
         this.view = new EditorView({
             state: EditorState.create({
                 doc: '',
                 extensions: [
                     drawSelection(),
-                    bracketMatching({
-                        brackets: '()[]{}**'
-                    }),
+                    bracketMatching(),
                     closeBrackets(),
                     // lineNumbers(),
                     history(),
@@ -30,6 +29,10 @@ class TextEditor {
                     defaultHighlightStyle.fallback,
                     keymap.of([
                         indentWithTab,
+                        { key: 'ArrowLeft', run: e => this.event('left', e) },
+                        { key: 'ArrowRight', run: e => this.event('right', e) },
+                        { key: 'ArrowUp', run: e => this.event('up', e) },
+                        { key: 'ArrowDown', run: e => this.event('down', e) },
                         ...closeBracketsKeymap,
                         ...defaultKeymap,
                         ...historyKeymap,
@@ -47,6 +50,10 @@ class TextEditor {
 
     focus() {
         this.view.focus();
+    }
+
+    event(c, e) {
+        return this.eventHandler(this, c, e);
     }
 
     getLength() {

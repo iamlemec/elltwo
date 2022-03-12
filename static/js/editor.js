@@ -3,7 +3,7 @@
 export {
     initEditor, stateEditor, eventEditor, makeActive, lockParas,
     unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
-    fold, makeUnEditable, hideConfirm, showConfirm, initDrag
+    fold, makeUnEditable, hideConfirm, showConfirm, initDrag, editorHandler
 }
 
 import { config, state, cache } from './state.js'
@@ -131,20 +131,25 @@ function eventEditor() {
                 }
             }
         } else if (state.active_para && state.rawtext && !state.SVGEditorOpen) { // we are active and rawtext
-            let input = state.active_para.children('.p_input')
-            if (key == 'arrowup' || key == 'arrowleft') {
+            if (key == 'arrowup') {
                 if (state.cc) { // if there is an open command completion window
                     ccNext('down');
                     return false;
-                } else {
-                    return editShift('up');
+                } else if (!state.writeable) {
+                    if (activePrevPara()) {
+                        sendMakeEditable();
+                        return false;
+                    }
                 }
-            } else if (key == 'arrowdown' || key == 'arrowright') {
+            } else if (key == 'arrowdown') {
                 if (state.cc) {
                     ccNext('up');
                     return false;
-                } else {
-                    return editShift('down');
+                } else if (!state.writeable) {
+                    if (activeNextPara()) {
+                        sendMakeEditable();
+                        return false;
+                    }
                 }
             } else if (key == 'escape') {
                 if (state.SVGEditor) {
@@ -354,7 +359,7 @@ async function sendUpdatePara(para, text, rerender=false) {
     }
 }
 
-async function sendInsertPara(para, after=true, edit=true, raw='', cur='end') {
+async function sendInsertPara(para, after=true) {
     let fold_pid = para.attr('fold_pid');
     let head;
     if (fold_pid) {
@@ -364,17 +369,15 @@ async function sendInsertPara(para, after=true, edit=true, raw='', cur='end') {
         head = para;
     }
     let pid = head.attr('pid');
-    let data = {aid: config.aid, pid: pid, after: after, edit: edit, text: raw};
+
+    let data = {aid: config.aid, pid: pid, after: after, edit: true, text: ''};
     let new_pid = await sendCommand('insert_para', data);
     if (new_pid !== undefined) {
-        let new_para = insertParaRaw(pid, new_pid, raw, after);
+        let new_para = insertParaRaw(pid, new_pid);
         initDrag();
         makeActive(new_para);
-        if (edit) {
-            trueMakeEditable(true, cur);
-        } else {
-            rawToRender(new_para);
-        }
+        state.rawtext = true;
+        trueMakeEditable();
     }
 }
 
@@ -429,7 +432,6 @@ function detectLanguage(para) {
 }
 
 function trueMakeEditable(rw=true, cursor='end') {
-    state.rawtext = true;
     state.active_para.addClass('rawtext');
     $('#bg').addClass('rawtext');
 
@@ -445,6 +447,7 @@ function trueMakeEditable(rw=true, cursor='end') {
 }
 
 async function sendMakeEditable(cursor='end') {
+    state.rawtext = true;
     $('.para').removeClass('rawtext');
     $('.para').removeClass('copy_sel');
 
@@ -486,7 +489,6 @@ function makeUnEditable(unlock=true) {
         }
     }
 }
-
 
 /// para locking
 
@@ -588,10 +590,12 @@ function activeLastPara() {
     }
 }
 
-function editShift(dir='up') {
+function editorHandler(editor, key, event) {
+    let up = key == 'left' || key == 'up';
+    let down = key == 'right' || key == 'down';
+
     let top, bot;
     if (state.writeable) {
-        let editor = getEditor(state.active_para);
         if (!editor.getEditable()) {
             top = true;
             bot = true;
@@ -606,15 +610,15 @@ function editShift(dir='up') {
         bot = true;
     }
 
-    if (top && dir == 'up') {
+    if (top && up) {
         if (activePrevPara()) {
             sendMakeEditable('end');
-            return false;
+            return true;
         }
-    } else if (bot && dir == 'down') {
+    } else if (bot && down) {
         if (activeNextPara()) {
             sendMakeEditable('begin');
-            return false;
+            return true;
         }
     }
 }
@@ -639,16 +643,6 @@ function pasteParas() {
     if (ccb && pid) {
         sendCommand('paste_paras', {aid: config.aid, pid: pid, cb: ccb});
     }
-}
-
-function splitParas(cur) {
-    let para = state.active_para;
-    let raw = para.children('.p_input').val();
-    let [raw0, raw1] = [raw.substring(0, cur), raw.substring(cur)];
-    para.children('.p_input').val(raw0);
-    elltwoHL(para);
-    makeUnEditable(para);
-    sendInsertPara(para, true, true, raw1, 'begin');
 }
 
 // folding (editing)

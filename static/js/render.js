@@ -11,7 +11,7 @@ import { merge, cooks, getPara, RefCount, DummyCache, updateSliderValue } from '
 import { config, cache, state, updateConfig, updateCache, updateState } from './state.js'
 import { sendCommand, schedTimeout, addDummy } from './client.js'
 import { markthree, replace, divInlineParser } from './marked3.js'
-import { fold } from './editor.js'
+import { fold, editorHandler } from './editor.js'
 import { renderKatex } from './math.js'
 import { parseSVG } from './svg.js'
 import { SyntaxHL, esc_html } from './hl.js'
@@ -210,7 +210,7 @@ function barePara(pid, raw='') {
 
 function makeEditor(para) {
     let [input] = para.children('.p_input');
-    let editor = new TextEditor(input);
+    let editor = new TextEditor(input, editorHandler);
     let pid = para.attr('pid');
     state.editors.set(pid, editor);
 }
