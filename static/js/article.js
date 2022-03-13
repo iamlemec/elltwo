@@ -213,17 +213,17 @@ async function setWriteable() {
     if (state.rawtext) {
         let para = state.active_para;
         let pid = state.active_para.attr('pid');
-        let text = para.children('.p_input');
+        let editor = state.editors.get(pid);
 
         if (wr && !wr_old) {
             let data = {pid: pid, aid: config.aid};
             if (await sendCommand('lock', data)) {
-                text.prop('readonly', false);
+                editor.setEditable(true);
                 placeCursor('end');
                 schedTimeout();
             }
         } else if (!wr && wr_old) {
-            text.prop('readonly', true);
+            editor.setEditable(false);
             storeChange(para);
         }
     }

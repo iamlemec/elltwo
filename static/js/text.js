@@ -1,5 +1,7 @@
 export { TextEditor }
 
+import { elltwo } from './marklez.js'
+
 import { EditorView, drawSelection, keymap } from '@codemirror/view'
 import { EditorState, EditorSelection, Compartment } from '@codemirror/state'
 import { bracketMatching } from '@codemirror/matchbrackets'
@@ -13,7 +15,7 @@ import { lineNumbers, highlightActiveLineGutter } from '@codemirror/gutter'
 
 class TextEditor {
     constructor(parent, eventHandler) {
-        this.lang = 'markdown';
+        this.lang = 'elltwo';
         this.editable = new Compartment();
         this.language = new Compartment();
         this.eventHandler = eventHandler;
@@ -27,7 +29,7 @@ class TextEditor {
                     closeBrackets(),
                     // lineNumbers(),
                     history(),
-                    this.language.of(markdown()),
+                    this.language.of(elltwo),
                     this.editable.of(EditorView.editable.of(false)),
                     defaultHighlightStyle.fallback,
                     keymap.of([
@@ -40,6 +42,7 @@ class TextEditor {
                         ...defaultKeymap,
                         ...historyKeymap,
                     ]),
+                    EditorView.lineWrapping,
                     EditorView.updateListener.of(upd => {
                         if (upd.docChanged) {
                             console.log('updating');
@@ -95,7 +98,7 @@ class TextEditor {
 
         if (lang == 'elltwo') {
             this.view.dispatch({
-                effects: this.language.reconfigure(markdown())
+                effects: this.language.reconfigure(elltwo)
             })
         } else if (lang == 'gum') {
             this.view.dispatch({

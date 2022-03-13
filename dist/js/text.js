@@ -1,8 +1,8 @@
+import { elltwo } from './marklez.js';
 import { EditorView, drawSelection, keymap } from '../node_modules/@codemirror/view/dist/index.js';
 import { Compartment, EditorState, EditorSelection } from '../node_modules/@codemirror/state/dist/index.js';
 import { bracketMatching } from '../node_modules/@codemirror/matchbrackets/dist/index.js';
 import { closeBrackets, closeBracketsKeymap } from '../node_modules/@codemirror/closebrackets/dist/index.js';
-import { markdown } from '../node_modules/@codemirror/lang-markdown/dist/index.js';
 import { javascript } from '../node_modules/@codemirror/lang-javascript/dist/index.js';
 import { defaultHighlightStyle } from '../node_modules/@codemirror/highlight/dist/index.js';
 import { history, historyKeymap } from '../node_modules/@codemirror/history/dist/index.js';
@@ -10,7 +10,7 @@ import { indentWithTab, defaultKeymap } from '../node_modules/@codemirror/comman
 
 class TextEditor {
     constructor(parent, eventHandler) {
-        this.lang = 'markdown';
+        this.lang = 'elltwo';
         this.editable = new Compartment();
         this.language = new Compartment();
         this.eventHandler = eventHandler;
@@ -24,7 +24,7 @@ class TextEditor {
                     closeBrackets(),
                     // lineNumbers(),
                     history(),
-                    this.language.of(markdown()),
+                    this.language.of(elltwo),
                     this.editable.of(EditorView.editable.of(false)),
                     defaultHighlightStyle.fallback,
                     keymap.of([
@@ -37,6 +37,7 @@ class TextEditor {
                         ...defaultKeymap,
                         ...historyKeymap,
                     ]),
+                    EditorView.lineWrapping,
                     EditorView.updateListener.of(upd => {
                         if (upd.docChanged) {
                             console.log('updating');
@@ -92,7 +93,7 @@ class TextEditor {
 
         if (lang == 'elltwo') {
             this.view.dispatch({
-                effects: this.language.reconfigure(markdown())
+                effects: this.language.reconfigure(elltwo)
             });
         } else if (lang == 'gum') {
             this.view.dispatch({
