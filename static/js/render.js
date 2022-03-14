@@ -647,7 +647,7 @@ function figEnv(ptxt, args) {
         let div = $('<div>', {class: 'env_add fig_cap'});
         div.append([span, caption]);
         ptxt.append(div);
-        renderKatex(ptxt.children('.fig_cap'));
+        //renderKatex(ptxt.children('.fig_cap'));
     }
     var w = args.width || args.w || '';
     if (w) {
