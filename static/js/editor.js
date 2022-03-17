@@ -443,6 +443,8 @@ function trueMakeEditable(rw=true, cursor='end') {
     if (rw) {
         placeCursor(cursor);
         schedTimeout();
+    } else {
+        editor.focus();
     }
 }
 

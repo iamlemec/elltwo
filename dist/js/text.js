@@ -34,7 +34,9 @@ class TextEditorNative {
     }
 
     focus() {
-        this.text.focus();
+        if (this.getEditable()) {
+            this.text.focus();
+        }
         this.resize();
         this.highlight();
     }
