@@ -1,56 +1,55 @@
-import { elltwo } from './marklez.js';
-import { EditorView, drawSelection, keymap } from '../node_modules/@codemirror/view/dist/index.js';
-import { Compartment, EditorState, EditorSelection } from '../node_modules/@codemirror/state/dist/index.js';
-import { bracketMatching } from '../node_modules/@codemirror/matchbrackets/dist/index.js';
-import { closeBrackets, closeBracketsKeymap } from '../node_modules/@codemirror/closebrackets/dist/index.js';
-import { javascript } from '../node_modules/@codemirror/lang-javascript/dist/index.js';
-import { defaultHighlightStyle } from '../node_modules/@codemirror/highlight/dist/index.js';
-import { history, historyKeymap } from '../node_modules/@codemirror/history/dist/index.js';
-import { indentWithTab, defaultKeymap } from '../node_modules/@codemirror/commands/dist/index.js';
+import './marklez.js';
+import { SyntaxHL } from './hl.js';
 
-class TextEditor {
+class TextEditorNative {
     constructor(parent, eventHandler) {
         this.lang = 'elltwo';
-        this.editable = new Compartment();
-        this.language = new Compartment();
+        this.parent = parent;
         this.eventHandler = eventHandler;
 
-        this.view = new EditorView({
-            state: EditorState.create({
-                doc: '',
-                extensions: [
-                    drawSelection(),
-                    bracketMatching(),
-                    closeBrackets(),
-                    // lineNumbers(),
-                    history(),
-                    this.language.of(elltwo),
-                    this.editable.of(EditorView.editable.of(false)),
-                    defaultHighlightStyle.fallback,
-                    keymap.of([
-                        indentWithTab,
-                        { key: 'ArrowLeft', run: e => this.event('left', e) },
-                        { key: 'ArrowRight', run: e => this.event('right', e) },
-                        { key: 'ArrowUp', run: e => this.event('up', e) },
-                        { key: 'ArrowDown', run: e => this.event('down', e) },
-                        ...closeBracketsKeymap,
-                        ...defaultKeymap,
-                        ...historyKeymap,
-                    ]),
-                    EditorView.lineWrapping,
-                    EditorView.updateListener.of(upd => {
-                        if (upd.docChanged) {
-                            console.log('updating');
-                        }
-                    }),
-                ],
-            }),
-            parent: parent,
+        this.text = document.createElement('textarea');
+        this.text.classList.add('p_input_text');
+        this.text.setAttribute('readonly', true);
+        this.text.addEventListener('input', e => {
+            this.resize();
+            this.highlight();
         });
+        this.text.addEventListener('keydown', e => {
+            if (e.key == 'ArrowLeft') {
+                return this.event('left', e);
+            } else if (e.key == 'ArrowRight') {
+                return this.event('right', e);
+            } else if (e.key == 'ArrowUp') {
+                return this.event('up', e);
+            } else if (e.key == 'ArrowDown') {
+                return this.event('down', e);
+            }
+        });
+
+        this.view = document.createElement('div');
+        this.view.classList.add('p_input_view');
+
+        parent.appendChild(this.view);
+        parent.appendChild(this.text);
     }
 
     focus() {
-        this.view.focus();
+        this.text.focus();
+        this.resize();
+        this.highlight();
+    }
+
+    resize() {
+        this.text.style.height = 'auto';
+        let height = `${this.text.scrollHeight}px`;
+        this.text.style.height = height;
+        this.parent.style.setProperty('min-height', height);
+    }
+
+    highlight() {
+        let raw = this.text.value;
+        let parsed = SyntaxHL(raw, this.lang);
+        this.view.innerHTML = parsed;
     }
 
     event(c, e) {
@@ -58,29 +57,23 @@ class TextEditor {
     }
 
     getLength() {
-        return this.view.state.doc.length;
+        return this.text.value.length;
     }
 
     getText() {
-        return this.view.state.doc.toString();
+        return this.text.value;
     }
 
     setText(text) {
-        let len = this.getLength();
-        let upd = this.view.state.update({
-            changes: {from: 0, to: len, insert: text}
-        });
-        this.view.dispatch(upd);
+        this.text.value = text;
     }
 
     getEditable() {
-        return this.view.state.facet(EditorView.editable);
+        return !this.text.readOnly;
     }
 
     setEditable(rw) {
-        this.view.dispatch({
-            effects: this.editable.reconfigure(EditorView.editable.of(rw))
-        });
+        this.text.readOnly = !rw;
     }
 
     getLanguage() {
@@ -88,30 +81,17 @@ class TextEditor {
     }
 
     setLanguage(lang) {
-        if (this.lang == lang) return;
         this.lang = lang;
-
-        if (lang == 'elltwo') {
-            this.view.dispatch({
-                effects: this.language.reconfigure(elltwo)
-            });
-        } else if (lang == 'gum') {
-            this.view.dispatch({
-                effects: this.language.reconfigure(javascript())
-            });
-        }
     }
 
     getCursorPos() {
-        return this.view.state.selection.main.head;
+        return this.text.selectionStart;
     }
 
     setCursorPos(start, end) {
         end = end ?? start;
-        this.view.dispatch({
-            selection: EditorSelection.single(start, end)
-        });
+        this.text.setSelectionRange(start, end);
     }
 }
 
-export { TextEditor };
+export { TextEditorNative };

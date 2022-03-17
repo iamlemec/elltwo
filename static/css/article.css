@@ -68,7 +68,7 @@
 .container:not(.ssv) .p_input_view:not(.svgE) {
     white-space: pre-wrap;
     width: 100%;
-    font-size: 80%;
+    font-size: 90%;
     overflow: hidden;
     display: none;
     border: 0;
@@ -99,6 +99,28 @@
 
 .cm-focused {
     outline: 0 !important;
+}
+
+/* native editor */
+
+.p_input_text, .p_input_view {
+    width: 100%;
+    position: absolute;
+    resize: none;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    font-size: 90%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.p_input_text {
+    color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.p_input_view {
+    font-family: monospace;
 }
 
 /* side-by-side view paras */

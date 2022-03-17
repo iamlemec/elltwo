@@ -16,7 +16,7 @@ import { renderKatex } from './math.js'
 import { parseSVG } from './svg.js'
 import { SyntaxHL, esc_html } from './hl.js'
 import { exportMarkdown, exportLatex } from './export.js'
-import { TextEditor } from './text.js'
+import { TextEditorCM, TextEditorNative } from './text.js'
 
 // main rendering entry point (for all cases)
 
@@ -210,7 +210,7 @@ function barePara(pid, raw='') {
 
 function makeEditor(para) {
     let [input] = para.children('.p_input');
-    let editor = new TextEditor(input, editorHandler);
+    let editor = new TextEditorNative(input, editorHandler);
     let pid = para.attr('pid');
     state.editors.set(pid, editor);
 }

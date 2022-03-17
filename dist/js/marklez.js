@@ -7,7 +7,7 @@ const StrikethroughDelim = {resolve: "Strikethrough", mark: "StrikethroughMark"}
 const InternalLinkDelim = {resolve: "InternalLink", mark: "InternalLinkMark"};
 const ReflikeDelim = {resolve: "Reflike", mark: "ReflikeMark"};
 
-const elltwo = markdown({
+markdown({
     extensions: {
         props: [
             styleTags({
@@ -73,5 +73,3 @@ const elltwo = markdown({
         ],
     },
 });
-
-export { elltwo };
