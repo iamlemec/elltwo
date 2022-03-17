@@ -19,6 +19,11 @@
     --pop-fg-col:  	#002b36; /* popup text color */
     --pop-bg-col: #93a1a1; /* popup background color */
     --comment-col: rgb(120, 120, 120); /* comment text color */
+/*  pallet */
+    --p1-1: #9d0208;
+    --p1-2: #dc2f02;
+    --p1-3: #f48c06;
+    --p1-4: #ffba08;
 }
 
 @font-face {

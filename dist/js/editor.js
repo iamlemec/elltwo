@@ -232,7 +232,7 @@ function eventEditor() {
 
         //clicking interactive does not open para
         let targ = $(e.target);
-        if (targ.closest('.fig_iac').length > 0){
+        if (targ.closest('.fig_iac').length > 0 || targ.closest('.img_update').length > 0){
             return;
         }
 

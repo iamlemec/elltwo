@@ -56,7 +56,7 @@ class KeyCache {
         return this.data.get(key);
     }
 
-    async get(key,callback=null) {
+    async get(key) {
         let kc = this;
         let val;
         if (this.data.has(key)) {
@@ -66,9 +66,6 @@ class KeyCache {
             if (val !== undefined) {
                 kc.data.set(key, val);
             }
-        }
-        if(callback){
-            return callback(val)
         }
         return val;
     }

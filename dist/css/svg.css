@@ -270,7 +270,6 @@ input[type=range] {
   -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
   width: 100%; /* Specific width is required for Firefox. */
   background: transparent; /* Otherwise white in Chrome */
-  transform: translateY(8px)
 }
 
 input[type=range]::-moz-range-track {
@@ -280,27 +279,41 @@ input[type=range]::-moz-range-track {
   visibility: hidden;
 }
 
+input[type=range]::-webkit-slider-runnable-track {
+  background-color: red;
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+/*   visibility: hidden; */
+    opacity: 0;
+}
+
 input[type=range]::-moz-range-thumb {
-  visibility: hidden;
+/*   visibility: hidden; */
   height: 30px;
   width: 30px;
   border-radius: 50%;
+  transform: translateY(8px);
+  opacity: 0;
   cursor: pointer;
 }
 
 input[type=range]::-webkit-slider-thumb {
-  visibility: hidden;
-  height: 30px;
-  width: 30px;
-  border-radius: 50%;
-  cursor: pointer;
+    -webkit-appearance: none;
+    border: none;
+    height: 30px;
+    width: 30px;
+    cursor: pointer;
+    border-radius: 50%;
+    transform: translateY(-50%);
 }
 
 .phantom_track_wrap{
     display: flex;
     margin-bottom: -50px;
     width: calc(100% + 30px);
-    transform: translateX(-15px)
+    transform: translateX(-15px);
 }
 
 .phantom_track {
@@ -337,11 +350,10 @@ input[type=range]::-webkit-slider-thumb {
     border-radius: 50%;
     line-height: 25px;
     text-align: center;
-    padding-top: 2px;
     box-sizing: border-box;
     border: 1px solid var(--font-col-int);
     top: 34px;
-    color: var(--font-col-int);
+    color: var(--hl-col);
     font-size: 15px;
     cursor: pointer;
 }

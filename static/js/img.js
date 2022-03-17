@@ -8,7 +8,8 @@ import { renderKatex } from './math.js'
 import { hideConfirm, showConfirm } from './editor.js'
 import { connectDrops, promptUpload, uploadImage } from './drop.js'
 import { KeyCache, flash, copyText, createButton } from './utils.js'
-import { initSVGEditor, hideSVGEditor, parseSVG } from './svg.js'
+import { initSVGEditor, hideSVGEditor, parseSVG, openSVGFromKey } from './svg.js'
+
 
 // config
 
@@ -36,6 +37,13 @@ function initImage(args) {
 
     renderKatex();
     imageQuery();
+
+        //open editor if necessary
+    console.log(config.SVGEditor, config.readonly)
+    if(config.SVGEditor){
+        openSVGFromKey(config.SVGEditor)
+    }
+
 }
 
 function cacheImage() {

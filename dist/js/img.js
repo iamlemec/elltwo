@@ -1,12 +1,13 @@
-import { updateConfig, updateState, cache, state, config } from './state.js';
+import { updateConfig, updateState, config, cache, state } from './state.js';
 import { sendCommand, connect, addHandler } from './client.js';
 import { renderKatex } from './math.js';
 import { hideConfirm, showConfirm } from './editor.js';
 import { connectDrops, promptUpload, uploadImage } from './drop.js';
 import { KeyCache, createButton, copyText, flash } from './utils.js';
-import { hideSVGEditor, initSVGEditor, parseSVG } from './svg.js';
+import { openSVGFromKey, hideSVGEditor, initSVGEditor, parseSVG } from './svg.js';
 
 /* image library browser */
+
 
 // config
 
@@ -34,6 +35,13 @@ function initImage(args) {
 
     renderKatex();
     imageQuery();
+
+        //open editor if necessary
+    console.log(config.SVGEditor, config.readonly);
+    if(config.SVGEditor){
+        openSVGFromKey(config.SVGEditor);
+    }
+
 }
 
 function cacheImage() {

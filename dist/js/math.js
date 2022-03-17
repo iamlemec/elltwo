@@ -15,6 +15,7 @@ function renderKatex(para, macros) {
             katex.render(src, tex[0], {
                 macros: macros,
                 throwOnError: false,
+                trust: true,
             });
         } catch (e) {
             let espan = $('<span>', {class: 'katex_inline_error', text: src});
@@ -31,6 +32,7 @@ function renderKatex(para, macros) {
             displayMode: true,
             macros: macros,
             throwOnError: false,
+            trust: true,
         });
         let err = tex.children('.katex-error');
         if (err.length > 0) {

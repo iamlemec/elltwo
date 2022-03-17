@@ -642,38 +642,6 @@ button {
     margin: auto;
 }
 
-.theme_col {
-    stroke: var(--font-col);
-}
-
-.theme_hl {
-    stroke: var(--hl-col);
-}
-
-.theme_hl2 {
-    stroke: var(--hl2-col);
-}
-
-.theme_fill {
-    fill: var(--font-col);
-}
-
-.theme_fill_hl {
-    fill: var(--hl-col);
-}
-
-.theme_fill_hl2 {
-    fill: var(--hl2-col);
-}
-
-#pop .theme_col {
-    stroke: var(--pop-fg-col)
-}
-
-#pop .theme_fill {
-    fill: var(--pop-fg-col)
-}
-
 .fig_cap {
     position: relative;
     padding: 0px 20px 20px 20px;

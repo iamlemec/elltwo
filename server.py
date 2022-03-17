@@ -63,7 +63,7 @@ config = {
     'max_imgs': 50, # max number of images returned in search
     'ssv_persist': True, # persistent ssv mode in cookie
     'edit_persist': True, # persistent edit mode in cookie
-    'ssv_init': False, # whether to start in ssv mode
+    'ssv_init': False, # whether to start in ssv mode, overide with url query ssv=on
     'edit_init': True, # whether to start in edit mode
     'always_hover': False, # hover bar in read-only mode
     'default_theme': 'white', # default theme
@@ -375,14 +375,17 @@ def confirm_token(token, expiration=3600):
 ### Article
 ###
 
-def GetArtData(title, edit, pid=None, theme=config['default_theme'], font=config['default_font']):
+def GetArtData(title, edit, pid=None, 
+    theme=config['default_theme'], font=config['default_font'], 
+    SVGEditor=False, ssv=False):
     app.logger.debug(f'article [{pid}]: {title}')
     art = edb.get_art_short(title)
     if art:
+        print('**\n'*10, ssv)
         paras = edb.get_paras(art.aid)
         return render_template(
             'article.html', aid=art.aid, title=art.title,
-            theme=theme, font=font, g_ref=art.g_ref, pid=pid,
+            theme=theme, font=font, ssv=ssv, SVGEditor=SVGEditor, g_ref=art.g_ref, pid=pid,
             paras=paras, readonly=not edit, **config
         )
     else:
@@ -397,6 +400,8 @@ def getStyle(request):
     return {
         'theme': request.args.get('theme') or request.cookies.get('theme') or config['default_theme'],
         'font': request.args.get('font') or request.cookies.get('font') or config['default_font'],
+        'ssv': request.args.get('ssv') or request.cookies.get('ssv') or config['ssv_init'],
+        'SVGEditor': request.args.get('SVGEditor') or False
     }
 
 @app.route('/a/<title>', methods=['GET'])
@@ -447,10 +452,10 @@ def Img():
     img = [(i.key, i.keywords) for i in edb.get_images()]
     img.reverse()
     return render_template('img.html',
-        img=img,
         readonly=not edit,
         max_size=config['max_size'],
         max_imgs=config['max_imgs'],
+        edit=edit,
         **style,
         **chtml,
     )

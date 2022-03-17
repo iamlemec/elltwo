@@ -1,5 +1,5 @@
-import { createToggle, createButton, smallable_butt, cur, updateSliderValue } from './utils.js';
-import { state, config } from './state.js';
+import { createToggle, createButton, smallable_butt, cur, updateSliderValue, flash } from './utils.js';
+import { state, config, cache } from './state.js';
 import { sendCommand } from './client.js';
 import './marked3.js';
 import { makeActive, showConfirm, undoStack, sendUpdatePara, textWrap, textUnWrap, undo } from './editor.js';
@@ -15,6 +15,8 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
     $('#hoot').html(`[201p // iamlemec ${s('// gum.js editor','math')}]`);
     $('#logo').hide();
     makeActive(false);
+
+    window.history.pushState({'SVGEditor': true}, null, window.location.href.split('?')[0] +`?SVGEditor=${key}`);
 
     if (state.SVGEditor) {
         $('#SVGEditorInputText').val(raw);
@@ -51,6 +53,13 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
         // mark constructed
         state.SVGEditor = true;
         state.SVGEditorOpen = true; //mark open
+
+        window.onpopstate = function(event) {
+            if(state.SVGEditorOpen){
+                hideSVGEditor(false);
+                window.history.pushState({'SVGEditor': false}, null, window.location.href.split('?')[0]);
+            }
+        };
 
         $(document).on('click', '#SVGEditorExit', function() {
             hideSVGEditor();
@@ -182,13 +191,16 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
     }
 }
 
-function hideSVGEditor() {
+function hideSVGEditor(nav=true) {
     state.SVGEditorOpen = false;
     state.key = null;
     $('#hoot').html('[201p // iamlemec]');
     $('#logo').show();
     $('#SVGEditorOuter').hide();
-}
+    if(nav){
+        history.back();
+        window.history.pushState({'SVGEditor': false}, null, window.location.href.split('?')[0]);
+    }}
 let size0 = 500;
 
 function renderInput(src) {
@@ -314,4 +326,24 @@ function getindent(input,c) {
     return false
 }
 
-export { hideSVGEditor, initSVGEditor, parseSVG };
+
+async function openSVGFromKey(key) {
+
+    if(config.readonly){
+        flash('SVGEditor not available in readonly mode');
+        return;
+    }
+    if(key=='true'){
+        initSVGEditor($('#bg'), "", "", true);  
+        return; 
+    }
+    let ret = await cache.img.get(key);
+    ret = ret.data || ret;
+    console.log(ret);
+    if(ret){
+        initSVGEditor($('#bg'), ret, key, true);
+    }else {
+        flash(`'${key}' is not an extant gum key`);
+    }}
+
+export { hideSVGEditor, initSVGEditor, openSVGFromKey, parseSVG };

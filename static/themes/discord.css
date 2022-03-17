@@ -17,6 +17,12 @@
     --math-col: #3280F3;
     --code-bg-col: #444;
     --comment-col: rgb(120, 120, 120); /* comment text color */
+
+    /*  pallet */
+    --p1-1: #9d0208;
+    --p1-2: #dc2f02;
+    --p1-3: #f48c06;
+    --p1-4: #ffba08;
 }
 
 @font-face {

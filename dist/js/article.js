@@ -9,7 +9,7 @@ import { connectDrops, promptUpload, uploadImage } from './drop.js';
 import { initExport } from './export.js';
 import { initHelp } from './help.js';
 import { createBibInfo } from './bib.js';
-import { initSVGEditor } from './svg.js';
+import { openSVGFromKey, initSVGEditor } from './svg.js';
 import { renderKatex } from './math.js';
 import { tex_cmd } from '../libs/tex_cmd.js';
 
@@ -147,7 +147,7 @@ function loadArticle(args) {
     }
 
     // update button state (persistent)
-    let ssv0 =  config.ssv_persist && (cooks('ssv_mode') ?? config.ssv_init);
+    let ssv0 =  config.ssv_init=='on' || (config.ssv_persist && cooks('ssv_mode'));
     let edit0 = config.edit_persist && (cooks('edit_mode') ?? config.edit_init);
 
     // realize hover policy
@@ -159,6 +159,11 @@ function loadArticle(args) {
     // set config modes via toggles
     $('#ssv_check').prop('checked', ssv0).change();
     $('#edit_check').prop('checked', edit0).change();
+
+    //open editor if necessary
+    if(config.SVGEditor){
+        openSVGFromKey(config.SVGEditor);
+    }
 }
 
 function setSsvMode(val) {
@@ -334,14 +339,13 @@ function eventArticle() {
     });
 
     // upload replacement image
-    $(document).on('click', '.img_update', function() {
+    $(document).on('click', '.img_update', async function() {
         let upd = $(this);
         let para = upd.closest('.para');
         let key = para.attr('id');
         if (upd.hasClass('update_image/svg+gum')) {
-            cache.img.get(key, ret => {
-                initSVGEditor($('#bg'), ret.data, key, true);
-            });
+            let ret = await cache.img.get(key);
+            initSVGEditor($('#bg'), ret.data, key, true);
         } else {
             promptUpload(function(files) {
                 let file = files[0];
