@@ -774,7 +774,7 @@ function unfold() {
 function showConfirm(button, action, text) {
     state.confirm = true;
     // let del = createButton('ConfirmDelete', 'Delete', 'delete');
-    let exit = createButton('ConfirmCancel', 'Cancel', 'exit');
+    let exit = createButton('ConfirmCancel', 'Cancel', 'cancel');
     $('#bg').addClass('blur');
     let txt = $('<div>', {text: text});
     $('#cp_inner').append(txt).append(button).append(exit);

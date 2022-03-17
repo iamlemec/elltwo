@@ -62,7 +62,9 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
         };
 
         $(document).on('click', '#SVGEditorExit', function() {
-            hideSVGEditor();
+                let txt = `Uncommited changes will be lost`;
+                let exit = createButton('ConfirmExit', 'Exit', 'exit');
+                showConfirm(exit, hideSVGEditor, txt);
         });
 
         $(document).on('click', '#SVGEditorDelete', function() {
@@ -339,7 +341,6 @@ async function openSVGFromKey(key) {
     }
     let ret = await cache.img.get(key);
     ret = ret.data || ret;
-    console.log(ret);
     if(ret){
         initSVGEditor($('#bg'), ret, key, true);
     }else {

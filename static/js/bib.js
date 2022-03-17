@@ -9,6 +9,8 @@ import { renderKatex } from './math.js'
 import { KeyCache, flash, copyText, createIcon } from './utils.js'
 import { divInlineParser } from './marked3.js'
 
+import { bibTextoJSON } from './bibtexParse.js'
+
 function initBib() {
     cacheBib();
     connectBib();
@@ -183,7 +185,7 @@ function connectBib() {
 }
 
 function generateJson(src) {
-    let json = bibtexParse.toJSON(src);
+    let json = bibTextoJSON(src);
     if (!json[0]) {
         return 'Err: bibtex entry incorrectly specified';
     } else {

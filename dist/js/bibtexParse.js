@@ -1,5 +1,3 @@
-export {bibTextoJSON}
-
 function BibtexParser() {
 
         this.months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -31,8 +29,7 @@ function BibtexParser() {
             } else {
                 throw TypeError("Token mismatch: match", "expected " + s + ", found "
                         + this.input.substring(this.pos));
-            };
-            this.skipWhitespace(canCommentOut);
+            }            this.skipWhitespace(canCommentOut);
         };
 
         this.tryMatch = function(s, canCommentOut) {
@@ -43,33 +40,26 @@ function BibtexParser() {
                 return true;
             } else {
                 return false;
-            };
-            this.skipWhitespace(canCommentOut);
-        };
+            }        };
 
         /* when search for a match all text can be ignored, not just white space */
         this.matchAt = function() {
             while (this.input.length > this.pos && this.input[this.pos] != '@') {
                 this.pos++;
-            };
-
+            }
             if (this.input[this.pos] == '@') {
                 return true;
-            };
-            return false;
+            }            return false;
         };
 
         this.skipWhitespace = function(canCommentOut) {
             while (this.isWhitespace(this.input[this.pos])) {
                 this.pos++;
-            };
-            if (this.input[this.pos] == "%" && canCommentOut == true) {
+            }            if (this.input[this.pos] == "%" && canCommentOut == true) {
                 while (this.input[this.pos] != "\n") {
                     this.pos++;
-                };
-                this.skipWhitespace(canCommentOut);
-            };
-        };
+                }                this.skipWhitespace(canCommentOut);
+            }        };
 
         this.value_braces = function() {
             var bracecount = 0;
@@ -85,20 +75,16 @@ function BibtexParser() {
                             var end = this.pos;
                             this.match("}", false);
                             return this.input.substring(start, end);
-                        };
-                    } else if (this.input[this.pos] == '{') {
+                        }                    } else if (this.input[this.pos] == '{') {
                         bracecount++;
                     } else if (this.pos >= this.input.length - 1) {
                         throw TypeError("Unterminated value: value_braces");
-                    };
-                };
-                if (this.input[this.pos] == '\\' && escaped == false)
+                    }                }                if (this.input[this.pos] == '\\' && escaped == false)
                     escaped = true;
                 else
                     escaped = false;
                 this.pos++;
-            };
-        };
+            }        };
 
         this.value_comment = function() {
             var str = '';
@@ -111,10 +97,8 @@ function BibtexParser() {
                     brcktCnt--;
                 if (this.pos >= this.input.length - 1) {
                     throw TypeError("Unterminated value: value_comment", + this.input.substring(start));
-                };
-                this.pos++;
-            };
-            return str;
+                }                this.pos++;
+            }            return str;
         };
 
         this.value_quotes = function() {
@@ -129,15 +113,13 @@ function BibtexParser() {
                         return this.input.substring(start, end);
                     } else if (this.pos >= this.input.length - 1) {
                         throw TypeError("Unterminated value: value_quotes", this.input.substring(start));
-                    };
-                }
+                    }                }
                 if (this.input[this.pos] == '\\' && escaped == false)
                     escaped = true;
                 else
                     escaped = false;
                 this.pos++;
-            };
-        };
+            }        };
 
         this.single_value = function() {
             var start = this.pos;
@@ -154,8 +136,7 @@ function BibtexParser() {
                 else
                     throw "Value expected: single_value" + this.input.substring(start) + ' for key: ' + k;
 
-            };
-        };
+            }        };
 
         this.value = function() {
             var values = [];
@@ -163,8 +144,7 @@ function BibtexParser() {
             while (this.tryMatch("#")) {
                 this.match("#");
                 values.push(this.single_value());
-            };
-            return values.join("");
+            }            return values.join("");
         };
 
         this.key = function(optional) {
@@ -172,34 +152,29 @@ function BibtexParser() {
             while (true) {
                 if (this.pos >= this.input.length) {
                     throw TypeError("Runaway key: key");
-                };
-                                // а-яА-Я is Cyrillic
+                }                                // а-яА-Я is Cyrillic
                 //console.log(this.input[this.pos]);
                 if (this.notKey.indexOf(this.input[this.pos]) >= 0) {
                     if (optional && this.input[this.pos] != ',') {
                         this.pos = start;
                         return null;
-                    };
-                    return this.input.substring(start, this.pos);
+                    }                    return this.input.substring(start, this.pos);
                 } else {
                     this.pos++;
 
-                };
-            };
-        };
+                }            }        };
 
         this.key_equals_value = function() {
             var key = this.key();
             if (this.tryMatch("=")) {
                 this.match("=");
                 var val = this.value();
-                key = key.trim()
+                key = key.trim();
                 return [ key, val ];
             } else {
                 throw TypeError("Value expected, equals sign missing: key_equals_value",
                      this.input.substring(this.pos));
-            };
-        };
+            }        };
 
         this.key_value_list = function() {
             var kv = this.key_equals_value();
@@ -211,11 +186,9 @@ function BibtexParser() {
                 if (this.tryMatch("}")) {
                     break;
                 }
-                ;
                 kv = this.key_equals_value();
                 this.currentEntry['entryTags'][kv[0]] = kv[1];
-            };
-        };
+            }        };
 
         this.entry_body = function(d) {
             this.currentEntry = {};
@@ -261,7 +234,7 @@ function BibtexParser() {
                     entry.citationKey += entry.entryTags.year;
                 }
             });
-        }
+        };
 
         this.bibtex = function() {
             while (this.matchAt()) {
@@ -277,19 +250,16 @@ function BibtexParser() {
                     this.entry(d);
                 }
                 this.match("}");
-            };
-
+            }
             this.alernativeCitationKey();
         };
-    };
-
+    }
 function bibTextoJSON(bibtex) {
     var b = new BibtexParser();
     b.setInput(bibtex);
     b.bibtex();
     return b.entries;
-};
-
+}
     // /* added during hackathon don't hate on me */
     // /* Increased the amount of white-space to make entries
     //  * more attractive to humans. Pass compact as false
@@ -328,3 +298,5 @@ function bibTextoJSON(bibtex) {
     // };
 
 /* end bibtexParse */
+
+export { bibTextoJSON };

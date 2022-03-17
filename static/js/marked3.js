@@ -851,7 +851,7 @@ class DivRenderer {
 
     link(href, title, text) {
         title = title ? `title="${title}"` : '';
-        return `<a href="${href}" ${title}>${text}</a>`;
+        return `<a target="_blank" href="${href}" ${title}>${text}</a>`;
 
     }
 
@@ -881,13 +881,14 @@ class DivRenderer {
     ref(args, text) {
         const id = args.id || '';
         const ext = id.includes(':');
+        const targ = ext ? `target="_blank"` : ""
         const type = ext ? 'ext' : 'int';
         const format = args.format || args.fmt || args.f || '';
         const pclass = (args.popup != 'false') ? 'pop_anchor': '';
         const dtext = text ? ` data-text="${escape(text)}"` : '';
         const [art, key] = id.split(':');
         const href = ext ? `${window.location.origin}/a/${art}\#${key}` : `\#${id}`;
-        return `<a href="${href}" class="reference ${pclass}" refkey="${id}" reftype="${type}" format="${format}" ${dtext}></a>`;
+        return `<a ${targ} href="${href}" class="reference ${pclass}" refkey="${id}" reftype="${type}" format="${format}" ${dtext}></a>`;
     }
 
     cite(args, text) {
@@ -895,14 +896,14 @@ class DivRenderer {
         const format = args.format || args.fmt || args.f || '';
         const pclass = (args.popup != 'false') ? 'pop_anchor': '';
         const dtext = text ? ` data-text="${escape(text)}"` : '';
-        return `<a href="" class="reference ${pclass}" refkey="${id}" reftype="cite" format="${format}" ${dtext}></a>`;
+        return `<a target="_blank" href="" class="reference ${pclass}" refkey="${id}" reftype="cite" format="${format}" ${dtext}></a>`;
     }
 
     ilink(args, text) {
         const id = args.id ?? '';
         const pclass = (args.popup != 'false') ? 'pop_anchor': '';
         const dtext = text ? ` data-text="${escape(text)}"` : '';
-        return `<a class="reference ${pclass}" href="${id}" refkey="${id}" ${dtext} reftype="link"></a>`;
+        return `<a target="_blank" class="reference ${pclass}" href="${id}" refkey="${id}" ${dtext} reftype="link"></a>`;
     }
 
     footnote(text) {
