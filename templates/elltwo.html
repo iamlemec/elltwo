@@ -52,7 +52,7 @@
             {% if login %}
             {% if current_user.is_authenticated %}
                 <span id="user_display">User: {{ current_user.name }}</span>
-                <form class=inline_form method="POST" action="/logout_user">
+                <form class=inline_form method="POST" action="/logout">
                     <button class="foot_butt">Log Out</button>
                 </form>
             {% endif %}

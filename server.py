@@ -116,8 +116,7 @@ if args.mail is not None:
     app.config.update(mail_auth)
     mail = Mail(app)
 else:
-    MailNull = namedtuple('MailNull', ['send'])
-    mail = MailNull(send=lambda _: None)
+    mail = None
 
 # load sqlalchemy
 db = SQLAlchemy(app)
@@ -186,15 +185,13 @@ def Index():
     return render_template('index.html', **style, **chtml, login=False)
 
 ###
-### Auth Routes
+### user related
 ###
 
-@app.route('/signup')
 def Signup():
     style = getStyle(request)
     return render_template('signup.html', **style, **chtml)
 
-@app.route('/login', methods=['GET', 'POST'])
 def Login():
     if request.referrer:
         next = request.referrer.replace('/r/', '/a/', 1)
@@ -203,96 +200,35 @@ def Login():
     style = getStyle(request)
     return render_template('login.html', next=next, **style, **chtml)
 
+@edit_decor
+def Logout():
+    logout_user()
+    redir = request.referrer or url_for('Home')
+    return redirect(redir)
+
 def CreateUser():
     email = request.form.get('email')
     name = request.form.get('name')
     password = request.form.get('password')
 
     user = edb.get_user(email) # if this returns a user, then the email already exists in database
-
     if user is not None: # if a user is found, we want to redirect back to signup page so user can try again
         lg = url_for('Login')
         msg = Markup(f'An account with this email already exists. <br> <a href="{lg}" class="alert-link">Click here to log in.</a>')
         flash(msg)
         return redirect(url_for('Signup'))
 
-    edb.add_user(email, name, password)
-    send_confirmation_email(email)
-    rs = url_for('Resend', email=email)
-    msg = Markup(f'Check your email to activate your account. <br> <a href="{rs}" class="alert-link">Resend.</a>')
-    flash(msg)
+    if mail is not None:
+        edb.add_user(email, name, password, confirm=False)
+        send_confirmation_email(email)
+        rs = url_for('Resend', email=email)
+        msg = Markup(f'Check your email to activate your account. <br> <a href="{rs}" class="alert-link">Resend.</a>')
+        flash(msg)
+    else:
+        edb.add_user(email, name, password, confirm=True)
+
     return redirect(url_for('Login'))
 
-if not args.private:
-    app.add_url_rule('/create_user', 'create_user', CreateUser, methods=['POST'])
-
-@app.route('/confirm/<token>')
-def confirm_email(token):
-    try:
-        email = confirm_token(token)
-        user = edb.get_user(email)
-    except:
-        flash('The confirmation link is invalid or has expired.')
-        return redirect(url_for('Signup'))
-    if user.confirmed:
-        lg = url_for('Login')
-        msg = Markup(f'The account is already confirmed. <br> <a href={lg} class="alert-link">Click here to log in.</a>')
-        flash(msg)
-        return redirect(url_for('Login'))
-    else:
-        edb.confirm_user(user)
-        login_user(user, remember=True) #currently we always store cookies, could make it option
-        flash('You have confirmed your account. Thanks!')
-    return redirect(url_for('Home'))
-
-@app.route('/resend/<email>')
-def Resend(email):
-    send_confirmation_email(email)
-    rs = url_for('Resend', email=email)
-    msg = Markup(f'Check your email to activate your account. <br> <a href={rs} class="alert-link">Resend.</a>')
-    flash(msg)
-    return redirect(url_for('Home'))
-
-@app.route('/forgot', methods=['GET', 'POST'])
-def Forgot():
-    style = getStyle(request)
-    return render_template('forgot.html', **style, **chtml)
-
-@app.route('/reset_email', methods=['POST'])
-def ResetEmail():
-    email = request.form.get('email')
-    user = edb.get_user(email)
-
-    if user is not None:
-        send_reset_email(email)
-        msg = Markup(f'Check your email for a password reset link.')
-        flash(msg)
-        return redirect(url_for('Home'))
-    else:
-        msg = Markup(f'No account with email {email}.')
-        flash(msg)
-        return redirect(url_for('Forgot'))
-
-@app.route('/reset/<email>/<token>', methods=['GET'])
-def Reset(email, token):
-    style = getStyle(request)
-    return render_template('reset.html', email=email, token=token, **style, **chtml)
-
-@app.route('/reset_with_token/<token>', methods=['POST'])
-def ResetWithToken(token):
-    password = request.form.get('password')
-    try:
-        email = confirm_token(token)
-        user = edb.get_user(email)
-    except:
-        flash('The reset link is invalid or has expired.')
-        return redirect(url_for('Forgot'))
-    edb.update_password(user, password)
-    login_user(user, remember=True) #currently we always store cookies, could make it option
-    flash('You have reset your password and are logged in.')
-    return redirect(url_for('Home'))
-
-@app.route('/login_user', methods=['POST'])
 def LoginUser():
     email = request.form.get('email')
     password = request.form.get('password')
@@ -318,11 +254,16 @@ def LoginUser():
     login_user(user, remember=True) #currently we always store cookies, could make it option
     return redirect(next)
 
-@app.route('/logout_user', methods=['POST'])
-@edit_decor
-def LogoutUser():
-    logout_user()
-    return redirect(request.referrer)
+if args.login or args.private:
+    app.add_url_rule('/signup', 'Signup', Signup)
+    app.add_url_rule('/login', 'Login', Login, methods=['GET', 'POST'])
+    app.add_url_rule('/logout', 'Logout', Logout, methods=['GET', 'POST'])
+    app.add_url_rule('/create_user', 'CreateUser', CreateUser, methods=['POST'])
+    app.add_url_rule('/login_user', 'LoginUser', LoginUser, methods=['POST'])
+
+##
+## mail related
+##
 
 def send_confirmation_email(email):
     subject = "Confirm your elltwo account"
@@ -346,7 +287,7 @@ def send_email(to, subject, template, logo=True):
         recipients=[to],
         html=template,
         sender=app.config['MAIL_DEFAULT_SENDER']
-        )
+    )
     if logo:
         fpp = Path(__file__).parent / "static/img/logofull.png"
         with app.open_resource(fpp) as fp:
@@ -371,12 +312,82 @@ def confirm_token(token, expiration=3600):
         return False
     return out
 
+def ConfirmEmail(token):
+    try:
+        email = confirm_token(token)
+        user = edb.get_user(email)
+    except:
+        flash('The confirmation link is invalid or has expired.')
+        return redirect(url_for('Signup'))
+    if user.confirmed:
+        lg = url_for('Login')
+        msg = Markup(f'The account is already confirmed. <br> <a href={lg} class="alert-link">Click here to log in.</a>')
+        flash(msg)
+        return redirect(url_for('Login'))
+    else:
+        edb.confirm_user(user)
+        login_user(user, remember=True) #currently we always store cookies, could make it option
+        flash('You have confirmed your account. Thanks!')
+    return redirect(url_for('Home'))
+
+def Resend(email):
+    send_confirmation_email(email)
+    rs = url_for('Resend', email=email)
+    msg = Markup(f'Check your email to activate your account. <br> <a href={rs} class="alert-link">Resend.</a>')
+    flash(msg)
+    return redirect(url_for('Home'))
+
+def Forgot():
+    style = getStyle(request)
+    return render_template('forgot.html', **style, **chtml)
+
+def ResetEmail():
+    email = request.form.get('email')
+    user = edb.get_user(email)
+
+    if user is not None:
+        send_reset_email(email)
+        msg = Markup(f'Check your email for a password reset link.')
+        flash(msg)
+        return redirect(url_for('Home'))
+    else:
+        msg = Markup(f'No account with email {email}.')
+        flash(msg)
+        return redirect(url_for('Forgot'))
+
+def ResetToken(email, token):
+    style = getStyle(request)
+    return render_template('reset.html', email=email, token=token, **style, **chtml)
+
+def ResetWithToken(token):
+    password = request.form.get('password')
+    try:
+        email = confirm_token(token)
+        user = edb.get_user(email)
+    except:
+        flash('The reset link is invalid or has expired.')
+        return redirect(url_for('Forgot'))
+    edb.update_password(user, password)
+    login_user(user, remember=True) #currently we always store cookies, could make it option
+    flash('You have reset your password and are logged in.')
+    return redirect(url_for('Home'))
+
+if mail is not None:
+    app.add_url_rule('/confirm/<token>', 'ConfirmEmail', ConfirmEmail)
+    app.add_url_rule('/resend/<email>', 'ResendEmail', Resend)
+    app.add_url_rule('/forgot', 'Forgot', Forgot, methods=['GET', 'POST'])
+    app.add_url_rule('/reset_email', 'ResetEmail', ResetEmail, methods=['POST'])
+    app.add_url_rule('/reset/<email>/<token>', 'ResetToken', ResetToken, methods=['GET'])
+    app.add_url_rule('/reset_with_token/<token>', 'ResetWithToken', ResetWithToken, methods=['POST'])
+else:
+    app.add_url_rule('/forgot', 'Forgot', Home, methods=['GET', 'POST'])
+
 ###
 ### Article
 ###
 
-def GetArtData(title, edit, pid=None, 
-    theme=config['default_theme'], font=config['default_font'], 
+def GetArtData(title, edit, pid=None,
+    theme=config['default_theme'], font=config['default_font'],
     SVGEditor=False, ssv=False):
     app.logger.debug(f'article [{pid}]: {title}')
     art = edb.get_art_short(title)
