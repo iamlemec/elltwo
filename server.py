@@ -122,9 +122,6 @@ else:
 db = SQLAlchemy(app)
 edb = ElltwoDB(db=db, reindex=args.reindex)
 
-# login manager
-login = LoginManager(app)
-
 # create socketio
 socketio = SocketIO(app)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
@@ -141,7 +138,7 @@ def db_setup():
 
 @app.context_processor
 def inject_dict_for_all_templates():
-    return dict(login=args.login)
+    return dict(login=args.login or args.private)
 
 ###
 ### Home Page
@@ -260,6 +257,8 @@ if args.login or args.private:
     app.add_url_rule('/logout', 'Logout', Logout, methods=['GET', 'POST'])
     app.add_url_rule('/create_user', 'CreateUser', CreateUser, methods=['POST'])
     app.add_url_rule('/login_user', 'LoginUser', LoginUser, methods=['POST'])
+    login = LoginManager(app)
+    login.unauthorized_handler(Login)
 
 ##
 ## mail related
@@ -271,7 +270,6 @@ def send_confirmation_email(email):
     confirm_url = url_for('confirm_email', token=token, _external=True)
     html = render_template('email_conf.html', confirm_url=confirm_url, confirm=True)
     send_email(email, subject, html)
-    # return redirect(url_for('Home'))
 
 def send_reset_email(email):
     subject = "Password reset: elltwo account"
@@ -279,7 +277,6 @@ def send_reset_email(email):
     confirm_url = url_for('Reset', email=email, token=token, _external=True)
     html = render_template('email_conf.html', confirm_url=confirm_url, confirm=False)
     send_email(email, subject, html)
-    # return redirect(url_for('Home'))
 
 def send_email(to, subject, template, logo=True):
     msg = Message(
@@ -288,6 +285,7 @@ def send_email(to, subject, template, logo=True):
         html=template,
         sender=app.config['MAIL_DEFAULT_SENDER']
     )
+
     if logo:
         fpp = Path(__file__).parent / "static/img/logofull.png"
         with app.open_resource(fpp) as fp:
@@ -326,7 +324,7 @@ def ConfirmEmail(token):
         return redirect(url_for('Login'))
     else:
         edb.confirm_user(user)
-        login_user(user, remember=True) #currently we always store cookies, could make it option
+        login_user(user, remember=True) # currently we always store cookies, could make it option
         flash('You have confirmed your account. Thanks!')
     return redirect(url_for('Home'))
 
@@ -386,18 +384,15 @@ else:
 ### Article
 ###
 
-def GetArtData(title, edit, pid=None,
-    theme=config['default_theme'], font=config['default_font'],
-    SVGEditor=False, ssv=False):
+def GetArtData(title, edit, pid=None, **kwargs):
     app.logger.debug(f'article [{pid}]: {title}')
     art = edb.get_art_short(title)
     if art:
-        print('**\n'*10, ssv)
+        style = getStyle(request, **kwargs)
         paras = edb.get_paras(art.aid)
         return render_template(
-            'article.html', aid=art.aid, title=art.title,
-            theme=theme, font=font, ssv=ssv, SVGEditor=SVGEditor, g_ref=art.g_ref, pid=pid,
-            paras=paras, readonly=not edit, **config
+            'article.html', aid=art.aid, title=art.title, g_ref=art.g_ref, pid=pid, paras=paras,
+            readonly=not edit, **config, **style
         )
     else:
         flash(f'Article "{title}" does not exist.')
@@ -407,12 +402,12 @@ def ErrorPage(title='Error', message=''):
     style = getStyle(request)
     return render_template('error.html', title=title, message=message, **style)
 
-def getStyle(request):
+def getStyle(request, **kwargs):
     return {
-        'theme': request.args.get('theme') or request.cookies.get('theme') or config['default_theme'],
-        'font': request.args.get('font') or request.cookies.get('font') or config['default_font'],
-        'ssv': request.args.get('ssv') or request.cookies.get('ssv') or config['ssv_init'],
-        'SVGEditor': request.args.get('SVGEditor') or False
+        'theme': kwargs.get('theme') or request.args.get('theme') or request.cookies.get('theme') or config['default_theme'],
+        'font': kwargs.get('font') or request.args.get('font') or request.cookies.get('font') or config['default_font'],
+        'ssv': kwargs.get('ssv') or request.args.get('ssv') or request.cookies.get('ssv') or config['ssv_init'],
+        'SVGEditor': kwargs.get('SVGEditor') or request.args.get('SVGEditor') or False
     }
 
 @app.route('/a/<title>', methods=['GET'])

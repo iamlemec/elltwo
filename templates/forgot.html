@@ -40,17 +40,7 @@
 </div>
 {% endif %}
 
-{% if current_user.is_authenticated %}
-<div class="box">
-<div class="notification">
-You are logged in as {{ current_user.name }}, log out?
-</div>
-<form method="POST" action="/logout_user">
-    <input type="hidden" name="next" value="{{next}}"/>
-    <button class="login-button">Log Out</button>
-</form>
-</div>
-{% endif %}
+{% include "already.html" %}
 
 <script type="module">
 import { renderKatex } from '{{ url_for('static', filename='js/math.js') }}'

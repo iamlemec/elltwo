@@ -236,7 +236,7 @@ a.reference {
 }
 
 .login-button {
-    margin: 10px 10px 15px 0px;
+    margin: 10px 10px 0px 0px;
 }
 
 #locallogin:after {
@@ -406,7 +406,7 @@ a.reference {
 }
 
 /* svg color classes */
-    
+
 
 .theme_col {
     stroke: var(--font-col);

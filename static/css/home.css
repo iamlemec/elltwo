@@ -14,12 +14,13 @@
 }
 
 .notification {
-    position: relative;
     width: 100%;
-    min-height: 0px;
-    top: 30px;
     text-align: center;
-    color: var(--hl2-col)
+    color: var(--hl2-col);
+}
+
+.notification a {
+    color: blue;
 }
 
 #title {
@@ -138,6 +139,7 @@
     background-color: var(--bg-hl2-col);
     padding: 15px;
     padding-top: 15px;
+    border-radius: 5px;
 }
 
 .notification {

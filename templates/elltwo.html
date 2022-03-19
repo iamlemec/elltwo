@@ -55,8 +55,7 @@
                 <form class=inline_form method="POST" action="/logout">
                     <button class="foot_butt">Log Out</button>
                 </form>
-            {% endif %}
-            {% if not current_user.is_authenticated %}
+            {% else %}
                 <button class="foot_butt" id="toggle_ll">LogIn to Edit</button>
                 <div id=locallogin>
                 <form method="POST" action="/login_user">
