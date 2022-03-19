@@ -27,8 +27,8 @@
 {% if not current_user.is_authenticated %}
 <div class="box">
 
-<div class="notification">Log in to enable editing or <a href="{{ url_for('Signup') }}">create an account</a>.
-<br>
+<div class="login_help">
+Log in to enable editing or <a href="{{ url_for('Signup') }}">create an account</a>.<br>
 Forgot your password? <a href="{{ url_for('Forgot') }}">Click here to reset it</a>.
 </div>
 {% with messages = get_flashed_messages() %}
