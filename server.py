@@ -87,7 +87,8 @@ if args.conf is not None:
         chtml |= conf['html']
 
 # login decorator (or not)
-edit_decor = login_required if (args.login or args.private) else (lambda f: f)
+need_login = args.login or args.private
+edit_decor = login_required if need_login else (lambda f: f)
 view_decor = login_required if args.private else (lambda f: f)
 
 ###
@@ -126,11 +127,16 @@ edb = ElltwoDB(db=db, reindex=args.reindex)
 socketio = SocketIO(app)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
+# optional login manager
+if need_login:
+    login_mgr = LoginManager(app)
+
 # initialize tables
 @app.before_first_request
 def db_setup():
     edb.create()
-    login.user_loader(edb.load_user)
+    if need_login:
+        login_mgr.user_loader(edb.load_user)
 
 ###
 ### Create global variables for all templets
@@ -138,48 +144,7 @@ def db_setup():
 
 @app.context_processor
 def inject_dict_for_all_templates():
-    return dict(login=args.login or args.private)
-
-###
-### Home Page
-###
-
-@app.route('/')
-@app.route('/home')
-@view_decor
-def Home():
-    style = getStyle(request)
-    if args.demo:
-        return render_template('index.html', **style, **chtml, login=False)
-    else:
-        return render_template('home.html', **style, **chtml)
-
-@app.route('/create', methods=['POST'])
-@edit_decor
-def Create():
-    art_name = request.form['new_art']
-    art = edb.get_art_short(art_name)
-    if art:
-        return redirect(url_for('RenderArticle', title=art_name))
-    else:
-        edb.create_article(art_name)
-        return redirect(url_for('RenderArticle', title=art_name))
-
-@app.route('/demo')
-@view_decor
-def Demo():
-    hash_tag = secrets.token_hex(4)
-    art_name = f'demo_{hash_tag}'
-    with open(config['demo_path']) as fid:
-        demo_mark = fid.read()
-    edb.import_markdown(art_name, demo_mark, index=False,)
-    return redirect(url_for('RenderArticle', title=art_name))
-
-@app.route('/index')
-@view_decor
-def Index():
-    style = getStyle(request)
-    return render_template('index.html', **style, **chtml, login=False)
+    return dict(login=need_login)
 
 ###
 ### user related
@@ -196,6 +161,9 @@ def Login():
         next = url_for('Home')
     style = getStyle(request)
     return render_template('login.html', next=next, **style, **chtml)
+
+if need_login:
+    login_mgr.unauthorized_handler(Login)
 
 @edit_decor
 def Logout():
@@ -248,17 +216,56 @@ def LoginUser():
         return redirect(url_for('Login'))
 
     # if the above check passes, then we know the user has the right credentials
-    login_user(user, remember=True) #currently we always store cookies, could make it option
+    login_user(user, remember=True) # currently we always store cookies, could make it option
     return redirect(next)
 
-if args.login or args.private:
+if need_login:
     app.add_url_rule('/signup', 'Signup', Signup)
     app.add_url_rule('/login', 'Login', Login, methods=['GET', 'POST'])
     app.add_url_rule('/logout', 'Logout', Logout, methods=['GET', 'POST'])
     app.add_url_rule('/create_user', 'CreateUser', CreateUser, methods=['POST'])
     app.add_url_rule('/login_user', 'LoginUser', LoginUser, methods=['POST'])
-    login = LoginManager(app)
-    login.unauthorized_handler(Login)
+
+###
+### Top Level
+###
+
+@app.route('/')
+@app.route('/home')
+@view_decor
+def Home():
+    style = getStyle(request)
+    if args.demo:
+        return render_template('index.html', **style, **chtml, login=False)
+    else:
+        return render_template('home.html', **style, **chtml)
+
+@app.route('/create', methods=['POST'])
+@edit_decor
+def Create():
+    art_name = request.form['new_art']
+    art = edb.get_art_short(art_name)
+    if art:
+        return redirect(url_for('RenderArticle', title=art_name))
+    else:
+        edb.create_article(art_name)
+        return redirect(url_for('RenderArticle', title=art_name))
+
+@app.route('/demo')
+@view_decor
+def Demo():
+    hash_tag = secrets.token_hex(4)
+    art_name = f'demo_{hash_tag}'
+    with open(config['demo_path']) as fid:
+        demo_mark = fid.read()
+    edb.import_markdown(art_name, demo_mark, index=False,)
+    return redirect(url_for('RenderArticle', title=art_name))
+
+@app.route('/index')
+@view_decor
+def Index():
+    style = getStyle(request)
+    return render_template('index.html', **style, **chtml, login=False)
 
 ##
 ## mail related
@@ -416,11 +423,13 @@ def RenderArticle(title):
     style = getStyle(request)
     pid = request.args.get('pid')
     howto = args.demo and urlify(title) == 'howto' # hacky
-    permit = current_user.is_authenticated or not args.login
+    permit = not need_login or current_user.is_authenticated
     if permit and not howto:
         return GetArtData(title, edit=True, pid=pid, **style)
-    else:
+    elif not args.private:
         return redirect(url_for('RenderArticleRO', title=title))
+    else:
+        return redirect(url_for('Home'))
 
 @app.route('/r/<title>', methods=['GET'])
 @view_decor
@@ -453,7 +462,9 @@ def RenderBib():
 @app.route('/img', methods=['GET','POST'])
 @view_decor
 def Img():
-    edit = current_user.is_authenticated or not args.login
+    if args.private and not current_user.is_authenticated:
+        return redirect(url_for('Home'))
+    edit = current_user.is_authenticated or not need_login
     style = getStyle(request)
     img = [(i.key, i.keywords) for i in edb.get_images()]
     img.reverse()
