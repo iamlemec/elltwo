@@ -77,6 +77,7 @@ config = {
 chtml = {
     'name': '<span class=latex>\\ell^2</span>',
     'tag': 'Simple Beautiful Collaborative',
+    'metatag': '',
 }
 
 if args.conf is not None:
