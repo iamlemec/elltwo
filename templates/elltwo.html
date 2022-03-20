@@ -43,7 +43,7 @@
         {% block post_content %}{% endblock %}
 
         <div id="foot">
-            <a id="axell" href="/">
+            <a id="axell" href="{{ url_for('Home') }}">
             <img src="{{ url_for('static', filename='favicon/elltwo.svg') }}" width="16" height="16"/>
             </a>
 
@@ -53,14 +53,13 @@
             {% if login %}
             {% if current_user.is_authenticated %}
                 <span id="user_display">User: {{ current_user.name }}</span>
-                <form class=inline_form method="POST" action="/logout_user">
+                <form class=inline_form method="POST" action="{{ url_for('Logout') }}">
                     <button class="foot_butt">Log Out</button>
                 </form>
-            {% endif %}
-            {% if not current_user.is_authenticated %}
+            {% else %}
                 <button class="foot_butt" id="toggle_ll">LogIn to Edit</button>
                 <div id=locallogin>
-                <form method="POST" action="/login_user">
+                <form method="POST" action="{{ url_for('LoginUser') }}">
                 <div class="login_field">
                     <input class="input" type="email" name="email" placeholder="Email" autofocus="">
                 </div>

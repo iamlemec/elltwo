@@ -14,7 +14,7 @@
 {% block header %}
 
 <div id="prompt">
-<a href="/"><span id="title">{{name|safe}}</span></a>
+<a href="{{ url_for('Home') }}"><span id="title">{{ name | safe }}</span></a>
 <div id="desc">Image Library</div>
 </div>
 
@@ -37,11 +37,15 @@
         <svg><use xlink:href="{{ url_for('static', filename='img/icons.svg') }}#upload"></use></svg>
     </div>
     <div id="display_update">
-        <div class="keywordtitle">Keywords: </div><input type="text" autocomplete="off" autofocus="autofocus" name="keywords" id="keywords" placeholder=""><br>
-        <div class="keywordtitle">Image Key: </div><input type="text" autocomplete="off" autofocus="autofocus" name="key" id="key" placeholder="">
+        <div class="display_row">
+            <div class="keywordtitle">Keywords</div><input type="text" autocomplete="off" autofocus="autofocus" name="keywords" id="keywords" placeholder="">
+        </div>
+        <div class="display_row">
+            <div class="keywordtitle">Image Key</div><input type="text" autocomplete="off" autofocus="autofocus" name="key" id="key" placeholder="">
+            <button id="img_update">Update</button>
+            <button id="img_delete">Delete</button>
+        </div>
     </div>
-    <button id="img_update">Update</button>
-    <button id="img_delete">Delete</button>
 </div>
 
 {% include '/svgEditor.html' %}

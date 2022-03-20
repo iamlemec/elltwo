@@ -13,7 +13,7 @@
 
 {% block header %}
 <div id="prompt">
-<a href="/"><span id="title">{{name|safe}}</span></a>
+<a href="{{ url_for('Home') }}"><span id="title">{{ name | safe }}</span></a>
 <div id="desc">Bibliography</div>
 </div>
 

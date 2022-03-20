@@ -15,10 +15,17 @@
     z-index: 2;
 }
 
-#SVGWidthControl{
-    width: 2px;
-    background-color: var(--hl-col);
-    cursor:  col-resize;
+#SVGWidthDisplay {
+    background-color: var(--bg-hl2-col);
+    width: 1px;
+}
+
+#SVGWidthControl {
+    position: relative;
+    left: -10px;
+    width: 23px;
+    height: 100%;
+    cursor: col-resize;
     z-index: 10;
 }
 
@@ -35,9 +42,14 @@
     justify-content: flex-end;
     width: 100%;
     padding: 5px;
+    border-radius: 5px;
     font-size: 80%;
     background-color: var(--bg-hl2-col);
     font-family: 'Open Sans', sans-serif;
+}
+
+#SVGEditorNav input {
+    border-radius: 2px;
 }
 
 #SVGEditorNavUp, #SVGEditorNavDown {
@@ -64,8 +76,8 @@
     margin: 0 0px 0 4px;
 }
 
-.toggle-track{
-    margin-left: 10px;
+#svgShow_label .toggle-track {
+    margin-left: 5px;
 }
 
 #SVGEditorNav .foot_butt {
@@ -87,53 +99,51 @@
     white-space: pre-wrap;
     position: absolute;
     font-family: monospace;
-    font-size: 65%;
+    font-size: 55%;
     height: 100%;
     width: 100%;
-    padding: 10px;
-    padding-left: 35px;
+    padding: 5px;
+    padding-left: 30px;
     overflow: scroll;
+    scrollbar-width: none;
 }
 
 #SVGEditorInputBox {
     position: relative;
     height: 50%;
     width: 100%;
-    overflow: scroll;
-    scrollbar-width: none;
-
 }
 
-#SVGEditorInputBox.fullsize{
+#SVGEditorInputBox.fullsize {
     height: 100%;
 }
 
-#SVGEditorInputView, #SVGEditorParsedView{
+#SVGEditorInputView, #SVGEditorParsedView {
     background-color: var(--bg-col);
     counter-reset: line;
-    -webkit-box-shadow:inset 29px 0px 0px 0px var(--bg-hl2-col),inset 30px 0px 0px 0px var(--hl-col);
+    -webkit-box-shadow: inset 24px 0px 0px 0px var(--bg-hl-col), inset 25px 0px 0px 0px var(--bg-hl2-col);
 }
 
 #SVGEditorInputText {
-    color: rgba(0,0,0,0);
-    background-color: rgba(0,0,0,0);
+    color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0);
     z-index: 2;
 }
 
-.code:not(.numbered) .linenum{
+.code:not(.numbered) .linenum {
     display: none;
 }
 
 .linenum {
     position: absolute;
     text-align: right;
-    width: 25px;
+    width: 20px;
     left: 0;
     font-size: 100%;
     opacity: .3;
 }
 
-.para .linenum{
+.para .linenum {
    width: 28px;
 }
 
@@ -146,20 +156,21 @@
     white-space: pre-wrap;
     background-color: var(--bg-col);
     color: var(--font-col);
-    border-top: 1px solid var(--hl-col);
+    border-top: 1px solid var(--bg-hl2-col);
     font-family: monospace;
-    font-size: 65%;
+    font-size: 55%;
     position: relative;
     top: 0%;
     width: 100% !important;
     height: 50% !important;
-    padding: 10px;
+    padding: 5px;
     padding-left: 35px;
     overflow: scroll;
+    scrollbar-width: none;
     counter-reset: line;
 }
 
-#SVGEditorParsedView{
+#SVGEditorParsedView {
     top: -50%;
 }
 
@@ -184,7 +195,6 @@
     height: 100%;
     padding: 20px;
     background: var(--bg-hl-col);
-    border-left: 1px solid gray;
 }
 
 #SVGEditorOutput {
@@ -229,6 +239,7 @@
     width: 100%;
     height: 40%;
     overflow-y: scroll;
+    scrollbar-width: none;
 }
 
 .var_cont {
@@ -309,7 +320,7 @@ input[type=range]::-webkit-slider-thumb {
     transform: translateY(-50%);
 }
 
-.phantom_track_wrap{
+.phantom_track_wrap {
     display: flex;
     margin-bottom: -50px;
     width: calc(100% + 30px);
@@ -328,17 +339,15 @@ input[type=range]::-webkit-slider-thumb {
     line-height: 1.5px;
 }
 
-.min_lim{
+.min_lim {
     text-align: right;
     margin-right: 15px;
 }
 
-.max_lim{
+.max_lim {
     text-align: left;
     margin-left: 15px;
 }
-
-
 
 .slider_label {
     position: relative;
@@ -360,16 +369,16 @@ input[type=range]::-webkit-slider-thumb {
 
 /* toggle Interactive */
 
-.toggle_cont .toggle{
+.toggle_cont .toggle {
     margin: 10px;
 }
 
 /* list interctive */
 
-.list_cont .custom-select-wrapper{
+.list_cont .custom-select-wrapper {
     position: unset !important;
 }
 
-.list_cont .custom-select-trigger{
+.list_cont .custom-select-trigger {
     background-color: var(--brace-col);
 }

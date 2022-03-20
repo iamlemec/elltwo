@@ -13,15 +13,6 @@
     color: var(--font-col);
 }
 
-.notification {
-    position: relative;
-    width: 100%;
-    min-height: 0px;
-    top: 30px;
-    text-align: center;
-    color: var(--hl2-col)
-}
-
 #title {
    font-size: 40px;
 }
@@ -138,11 +129,26 @@
     background-color: var(--bg-hl2-col);
     padding: 15px;
     padding-top: 15px;
+    border-radius: 5px;
+}
+
+.notification, .login_help {
+    padding: 3px;
+    width: 100%;
+    color: var(--hl2-col);
+    text-align: center;
 }
 
 .notification {
-    padding: 3px;
-    text-align: center;
+    position: absolute;
+}
+
+.login_help {
+    padding-bottom: 15px;
+}
+
+.login_help a {
+    color: blue;
 }
 
 .result {

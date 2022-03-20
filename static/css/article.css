@@ -12,7 +12,6 @@
 
 /* classic view paras */
 
-
 .container:not(.ssv) .para {
     position: relative;
     margin: auto;
@@ -68,36 +67,29 @@
     text-align: justify;
 }
 
-.container:not(.ssv) .p_input:not(.svgE) {
+.container:not(.ssv) .p_input:not(.svgE),
+.container:not(.ssv) .p_input_view:not(.svgE) {
     white-space: pre-wrap;
     position: absolute;
     width: 100%;
     min-height: 50px;
-    font-size: 90%;
+    font-size: 85%;
     overflow: hidden;
     display: none;
     border: none;
+    overflow-wrap: anywhere;
+}
+
+.container:not(.ssv) .p_input:not(.svgE) {
     color: inherit;
     background-color: inherit;
     caret-color: inherit;
     color: rgba(0, 0, 0, 0);
     background-color: rgba(0, 0, 0, 0);
-    padding-right: 5px;
-    overflow-wrap: anywhere;
 }
 
 .container:not(.ssv) .p_input_view:not(.svgE) {
-    position: absolute;
-    white-space: pre-wrap;
-    width: 100%;
-    min-height: 50px;
-    font-size: 90%;
-    overflow: hidden;
-    display: none;
-    border: none;
     font-family: monospace;
-    padding-right: 5px;
-    overflow-wrap: anywhere;
 }
 
 .container:not(.ssv) > .para.rawtext > .p_text {
@@ -191,7 +183,6 @@
     display: block;
 }
 
-
 .para.dragging {
     opacity: .4;
 }
@@ -250,7 +241,7 @@
     z-index: -1;
 }
 
-#bg.writeable .controlZone{
+#bg.writeable .controlZone {
    cursor: grab;
 }
 
@@ -1188,6 +1179,8 @@ circle.commit.active {
 
 .table {
     display: table;
+    padding-top: 20px;
+    padding-bottom: 20px;
 }
 
 .table-header {

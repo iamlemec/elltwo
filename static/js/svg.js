@@ -7,7 +7,7 @@ import { on_success, createIcon, createToggle, createButton,
 import { cache, config, state } from './state.js'
 import { sendCommand } from './client.js'
 import { replace } from './marked3.js'
-import { showConfirm, makeActive, sendUpdatePara, textWrap, textUnWrap, 
+import { showConfirm, makeActive, sendUpdatePara, textWrap, textUnWrap,
     undoStack, undo} from './editor.js'
 import { deleteImage } from './img.js'
 import { s, SyntaxHL, braceMatch } from './hl.js'
@@ -135,50 +135,50 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
         });
 
         $(document).on('keydown', '#SVGEditorInputText', function(e) {
-        let input = $(this);
-        let key = e.key.toLowerCase();
-        let ctrl = e.ctrlKey;
-        let alt = e.altKey;
-        let meta = e.metaKey;
-        let tab = e.keyCode == 9;
-        let space = e.keyCode == 32;
-        let shift = e.shiftKey;
-        let raw, c, indent;
-        if(tab){
-                c = cur(e)
-                raw = input.val()
+            let input = $(this);
+            let key = e.key.toLowerCase();
+            let ctrl = e.ctrlKey;
+            let alt = e.altKey;
+            let meta = e.metaKey;
+            let tab = e.keyCode == 9;
+            let space = e.keyCode == 32;
+            let shift = e.shiftKey;
+            let raw, c, indent;
+            if (tab) {
+                c = cur(e);
+                raw = input.val();
                 raw = raw.substring(0,c) + '\t' + raw.substring(c);
                 input.val(raw).trigger('input');
                 input[0].setSelectionRange(c+1,c+1);
                 return false;
-        }else if (key in brac_wraps) {
+            } else if (key in brac_wraps) {
                 c = cur(e, true);
                 return textWrap(input, c, brac_wraps[key]);
-        } else if (key == 'backspace') {
-            let c = cur(e, true);
-            return textUnWrap(input, c, brac_wraps);
-        } else if (space) {
-            state.undoBreakpoint = true;
-        }else if (key == 'enter') {
-            return getindent(input, cur(e))
-        } else if ((ctrl || meta) && key == 'z') {
-            undo($('#SVGEditorInputBox'), 'gum', shift);
-            return false;
-        }
+            } else if (key == 'backspace') {
+                let c = cur(e, true);
+                return textUnWrap(input, c, brac_wraps);
+            } else if (space) {
+                state.undoBreakpoint = true;
+            } else if (key == 'enter') {
+                return getindent(input, cur(e))
+            } else if ((ctrl || meta) && key == 'z') {
+                undo($('#SVGEditorInputBox'), 'gum', shift);
+                return false;
+            }
         });
 
-        let mid = document.querySelector('#SVGWidthControl');
+        let mid = document.querySelector('#SVGWidthDisplay');
         let left = document.querySelector('#SVGEditorBoxLeft');
         let right = document.querySelector('#SVGEditorBoxRight');
         let ipt = document.querySelector('#SVGEditorInputText');
         let view = document.querySelector('#SVGEditorInputView');
 
         function resizePane(e) {
-            let x = e.clientX
+            let x = e.clientX;
             let vw = window.innerWidth;
-            x = Math.max(x,100)
-            x = Math.min(x, vw-300)
-            let perc = (x-2)*100/vw
+            x = Math.max(x, 100);
+            x = Math.min(x, vw-300);
+            let perc = (x-2)*100/vw;
             left.style.width = `${perc}%`;
             right.style.width = `${100-perc}%`;
         }
@@ -203,10 +203,10 @@ function hideSVGEditor(nav=true) {
     $('#hoot').html('[201p // iamlemec]');
     $('#logo').show();
     $('#SVGEditorOuter').hide();
-    if(nav){
+    if (nav) {
         history.back();
         window.history.pushState({'SVGEditor': false}, null, window.location.href.split('?')[0]);
-    };
+    }
 }
 
 // hard-coded options
@@ -301,57 +301,56 @@ function svgSyntaxHL() {
 
 ///editor fucntions
 
-let brac_wraps = {'[': ['[',']'],
-                '{': ['{','}'],
-                '(': ['(',')'],
-                '\'': ['\'','\'', true],
-                '\"': ['\"','\"', true],
-                '\`': ['\`','\`', true],
-                ']': ['',']', true],
-                '}': ['','}', true],
-                ')': ['',')', true],                
-            };
+let brac_wraps = {
+    '[': ['[',']'],
+    '{': ['{','}'],
+    '(': ['(',')'],
+    '\'': ['\'','\'', true],
+    '\"': ['\"','\"', true],
+    '\`': ['\`','\`', true],
+    ']': ['',']', true],
+    '}': ['','}', true],
+    ')': ['',')', true],
+};
 
 function getindent(input,c) {
-    let raw = input.val()
-    let beg = raw.slice(0,c)
+    let raw = input.val();
+    let beg = raw.slice(0, c);
     let line = beg.split('\n').at(-1);
     let indent = line.match(/^([\t| ]*)(?:$|\S)/);
-    let out, loc
-    indent = indent ? indent[1] : ""
-    if(raw[c-1] in brac_wraps && !brac_wraps[raw[c-1]][2] ){
-        if(raw[c] == brac_wraps[raw[c-1]][1]){
-        out = beg + '\n\t' + indent + '\n' + indent + raw.slice(c)
-        loc = (beg + '\n\t' + indent).length;
-        }else{
-        out = beg + '\n\t' + indent + raw.slice(c)
-        loc = out.length - raw.slice(c).length;
+    let out, loc;
+    indent = indent ? indent[1] : '';
+    if (raw[c-1] in brac_wraps && !brac_wraps[raw[c-1]][2]) {
+        if (raw[c] == brac_wraps[raw[c-1]][1]) {
+            out = beg + '\n\t' + indent + '\n' + indent + raw.slice(c);
+            loc = (beg + '\n\t' + indent).length;
+        } else {
+            out = beg + '\n\t' + indent + raw.slice(c);
+            loc = out.length - raw.slice(c).length;
         }
     } else {
-        out = beg + '\n' + indent + raw.slice(c)
+        out = beg + '\n' + indent + raw.slice(c);
         loc = out.length - raw.slice(c).length;
     }
     input.val(out).trigger('input');
-    input[0].setSelectionRange(loc,loc);
-    return false
+    input[0].setSelectionRange(loc, loc);
+    return false;
 }
 
-
 async function openSVGFromKey(key) {
-
-    if(config.readonly){
-        flash('SVGEditor not available in readonly mode')
+    if (config.readonly) {
+        flash('SVGEditor not available in readonly mode');
         return;
     }
-    if(key=='true'){
-        initSVGEditor($('#bg'), "", "", true);  
-        return; 
+    if (key == 'true') {
+        initSVGEditor($('#bg'), "", "", true);
+        return;
     }
-    let ret = await cache.img.get(key)
+    let ret = await cache.img.get(key);
     ret = ret.data || ret;
-    if(ret){
+    if (ret) {
         initSVGEditor($('#bg'), ret, key, true);
-    }else{
-        flash(`'${key}' is not an extant gum key`)
-    };
+    } else {
+        flash(`'${key}' is not an extant gum key`);
+    }
 }

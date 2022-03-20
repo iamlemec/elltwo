@@ -362,6 +362,7 @@ let block = {
     equation: /^\$\$(\*?)( *)(?:refargs)?(\s*)/,
     image: /^(!{1,2})(yt|youtube)?(\*)?( *)(?:refargs)?( *)(\()?([\w-:#/.&%=]*)(\))?(\s*)$/,
     svg: /^\!(svg|gum)(\*)?( *)(?:refargs)?/,
+    figtab: /^\|( *)(?:refargs)?/,
     envbeg: /^\>\>(\!)?( *)([\w-]+)(\*)?( *)(?:refargs)?/,
     envend: /^\<\<( ?)/,
 };
@@ -369,26 +370,29 @@ let block = {
 block._refargs = /((?:&!L&)?\[(?:[^\]]|(?<=\\)\])*\]?(?:&!R&)?)/;
 
 block.title = replace(block.title)
-  ('refargs', block._refargs)
-  ();
+    ('refargs', block._refargs)
+    ();
 block.heading = replace(block.heading)
-  ('refargs', block._refargs)
-  ();
+    ('refargs', block._refargs)
+    ();
 block.equation = replace(block.equation)
-  ('refargs', block._refargs)
-  ();
+    ('refargs', block._refargs)
+    ();
 block.code = replace(block.code)
-  ('refargs', block._refargs)
-  ();
+    ('refargs', block._refargs)
+    ();
 block.image = replace(block.image)
-  ('refargs', block._refargs)
-  ();
+    ('refargs', block._refargs)
+    ();
 block.svg = replace(block.svg)
-  ('refargs', block._refargs)
-  ();
+    ('refargs', block._refargs)
+    ();
+block.figtab = replace(block.figtab)
+    ('refargs', block._refargs)
+    ();
 block.envbeg = replace(block.envbeg)
-  ('refargs', block._refargs)
-  ();
+    ('refargs', block._refargs)
+    ();
 
 function syntaxParseBlock(raw) {
     let cap;
@@ -450,15 +454,21 @@ function syntaxParseBlock(raw) {
     if (cap = block.svg.exec(raw)) {
         let mime = cap[1];
         let star = cap[2] ? s('*', 'hl') : '';
-        let id = cap[4] ? s(fArgs(cap[4]), 'ref'): '';
+        let id = cap[4] ? s(fArgs(cap[4]), 'ref') : '';
         let rest = raw.slice(cap[0].length);
         let text = '';
-        if (mime=='gum') {
+        if (mime == 'gum') {
             text = SyntaxHL(rest, 'gum');
         } else {
             text = SyntaxHL(rest, 'svg');
         }
         return s('!', 'hl') + s(mime, 'math') + star + cap[3] + id + text;
+    }
+
+    if (cap = block.figtab.exec(raw)) {
+        let id = cap[2] ? s(fArgs(cap[2]), 'ref') : '';
+        let rest = raw.slice(cap[0].length);
+        return s('|', 'hl') + cap[1] + id + rest;
     }
 
     if (cap = block.envbeg.exec(raw)) {
