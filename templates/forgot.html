@@ -31,7 +31,7 @@
 <div class="notification">{{ messages[0] }}</div>
 {% endif %}
 {% endwith %}
-<form method="POST" action="/reset_email">
+<form method="POST" action="{{ url_for('ResetEmail') }}">
     <div class="login_field">
     <input class="input" type="email" name="email" placeholder="Email" autofocus="">
     </div>

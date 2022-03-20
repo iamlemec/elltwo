@@ -37,7 +37,7 @@ Forgot your password? <a href="{{ url_for('Forgot') }}">Click here to reset it</
 {% endif %}
 {% endwith %}
 
-<form method="POST" action="/login_user">
+<form method="POST" action="{{ url_for('LoginUser') }}">
     <div class="login_field">
     <input class="input" type="email" name="email" placeholder="Email" autofocus="">
     </div>

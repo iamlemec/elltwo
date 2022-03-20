@@ -220,8 +220,8 @@ def LoginUser():
     return redirect(next)
 
 if need_login:
-    app.add_url_rule('/signup', 'Signup', Signup)
-    app.add_url_rule('/login', 'Login', Login, methods=['GET', 'POST'])
+    app.add_url_rule('/signup', 'Signup', Signup, methods=['GET'])
+    app.add_url_rule('/login', 'Login', Login, methods=['GET'])
     app.add_url_rule('/logout', 'Logout', Logout, methods=['GET', 'POST'])
     app.add_url_rule('/create_user', 'CreateUser', CreateUser, methods=['POST'])
     app.add_url_rule('/login_user', 'LoginUser', LoginUser, methods=['POST'])
@@ -234,6 +234,7 @@ if need_login:
 @app.route('/home')
 @view_decor
 def Home():
+    print('ROUTE: /home')
     style = getStyle(request)
     if args.demo:
         return render_template('index.html', **style, **chtml, login=False)
@@ -426,10 +427,8 @@ def RenderArticle(title):
     permit = not need_login or current_user.is_authenticated
     if permit and not howto:
         return GetArtData(title, edit=True, pid=pid, **style)
-    elif not args.private:
-        return redirect(url_for('RenderArticleRO', title=title))
     else:
-        return redirect(url_for('Home'))
+        return redirect(url_for('RenderArticleRO', title=title))
 
 @app.route('/r/<title>', methods=['GET'])
 @view_decor
@@ -459,11 +458,9 @@ def RenderBib():
     resp.headers.set('Access-Control-Allow-Origin', '*')
     return resp
 
-@app.route('/img', methods=['GET','POST'])
+@app.route('/img', methods=['GET', 'POST'])
 @view_decor
 def Img():
-    if args.private and not current_user.is_authenticated:
-        return redirect(url_for('Home'))
     edit = current_user.is_authenticated or not need_login
     style = getStyle(request)
     img = [(i.key, i.keywords) for i in edb.get_images()]

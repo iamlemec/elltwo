@@ -23,7 +23,7 @@ let block = {
     svg: /^\!(svg|gum)(\*)? *(?:refargs)?\s*/,
     image: /^!(yt|youtube)?(\*)? *(?:refargs)? *\(href\)\s*$/,
     imagelocal: /^!(\*)? *(?:refargs)\s*$/,
-    figtab: /^@\| *(?:refargs)? *\n(?:table)/,
+    figtab: /^\| *(?:refargs)? *\n(?:table)/,
     envbeg: /^\>\>(\!)? *([\w-]+)(\*)? *(?:refargs)?\s*/,
     envend: /^\<\<\s*/,
     list: /^((?: *(?:bull) [^\n]*(?:\n|$))+)\s*$/,

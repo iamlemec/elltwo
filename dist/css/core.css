@@ -46,7 +46,6 @@ textarea, input, .p_input_view {
     resize: none;
     border: none;
     padding: 2px;
-    padding-left: 5px;
 }
 
 textarea:focus, input:focus {
@@ -370,17 +369,17 @@ a.reference {
 }
 
 .toggle-indicator {
+    display: flex;
+    position: absolute;
 	align-items: center;
-	background: var(--bg-hl2-col);
-	border-radius: 24px;
-	bottom: 2px;
-	display: flex;
-	height: 20px;
-	justify-content: center;
-	left: 2px;
-	position: absolute;
+    justify-content: center;
+    left: 1px;
+	bottom: 1px;
+    width: 21px;
+	height: 21px;
+    border-radius: 24px;
+    background: var(--bg-hl2-col);
 	transition: 200ms;
-	width: 20px;
 }
 
 .toggle__input:checked + .toggle-track .toggle-indicator {

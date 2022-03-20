@@ -105,18 +105,31 @@ img {
 }
 
 #display_update {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
     position: absolute;
-    bottom: 0;
-    width: 100%;
+    bottom: 20px;
+    left: 5%;
+    width: 90%;
+    padding: 10px;
+    border-radius: 5px;
     font-size: 70%;
+    background-color: var(--bg-hl2-col);
 }
 
-#display_update > input {
-    position: relative;
+.display_row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-right: 12%;
+    flex-direction: row;
+}
+
+#display_update input {
     background-color: var(--bg-hl-col);
     color: var(--font-col-int);
     min-height: 30px;
-    margin-bottom: 10px;
     left: 12%;
     font-size: 100%;
 }
@@ -153,43 +166,22 @@ img {
 }
 
 .keywordtitle {
-    position: absolute;
     width: 12%;
-    padding-top: 10px;
-    padding-right: 6px;
-    left: 0%;
     text-align: right;
 }
 
-#key {
-    width: 50%;
-}
-
-#keywords {
-    width: 76%;
+#key, #keywords {
+    flex-grow: 1;
 }
 
 #display button {
-    position: absolute;
-    bottom: 0;
-    top: unset;
-    margin-bottom: 10px;
     width: 12%;
-    height: 30px !important;
-    font-size: 80%;
-}
-
-#img_update {
-    right: 25%;
-}
-
-#img_delete {
-    right: 12%;
+    height: 30px;
 }
 
 @media only screen and (max-width: 1000px) {
 
-#query{
+#query {
     left: 10%;
     width: 80%;
     top: 85px;

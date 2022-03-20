@@ -3,8 +3,8 @@
 <div class="notification">
 You are logged in as {{ current_user.name }}, log out?
 </div>
-<form method="POST" action="/logout">
-    <input type="hidden" name="next" value="{{next}}"/>
+<form method="POST" action="{{ url_for('Logout') }}">
+    <input type="hidden" name="next" value="{{ next }}"/>
     <button class="login-button">Log Out</button>
 </form>
 </div>

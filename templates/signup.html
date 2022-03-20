@@ -34,7 +34,7 @@ Create a login to enable editing. Already have an account? <a href="{{ url_for('
 {% endif %}
 {% endwith %}
 
-<form method="POST" action="/create_user">
+<form method="POST" action="{{ url_for('CreateUser') }}">
     <div class="login_field">
     <input class="input" type="email" name="email" placeholder="Email" autofocus="">
     </div>
