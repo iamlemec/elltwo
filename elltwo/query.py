@@ -563,26 +563,18 @@ class ElltwoDB:
         return par1
 
     def move_para(self, aid, drag_pid, targ_pid, time=None):
+
         if time is None:
             time = datetime.utcnow()
 
-        if (drag_par := self.get_para(drag_pid, time=time)) is None:
-            return
-
-        if (targ_par := self.get_para(targ_pid, time=time)) is None:
-            return
-
-        if (targ_lin := self.get_link(targ_pid, time=time)) is None:
-            return
-
+        ## delete links associated with inital drag pos 
         if (drag_lin := self.get_link(drag_pid, time=time)) is None:
             return
-
-        ##delete extant drag link, and stitch
 
         d_linp = self.get_link(drag_lin.prev, time)
         d_linn = self.get_link(drag_lin.next, time)
 
+        #splice
         if d_linp is not None:
             d_linp1 = splice_link(d_linp, time, next=drag_lin.next)
             self.session.add(d_linp1)
@@ -590,7 +582,15 @@ class ElltwoDB:
             d_linn1 = splice_link(d_linn, time, prev=drag_lin.prev)
             self.session.add(d_linn1)
 
-        ## change dragged paras link and targ paras link
+        #commit (drag para is now unlinked)
+        self.session.commit()
+
+
+        #insert dragged para after target
+        if (targ_lin := self.get_link(targ_pid, time=time)) is None:
+            return
+
+        t_linn = self.get_link(targ_lin.next, time)
 
         d_lin1 = splice_link(drag_lin, time, prev=targ_pid, next=targ_lin.next)
         t_lin1 = splice_link(targ_lin, time, next=drag_pid)
@@ -598,9 +598,6 @@ class ElltwoDB:
         self.session.add(d_lin1)
 
         ##clean up next para link 
-
-        t_linn = self.get_link(targ_lin.next, time=time)
-
         if t_linn is not None:
             linn1 = splice_link(t_linn, time, prev=drag_pid)
             self.session.add(linn1)
