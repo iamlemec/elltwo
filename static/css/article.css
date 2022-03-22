@@ -123,6 +123,10 @@
     font-family: monospace;
 }
 
+.container.ssv .p_input_text {
+    line-height: 20px;
+}
+
 /* side-by-side view paras */
 
 .container.ssv {
