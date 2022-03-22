@@ -13,6 +13,14 @@ function attrArray(elems, attr) {
 function noop() {
 }
 
+// async
+
+function setTimeoutPromise(timeout) {
+    return new Promise(resolve => {
+        setTimeout(resolve, timeout);
+    });
+}
+
 // messages
 
 function flash(msg) {
@@ -366,4 +374,4 @@ function isMobile() {
     }
 }
 
-export { DummyCache, KeyCache, RefCount, attrArray, cooks, copyText, createButton, createIcon, createToggle, cur, ensureVisible, flash, getEnvParas, getPara, initToggleBox, isMobile, merge, noop, setCookie, smallable_butt, toggleBox, unEscCharCount, updateSliderValue };
+export { DummyCache, KeyCache, RefCount, attrArray, cooks, copyText, createButton, createIcon, createToggle, cur, ensureVisible, flash, getEnvParas, getPara, initToggleBox, isMobile, merge, noop, setCookie, setTimeoutPromise, smallable_butt, toggleBox, unEscCharCount, updateSliderValue };

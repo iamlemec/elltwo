@@ -432,15 +432,11 @@ button {
 }
 
 .list-item:before {
-    content: "\25CF";
-    color: var(--delimit-col);
-    left: 4px;
-    position: absolute;
+    content: "\2022\ ";
 }
 
 .list-item {
-   padding-left: 15px;
-   margin-bottom: 3px;
+   text-indent: 15px;
 }
 
 .list {
@@ -818,15 +814,6 @@ button {
 
 #pop svg {
     stroke: var(--pop-fg-col);
-}
-
-#pop .code{
-    color: var(--pop-fg-col);
-}
-
-#pop .linenum{
-    color: var(--pop-fg-col);
-    transform: translateX(12px);
 }
 
 #pop .fig_iac_wrap {
@@ -1341,11 +1328,11 @@ circle.commit.active {
 
 /*  NARROW CSS */
 
-@media only screen and (max-width: 1000px) {
+@media only screen and (max-width: 1200px) {
 
 
 :root{
-    --sb_off: 150px;
+    --sb_off: 170px;
 }
 
 .container.sb_content.ssv .control{
@@ -1355,6 +1342,7 @@ circle.commit.active {
 .container.ssv .controlButs {
     flex-direction: column;
  }
+
 
 .container.ssv .controlBut {
     width: 18px;
@@ -1370,13 +1358,9 @@ circle.commit.active {
         display: block;
 }
 
- #sidebar_inner{
-        font-size: 90%;
- }
-
 }
 
-@media only screen and (max-width: 700px) {
+@media only screen and (max-width: 1000px) {
 
 #sidebar .custom-select-wrapper{
     margin-top:0;
@@ -1455,20 +1439,18 @@ circle.commit.active {
     justify-content: center;
 }
 
-.container:not(.ssv) .controlButs .controlBut {
+.container:not(.ssv) .controlButs > .controlBut {
     width: unset;
     height: 25px;
-    margin-left: 3px;
-    margin-right: 3px;
+    margin: 3px;
     flex-basis: 10px;
     flex-grow: 1;
     border-radius: 3px;
 }
 
- .butgrp2, .butgrp1{
-     display: flex;
- }
-
+.control:hover .controlButs {
+    display: flex;
+}
 
 #pop {
     padding: 10px;

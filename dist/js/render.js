@@ -1229,16 +1229,6 @@ let pop_spec = {
     table: popEquation,
 };
 
-/// syntax highlighting
-
-function elltwoHL(para) {
-    let text = para.children('.p_input');
-    let view = para.children('.p_input_view');
-    let raw = text.val();
-    let parsed = SyntaxHL(raw, 'elltwo');
-    view.html(parsed);
-}
-
 /// folding (render only)
 
 function getFoldLevel(para) {
@@ -1322,4 +1312,4 @@ function untrackRef(tag) {
     sendCommand('untrack_ref', {key: tag});
 }
 
-export { barePara, connectCallbacks, createTOC, doRenderRef, elltwoHL, envClasses, envGlobal, eventRender, getEditor, getFoldLevel, getRefTags, initRender, innerPara, loadMarkdown, makeEditor, makePara, popText, rawToRender, rawToTextarea, renderFold, renderPop, renderRefText, s_env_spec, stateRender, trackRef, troFromKey, untrackRef };
+export { barePara, connectCallbacks, createTOC, doRenderRef, envClasses, envGlobal, eventRender, getEditor, getFoldLevel, getRefTags, initRender, innerPara, loadMarkdown, makeEditor, makePara, popText, rawToRender, rawToTextarea, renderFold, renderPop, renderRefText, s_env_spec, stateRender, trackRef, troFromKey, untrackRef };

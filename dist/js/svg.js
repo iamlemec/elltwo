@@ -1,15 +1,12 @@
+import { createToggle, createButton, smallable_butt, cur, updateSliderValue, flash } from './utils.js';
+import { state, config, cache } from './state.js';
+import { sendCommand } from './client.js';
+import './marked3.js';
+import { makeActive, showConfirm, sendUpdatePara } from './editor.js';
+import { deleteImage } from './img.js';
+import { parseGum, InterActive, Element, SVG } from '../node_modules/gum.js/js/gum.js';
+
 /* random utilities */
-
-export { initSVGEditor, hideSVGEditor, parseSVG, openSVGFromKey }
-
-import { on_success, createIcon, createToggle, createButton,
- smallable_butt, updateSliderValue, cur, flash } from './utils.js'
-import { cache, config, state } from './state.js'
-import { sendCommand } from './client.js'
-import { replace } from './marked3.js'
-import { showConfirm, makeActive, sendUpdatePara } from './editor.js'
-import { deleteImage } from './img.js'
-import { SVG, Element, InterActive, parseGum } from 'gum.js'
 
 let svg_butts = {};
 
@@ -64,20 +61,20 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
         };
 
         $(document).on('click', '#SVGEditorExit', function() {
-                let txt = `Uncommited changes will be lost`
+                let txt = `Uncommited changes will be lost`;
                 let exit = createButton('ConfirmExit', 'Exit', 'exit');
-                showConfirm(exit, hideSVGEditor, txt)
+                showConfirm(exit, hideSVGEditor, txt);
         });
 
         $(document).on('click', '#SVGEditorDelete', function() {
             if(state.key){//only if extant image
                 let key = state.key;
-                let txt = `Delete Image "${key}"?`
+                let txt = `Delete Image "${key}"?`;
                 let del = createButton('ConfirmDelete', 'Delete', 'delete');
                 let action = function(){
-                    deleteImage(key)
+                    deleteImage(key);
                 };
-            showConfirm(del, action, txt)
+            showConfirm(del, action, txt);
             }
         });
 
@@ -89,18 +86,18 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
             let check = $(this);
             let val = check.is(':checked');
             if(val){
-                $('#SVGEditorParsed').show()
-                $('#SVGEditorParsedView').show()
-                $('#SVGEditorInputBox').removeClass('fullsize')
-            } else{
-                $('#SVGEditorParsed').hide()
-                $('#SVGEditorParsedView').hide()
-                $('#SVGEditorInputBox').addClass('fullsize')
+                $('#SVGEditorParsed').show();
+                $('#SVGEditorParsedView').show();
+                $('#SVGEditorInputBox').removeClass('fullsize');
+            } else {
+                $('#SVGEditorParsed').hide();
+                $('#SVGEditorParsedView').hide();
+                $('#SVGEditorInputBox').addClass('fullsize');
             }
         });
 
         $(document).on('input', '#SVGEditorInputText', function(e) {
-            raw = $(this).val()
+            raw = $(this).val();
             svgSyntaxHL();
             renderInput();
         });
@@ -133,14 +130,14 @@ function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
 
         $(document).on('keydown', '#SVGEditorInputText', function(e) {
             let input = $(this);
-            let key = e.key.toLowerCase();
-            let ctrl = e.ctrlKey;
-            let alt = e.altKey;
-            let meta = e.metaKey;
+            e.key.toLowerCase();
+            e.ctrlKey;
+            e.altKey;
+            e.metaKey;
             let tab = e.keyCode == 9;
-            let space = e.keyCode == 32;
-            let shift = e.shiftKey;
-            let raw, c, indent;
+            e.keyCode == 32;
+            e.shiftKey;
+            let raw, c;
             if (tab) {
                 c = cur(e);
                 raw = input.val();
@@ -192,9 +189,6 @@ function hideSVGEditor(nav=true) {
         window.history.pushState({'SVGEditor': false}, null, window.location.href.split('?')[0]);
     }
 }
-
-// hard-coded options
-let prec0 = 2;
 let size0 = 500;
 
 function renderInput(src) {
@@ -214,7 +208,7 @@ function renderInput(src) {
         parsed.html(SyntaxHL(ret.svg, 'svg'));
         if (ret.anchors) {
             iac.append(...ret.anchors);
-            $(iac).find('.slider_input').each((i,s) => {updateSliderValue(s)});
+            $(iac).find('.slider_input').each((i,s) => {updateSliderValue(s);});
         }
     } else {
         parsed.text(`parse error, line ${ret.line}: ${ret.message}`);
@@ -279,7 +273,7 @@ function parseSVG(mime, src, size, redraw) {
 
 function svgSyntaxHL() {
     let src = $('#SVGEditorInputText').val();
-    let out = SyntaxHL(src, 'gum')
+    let out = SyntaxHL(src, 'gum');
     $('#SVGEditorInputView').html(out);
 }
 
@@ -300,3 +294,5 @@ async function openSVGFromKey(key) {
         flash(`'${key}' is not an extant gum key`);
     }
 }
+
+export { hideSVGEditor, initSVGEditor, openSVGFromKey, parseSVG };

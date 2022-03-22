@@ -88,8 +88,7 @@ button {
     background-color: darkgray;
 }
 
-button,
-#export_options {
+button, #export_options {
     border-radius: 2px;
 }
 
@@ -125,10 +124,6 @@ button,
 
 /* paras */
 
-.p_text {
-    padding: 0 4px;
-}
-
 .env__title > .p_text {
     text-align: center;
     border-bottom: 2px solid black;
@@ -137,11 +132,6 @@ button,
 .env__heading > .p_text {
     text-align: center;
     border-bottom: 1px solid black;
-}
-
-.container:not(.ssv) .para {
-    padding: 0;
-    border: 0;
 }
 
 .para.active {

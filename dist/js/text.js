@@ -1,5 +1,7 @@
 import './marklez.js';
-import { SyntaxHL } from './hl.js';
+import { SyntaxHL, braceMatch } from './hl.js';
+import { config } from './state.js';
+import { ccRefs } from './article.js';
 
 class TextEditorNative {
     constructor(parent, eventHandler) {
@@ -12,9 +14,16 @@ class TextEditorNative {
         this.text.setAttribute('readonly', true);
         this.text.addEventListener('input', e => {
             this.resize();
+            this.complete();
             this.highlight();
         });
+        this.text.addEventListener('keyup', e => {
+            this.braceMatch();
+        });
         this.text.addEventListener('keydown', e => {
+            if (state.cc) {
+                return;
+            }
             if (e.key == 'ArrowLeft') {
                 return this.event('left', e);
             } else if (e.key == 'ArrowRight') {
@@ -48,10 +57,23 @@ class TextEditorNative {
         this.parent.style.setProperty('min-height', height);
     }
 
+    complete() {
+        let raw = this.getText();
+        let cur = this.getCursorPos();
+        ccRefs(this.view, raw, cur, config.cmd);
+    }
+
     highlight() {
         let raw = this.text.value;
         let parsed = SyntaxHL(raw, this.lang);
         this.view.innerHTML = parsed;
+    }
+
+    async braceMatch() {
+        let hl = await braceMatch(this.text, this.view);
+        if (hl) {
+            this.highlight();
+        }
     }
 
     event(c, e) {

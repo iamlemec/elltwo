@@ -1,27 +1,13 @@
+import { state, config } from './state.js';
+import { createButton, copyText, flash, attrArray, ensureVisible, setCookie, cooks, smallable_butt, getPara } from './utils.js';
+import { sendCommand, schedTimeout } from './client.js';
+import { rawToRender, rawToTextarea, getEditor, getFoldLevel, renderFold } from './render.js';
+import './hl.js';
+import { toggleHistMap, toggleSidebar, ccNext, ccMake, insertParaRaw, deleteParas, updateRefs } from './article.js';
+import { toggleHelp } from './help.js';
+import { hideSVGEditor } from './svg.js';
+
 ////// UI ///////
-
-export {
-    initEditor, stateEditor, eventEditor, makeActive, lockParas,
-    unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
-    fold, makeUnEditable, hideConfirm, showConfirm, initDrag, editorHandler
-}
-
-import { config, state, cache } from './state.js'
-import {
-    ensureVisible, cooks, setCookie, getPara, attrArray, noop, on_success, flash,
-    smallable_butt, copyText, createButton, unEscCharCount
-} from './utils.js'
-import { sendCommand, schedTimeout } from './client.js'
-import {
-    rawToRender, rawToTextarea, envClasses, elltwoHL, getFoldLevel, renderFold, getEditor
-} from './render.js'
-import { SyntaxHL } from './hl.js'
-import {
-    insertParaRaw, insertPara, deleteParas, updateRefs, toggleHistMap,
-    toggleSidebar, ccNext, ccMake,
-} from './article.js'
-import { toggleHelp } from './help.js'
-import { hideSVGEditor } from './svg.js'
 
 /// initialization
 
@@ -29,13 +15,10 @@ let s_butts = {
     '#r_text': 'Revert',
     '#e_text': 'Export',
     '#h_text': 'History',
-}
+};
 
 function initEditor() {
     smallable_butt(s_butts);
-}
-
-function stateEditor() {
 }
 
 function eventEditor() {
@@ -43,11 +26,11 @@ function eventEditor() {
     $(document).keydown(function(e) {
         let key = e.key.toLowerCase();
         let ctrl = e.ctrlKey;
-        let alt = e.altKey;
+        e.altKey;
         let meta = e.metaKey;
         let shift = e.shiftKey;
-        let tab = e.keyCode == 9;
-        let space = e.keyCode == 32;
+        e.keyCode == 9;
+        e.keyCode == 32;
 
         if (ctrl && key == 'enter') {
             toggleHistMap();
@@ -263,11 +246,11 @@ function eventEditor() {
     $(document).on('click', '.delete', function() {
         let txt = 'Delete Cell?';
         let del = createButton('ConfirmDelete', 'Delete', 'delete');
-        let para = $(this).parents('.para')
+        let para = $(this).parents('.para');
         let action = function(){
             sendDeleteParas(para);
         };
-        showConfirm(del, action, txt)
+        showConfirm(del, action, txt);
         return false;
     });
 
@@ -412,13 +395,6 @@ function placeCursor(loc) {
         } else {
             editor.setCursorPos(...loc);
         }
-    }
-}
-
-function unPlaceCursor() {
-    if (state.active_para && state.writeable) {
-        let text = state.active_para.children('.p_input');
-        text.blur();
     }
 }
 
@@ -636,7 +612,7 @@ function copyParas() {
     state.cb = attrArray(paras, 'raw');
     let cbstr = JSON.stringify(state.cb);
     setCookie('cb', cbstr, 60);
-    flash('selection copied')
+    flash('selection copied');
 }
 
 function pasteParas() {
@@ -659,7 +635,7 @@ function getFoldParas(pid) {
             if ($(p).attr('head_level') <= l) {
                 return true;
              }
-             else{
+             else {
                 fps.push(p);
              }
         });
@@ -731,7 +707,7 @@ function showConfirm(button, action, text) {
     let txt = $('<div>', {text: text});
     $('#cp_inner').append(txt).append(button).append(exit);
     $('#confirm_popup').show();
-    $('#ConfirmCancel').on('click', (e) => {hideConfirm()});
+    $('#ConfirmCancel').on('click', (e) => {hideConfirm();});
 
     button.on('click', function() {
         action();
@@ -788,10 +764,10 @@ function initDrag(){
 
     $('.controlZone').on('mouseup', (e) => {
         let dragger = e.target;
-        let para = dragger.closest('.para')
+        let para = dragger.closest('.para');
         state.dragPara = null;
-        $(para).attr('draggable', false)
-        $(para).removeClass('dragging')
+        $(para).attr('draggable', false);
+        $(para).removeClass('dragging');
         $(dragger).css('cursor', '');
     });
 
@@ -802,14 +778,14 @@ function initDrag(){
 
     $('.para').on('dragover', (e) => {
         e.preventDefault();
-        let targ = $(e.target.closest('.para'))
+        let targ = $(e.target.closest('.para'));
         let targPID = targ.attr('pid');
         let nextPID = getNextPara(targ).attr('pid') || null;
         let drag = state.dragPara;
         let dragPID = drag.attr('pid');
         if(targPID == dragPID || nextPID == dragPID){
             return false;
-        }else{
+        }else {
             targ.addClass('dropTarg');
         }
     });
@@ -817,13 +793,13 @@ function initDrag(){
     $('.para').on('dragleave', (e) => {
         e.preventDefault();
         let para = e.target.closest('.para');
-        $(para).removeClass('dropTarg')
+        $(para).removeClass('dropTarg');
     });
 
 
     $('.para').on('drop', (e,t) => {
 
-        let targ = $(e.target.closest('.para'))
+        let targ = $(e.target.closest('.para'));
         let targPID = targ.attr('pid');
         let nextPID = getNextPara(targ).attr('pid') || null;
 
@@ -832,13 +808,13 @@ function initDrag(){
         e.stopPropagation();
         $('.para').attr('draggable', false)
         .removeClass('dragging')
-        .removeClass('dropTarg')
-        $('.controlZone').css('cursor', 'grab')
-        state.dragPara = null
+        .removeClass('dropTarg');
+        $('.controlZone').css('cursor', 'grab');
+        state.dragPara = null;
 
         if(targPID == dragPID || nextPID == dragPID){
-            console.log('no change')
-        }else{
+            console.log('no change');
+        }else {
             let data = {aid: config.aid, drag_pid: dragPID, targ_pid: targPID};
             sendCommand('move_para', data);
             }
@@ -849,4 +825,6 @@ function initDrag(){
 
 
 
-};
+}
+
+export { editorHandler, eventEditor, fold, hideConfirm, initDrag, initEditor, lockParas, makeActive, makeUnEditable, placeCursor, sendMakeEditable, sendUpdatePara, showConfirm, storeChange, unlockParas };

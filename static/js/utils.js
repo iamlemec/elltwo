@@ -5,7 +5,7 @@ export {
     ensureVisible, setCookie, cooks, getPara, getEnvParas, isMobile, noop,
     on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle,
     createButton, smallable_butt, copyText, updateSliderValue, unEscCharCount, cur,
-    detectBrowser
+    detectBrowser, setTimeoutPromise
 }
 
 // js tricks
@@ -39,6 +39,14 @@ function on_success(func) {
             func();
         }
     };
+}
+
+// async
+
+function setTimeoutPromise(timeout) {
+    return new Promise(resolve => {
+        setTimeout(resolve, timeout);
+    });
 }
 
 // messages
@@ -413,7 +421,7 @@ function detectBrowser(){
     let Opera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
     // Firefox 1.0+
     let Firefox = typeof InstallTrigger !== 'undefined';
-    // Safari 3.0+ "[object HTMLElementConstructor]" 
+    // Safari 3.0+ "[object HTMLElementConstructor]"
     let Safari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification));
     // Internet Explorer 6-11
     let IE = /*@cc_on!@*/false || !!document.documentMode;
@@ -425,6 +433,6 @@ function detectBrowser(){
     let EdgeChromium = Chrome && (navigator.userAgent.indexOf("Edg") != -1);
     // Blink engine detection
     let Blink = (Chrome || Opera) && !!window.CSS;
-    
+
     return {Opera, Firefox, Safari, IE, Edge, Chrome, EdgeChromium, Blink}
 }

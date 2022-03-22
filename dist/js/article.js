@@ -1,39 +1,18 @@
+import { getPara, cooks, setCookie, getEnvParas, unEscCharCount, KeyCache } from './utils.js';
+import { updateConfig, config, cache, state, updateState } from './state.js';
+import { connect, addHandler, sendCommand, schedTimeout, setTimeoutHandler } from './client.js';
+import { initUser } from './user.js';
+import { eventRender, getEditor, rawToRender, rawToTextarea, getRefTags, envClasses, barePara, innerPara, makeEditor, stateRender, initRender, doRenderRef, createTOC, troFromKey, popText, envGlobal } from './render.js';
+import { makeActive, eventEditor, initEditor, initDrag, placeCursor, storeChange, lockParas, unlockParas, makeUnEditable } from './editor.js';
+import { connectDrops, promptUpload, uploadImage } from './drop.js';
+import { initExport } from './export.js';
+import { initHelp } from './help.js';
+import { createBibInfo } from './bib.js';
+import { openSVGFromKey, initSVGEditor } from './svg.js';
+import { renderKatex } from './math.js';
+import { tex_cmd } from '../libs/tex_cmd.js';
+
 /* main article entry point */
-
-export {
-    loadArticle, insertParaRaw, insertPara, deleteParas, updatePara,
-    updateParas, updateRefs, toggleHistMap, toggleSidebar, ccNext, ccMake,
-    ccRefs,
-}
-
-import {
-    mapValues, on_success, setCookie, cooks, getPara, getEnvParas, 
-    KeyCache, merge, unEscCharCount, flash, detectBrowser,
-} from './utils.js'
-import {
-    config, state, cache, updateConfig, updateState, updateCache
-} from './state.js'
-import {
-    connect, addHandler, sendCommand, schedTimeout, setTimeoutHandler
-} from './client.js'
-import { initUser } from './user.js'
-import {
-    stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, envGlobal, createTOC, troFromKey, popText, elltwoHL,
-    renderRefText, getRefTags, untrackRef, doRenderRef, barePara, makeEditor, getEditor
-} from './render.js'
-import {
-    initEditor, stateEditor, eventEditor, makeActive, lockParas,
-    unlockParas, sendMakeEditable, sendUpdatePara, storeChange, placeCursor,
-    makeUnEditable, initDrag
-} from './editor.js'
-import { connectDrops, promptUpload, uploadImage } from './drop.js'
-import { initExport } from './export.js'
-import { initHelp } from './help.js'
-import { createBibInfo } from './bib.js'
-import { initSVGEditor, hideSVGEditor, parseSVG, openSVGFromKey } from './svg.js'
-import { renderKatex} from './math.js'
-import { tex_cmd } from '../libs/tex_cmd.js'
 
 // history
 let updateHistMap;
@@ -71,7 +50,6 @@ let default_state = {
 
 function stateArticle() {
     stateRender();
-    stateEditor();
     updateState(default_state);
 }
 
@@ -155,8 +133,7 @@ function loadArticle(args) {
     // set external reference for import_markdown arts
     if (args.update_refs ?? false) {
         syncRefs();
-    };
-
+    }
     // send blurb back to server
     setBlurb();
 
@@ -183,7 +160,7 @@ function loadArticle(args) {
 
     //open editor if necessary
     if(config.SVGEditor){
-        openSVGFromKey(config.SVGEditor)
+        openSVGFromKey(config.SVGEditor);
     }
 }
 
@@ -193,7 +170,7 @@ function setSsvMode(val) {
     $('#content').toggleClass('ssv', val);
     $('.para:not(.folded):not(.folder)').each(function() {
         let para = $(this);
-        let input = para.children('.p_input');
+        para.children('.p_input');
         placeCursor('end');
     });
 }
@@ -363,12 +340,12 @@ function eventArticle() {
         let para = upd.closest('.para');
         let key = para.attr('id');
         if (upd.hasClass('update_image/svg+gum')) {
-            let ret = await cache.img.get(key)
+            let ret = await cache.img.get(key);
             initSVGEditor($('#bg'), ret.data, key, true);
         } else {
             promptUpload(function(files) {
                 let file = files[0];
-                let ret = uploadImage(file, key, function(data) {
+                uploadImage(file, key, function(data) {
                     cache.img.del(key);
                     rawToRender(para, false);
                 });
@@ -386,7 +363,7 @@ function eventArticle() {
 
     // syntax highlighting and brace matching
     $(document).on('input', '.p_input:not(.svgE)', function(e) {
-        let cur = e.currentTarget.selectionStart;
+        e.currentTarget.selectionStart;
         let para = $(this).parent('.para');
         let editor = getEditor(para);
         let raw = editor.getText();
@@ -462,8 +439,7 @@ async function deleteParas(pids) {
     if (do_env) {
         envClasses();
     }
-};
-
+}
 async function movePara(dragPID, targPID) {
     let drag = getPara(dragPID);
     let targ = getPara(targPID);
@@ -522,7 +498,7 @@ function pasteParas(pid, paste) {
         para_act = insertParaRaw(pid, new_pid, text, true);
         rawToRender(para_act, true); // defer
         pid = new_pid;
-    })
+    });
     envClasses();
     $('.para').removeClass('copy_sel');
     makeActive(para_act);
@@ -771,10 +747,10 @@ function setSelect(sel, txt) {
 }
 
 function makeSelect(sel) {
-    let cls   = sel.attr('class'),
-        id    = sel.attr('id'),
-        name  = sel.attr('name'),
-        place = sel.attr('placeholder');
+    let cls   = sel.attr('class');
+        sel.attr('id');
+        sel.attr('name');
+        let place = sel.attr('placeholder');
 
     let template = [
         '<div>',
@@ -951,7 +927,7 @@ function initHistory(data) {
     function handleMouseOver(d, i) {  // Add interactivity
         // Use D3 to select element, change color and size
         d3.select(this)
-          .attr('r', radius + 2)
+          .attr('r', radius + 2);
 
         // Specify where to put label of text
         let tooltip = d3.select('#bg').append('div')
@@ -963,7 +939,7 @@ function initHistory(data) {
         let tth = tooltip.node().getBoundingClientRect().height;
 
         let left = d3.event.pageX - ttw/2;
-        let right = d3.event.pageY - tth - 10
+        let right = d3.event.pageY - tth - 10;
 
         tooltip.style('left', `${left}px`)
                .style('top', `${right}px`);
@@ -972,7 +948,7 @@ function initHistory(data) {
     function handleMouseOut(d, i) {
         // Use D3 to select element, change color back to normal
         d3.select(this)
-          .attr('r', radius)
+          .attr('r', radius);
 
         // Select text by id and then remove
         d3.select(`#hp_${i}`).remove();  // Remove text location
@@ -1193,7 +1169,7 @@ function ccMake(cctxt=null, addText=false, offset_chars=0) {
         }
     } else if (cap = open_i_link.exec(sel)) {
         l += cap.index;
-        let space = cap[2] || '';
+        cap[2] || '';
         sel = sel.replace(open_i_link, function() {
             const out = `[[${cctxt}${at}]]`;
             l += out.length;
@@ -1260,13 +1236,12 @@ function env_display_text(env, sym='') {
         'heading': `<span class="syn_delimit">##</span>`,
         'imagelocal': `<span class="syn_ref">!img</span>`,
         'svg': `<span class="syn_ref">!svg</span>`,
-        'code': `<span class="syn_delimit">\'\'</span>`,
         'title': `<span class="syn_delimit">#</span><span class="syn_hl">!</span>`,
         'image': `<span class="syn_hl">!!</span>`,
         'bib': `<span class="syn_ref">@@</span>`,
         'cmd': `<span class="syn_ref latex">${sym}</span>`,
         'cmd_opt': `<span class="syn_delimit latex">${sym}</span>`,
-    }
+    };
     return env_dict[env] || '';
 }
 
@@ -1288,11 +1263,11 @@ function ccSearch(list, search, placement, selchars, env_display=false) {
         list.forEach(r => {
             let cc_row = $('<div>', {class: 'cc_row'});
             if (env_display) {
-                let offset_chars = r.offset_chars || 0;
+                r.offset_chars || 0;
                 let disp_name = r.disp_name || r.name;
                 cc_row.text(disp_name).attr('ref', r.name).attr('offset_chars', r.offset_chars);
                 let env_disp = $('<div>', {class: 'env_disp'});
-                let sym = r.sym || '';
+                r.sym || '';
                 env_disp.html(env_display_text(r.type, r.sym));
                 cc_row.prepend(env_disp);
             } else {
@@ -1388,7 +1363,7 @@ async function ccRefs(view, raw, cur, configCMD) {
     } else if (open_cmd.exec(sel) && configCMD === 'on') {
         let dollars = unEscCharCount(raw.slice(0, cur), '$');
         if (dollars % 2 == 1 || raw.startsWith('$$')) {
-            cap = open_cmd.exec(sel)
+            cap = open_cmd.exec(sel);
             raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
             view.innerHTML = raw;
             let off = $('#cc_pos').offset();
@@ -1403,3 +1378,5 @@ async function ccRefs(view, raw, cur, configCMD) {
         }
     }
 }
+
+export { ccMake, ccNext, ccRefs, deleteParas, insertPara, insertParaRaw, loadArticle, toggleHistMap, toggleSidebar, updatePara, updateParas, updateRefs };
