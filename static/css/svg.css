@@ -357,13 +357,13 @@ input[type=range]::-webkit-slider-thumb {
     height: 30px;
     background: var(--bg-hl2-col);
     border-radius: 50%;
-    line-height: 25px;
+    line-height: 28px;
     text-align: center;
     box-sizing: border-box;
     border: 1px solid var(--font-col-int);
     top: 34px;
     color: var(--hl-col);
-    font-size: 15px;
+    font-size: 10px;
     cursor: pointer;
 }
 

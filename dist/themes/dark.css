@@ -33,6 +33,48 @@
   src: url('fonts/FiraCode.ttf') format('truetype');
 }
 
+@font-face {
+  font-family: 'Fira';
+  font-style: normal;
+  font-weight: 100;
+  src: url('fonts/FiraCode.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 100;
+    src: url('fonts/Montserrat-Thin.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 300;
+    src: url('fonts/Montserrat-Light.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 400;
+    src: url('fonts/Montserrat-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 700;
+    src: url('fonts/Montserrat-Bold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 900;
+    src: url('fonts/Montserrat-Black.ttf') format('truetype');
+}
+
 /*global */
 
 body {
@@ -56,7 +98,7 @@ button:hover {
 }
 
 .controlBut {
-    background-color: var(--pop-bg-col);
+    background-color: var(--pop-fg-col);
 }
 
 .controlBut:hover {
@@ -64,6 +106,11 @@ button:hover {
 }
 
 .controlBut svg {
+    fill: var(--pop-bg-col);
+    stroke: var(--pop-bg-col);
+}
+
+.controlBut:hover svg {
     fill: var(--pop-fg-col);
     stroke: var(--pop-fg-col);
 }

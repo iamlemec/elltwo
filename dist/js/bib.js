@@ -107,15 +107,12 @@ function eventBib() {
 
     $(document).keydown(function(e) {
         let key = e.key.toLowerCase();
-        let ctrl = e.ctrlKey;
-        let meta = e.metaKey;
+        e.ctrlKey;
+        e.metaKey;
         let web_s = $('#query').is(":focus");
         let real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
         let andriod_is_fucking_stupid = e.keyCode == 229;
-        if(!meta && !ctrl && key == '=') {
-            $('#local_search_check').click();
-            return false
-        } else if(key == 'escape'){
+        if(key == 'escape'){
             $('#create_wrap').hide();
             $('#search_results').hide();
         } else if(key == 'escape'){
@@ -248,7 +245,10 @@ function createBibInfo(cite) {
     let pubs = ['book', 'incollection'];
     let jns = ['article', 'techreport', 'unpublished'];
     let wild = [undefined];
-    let doi = cite.DOI ? ` <a class=DOI_link target="_blank" href="https://www.doi.org/${cite.DOI}">${createIcon('ext_link')}</a>` : '';
+    let link = cite.DOI || cite.link;
+    link = link.match(/^\d/) ? `https://www.doi.org/${link}` : link;
+    link = !link.match(/^ht/) ? `https://${link}` : link;
+    let doi = cite.DOI || cite.link ? ` <a class=DOI_link target="_blank" href="${link}">${createIcon('ext_link')}</a>` : '';
 
     let pub;
     let journal;

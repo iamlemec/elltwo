@@ -93,7 +93,7 @@ button:hover {
 }
 
 .controlBut {
-    background-color: var(--bg-hl2-col);
+    background-color: var(--butt-bg-col);
 }
 
 .controlBut:hover {
