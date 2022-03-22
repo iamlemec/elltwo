@@ -76,8 +76,11 @@
     border: 0;
     padding: 0;
     overflow-wrap: anywhere;
+<<<<<<< HEAD
     padding-right: 40px;
+=======
     scrollbar-width: none;
+>>>>>>> 54925f7ddadc3d8601f24a6128feccdde5709543
 }
 
 .container:not(.ssv) .p_input:not(.svgE) {

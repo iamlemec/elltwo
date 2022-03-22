@@ -142,7 +142,7 @@ a.reference {
     text-decoration: none;
 }
 
-#confirm_popup{
+#confirm_popup {
     display: none;
     position: fixed;
     width: 100%;
@@ -151,7 +151,7 @@ a.reference {
     top: 0;
 }
 
-#cp_inner{
+#cp_inner {
     position: fixed;
     width: 400px;
     height: 100px;
@@ -165,11 +165,11 @@ a.reference {
     text-align: center;
 }
 
-#cp_inner div{
+#cp_inner div {
     margin-bottom: 10px;
 }
 
-#cp_inner .foot_butt{
+#cp_inner .foot_butt {
     padding: 8px;
 }
 

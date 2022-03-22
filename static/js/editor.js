@@ -374,11 +374,10 @@ function resize(textarea) {
         return false;
     }
     textarea.style.height = 'auto';
-    let h = (textarea.scrollHeight) + 'px';
+    let h = (textarea.scrollHeight + 10) + 'px';
     textarea.style.height = h;
     let para = $(textarea).parent('.para');
     para.css('min-height', h);
-    // para.children('.p_input_view').css('min-height', h);
 }
 
 /// rendering and storage

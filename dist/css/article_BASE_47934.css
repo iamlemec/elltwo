@@ -17,9 +17,11 @@
     margin: auto;
     width: 55%;
     min-height: 30px;
-    margin-bottom: 5px;
+    margin-bottom: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
     max-width: 800px !important;
-    padding: 5px;
+    border-right: 2px solid rgba(0, 0, 0, 0);
 }
 
 .container.sb_content:not(.ssv) {
@@ -60,6 +62,7 @@
 }
 
 .container:not(.ssv) .p_text {
+    /* cursor: pointer; */
     line-height: 1.5;
     text-align: justify;
 }
@@ -68,16 +71,13 @@
 .container:not(.ssv) .p_input_view:not(.svgE) {
     white-space: pre-wrap;
     position: absolute;
-    width: calc(100% - 10px);
-    min-height: 40px;
+    width: 100%;
+    min-height: 50px;
     font-size: 85%;
     overflow: hidden;
     display: none;
-    border: 0;
-    padding: 0;
+    border: none;
     overflow-wrap: anywhere;
-    padding-right: 40px;
-    scrollbar-width: none;
 }
 
 .container:not(.ssv) .p_input:not(.svgE) {
@@ -117,8 +117,9 @@
     width: 40%;
     height: auto;
     min-height: 55px;
-    margin-bottom: 5px;
-    padding: 5px;
+    margin-bottom: 40px;
+    padding-left: 5px;
+    border-right: 2px solid rgba(0, 0, 0, 0);
 }
 
 .container.ssv .para.active .p_input_view {
@@ -131,11 +132,13 @@
 }
 
 .container.ssv .p_text {
+    /* cursor: pointer; */
     line-height: 20px;
     text-align: justify;
     width: 100%;
     display: inline-block;
     margin-left: 0%;
+    padding-right: 5px;
     min-height: 50px;
     line-height: 25px;
 }
@@ -144,9 +147,9 @@
     white-space: pre-wrap;
     position: absolute;
     top: 0;
-    width: calc(100% + 10px);
-    padding: 5px;
-    right: calc(115% - 10px);
+    width: 100%;
+    height: 100%;
+    right: 115%;
     min-height: 50px;
     font-size: 85%;
     overflow: hidden;
@@ -159,11 +162,13 @@
     caret-color: inherit;
     color: rgba(0, 0, 0, 0);
     background-color: rgba(0, 0, 0, 0);
+    padding-right: 5px;
     line-height: 20px;
 }
 
 .container.ssv .p_input_view {
     font-family: monospace;
+    padding-right: 5px;
     display: inline-block;
     background-color: rgba(0,0,0,.03);
     line-height: 20px;
@@ -445,15 +450,11 @@ button {
 }
 
 .list-item:before {
-    content: "\25CF";
-    color: var(--delimit-col);
-    left: 4px;
-    position: absolute;
+    content: "\2022\ ";
 }
 
 .list-item {
-   padding-left: 15px;
-   margin-bottom: 3px;
+   text-indent: 15px;
 }
 
 .list {
@@ -1349,11 +1350,11 @@ circle.commit.active {
 
 /*  NARROW CSS */
 
-@media only screen and (max-width: 1000px) {
+@media only screen and (max-width: 1200px) {
 
 
 :root{
-    --sb_off: 150px;
+    --sb_off: 170px;
 }
 
 .container.sb_content.ssv .control{
@@ -1363,6 +1364,7 @@ circle.commit.active {
 .container.ssv .controlButs {
     flex-direction: column;
  }
+
 
 .container.ssv .controlBut {
     width: 18px;
@@ -1377,14 +1379,10 @@ circle.commit.active {
 .container.ssv .sn_skinny{
         display: block;
 }
-    
- #sidebar_inner{
-        font-size: 90%;
- }
 
 }
 
-@media only screen and (max-width: 700px) {
+@media only screen and (max-width: 1000px) {
 
 #sidebar .custom-select-wrapper{
     margin-top:0;
@@ -1463,20 +1461,18 @@ circle.commit.active {
     justify-content: center;
 }
 
-.container:not(.ssv) .controlButs .controlBut {
+.container:not(.ssv) .controlButs > .controlBut {
     width: unset;
     height: 25px;
-    margin-left: 3px;
-    margin-right: 3px;
+    margin: 3px;
     flex-basis: 10px;
     flex-grow: 1;
     border-radius: 3px;
 }
 
- .butgrp2, .butgrp1{
-     display: flex;
- }
-    
+.control:hover .controlButs {
+    display: flex;
+}
 
 #pop {
     padding: 10px;
