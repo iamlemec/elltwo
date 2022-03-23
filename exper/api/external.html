@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="icon" href="/elltwo/dist/favicon/elltwo.svg" />
+
+<link rel="stylesheet" href="api.css"/>
+<link rel="stylesheet" href="econ.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.3/dist/katex.min.css" integrity="sha384-KiWOvVjnN8qwAZbuQyWDIbfCLFhLXNETzBQjA/92pIowpC0d2O3nppDGQVgwd2nB" crossorigin="anonymous">
+
+
+<title>External</title>
+
+</head>
+
+<body>
+
+<div id="bg">
+<div id="content" class="container">
+    <div class=elltwo base="http://localhost:5000" art="zzz" key="yyy"></div>
+    <div class=elltwo base="http://localhost:5000" art="zzz" key="eq"></div>
+</div>
+</div>
+
+<script>
+var getTRO = function(base, art, key) {
+    let url = `${base}/api?art=${art}&key=${key}`;
+    return new Promise(function (resolve, reject) {
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', url);
+        xhr.onload = function () {
+            if (this.status >= 200 && this.status < 300) {
+                resolve(xhr.response);
+            } else {
+                reject({
+                    status: this.status,
+                    statusText: xhr.statusText
+                });
+            }
+        };
+        xhr.onerror = function () {
+            reject({
+                status: this.status,
+                statusText: xhr.statusText
+            });
+        };
+        xhr.send();
+    });
+};
+
+
+window.onload = function(){
+    els = [...document.getElementsByClassName("elltwo")].forEach(async function(el) {
+        base = el.getAttribute('base');
+        art = el.getAttribute('art');
+        key = el.getAttribute('key');
+        let data = await getTRO(base, art, key);
+        data = JSON.parse(data)
+        let para = document.createElement("div");
+        para.classList.add("elltwoCont");
+        para.innerHTML = data.text;
+        let a = document.createElement('a');
+        a.href = `${base}/r/${art}#${key}`;
+        a.classList.add("elltwoLink");
+        el.appendChild(a).appendChild(para);
+    })
+}
+</script>
+
+</body>
+
+</html>

@@ -12,7 +12,7 @@ from itsdangerous import URLSafeTimedSerializer
 
 from flask import (
     Flask, Markup, make_response, request, redirect, url_for, render_template,
-    flash, send_file, abort
+    flash, send_file, abort, jsonify
 )
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy
@@ -20,6 +20,7 @@ from flask_mail import Mail, Message
 from flask_login import (
     LoginManager, current_user, login_user, logout_user, login_required
 )
+from flask_cors import CORS, cross_origin
 
 # import db tools
 from elltwo.tools import Multimap, gen_auth, secret_dict
@@ -101,6 +102,8 @@ app = Flask(__name__, static_folder='dist')
 app.config['DEBUG'] = args.debug
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.db}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # load user security config
 if args.auth is None:
@@ -446,6 +449,28 @@ def GetImage(key):
     else:
         flash(f'Image "{key}" does not exist.')
         return redirect(url_for('Home'))
+
+@app.route('/api/', methods=['GET'])
+@view_decor
+@cross_origin()
+def GetRef():
+    short, key = request.args.get('art'), request.args.get('key')
+    if short==None:
+        return "query parameter 'art' required"
+    if key==None:
+        return "query parameter 'art' required"
+    if (art := edb.get_art_short(short)) is not None:
+        if (ref := edb.get_ref(key, art.aid)) is not None:
+            return jsonify({
+                'cite_type': ref.cite_type,
+                'cite_env': ref.cite_env,
+                'ref_text': ref.ref_text,
+                'title': art.title,
+                'text': ref.text,
+            })
+        else :
+            return f"reference {key} not found in article {short}"
+    return f"article {short} not found"
 
 ##
 ## Libraries

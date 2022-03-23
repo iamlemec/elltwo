@@ -1,0 +1,500 @@
+
+
+/* api shit */
+
+.elltwoCont{
+    background-color: var(--bg-hl-col);
+    padding: 10px;
+    border: .5px solid var(--pop-bg-col);
+    border-radius: 3px;
+    max-width: 700px;
+    margin: 20px;
+    position: relative;
+}
+
+.elltwoLink{
+    text-decoration: none;
+    color: unset;
+}
+
+
+/* DIV renderer stylying */
+
+.comment {
+    white-space: pre;
+}
+
+.env__equation:not(.rawtext) > .p_text {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+
+.container.ssv > .env__equation > .p_text,
+.container:not(.ssv) > .env__equation > .p_text {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.eqnum {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+    color: var(--font-col);
+    border: 1px solid var(--font-col);
+    min-width: 25px;
+    height: 25px;
+    border-radius: 2px;
+    margin-right: 10px;
+    padding: 3px;
+    position: absolute;
+    right:10px; /* need fix*/
+    top: calc(50% - 15px)
+}
+
+.eq_tag {
+    height: unset;
+}
+
+.eqn_cite {
+    font-family: monospace;
+    font-size: 90%;
+    white-space: nowrap;
+    border: 1px solid var(--font-col);
+    color: var(--font-col);
+    border-radius: 2px;
+    padding: 0 5px;
+    margin: 0 1px;
+}
+
+.eqn_cite_ext::before {
+    color: var(--font-col);
+    content: '—';
+}
+
+.env__equation > .p_text .latex {
+    flex: 1;
+    text-align: center;
+}
+
+.env__quote .p_text {
+    padding: 0 30px 0 30px;
+    font-size: 90%
+}
+
+.env__quote .quote_by {
+    text-align: right;
+}
+
+.env__quote.env_end .quote_by:before {
+    content: "\2014  "
+}
+
+.env__quote.env_beg:before {
+    content: "\201c";
+    display: block;
+    font-size: 52px;
+    line-height: 1;
+    position: absolute;
+    top: -5px;
+    left: 5px;
+    font-family: mono;
+    color: var(--delimit-col);
+}
+
+
+.ft_content {
+    display: none;
+}
+
+.sidenote .ft_content {
+    display: block;
+}
+
+.sn_skinny {
+    display: none;
+}
+
+.qed {
+    position: absolute;
+    right: 5px;
+    bottom:0%;
+}
+
+.title {
+    font-size: 35px;
+    text-align: center;
+}
+
+.env__title {
+    margin-bottom: 30px;
+}
+
+.env__heading_h1 {
+    font-size: 25px;
+}
+
+.env__heading_h2 {
+    font-size: 20px;
+}
+
+.env__heading_h3 {
+    font-size: 15px;
+}
+
+.bib_heading {
+    font-size: 25px;
+}
+
+.em {
+    font-style: italic;
+}
+
+.list-item:before {
+    content: "\25CF";
+    color: var(--delimit-col);
+    left: 4px;
+    position: absolute;
+}
+
+.list-item {
+   padding-left: 15px;
+   margin-bottom: 3px;
+}
+
+.list {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.list.ordered {
+   counter-reset: olist;
+}
+
+.list.ordered > .list-item:before {
+    counter-increment: olist;
+    content: counter(olist)". ";
+}
+
+.strong {
+    font-weight: bold;
+}
+
+.theorem_header, .axiom_header, .definition_header, .remark_header{
+    font-weight: bold;
+}
+
+.example_header, .proof_header{
+    font-style: italic;
+}
+
+.theorem_name, .axiom_name {
+    font-weight: normal;
+}
+
+.theorem_name:before, .axiom_name:before {
+    content: "(";
+}
+
+.theorem_name:after, .axiom_name:after {
+    content: ")";
+}
+
+
+.error_footer {
+    color: var(--hl2-col);
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.rawtext .error_footer {
+    display: none;
+}
+
+.footnote {
+    cursor: pointer;
+}
+
+.sidenote {
+    display: none;
+}
+
+.para .sidenote {
+    display: block;
+    background-color: var(--bg-hl-col);
+    border-left: 1px solid var(--bg-hl2-col);
+    position: absolute;
+    left: calc(100% + 15px);
+    width: auto;
+    max-width: 150px;
+    top: 0;
+    padding: 5px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.fig_cont {
+    position: relative;
+    margin: auto;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.fig_cont > img {
+    position: relative;
+    left: 10%;
+    width: 80%;
+}
+
+.fig_iac_wrap{
+    width: 100%;
+    min-width: 250px;
+    max-width: 400px;
+    min-height: 30px;
+    margin-top: 15px;
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);
+    border: 1px solid var(--brace-col);
+    z-index: 1;
+}
+
+.fig_iac_wrap.closed:before{
+    content: "Click to Open Interactive Controls";
+    color: var(--brace-col);
+    padding-left: 10px;
+    line-height: 30px;
+    font-size: 12px;
+}
+
+
+.svg_hodl {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+}
+
+.svg_hodl > svg {
+    max-width: 100%;
+    max-height: 300px;
+    fill: none;
+    stroke: var(--font-col);
+}
+
+#bg.active.writeable .para:not(.locked) .fig_cont:hover > .img_update {
+    display: flex;
+}
+
+.fig_cont > .img_update {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    height: 25px;
+    width: 25px;
+    color: var(--pop-fg-col);
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 4px;
+    padding: 5px;
+    margin: 5px;
+    font-size: 20px;
+    cursor: default;
+}
+
+.fig_cont > .img_update:hover {
+    background-color: lightgray;
+}
+
+.fig_cont > .img_err {
+    color: var(--hl2-col);
+    background-color: var(--pop-bg-col);
+    padding: 5px;
+    border-radius: 3px;
+    margin-left: 20px;
+    font-size: 80%;
+}
+
+#pop > img {
+    width: 200px;
+}
+
+.fig_cont > svg {
+    position: relative;
+    width: 80%;
+    left: 10%;
+}
+
+.container.ssv .fig_cont > svg {
+    width: 100%;
+    left: 0;
+}
+
+.table {
+    margin: auto;
+}
+
+.fig_cap {
+    position: relative;
+    padding: 0px 20px 20px 20px;
+    font-size: 85%;
+    /* hacky, margin does */
+}
+
+.dropzone, .open_svg_editor {
+    border: 1px dashed var(--hl-col);
+    text-align: center;
+    padding: 20px;
+    margin: 0% 20%;
+    font-family: fira;
+    cursor: default;
+}
+
+.dropzone.dragover {
+    border: 2px dashed var(--hl-col);
+    text-align: center;
+    padding: 20px;
+    font-family: fira;
+}
+
+.code > pre {
+    margin-left: 0px;
+    padding: 3px;
+    padding-left: 10px;
+    white-space: pre-wrap;
+    counter-reset: line;
+    background-color: inherit;
+    background-color: rgba(0,0,0,.1);
+}
+
+.para .p_input_view .linenum{
+    display: none;
+}
+
+.code.numbered > pre {
+    margin-left: 28px;
+}
+
+
+#bib_block {
+    display: none;
+    position: relative;
+    left: 20%;
+    width: 60%;
+    min-height: 30px;
+    margin-bottom: 20px;
+    padding-left: 5px;
+    font-size: 70%;
+}
+
+#bib_block .cite {
+    display: block;
+}
+
+.cite {
+    margin-top: 15px;
+    padding-left: 15px;
+    text-indent: -15px;
+}
+
+.citekey {
+    visibility: hidden;
+    color: var(--hl-col);
+}
+
+.cite:hover .citekey {
+    visibility: visible;
+}
+
+#pop {
+    padding: 10px;
+    position: absolute;
+    z-index: 20;
+    min-width: 250px;
+    min-height: 30px;
+    max-width: 400px;
+}
+
+#pop .DOI_link {
+    display: none;
+}
+
+#pop.ext_pop {
+    padding-top:20px;
+}
+
+#pop:after {
+    top: 100%;
+    left: 50%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border-width: 10px;
+    margin-left: -10px;
+}
+
+#pop_ext_title {
+    position: absolute;
+    top: 0;
+    width: calc(100% - 10px);
+    right: 5px;
+    font-family: monospace;
+    font-size: 9px;
+    color: var(--hl-col);
+    opacity: .7;
+    text-align: right;
+    line-height: 10px;
+    padding: 5px 5px 4px 0px;
+    border-bottom: .1px solid var(--hl-col);
+}
+
+#cc_pop {
+    padding: 10px;
+    position: absolute;
+    z-index: 20;
+    min-width: 150px;
+    min-height: 30px;
+    max-width: 450px;
+}
+
+.cc_row {
+    display: none;
+    cursor: pointer;
+}
+
+.cc_row:hover {
+    font-weight: bold;
+}
+
+.cc_row:nth-child(-n+5) {
+  display: block;
+}
+
+.env_disp{
+    display: inline-block;
+    margin-right: 12px;
+    width: 32px;
+    text-align: right;
+}
+
+.head_level2 {
+    padding-left: 20px;
+    font-size: 80%;
+}
+
+.head_level3 {
+    padding-left: 25px;
+    font-size: 70%;
+}
+
+
