@@ -4,9 +4,7 @@ This is demo a **Elltwo** ($\ell^2$) article, created especially for you.  Elltw
 
 Cells can be selected by clicking or by pressing `enter` and then navigating with the arrow keys. When a cell is selected, an additional click or `enter` will enter "edit mode." When in edit mode, the raw input of the cell is shown in an editable text box. You can also view the raw text and the output side by side by toggling the view button in the footer.
 
-Add new cells using the `a` (above) or `b` (below) keys when in active mode. Commit changes and create a new cell when editing with `shift + enter`. For a complete overview of keyboard shortcuts press `F1`.
-
-You move cells around by grabbing the left hand margin and dragging them around.
+Add new cells using the `a` (above) or `b` (below) keys when in active mode. Commit changes and create a new cell when editing with `shift + enter`. For a complete overview of keyboard shortcuts press `F1`. You can move cells around by grabbing the left hand margin and dragging them around.
 
 # Formatting and Equations
 
@@ -72,7 +70,7 @@ Clicking on the box to reveal to SVG code used to generate this simple square sh
 
 Elltwo comes equipped with a SVG creation library called [[gum]], built around the idea of contextual positioning and object inheritance: gum objects define a context relative to which child elements are positioned and styled. To recreate @[svg_squares] above in GUM requires the relatively simple:
 
-``[id=gumtext|lang=gum] !gum 
+``[id=gumtext|lang=gum] !gum
 let n = 4
 let rows = [...Array(n).keys()];
 let vt = rows.map((r) => {
@@ -86,7 +84,7 @@ return VStack(vt)
 
 Moreover, since the image is produce programmatically, we can easily scale up the number of colored boxes by changing the `n`. In fact, we can even make this interactive:
 
-!gum [width=40|caption=An Interactive SVG figure created using GUM.] 
+!gum [width=40|caption=An Interactive SVG figure created using GUM.]
 let box = function(args){
 let n = parseInt(args.n)
 let rows = [...Array(n).keys()];
@@ -103,7 +101,7 @@ return InterActive({
     n: new Slider(3, {min:2, max: 10, title: 'rows/cols'})
 }, box);
 
-For a slightly more *practical* demonstration of GUM, below is an interactive bar breakdown of our revenue proposal (from the application). Given our per-user intake you can examine our monthly revenue for different level of engagement: 
+For a slightly more *practical* demonstration of GUM, below is an interactive bar breakdown of our revenue proposal (from the application). Given our per-user intake you can examine our monthly revenue for different level of engagement:
 
 !gum [id=revenue|caption=Revenue as a function a user base assuming per-user revenue listed above. Both users and monthly revenue denominated in thousands.]
 function guu(vars) {
@@ -111,8 +109,8 @@ function guu(vars) {
     let inst = 2*vars.y;
     let free = 0.02*vars.z;
     let d = {
-        'total': {stacked: [[indv, '#e07a5f'], [inst, '#f2cc8f'],[free, '#81b29a']]}, 
-        'indv': {value:indv, color:'#e07a5f'}, 
+        'total': {stacked: [[indv, '#e07a5f'], [inst, '#f2cc8f'],[free, '#81b29a']]},
+        'indv': {value:indv, color:'#e07a5f'},
         'inst': {value:inst, color:'#f2cc8f'},
         'ad views': {value:free, color:'#81b29a'},
     };
