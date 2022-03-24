@@ -439,7 +439,7 @@ async function sendInsertPara(para, after=true, edit=true, raw='', cur='end') {
     let new_pid = await sendCommand('insert_para', data);
     if (new_pid !== undefined) {
         let new_para = insertParaRaw(pid, new_pid, raw, after);
-        initDrag()
+        initDrag();
         makeActive(new_para);
         if (edit) {
             trueMakeEditable(true, cur);
