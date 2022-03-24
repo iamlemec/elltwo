@@ -7,7 +7,8 @@ export {
 }
 
 import {
-    mapValues, on_success, setCookie, cooks, getPara, getEnvParas, KeyCache, merge, unEscCharCount, flash
+    mapValues, on_success, setCookie, cooks, getPara, getEnvParas, 
+    KeyCache, merge, unEscCharCount, flash, detectBrowser,
 } from './utils.js'
 import {
     config, state, cache, updateConfig, updateState, updateCache
@@ -1271,6 +1272,7 @@ function env_display_text(env, sym="") {
         'heading': `<span class="syn_delimit">##</span>`,
         'imagelocal': `<span class="syn_ref">!img</span>`,
         'svg': `<span class="syn_ref">!svg</span>`,
+        'code': `<span class="syn_delimit">\'\'</span>`,
         'title': `<span class="syn_delimit">#</span><span class="syn_hl">!</span>`,
         'image': `<span class="syn_hl">!!</span>`,
         'bib': `<span class="syn_ref">@@</span>`,

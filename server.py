@@ -102,8 +102,8 @@ app = Flask(__name__, static_folder='dist')
 app.config['DEBUG'] = args.debug
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.db}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+#cors = CORS(app)
+#app.config['CORS_HEADERS'] = 'Content-Type'
 
 # load user security config
 if args.auth is None:
@@ -262,6 +262,16 @@ def Demo():
     hash_tag = secrets.token_hex(4)
     art_name = f'demo_{hash_tag}'
     with open(config['demo_path']) as fid:
+        demo_mark = fid.read()
+    edb.import_markdown(art_name, demo_mark, index=False,)
+    return redirect(url_for('RenderArticle', title=art_name))
+
+@app.route('/yc')
+@view_decor
+def YC():
+    hash_tag = secrets.token_hex(4)
+    art_name = f'yc_{hash_tag}'
+    with open('default/yc.md') as fid:
         demo_mark = fid.read()
     edb.import_markdown(art_name, demo_mark, index=False,)
     return redirect(url_for('RenderArticle', title=art_name))
@@ -487,7 +497,7 @@ def RenderBib():
 @app.route('/img', methods=['GET', 'POST'])
 @view_decor
 def Img():
-    edit = current_user.is_authenticated or not need_login
+    edit = not need_login or current_user.is_authenticated
     style = getStyle(request)
     img = [(i.key, i.keywords) for i in edb.get_images()]
     img.reverse()

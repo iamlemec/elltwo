@@ -19,7 +19,7 @@ Formatting also takes place at the cell level. A cell is formated by use of a ce
 
  The most basic formated cell types are *section title cells*, with prefixes of between 1 and 6 `#`'s and *display style TeX cells*, with prefix `$$`. For example:
 
-`` $$ [id=eq_geo] \sum_{i=1}^\infty \frac{1}{2^n} = 1
+``* $$ [id=eq_geo] \sum_{i=1}^\infty \frac{1}{2^n} = 1
 
 renders as
 
@@ -29,11 +29,11 @@ $$ [id=eq_geo] \sum_{i=1}^\infty \frac{1}{2^n} = 1
 
 Environments are used to format blocks of cells and function in a similar way to LaTeX environments. An environment is opened the prefix `>>` and closed by a subsequent cell with prefix `<<`. Single cell environments use the special prefix `>>!`. For example:
 
-`` >> theorem [id=primes|name=Borel Cantelli] If the sum of the probabilities of the events $\{E_n\}_{n\in \mathbb{N}}$ is finite, then
+``* >> theorem [id=primes|name=Borel Cantelli] If the sum of the probabilities of the events $\{E_n\}_{n\in \mathbb{N}}$ is finite, then
 
-`` $$ \mu\left(\bigcap_{n=1}^{\infty }\bigcup_{k\geq n}^{\infty }E_{k}\right) = 0
+``* $$ \mu\left(\bigcap_{n=1}^{\infty }\bigcup_{k\geq n}^{\infty }E_{k}\right) = 0
 
-`` << that is, the probability that infinitely many of them occur is $0$.
+``* << that is, the probability that infinitely many of them occur is $0$.
 
 will format as:
 
@@ -64,11 +64,11 @@ A partial list of helpful arguments:
 
 Simple TeX macros can be set (at the article level) by augmenting the title cell of the article. Below the title line (i.e., beginning with `#!`), enter one macro per line using `\name:\definition` syntax. For example, in this article `$\R$` will render $\R$ as the first cell includes `\R:\mathbb{R}`.
 
-# [sec_fig] Figures
+# [sec_fig] Images and Figures
 
 Cells can also contain figure and images. Images environments begin with an exclamation point `!` and can direct to external images via a URL or internal images using an image ID.
 
-``! [id=img_torus|w=40|caption=An externally hosted image of a torus] (https://www.torus.co.uk/wp-content/themes/torus/images/torus_swoosh.png)
+``* ! [id=img_torus|w=40|caption=An externally hosted image of a torus] (https://www.torus.co.uk/wp-content/themes/torus/images/torus_swoosh.png)
 
 to render the following figure.
 
@@ -78,29 +78,81 @@ The size of the image can be controlled by passing a `width` or `w` argument, co
 
 Images can be stored via elltwo, and assessed via an ID. To upload an image render, a cell with two exclamation points `!!`. This will create a drag-and-drop image uploader (clicking the upload box will open a file browser). Uploaded images are stored, and their IDs can be changed, in the [image library](/img).
 
-Cells can also contain HTML5 SVG images. The `!SVG` prefix creates a 100x100 HTML canvas and will directly incorporate any HTML SVG elements that follow.
+Cells can also contain HTML5 SVG images. The `!SVG` prefix creates a 500x500 HTML canvas and will directly incorporate any HTML SVG elements that follow.
 
 !svg [
 id=svg_squares
 caption=An SVG figure rendered using HTML SVG styling.
 w=100
 ]
-<rect x='0' y='0' width='25' height='25', fill='#66AF4C', stroke='#66AF4C'/>
-<rect x='0' y='25' width='25' height='25', fill='#5D9D68', stroke='#5D9D68'/>
-<rect x='0' y='50' width='25' height='25', fill='#52868A', stroke='#52868A'/>
-<rect x='0' y='75' width='25' height='25', fill='#4874A6', stroke='#4874A6'/>
-<rect x='25' y='0' width='25' height='25', fill='#8CB13F', stroke='#8CB13F'/>
-<rect x='25' y='25' width='25' height='25', fill='#849857', stroke='#849857'/>
-<rect x='25' y='50' width='25' height='25', fill='#7A7C73', stroke='#7A7C73'/>
-<rect x='25' y='75' width='25' height='25', fill='#72638A', stroke='#72638A'/>
-<rect x='50' y='0' width='25' height='25', fill='#BAB230', stroke='#BAB230'/>
-<rect x='50' y='25' width='25' height='25', fill='#B39442', stroke='#B39442'/>
-<rect x='50' y='50' width='25' height='25', fill='#AB6F57', stroke='#AB6F57'/>
-<rect x='50' y='75' width='25' height='25', fill='#A45069', stroke='#A45069'/>
-<rect x='75' y='0' width='25' height='25', fill='#E0B423', stroke='#E0B423'/>
-<rect x='75' y='25' width='25' height='25', fill='#DA9031', stroke='#DA9031'/>
-<rect x='75' y='50' width='25' height='25', fill='#D36541', stroke='#D36541'/>
-<rect x='75' y='75' width='25' height='25', fill='#CD404E', stroke='#CD404E'/>
+<g><g>
+<rect x="0" y="0" width="125" height="125" stroke="none" fill="hsl(0.000, 60%, 50%)" />
+<rect x="125" y="0" width="125" height="125" stroke="none" fill="hsl(33.333, 60%, 50%)" />
+<rect x="250" y="0" width="125" height="125" stroke="none" fill="hsl(66.667, 60%, 50%)" />
+<rect x="375" y="0" width="125" height="125" stroke="none" fill="hsl(100.000, 60%, 50%)" />
+</g>
+<g>
+<rect x="0" y="125" width="125" height="125" stroke="none" fill="hsl(50.000, 60%, 50%)" />
+<rect x="125" y="125" width="125" height="125" stroke="none" fill="hsl(83.333, 60%, 50%)" />
+<rect x="250" y="125" width="125" height="125" stroke="none" fill="hsl(116.667, 60%, 50%)" />
+<rect x="375" y="125" width="125" height="125" stroke="none" fill="hsl(150.000, 60%, 50%)" />
+</g>
+<g>
+<rect x="0" y="250" width="125" height="125" stroke="none" fill="hsl(100.000, 60%, 50%)" />
+<rect x="125" y="250" width="125" height="125" stroke="none" fill="hsl(133.333, 60%, 50%)" />
+<rect x="250" y="250" width="125" height="125" stroke="none" fill="hsl(166.667, 60%, 50%)" />
+<rect x="375" y="250" width="125" height="125" stroke="none" fill="hsl(200.000, 60%, 50%)" />
+</g>
+<g>
+<rect x="0" y="375" width="125" height="125" stroke="none" fill="hsl(150.000, 60%, 50%)" />
+<rect x="125" y="375" width="125" height="125" stroke="none" fill="hsl(183.333, 60%, 50%)" />
+<rect x="250" y="375" width="125" height="125" stroke="none" fill="hsl(216.667, 60%, 50%)" />
+<rect x="375" y="375" width="125" height="125" stroke="none" fill="hsl(250.000, 60%, 50%)" />
+</g></g>
+
+Clicking on the box to reveal to SVG code used to generate this simple square showcases the tedium of working directly with SVG. Luckily, there is a better way!
+
+## GUM
+
+Elltwo comes equipped with a SVG creation library called [[gum]], built around the idea of contextual positioning and object inheritance: gum objects define a context relative to which child elements are positioned and styled. To recreate @[svg_squares] above in GUM requires the relatively simple:
+
+`` !gum 
+let n = 4
+let rows = [...Array(n).keys()];
+let vt = rows.map((r) => {
+		let cols = interpolateVectorsPallet([r*50],[r*50+100], n)
+		let t = cols.map((c) => {
+		return Square({stroke:'none', fill:`hsl(${c[0]}, 60%, 50%)`})
+	})
+	return HStack(t)
+})
+return VStack(vt)
+
+Moreover, since the image is produce programmatically, we can easily scale up the number of colored boxes by changing the `n`. In fact, we can even make this interactive:
+
+!gum [caption=An Interactive SVG figure created using GUM.] 
+let box = function(args){
+let n = parseInt(args.n)
+let rows = [...Array(n).keys()];
+let vt = rows.map((r) => {
+		let cols = interpolateVectorsPallet([r*50],[r*50+100], n)
+		let t = cols.map((c) => {
+		return Square({stroke:'none', fill:`hsl(${c[0]}, 60%, 50%)`})
+	})
+	return HStack(t)
+})
+return VStack(vt)
+}
+return InterActive({
+    n: new Slider(3, {min:2, max: 10, title: 'rows/cols'})
+}, box);
+
+You can creating global (i.e., cross article) gum objects using the [live editor,](/img?SVGEditor=true) either in an article, using the `!!gum` env or in the image library. Constructed gum objects are given keys which can be references just like other images in elltwo, and updates to these objects are globally propagation.
+
+
+To edit a global gum object in an article, open the gum editor by pressing `shift + enter` on a gum cell, or by clicking the editor button when hovering over it. Changes in the editor must be committed to be saved. Gum code can in exist locally, directly in cells of an elltwo article using the `!gum` environment, as above. 
+
+You can read about how to create GUM images in the [[gum|text=GUM documentation]]. 
 
 # [ref] Referencing
 
@@ -118,7 +170,7 @@ Typing `@` will open a command completion window ranging over all extant referen
 
 Bibliographic data is stored globally in the [$\ell^2$ Bibliography](/bib). New citations can be entered using the standard [bibTeX](https://en.wikipedia.org/wiki/BibTeX) formatting. Extant citations can be updated by clicking *update* on the relevant entry, changing the data, and clicking *create*. A (rudimentary) search function can find references and directly import the bibTex from Google Scholar.
 
-Each reference has a *citekey*, which can be viewed by hovering over a bibliographic entry (clicking the entry copies the citekey to the clipboard). In text citations are created using `@@[citekey]`, for example @@[morgenstern1953theory]. Typing `@@` will open a command completion window that will search over bibliographic entries (i.e., citekeys).
+Each reference has a *citekey*, which can be viewed by hovering over a bibliographic entry (clicking the entry copies the citekey to the clipboard). In text citations are created using `@@[citekey]`, for example `@@[morgenstern1953theory]`. Typing `@@` will open a command completion window that will search over bibliographic entries (i.e., citekeys).
 
 # [sec_history] Version Control
 

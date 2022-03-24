@@ -4,7 +4,8 @@ export {
     merge, mapObject, mapValues, eachObject, attrArray, initToggleBox, toggleBox,
     ensureVisible, setCookie, cooks, getPara, getEnvParas, isMobile, noop,
     on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle,
-    createButton, smallable_butt, copyText, updateSliderValue, unEscCharCount, cur
+    createButton, smallable_butt, copyText, updateSliderValue, unEscCharCount, cur,
+    detectBrowser
 }
 
 // js tricks
@@ -403,4 +404,27 @@ function isMobile() {
     } catch {
         return null;
     }
+}
+
+// detect broswer
+
+function detectBrowser(){
+    // Opera 8.0+
+    let Opera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+    // Firefox 1.0+
+    let Firefox = typeof InstallTrigger !== 'undefined';
+    // Safari 3.0+ "[object HTMLElementConstructor]" 
+    let Safari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification));
+    // Internet Explorer 6-11
+    let IE = /*@cc_on!@*/false || !!document.documentMode;
+    // Edge 20+
+    let Edge = !IE && !!window.StyleMedia;
+    // Chrome 1 - 79
+    let Chrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
+    // Edge (based on chromium) detection
+    let EdgeChromium = Chrome && (navigator.userAgent.indexOf("Edg") != -1);
+    // Blink engine detection
+    let Blink = (Chrome || Opera) && !!window.CSS;
+    
+    return {Opera, Firefox, Safari, IE, Edge, Chrome, EdgeChromium, Blink}
 }

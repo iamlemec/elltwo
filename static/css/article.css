@@ -837,6 +837,15 @@ button {
     stroke: var(--pop-fg-col);
 }
 
+#pop .code{
+    color: var(--pop-fg-col);
+}
+
+#pop .linenum{
+    color: var(--pop-fg-col);
+    transform: translateX(12px);
+}
+
 #pop .fig_iac_wrap {
     display: none;
 }

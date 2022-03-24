@@ -1079,10 +1079,15 @@ function refFigure(ref, tro) {
     refEnv(ref, tro, 'Figure');
 }
 
+function refCode(ref, tro) {
+    refEnv(ref, tro, 'Verbatim Block');
+}
+
 let ref_spec = {
     heading: refSection,
     equation: refEquation,
     svg: refFigure,
+    code: refCode,
     image: refFigure,
     imagelocal: refFigure,
     table: refFigure,
@@ -1224,6 +1229,7 @@ let pop_spec = {
     equation: popEquation,
     svg: popEquation,
     image: popEquation,
+    code: popEquation,
     imagelocal: popEquation,
     footnote: popSelf,
     table: popEquation,
