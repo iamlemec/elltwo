@@ -46,8 +46,6 @@ function eventEditor() {
         let alt = e.altKey;
         let meta = e.metaKey;
         let shift = e.shiftKey;
-        let tab = e.keyCode == 9;
-        let space = e.keyCode == 32;
 
         if (ctrl && key == 'enter') {
             toggleHistMap();

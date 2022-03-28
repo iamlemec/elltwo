@@ -7,7 +7,7 @@ export {
 }
 
 import {
-    mapValues, on_success, setCookie, cooks, getPara, getEnvParas, 
+    mapValues, on_success, setCookie, cooks, getPara, getEnvParas,
     KeyCache, merge, unEscCharCount, flash, detectBrowser,
 } from './utils.js'
 import {
@@ -1217,9 +1217,7 @@ function ccMake(cctxt=null, addText=false, offset_chars=0) {
 
     raw = raw.substring(0, state.cc[0]) + sel + raw.substring(u);
     editor.setText(raw);
-    editor.text.dispatchEvent(
-        new Event('input', {bubbles: true, cancelable: true})
-    );
+    editor.update();
 
     state.cc = false;
     $('#cc_pop').remove();

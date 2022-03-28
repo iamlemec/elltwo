@@ -29,8 +29,6 @@ function eventEditor() {
         e.altKey;
         let meta = e.metaKey;
         let shift = e.shiftKey;
-        e.keyCode == 9;
-        e.keyCode == 32;
 
         if (ctrl && key == 'enter') {
             toggleHistMap();

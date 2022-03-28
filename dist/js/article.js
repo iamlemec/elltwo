@@ -1193,9 +1193,7 @@ function ccMake(cctxt=null, addText=false, offset_chars=0) {
 
     raw = raw.substring(0, state.cc[0]) + sel + raw.substring(u);
     editor.setText(raw);
-    editor.text.dispatchEvent(
-        new Event('input', {bubbles: true, cancelable: true})
-    );
+    editor.update();
 
     state.cc = false;
     $('#cc_pop').remove();
@@ -1236,6 +1234,7 @@ function env_display_text(env, sym='') {
         'heading': `<span class="syn_delimit">##</span>`,
         'imagelocal': `<span class="syn_ref">!img</span>`,
         'svg': `<span class="syn_ref">!svg</span>`,
+        'code': `<span class="syn_delimit">\'\'</span>`,
         'title': `<span class="syn_delimit">#</span><span class="syn_hl">!</span>`,
         'image': `<span class="syn_hl">!!</span>`,
         'bib': `<span class="syn_ref">@@</span>`,
