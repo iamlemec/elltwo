@@ -1,0 +1,20 @@
+/* native editor */
+
+.p_input_text, .p_input_view {
+    font-size: inherit;
+    position: absolute;
+    resize: none;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    padding: 0px;
+}
+
+.p_input_text {
+    color: rgba(0, 0, 0, 0);
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.p_input_view {
+    font-family: monospace;
+}

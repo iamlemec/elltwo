@@ -1,10 +1,11 @@
 @import './core.css';
+@import './text.css';
 
 :root {
     --sb_off: 180px;
 }
 
-.container.sb_content #SVGEditorOuter {
+.container.sb_content #svgEditorOuter {
    left: calc(0.5  * var(--sb_off));
    width: calc(100% - var(--sb_off));
    border-left: none;
@@ -98,24 +99,6 @@
 }
 
 /* native editor */
-
-.p_input_text, .p_input_view {
-    position: absolute;
-    resize: none;
-    overflow: hidden;
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
-    padding: 0px;
-}
-
-.p_input_text {
-    color: rgba(0, 0, 0, 0);
-    background-color: rgba(0, 0, 0, 0);
-}
-
-.p_input_view {
-    font-family: monospace;
-}
 
 .container.ssv .p_input_text {
     line-height: 20px;

@@ -234,7 +234,7 @@ function createIcon(id) {
 `.trim();
 }
 
-function createToggle(id, text, checked=true){
+function createToggle(id, text, checked=true) {
     checked = checked ? 'checked' : '';
     return `
 <label class="toggle" for="${id}_check" id="${id}_label">
@@ -335,17 +335,17 @@ function smallable_butt(butts, threshold=1000) {
 
 // count unescaped chars in text
 
-function unEscCharCount(str, char){
-    let regex = new RegExp(`(\\\\*)\\${char}`, 'g')
+function unEscCharCount(str, char) {
+    let regex = new RegExp(`(\\\\*)\\${char}`, 'g');
     let all = [...str.matchAll(regex)] || []; //match char
     all=all.filter(x => (x[0].length%2==1)); //filter out escaped
-    return all.length
+    return all.length;
 }
 
 // cursor position
 
-function cur(e, full=false){
-    if(full){
+function cur(e, full=false) {
+    if (full) {
         return [e.target.selectionStart, e.target.selectionEnd];
     }
     return e.target.selectionStart;
@@ -416,7 +416,7 @@ function isMobile() {
 
 // detect broswer
 
-function detectBrowser(){
+function detectBrowser() {
     // Opera 8.0+
     let Opera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
     // Firefox 1.0+

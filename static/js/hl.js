@@ -528,12 +528,9 @@ function shittySVG(raw) {
 
 /// BRACE MATACH
 
-async function braceMatch(edit, view, hl='elltwo') {
+function braceMatch(text, cpos, hl='elltwo') {
     let delimit = {'(': ')', '[': ']', '{': '}'};
     let rev_delimit = {')': '(', ']': '[', '}': '{'};
-
-    let cpos = edit.selectionStart;
-    let text = edit.value;
 
     let after = text[cpos];
     let before = text[cpos-1] || false;
@@ -541,29 +538,27 @@ async function braceMatch(edit, view, hl='elltwo') {
     if (after in delimit) {
         let pos = getBracePos(text, after, delimit[after], cpos);
         if (pos) {
-            await braceHL(view, text, pos, hl);
+            return braceHL(text, pos, hl);
         } else {
-            return false;
+            return null;
         }
     } else if (before in delimit) {
         let pos = getBracePos(text, before, delimit[before], cpos-1);
         if (pos) {
-            await braceHL(view, text, pos, hl);
+            return braceHL(text, pos, hl);
         } else {
-            return false;
+            return null;
         }
     } else if (before in rev_delimit) {
         let pos = getBracePos(text, before, rev_delimit[before], cpos, true);
-        await braceHL(view, text, pos, hl);
+        return braceHL(text, pos, hl);
     } else if (after in rev_delimit) {
         let pos = getBracePos(text, after, rev_delimit[after], cpos+1, true);
-        await braceHL(view, text, pos, hl);
+        return braceHL(text, pos, hl);
     } else {
         $('.brace').contents().unwrap();
-        return false;
+        return null;
     }
-
-    return true;
 }
 
 function getBracePos(text, brace, match, cpos, rev=false) {
@@ -605,7 +600,7 @@ function getBracePos(text, brace, match, cpos, rev=false) {
     }
 }
 
-async function braceHL(view, text, pos, hl) {
+function braceHL(text, pos, hl) {
     let new_text = [
         text.slice(0, pos['l']),
         `\&\!L\&`,
@@ -614,11 +609,7 @@ async function braceHL(view, text, pos, hl) {
         text.slice(pos['r']+1)
     ].join('');
 
-    let syn = HLs[hl](new_text);
-    view.innerHTML = syn;
-
-    await setTimeoutPromise(800);
-    $('.brace').contents().unwrap();
+    return HLs[hl](new_text);
 }
 
 function jsHL(src) {
@@ -635,16 +626,7 @@ let HLs =  {
     'elltwoInline': syntaxParseInline,
 }
 
-function SyntaxHL(src, hl=null, callback=null) {
-    let out = src;
-    if (hl in HLs) {
-        out = HLs[hl](src);
-    } else {
-        out = esc_html(out);
-    }
-    if (callback === null) {
-        return out;
-    } else {
-        callback(out);
-    }
+function SyntaxHL(src, hl=null) {
+    let syn = HLs[hl] ?? esc_html;
+    return syn(src);
 }

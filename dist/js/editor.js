@@ -1,11 +1,10 @@
 import { state, config } from './state.js';
 import { createButton, copyText, flash, attrArray, ensureVisible, setCookie, cooks, smallable_butt, getPara } from './utils.js';
 import { sendCommand, schedTimeout } from './client.js';
-import { rawToRender, rawToTextarea, getEditor, getFoldLevel, renderFold } from './render.js';
+import { getEditor, getFoldLevel, renderFold, rawToRender, rawToTextarea } from './render.js';
 import './hl.js';
 import { toggleHistMap, toggleSidebar, ccNext, ccMake, insertParaRaw, deleteParas, updateRefs } from './article.js';
 import { toggleHelp } from './help.js';
-import { hideSVGEditor } from './svg.js';
 
 ////// UI ///////
 
@@ -47,12 +46,11 @@ function eventEditor() {
             if (state.help_show) {
                 toggleHelp();
                 return false;
-            } else if (state.SVGEditorOpen) {
-                    hideSVGEditor();
             }
+            state.svg.close();
         }
 
-        if (!(state.rawtext && state.writeable) && !meta && !ctrl && !state.SVGEditorOpen) {
+        if (!(state.rawtext && state.writeable) && !meta && !ctrl && !state.svg.show) {
             if (key == '-') {
                 $('#ssv_check').click();
                 return false;
@@ -62,13 +60,13 @@ function eventEditor() {
             }
         }
 
-        if (!state.active_para && !state.SVGEditorOpen) { // if we are inactive
+        if (!state.active_para && !state.svg.show) { // if we are inactive
             if (key == 'enter' && state.writeable) {
                 let foc_para = state.last_active || $('.para').first();
                 makeActive(foc_para);
                 return false;
             }
-        } else if (state.active_para && !state.rawtext && !state.SVGEditorOpen) {
+        } else if (state.active_para && !state.rawtext && !state.svg.show) {
             if (shift && key == 'enter' && state.active_para.attr('env')=='imagelocal') {
                 state.active_para.find('.img_update').click();
             } else if (key == 'enter') {
@@ -86,16 +84,14 @@ function eventEditor() {
                 copyParas();
                 return false;
             } else if (key == 'escape') {
-                if (state.SVGEditor) {
-                    hideSVGEditor();
-                }
+                state.svg.close();
                 makeActive(null);
                 return false;
             } else if (shift && key == 'f') {
                 fold(state.active_para);
                 return false;
             }
-            if (state.writeable && !state.SVGEditorOpen) { // if we are active but not in edit mode
+            if (state.writeable && !state.svg.show) { // if we are active but not in edit mode
                 if (key == 'a') {
                     sendInsertPara(state.active_para, false);
                     return false;
@@ -111,7 +107,7 @@ function eventEditor() {
                     return false;
                 }
             }
-        } else if (state.active_para && state.rawtext && !state.SVGEditorOpen) { // we are active and rawtext
+        } else if (state.active_para && state.rawtext && !state.svg.show) { // we are active and rawtext
             if (key == 'arrowup') {
                 if (state.cc) { // if there is an open command completion window
                     ccNext('down');
@@ -133,9 +129,7 @@ function eventEditor() {
                     }
                 }
             } else if (key == 'escape') {
-                if (state.SVGEditor) {
-                    hideSVGEditor();
-                }
+                state.svg.close();
                 if (state.cc) {
                     state.cc = false;
                     $('#cc_pop').remove();

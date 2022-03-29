@@ -203,7 +203,7 @@ function barePara(pid, raw='') {
 
 function makeEditor(para) {
     let [input] = para.children('.p_input');
-    let editor = new TextEditorNative(input, editorHandler);
+    let editor = new TextEditorNative(input, {handler: editorHandler});
     let pid = para.attr('pid');
     state.editors.set(pid, editor);
 }

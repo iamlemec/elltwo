@@ -1,5 +1,6 @@
 @import './home.css';
 @import './svg.css';
+@import './text.css';
 
 #query {
     left: 20%;

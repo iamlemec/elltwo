@@ -18,11 +18,15 @@ import { defaultKeymap, indentWithTab } from '@codemirror/commands'
 import { lineNumbers, highlightActiveLineGutter } from '@codemirror/gutter'
 
 class TextEditorCM {
-    constructor(parent, eventHandler) {
-        this.lang = 'elltwo';
+    constructor(parent, opts) {
+        let { handler, mini } = opts ?? {};
+
         this.editable = new Compartment();
         this.language = new Compartment();
-        this.eventHandler = eventHandler;
+        this.handler = handler;
+
+        this.lang = 'elltwo';
+        this.mini = mini ?? true;
 
         this.view = new EditorView({
             state: EditorState.create({
@@ -63,7 +67,9 @@ class TextEditorCM {
     }
 
     event(c, e) {
-        return this.eventHandler(this, c, e);
+        if (this.handler != null) {
+            return this.handler(this, c, e);
+        }
     }
 
     getLength() {
@@ -206,20 +212,28 @@ class UndoStack {
 }
 
 class TextEditorNative {
-    constructor(parent, eventHandler) {
-        this.lang = 'elltwo';
+    constructor(parent, opts) {
+        let { handler, lang, edit, mini } = opts ?? {};
+        edit = edit ?? false;
+
+        // editor components
         this.parent = parent;
-        this.eventHandler = eventHandler;
+        this.handler = handler;
         this.undoStack = new UndoStack();
+
+        // editor config
+        this.lang = lang ?? 'elltwo';
+        this.mini = mini ?? true;
 
         this.text = document.createElement('textarea');
         this.text.classList.add('p_input_text');
-        this.text.setAttribute('readonly', true);
+        this.text.setAttribute('readonly', !edit);
         this.text.addEventListener('input', e => {
             let raw = this.getText();
             let cur = this.getCursorPos();
             this.undoStack.push(raw, cur);
             this.update();
+            this.event('input', e);
         });
         this.text.addEventListener('keyup', e => {
             this.braceMatch();
@@ -236,13 +250,13 @@ class TextEditorNative {
                 return;
             }
 
-            if (e.key == 'arrowleft') {
+            if (key == 'arrowleft') {
                 return this.event('left', e);
-            } else if (e.key == 'arrowright') {
+            } else if (key == 'arrowright') {
                 return this.event('right', e);
-            } else if (e.key == 'arrowup') {
+            } else if (key == 'arrowup') {
                 return this.event('up', e);
-            } else if (e.key == 'arrowdown') {
+            } else if (key == 'arrowdown') {
                 return this.event('down', e);
             } else if ((ctrl || meta) && key in wraps) {
                 this.textWrap(wraps[key]);
@@ -264,7 +278,6 @@ class TextEditorNative {
                     let [raw, cur] = ret;
                     this.setText(raw, false);
                     this.setCursorPos(cur);
-                    this.update();
                 }
             } else if (space) {
                 this.undoStack.break();
@@ -277,6 +290,7 @@ class TextEditorNative {
         this.view = document.createElement('div');
         this.view.classList.add('p_input_view');
 
+        this.setEditable(edit);
         parent.appendChild(this.view);
         parent.appendChild(this.text);
     }
@@ -285,12 +299,13 @@ class TextEditorNative {
         if (this.getEditable()) {
             this.text.focus();
         }
-        this.resize();
-        this.highlight();
+        this.update();
     }
 
     update() {
-        this.resize();
+        if (this.mini) {
+            this.resize();
+        }
         this.complete();
         this.highlight();
     }
@@ -303,7 +318,9 @@ class TextEditorNative {
     }
 
     event(c, e) {
-        return this.eventHandler(this, c, e);
+        if (this.handler != null) {
+            return this.handler(this, c, e);
+        }
     }
 
     getLength() {
@@ -316,6 +333,7 @@ class TextEditorNative {
 
     setText(text, save=true) {
         this.text.value = text;
+        this.update();
         if (save) {
             let raw = this.getText();
             let cur = this.getCursorPos();
@@ -365,9 +383,14 @@ class TextEditorNative {
     }
 
     async braceMatch() {
-        let hl = await braceMatch(this.text, this.view);
-        if (hl) {
-            this.highlight();
+        let text = this.getText();
+        let cpos = this.getCursorPos();
+        let hled = braceMatch(text, cpos, this.lang);
+        if (hled != null) {
+            this.view.innerHTML = hled;
+            setTimeout(function() {
+                $('.brace').contents().unwrap();
+            }, 800);
         }
     }
 
@@ -398,7 +421,6 @@ class TextEditorNative {
         // update text data
         raw = textWrapAbstract(raw, beg, end, left, right);
         this.setText(raw);
-        this.update();
 
         // place cursor
         let off = Math.max(1, left.length);
@@ -432,7 +454,6 @@ class TextEditorNative {
                 raw = raw.slice(0, beg-1) + raw.slice(end+1, raw.length);
                 this.setText(raw);
                 this.setCursorPos(beg-1);
-                this.update();
                 return true;
             }
         }

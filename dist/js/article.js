@@ -1,5 +1,5 @@
 import { getPara, cooks, setCookie, getEnvParas, unEscCharCount, KeyCache } from './utils.js';
-import { updateConfig, config, cache, state, updateState } from './state.js';
+import { updateConfig, config, state, cache, updateState } from './state.js';
 import { connect, addHandler, sendCommand, schedTimeout, setTimeoutHandler } from './client.js';
 import { initUser } from './user.js';
 import { eventRender, getEditor, rawToRender, rawToTextarea, getRefTags, envClasses, barePara, innerPara, makeEditor, stateRender, initRender, doRenderRef, createTOC, troFromKey, popText, envGlobal } from './render.js';
@@ -8,7 +8,7 @@ import { connectDrops, promptUpload, uploadImage } from './drop.js';
 import { initExport } from './export.js';
 import { initHelp } from './help.js';
 import { createBibInfo } from './bib.js';
-import { openSVGFromKey, initSVGEditor } from './svg.js';
+import { SvgEditor } from './svg.js';
 import { renderKatex } from './math.js';
 import { tex_cmd } from '../libs/tex_cmd.js';
 
@@ -158,9 +158,10 @@ function loadArticle(args) {
     $('#ssv_check').prop('checked', ssv0).change();
     $('#edit_check').prop('checked', edit0).change();
 
-    //open editor if necessary
-    if(config.SVGEditor){
-        openSVGFromKey(config.SVGEditor);
+    // open editor if necessary
+    state.svg = new SvgEditor();
+    if (config.svg_key) {
+        state.svg.open(config.svg_key);
     }
 }
 
@@ -340,8 +341,7 @@ function eventArticle() {
         let para = upd.closest('.para');
         let key = para.attr('id');
         if (upd.hasClass('update_image/svg+gum')) {
-            let ret = await cache.img.get(key);
-            initSVGEditor($('#bg'), ret.data, key, true);
+            state.svg.open(key);
         } else {
             promptUpload(function(files) {
                 let file = files[0];
@@ -356,8 +356,8 @@ function eventArticle() {
 
     $(document).on('click', '.open_svg_editor', function() {
         let key = $(this).attr('key');
-        let pid = $(this).closest('.para');
-        initSVGEditor($('#bg'), '', key, true, pid);
+        $(this).closest('.para');
+        state.svg.open(key);
         return false;
     });
 
@@ -1193,7 +1193,6 @@ function ccMake(cctxt=null, addText=false, offset_chars=0) {
 
     raw = raw.substring(0, state.cc[0]) + sel + raw.substring(u);
     editor.setText(raw);
-    editor.update();
 
     state.cc = false;
     $('#cc_pop').remove();
