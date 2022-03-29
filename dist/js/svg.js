@@ -129,11 +129,10 @@ class SvgEditor {
             key = '';
             raw = '';
         } else if (raw == null) {
-            let ret = await cache.img.get(key);
-            if (ret) {
-                raw = raw.data;
-            } else {
+            raw = await cache.img.get(key);
+            if (raw == null) {
                 flash(`gum image "${key}" does not exist`);
+                raw = '';
             }
         }
 

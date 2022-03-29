@@ -38,8 +38,6 @@ function initImage(args) {
     imageQuery();
 
     // open editor if necessary
-
-    // open editor if necessary
     state.svg = new SvgEditor();
     if (config.svg_key) {
         state.svg.open(config.svg_key);
