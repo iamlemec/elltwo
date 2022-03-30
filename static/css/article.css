@@ -1,11 +1,12 @@
 @import './core.css';
+@import './text.css';
 
 :root {
     --sb_off: 180px;
 }
 
-.container.sb_content #SVGEditorOuter {
-   left: calc(.5  * var(--sb_off));
+.container.sb_content #svgEditorOuter {
+   left: calc(0.5  * var(--sb_off));
    width: calc(100% - var(--sb_off));
    border-left: none;
 }
@@ -23,19 +24,19 @@
 }
 
 .container.sb_content:not(.ssv) {
-    transform: translateX(calc(.5 * var(--sb_off)));
+    transform: translateX(calc(0.5 * var(--sb_off)));
 }
 
 .container.sb_content.ssv {
-    transform: translateX(calc(.5 * var(--sb_off) - 40px));
+    transform: translateX(calc(0.5 * var(--sb_off) - 40px));
 }
 
-.container.ssv.sb_content .p_input_view, .container.ssv.sb_content .p_input, .container.ssv.sb_content .control {
-    transform: translateX(calc(.5 * var(--sb_off) - 30px));
+.container.ssv.sb_content .p_input, .container.ssv.sb_content .control {
+    transform: translateX(calc(0.5 * var(--sb_off) - 30px));
 }
 
 .container:not(.ssv) .para.active {
-    box-shadow: -1px 0px var(--hl-col);
+    box-shadow: -4px 0px var(--hl-col);
 }
 
 .container:not(.ssv) .para.dragging {
@@ -64,41 +65,43 @@
     text-align: justify;
 }
 
-.container:not(.ssv) .p_input:not(.svgE),
-.container:not(.ssv) .p_input_view:not(.svgE) {
-    white-space: pre-wrap;
-    position: absolute;
-    width: calc(100% - 10px);
-    min-height: 40px;
-    font-size: 85%;
-    overflow: hidden;
+.container:not(.ssv) .p_input {
     display: none;
-    border: 0;
-    padding: 0;
-    overflow-wrap: anywhere;
-    scrollbar-width: none;
-    padding: 5px;
 }
 
-.container:not(.ssv) .p_input:not(.svgE) {
-    color: inherit;
-    background-color: inherit;
-    caret-color: inherit;
-    color: rgba(0, 0, 0, 0);
-    background-color: rgba(0, 0, 0, 0);
+.container:not(.ssv) .p_input_view,
+.container:not(.ssv) .p_input_text {
+    width: calc(100% - 10px);
+    font-size: 80%;
 }
 
-.container:not(.ssv) .p_input_view:not(.svgE) {
-    font-family: monospace;
+.container:not(.ssv) > .para.rawtext {
+    /* outline: 1px solid var(--hl-col); */
 }
 
 .container:not(.ssv) > .para.rawtext > .p_text {
     display: none;
 }
 
-.container:not(.ssv) > .para.rawtext > .p_input,
-.container:not(.ssv) > .para.rawtext > .p_input_view {
+.container:not(.ssv) > .para.rawtext > .p_input {
     display: block;
+}
+
+/* codemirror editor */
+
+.cm-focused {
+    outline: 0 !important;
+}
+
+.cm-content {
+    padding: 0 !important;
+    font-size: 80%;
+}
+
+/* native editor */
+
+.container.ssv .p_input_text {
+    line-height: 20px;
 }
 
 /* side-by-side view paras */
@@ -121,15 +124,6 @@
     padding: 5px;
 }
 
-.container.ssv .para.active .p_input_view {
-    box-shadow: -2px 0px var(--hl-col);
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-.container.ssv .para.rawtext .p_input_view {
-    background-color: rgba(0, 0, 0, 0.15);
-}
-
 .container.ssv .p_text {
     line-height: 20px;
     text-align: justify;
@@ -140,7 +134,7 @@
     line-height: 25px;
 }
 
-.container.ssv .p_input_view, .container.ssv .p_input {
+.container.ssv .p_input {
     white-space: pre-wrap;
     position: absolute;
     top: 0;
@@ -151,21 +145,7 @@
     font-size: 85%;
     overflow: hidden;
     border: none;
-}
-
-.container.ssv .p_input {
-    color: inherit;
-    background-color: inherit;
-    caret-color: inherit;
-    color: rgba(0, 0, 0, 0);
-    background-color: rgba(0, 0, 0, 0);
-    line-height: 20px;
-}
-
-.container.ssv .p_input_view {
-    font-family: monospace;
-    display: inline-block;
-    background-color: rgba(0,0,0,.03);
+    padding-right: 5px;
     line-height: 20px;
 }
 
@@ -179,7 +159,7 @@
 }
 
 .para.dragging {
-    opacity: .4;
+    opacity: 0.4;
 }
 
 .folded {
@@ -197,16 +177,6 @@
 
 .comment.fold_text::after {
     content: "env folded, [ ⇧ + f ] to unfold";
-}
-
-/* cursor lag hack for firefox */
-
-@-moz-document url-prefix() {
-    .container.ssv .p_input,
-    .container:not(.ssv) .p_input
-    {
-        color: rgba(0, 0, 0, 0.01);
-    }
 }
 
 /* control buttons */
@@ -663,10 +633,6 @@ button {
     counter-reset: line;
     background-color: inherit;
     background-color: rgba(0,0,0,.1);
-}
-
-.para .p_input_view .linenum{
-    display: none;
 }
 
 .code.numbered > pre {
@@ -1390,7 +1356,7 @@ circle.commit.active {
 .container.ssv .sn_skinny{
         display: block;
 }
-    
+
  #sidebar_inner{
         font-size: 90%;
  }
@@ -1489,7 +1455,7 @@ circle.commit.active {
  .butgrp2, .butgrp1{
      display: flex;
  }
-    
+
 
 #pop {
     padding: 10px;

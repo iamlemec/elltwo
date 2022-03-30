@@ -8,4 +8,5 @@ flask_sqlalchemy
 flask_socketio>=5.0.0
 flask_login
 flask_mail
+flask_cors
 itsdangerous

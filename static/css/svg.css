@@ -1,6 +1,6 @@
 @import './gum.css';
 
-#SVGEditorOuter {
+#svgEditorOuter {
     position: fixed;
     display: flex;
     visibility: hidden;
@@ -15,12 +15,12 @@
     z-index: 2;
 }
 
-#SVGWidthDisplay {
+#svgWidthDisplay {
     background-color: var(--bg-hl2-col);
     width: 1px;
 }
 
-#SVGWidthControl {
+#svgWidthControl {
     position: relative;
     left: -10px;
     width: 23px;
@@ -29,13 +29,13 @@
     z-index: 10;
 }
 
-#SVGEditorBox {
+#svgEditorBox {
     display: flex;
     height: 100%;
     width: 100%;
 }
 
-#SVGEditorNav {
+#svgEditorNav {
     display: flex;
     flex: 0 1 auto;
     flex-direction: column;
@@ -48,22 +48,22 @@
     font-family: 'Open Sans', sans-serif;
 }
 
-#SVGEditorNav input {
+#svgEditorNav input {
     border-radius: 2px;
 }
 
-#SVGEditorNavUp, #SVGEditorNavDown {
+#svgEditorNavUp, #svgEditorNavDown {
     background: var(--bg-hl2-col);
     width: 100%;
     display: flex;
     font-size: 80%;
 }
 
-#SVGEditorNavUp {
+#svgEditorNavUp {
     padding-bottom: 5px;
 }
 
-#SVGEditorTag, #SVGEditorKW {
+#svgEditorTag, #svgEditorKw {
     background-color: var(--bg-hl-col);
     color: var(--font-col);
     width: 60%;
@@ -80,53 +80,51 @@
     margin-left: 5px;
 }
 
-#SVGEditorNav .foot_butt {
+#svgEditorNav .foot_butt {
     line-height: 20px;
     margin-bottom: 0;
     margin-left: 0;
 }
 
-#SVGEditorNav .foot_butt:last-child {
+#svgEditorNav .foot_butt:last-child {
     margin-right: 0;
 }
 
-#SVGEditorBoxLeft {
+#svgEditorBoxLeft {
     width: 50%;
     height: 100%;
 }
 
-#SVGEditorInputText, #SVGEditorInputView {
-    white-space: pre-wrap;
-    position: absolute;
-    font-family: monospace;
+#svgEditorTextGum, #svgEditorTextSvg {
+    position: relative;
     font-size: 55%;
-    height: 100%;
     width: 100%;
+    height: 50%;
+}
+
+#svgEditorOuter .p_input_text,
+#svgEditorOuter .p_input_view {
+    width: 100%;
+    height: 100%;
     padding: 5px;
     padding-left: 30px;
-    overflow: scroll;
-    scrollbar-width: none;
 }
 
-#SVGEditorInputBox {
-    position: relative;
-    height: 50%;
-    width: 100%;
+#svgEditorTextGum {
+    border-bottom: 1px solid var(--bg-hl2-col);
 }
 
-#SVGEditorInputBox.fullsize {
+#svgEditorTextGum.fullsize {
     height: 100%;
 }
 
-#SVGEditorInputView, #SVGEditorParsedView {
+#svgEditorOuter .p_input_view {
     background-color: var(--bg-col);
     counter-reset: line;
     -webkit-box-shadow: inset 24px 0px 0px 0px var(--bg-hl-col), inset 25px 0px 0px 0px var(--bg-hl2-col);
 }
 
-#SVGEditorInputText {
-    color: rgba(0, 0, 0, 0);
-    background-color: rgba(0, 0, 0, 0);
+#svgEditorOuter .p_input_text {
     z-index: 2;
 }
 
@@ -152,7 +150,7 @@
   content: counter(line);
 }
 
-#SVGEditorParsedView, #SVGEditorParsed {
+#svgEditorParsedView, #svgEditorParsed {
     white-space: pre-wrap;
     background-color: var(--bg-col);
     color: var(--font-col);
@@ -170,12 +168,12 @@
     counter-reset: line;
 }
 
-#SVGEditorParsedView {
+#svgEditorParsedView {
     top: -50%;
 }
 
-#SVGEditorOuter textarea::placeholder,
-#SVGEditorOuter input::placeholder {
+#svgEditorOuter textarea::placeholder,
+#svgEditorOuter input::placeholder {
     font-size: 100%;
 }
 
@@ -186,7 +184,7 @@
 
 /* RIGHT  */
 
-#SVGEditorBoxRight {
+#svgEditorBoxRight {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -197,7 +195,7 @@
     background: var(--bg-hl-col);
 }
 
-#SVGEditorOutput {
+#svgEditorOutput {
     display: flex;
     flex: 1 1 auto;
     justify-content: center;
@@ -207,11 +205,11 @@
     margin-bottom: 20px;
 }
 
-#SVGEditorOutput svg {
+#svgEditorOutput svg {
     max-height: 80%;
 }
 
-#SVGEditorOutput svg,
+#svgEditorOutput svg,
 .img_cont svg {
     fill: none;
     stroke: var(--font-col);
@@ -225,7 +223,7 @@
 /* cursor lag hack for firefox */
 
 @-moz-document url-prefix() {
-    #SVGEditorInputText {
+    #svgEditorInputText {
         color: rgba(0, 0, 0, 0.01);
     }
 }

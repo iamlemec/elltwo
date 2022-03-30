@@ -6,6 +6,7 @@ import { replace, parseArgs } from './marked3.js'
 import { gums } from 'gum.js'
 import { elltwoHL } from './render.js'
 import { state } from './state.js'
+import { setTimeoutPromise } from './utils.js'
 
 /* HELPERS */
 
@@ -542,39 +543,36 @@ function shittySVG(raw) {
 
 /// BRACE MATACH
 
-function braceMatch(textarea, para, hl='elltwo', callback=elltwoHL) {
+function braceMatch(text, cpos, hl='elltwo') {
     let delimit = {'(': ')', '[': ']', '{': '}'};
     let rev_delimit = {')': '(', ']': '[', '}': '{'};
-
-    let cpos = textarea.selectionStart;
-    let text = textarea.value;
 
     let after = text[cpos];
     let before = text[cpos-1] || false;
 
-
     if (after in delimit) {
         let pos = getBracePos(text, after, delimit[after], cpos);
         if (pos) {
-            let v = $(textarea).siblings('.p_input_view');
-            braceHL(v, text, pos, para, hl, callback);
+            return braceHL(text, pos, hl);
+        } else {
+            return null;
         }
     } else if (before in delimit) {
         let pos = getBracePos(text, before, delimit[before], cpos-1);
         if (pos) {
-            let v = $(textarea).siblings('.p_input_view');
-            braceHL(v, text, pos, para, hl, callback);
+            return braceHL(text, pos, hl);
+        } else {
+            return null;
         }
     } else if (before in rev_delimit) {
         let pos = getBracePos(text, before, rev_delimit[before], cpos, true);
-        let v = $(textarea).siblings('.p_input_view');
-        braceHL(v, text, pos, para, hl, callback);
+        return braceHL(text, pos, hl);
     } else if (after in rev_delimit) {
         let pos = getBracePos(text, after, rev_delimit[after], cpos+1, true);
-        let v = $(textarea).siblings('.p_input_view');
-        braceHL(v, text, pos, para, hl, callback);
+        return braceHL(text, pos, hl);
     } else {
         $('.brace').contents().unwrap();
+        return null;
     }
 }
 
@@ -617,7 +615,7 @@ function getBracePos(text, brace, match, cpos, rev=false) {
     }
 }
 
-function braceHL(view, text, pos, para, hl, callback) {
+function braceHL(text, pos, hl) {
     let new_text = [
         text.slice(0, pos['l']),
         `\&\!L\&`,
@@ -626,14 +624,7 @@ function braceHL(view, text, pos, para, hl, callback) {
         text.slice(pos['r']+1)
     ].join('');
 
-
-    let syn = HLs[hl](new_text);
-    view.html(syn);
-
-    setTimeout(function() {
-        $('.brace').contents().unwrap();
-        callback(para);
-    }, 800);
+    return HLs[hl](new_text);
 }
 
 function jsHL(src) {
@@ -650,16 +641,7 @@ let HLs =  {
     'elltwoInline': syntaxParseInline,
 }
 
-function SyntaxHL(src, hl=null, callback=null) {
-    let out = src;
-    if (hl in HLs) {
-        out = HLs[hl](src);
-    } else {
-        out = esc_html(out);
-    }
-    if (callback === null) {
-        return out;
-    } else {
-        callback(out);
-    }
+function SyntaxHL(src, hl=null) {
+    let syn = HLs[hl] ?? esc_html;
+    return syn(src);
 }

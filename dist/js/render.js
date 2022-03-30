@@ -1,12 +1,13 @@
 import { DummyCache, merge, RefCount, updateSliderValue, cooks, getPara } from './utils.js';
-import { config, updateCache, state, cache } from './state.js';
+import { state, config, updateCache, cache } from './state.js';
 import { sendCommand, addDummy } from './client.js';
 import { markthree, divInlineParser } from './marked3.js';
-import { fold } from './editor.js';
+import { editorHandler, fold } from './editor.js';
 import { renderKatex } from './math.js';
 import { parseSVG } from './svg.js';
 import { SyntaxHL, esc_html } from './hl.js';
 import '../node_modules/@zip.js/zip.js/index.js';
+import { TextEditorNative } from './text.js';
 
 /// core renderer (includes readonly)
 
@@ -167,8 +168,7 @@ async function loadMarkdown(args) {
 // inner HTML for para structure. Included here for updating paras
 const innerPara = `
 <div class="p_text"></div>
-<div class="p_input_view"></div>
-<textarea readonly class="p_input"></textarea>
+<div class="p_input"></div>
 <div class="control">
 <div class="controlZone"></div>
 <div class="controlButs">
@@ -202,8 +202,21 @@ function barePara(pid, raw='') {
     });
 }
 
+function makeEditor(para) {
+    let [input] = para.children('.p_input');
+    let editor = new TextEditorNative(input, {handler: editorHandler});
+    let pid = para.attr('pid');
+    state.editors.set(pid, editor);
+}
+
+function getEditor(para) {
+    let pid = para.attr('pid');
+    return state.editors.get(pid);
+}
+
 function makePara(para, defer=true) {
     para.html(innerPara);
+    makeEditor(para);
     let anc = $('<span>', {id: `pid-${para.attr('pid')}`});
     para.prepend(anc);
     rawToTextarea(para);
@@ -313,12 +326,10 @@ function rawToRender(para, defer=false, track=true, raw=null) {
 }
 
 function rawToTextarea(para) {
-    var textArea = para.children('.p_input');
-    var raw = para.attr('raw');
-    textArea.val(raw);
-    elltwoHL(para);
+    let raw = para.attr('raw');
+    let editor = getEditor(para);
+    editor.setText(raw);
 }
-
 
 ///////////////// ENVS /////////
 
@@ -1216,16 +1227,6 @@ let pop_spec = {
     table: popEquation,
 };
 
-/// syntax highlighting
-
-function elltwoHL(para) {
-    let text = para.children('.p_input');
-    let view = para.children('.p_input_view');
-    let raw = text.val();
-    let parsed = SyntaxHL(raw, 'elltwo');
-    view.html(parsed);
-}
-
 /// folding (render only)
 
 function getFoldLevel(para) {
@@ -1333,4 +1334,4 @@ function unTag(tag) {
     sendCommand('untag', {aid: config.aid, tag: tag});
 }
 
-export { barePara, connectCallbacks, createTOC, doRenderRef, elltwoHL, envClasses, envGlobal, eventRender, getFoldLevel, getRefTags, getTags, initRender, innerPara, loadMarkdown, makePara, popText, rawToRender, rawToTextarea, renderFold, renderPop, renderRefText, s_env_spec, stateRender, trackRef, troFromKey, untrackRef };
+export { barePara, connectCallbacks, createTOC, doRenderRef, envClasses, envGlobal, eventRender, getEditor, getFoldLevel, getRefTags, getTags, initRender, innerPara, loadMarkdown, makeEditor, makePara, popText, rawToRender, rawToTextarea, renderFold, renderPop, renderRefText, s_env_spec, stateRender, trackRef, troFromKey, untrackRef };

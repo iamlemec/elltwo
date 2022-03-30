@@ -5,7 +5,7 @@ export {
     ensureVisible, setCookie, cooks, getPara, getEnvParas, isMobile, noop,
     on_success, KeyCache, DummyCache, RefCount, flash, createIcon, createToggle,
     createButton, smallable_butt, copyText, updateSliderValue, unEscCharCount, cur,
-    detectBrowser
+    detectBrowser, setTimeoutPromise
 }
 
 // js tricks
@@ -39,6 +39,14 @@ function on_success(func) {
             func();
         }
     };
+}
+
+// async
+
+function setTimeoutPromise(timeout) {
+    return new Promise(resolve => {
+        setTimeout(resolve, timeout);
+    });
 }
 
 // messages
@@ -226,7 +234,7 @@ function createIcon(id) {
 `.trim();
 }
 
-function createToggle(id, text, checked=true){
+function createToggle(id, text, checked=true) {
     checked = checked ? 'checked' : '';
     return `
 <label class="toggle" for="${id}_check" id="${id}_label">
@@ -327,17 +335,17 @@ function smallable_butt(butts, threshold=1000) {
 
 // count unescaped chars in text
 
-function unEscCharCount(str, char){
-    let regex = new RegExp(`(\\\\*)\\${char}`, 'g')
+function unEscCharCount(str, char) {
+    let regex = new RegExp(`(\\\\*)\\${char}`, 'g');
     let all = [...str.matchAll(regex)] || []; //match char
     all=all.filter(x => (x[0].length%2==1)); //filter out escaped
-    return all.length
+    return all.length;
 }
 
 // cursor position
 
-function cur(e, full=false){
-    if(full){
+function cur(e, full=false) {
+    if (full) {
         return [e.target.selectionStart, e.target.selectionEnd];
     }
     return e.target.selectionStart;
@@ -408,12 +416,12 @@ function isMobile() {
 
 // detect broswer
 
-function detectBrowser(){
+function detectBrowser() {
     // Opera 8.0+
     let Opera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
     // Firefox 1.0+
     let Firefox = typeof InstallTrigger !== 'undefined';
-    // Safari 3.0+ "[object HTMLElementConstructor]" 
+    // Safari 3.0+ "[object HTMLElementConstructor]"
     let Safari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification));
     // Internet Explorer 6-11
     let IE = /*@cc_on!@*/false || !!document.documentMode;
@@ -425,6 +433,6 @@ function detectBrowser(){
     let EdgeChromium = Chrome && (navigator.userAgent.indexOf("Edg") != -1);
     // Blink engine detection
     let Blink = (Chrome || Opera) && !!window.CSS;
-    
+
     return {Opera, Firefox, Safari, IE, Edge, Chrome, EdgeChromium, Blink}
 }

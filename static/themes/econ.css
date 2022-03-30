@@ -83,10 +83,6 @@ button,
 
 /* paras */
 
-.p_text {
-    padding: 0 4px;
-}
-
 .env__title > .p_text {
     text-align: center;
     border-bottom: 2px solid black;
@@ -102,12 +98,8 @@ button,
     border: 0;
 }
 
-.container:not(.ssv) .para.active {
-    box-shadow: -4px 0px var(--hl-col);
-}
-
-.container.ssv .para.active .p_input_view {
-    box-shadow: -4px 0px var(--hl-col);
+.p_input_view,.p_input_text, .p_text{
+    padding: 1px 1px 1px 4px;
 }
 
 .para.active {
@@ -127,7 +119,6 @@ button,
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
 }
-
 
 /* text elements */
 

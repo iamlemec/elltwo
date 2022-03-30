@@ -76,11 +76,8 @@
     border: 0;
     padding: 0;
     overflow-wrap: anywhere;
-<<<<<<< HEAD
-    padding-right: 40px;
-=======
     scrollbar-width: none;
->>>>>>> 54925f7ddadc3d8601f24a6128feccdde5709543
+    padding: 5px;
 }
 
 .container:not(.ssv) .p_input:not(.svgE) {
@@ -692,6 +689,10 @@ button {
     display: block;
 }
 
+.hash{
+   color: var(--hl-col); 
+}
+
 .cite {
     margin-top: 15px;
     padding-left: 15px;
@@ -838,6 +839,15 @@ button {
 
 #pop svg {
     stroke: var(--pop-fg-col);
+}
+
+#pop .code{
+    color: var(--pop-fg-col);
+}
+
+#pop .linenum{
+    color: var(--pop-fg-col);
+    transform: translateX(12px);
 }
 
 #pop .fig_iac_wrap {

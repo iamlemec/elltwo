@@ -1,10 +1,10 @@
-import { updateConfig, updateState, config, cache, state } from './state.js';
+import { updateConfig, updateState, state, config, cache } from './state.js';
 import { sendCommand, connect, addHandler } from './client.js';
 import { renderKatex } from './math.js';
 import { hideConfirm, showConfirm } from './editor.js';
 import { connectDrops, promptUpload, uploadImage } from './drop.js';
 import { KeyCache, createButton, copyText, flash } from './utils.js';
-import { openSVGFromKey, hideSVGEditor, initSVGEditor, parseSVG } from './svg.js';
+import { SvgEditor, parseSVG } from './svg.js';
 
 /* image library browser */
 
@@ -15,12 +15,13 @@ let default_config = {
     readonly: true,
     max_size: 1024,
     max_imgs: 50,
+    svg_key: null,
 };
 
 let default_state = {
     timeout: null,
     edit_mode: true,
-    svgEditor: false,
+    svg: null,
 };
 
 // initialize
@@ -36,12 +37,11 @@ function initImage(args) {
     renderKatex();
     imageQuery();
 
-        //open editor if necessary
-    console.log(config.SVGEditor, config.readonly);
-    if(config.SVGEditor){
-        openSVGFromKey(config.SVGEditor);
+    // open editor if necessary
+    state.svg = new SvgEditor();
+    if (config.svg_key) {
+        state.svg.open(config.svg_key);
     }
-
 }
 
 function cacheImage() {
@@ -84,7 +84,7 @@ async function deleteImage(key) {
         cache.img.del('__img');
         img.parent('.img_cont').remove();
         hideDisplay();
-        hideSVGEditor();
+        state.svg.close();
         $('#query').focus();
     }
 }
@@ -108,8 +108,8 @@ function eventImage() {
             state.key = key;
             let mime = img.attr('mime');
             let raw = img.attr('raw');
-            let mode = mime.replace(/text\/svg\+(.+)/, '$1');
-            initSVGEditor($('#bg'), raw, key, mode == 'gum');
+            mime.replace(/text\/svg\+(.+)/, '$1');
+            state.svg.open(key, raw);
         } else {
             let ks = $(e.target).closest('.keyspan');
             if (ks.length > 0) {
@@ -132,14 +132,14 @@ function eventImage() {
         let targ = $(e.target);
         if (targ.closest('.img_cont').length == 0
                 && targ.closest('#display').length == 0
-                && targ.closest('#SVGEditorOuter').length == 0) {
+                && targ.closest('#svgEditorOuter').length == 0) {
             hideDisplay();
             $('#query').focus();
         }
     });
 
     $(document).on('click', '#open_svg_editor', function() {
-        initSVGEditor($('#bg'));
+        state.svg.open();
     });
 
     $(document).on('keyup', function(e) {
@@ -149,7 +149,7 @@ function eventImage() {
                 hideConfirm();
             }else {
                 hideDisplay();
-                hideSVGEditor();
+                state.svg.close();
             }        }
     });
 

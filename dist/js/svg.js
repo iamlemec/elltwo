@@ -1,232 +1,216 @@
-import { createToggle, createButton, smallable_butt, cur, updateSliderValue, flash } from './utils.js';
-import { state, config, cache } from './state.js';
+import { createToggle, createButton, smallable_butt, flash, updateSliderValue } from './utils.js';
+import { config, cache, state } from './state.js';
 import { sendCommand } from './client.js';
 import './marked3.js';
-import { makeActive, showConfirm, undoStack, sendUpdatePara, textWrap, textUnWrap, undo } from './editor.js';
+import { showConfirm } from './editor.js';
 import { deleteImage } from './img.js';
-import { s, braceMatch, SyntaxHL } from './hl.js';
+import { TextEditorNative } from './text.js';
 import { parseGum, InterActive, Element, SVG } from '../node_modules/gum.js/js/gum.js';
 
 /* random utilities */
 
-let svg_butts = {};
-
-function initSVGEditor(el, raw='', key='', gum=true, updatePara=false) {
-    $('#hoot').html(`[201p // iamlemec ${s('// gum.js editor','math')}]`);
-    $('#logo').hide();
-    makeActive(false);
-
-    window.history.pushState({'SVGEditor': true}, null, window.location.href.split('?')[0] +`?SVGEditor=${key}`);
-
-    if (state.SVGEditor) {
-        $('#SVGEditorInputText').val(raw);
-        $('#SVGEditorInputView').text(raw);
-        $('#SVGEditorOutput').empty();
-        $('#SVGEditorTag').val(key);
-        $('#SVGEditorOuter').show();
-        svgSyntaxHL();
-        renderInput();
-        state.SVGEditorOpen = true;
-    } else {
-        // custom buttons and toggles
-        let tog = createToggle('svgShow', 'Show SVG');
-        let commit = createButton('SVGEditorCommit', 'Commit', 'exp', svg_butts);
-        let del = createButton('SVGEditorDelete', 'Delete', 'delete', svg_butts);
-        let exit = createButton('SVGEditorExit', 'Exit', 'exit', svg_butts);
-        $('#SVGEditorNavUp').append(tog);
-        $('#SVGEditorNavDown').append(commit).append(del).append(exit);
-
-        // load in data
-        if (key) {
-            $('#SVGEditorTag').val(key);
-        }
-        if (raw) {
-            $('#SVGEditorInputText').val(raw);
-        }
-
-        // render all
-        svgSyntaxHL();
-        renderInput();
-        smallable_butt(svg_butts);
-        $('#SVGEditorOuter').css('visibility', 'unset');
-
-        // mark constructed
-        state.SVGEditor = true;
-        state.SVGEditorOpen = true; //mark open
-
-        window.onpopstate = function(event) {
-            if(state.SVGEditorOpen){
-                hideSVGEditor(false);
-                window.history.pushState({'SVGEditor': false}, null, window.location.href.split('?')[0]);
-            }
-        };
-
-        $(document).on('click', '#SVGEditorExit', function() {
-                let txt = `Uncommited changes will be lost`;
-                let exit = createButton('ConfirmExit', 'Exit', 'exit');
-                showConfirm(exit, hideSVGEditor, txt);
-        });
-
-        $(document).on('click', '#SVGEditorDelete', function() {
-            if(state.key){//only if extant image
-                let key = state.key;
-                let txt = `Delete Image "${key}"?`;
-                let del = createButton('ConfirmDelete', 'Delete', 'delete');
-                let action = function(){
-                    deleteImage(key);
-                };
-            showConfirm(del, action, txt);
-            }
-        });
-
-        window.onresize = () => {
-            smallable_butt(svg_butts);
-        };
-
-        $(document).on('change', '#svgShow_check', function() {
-            let check = $(this);
-            let val = check.is(':checked');
-            if(val){
-                $('#SVGEditorParsed').show();
-                $('#SVGEditorParsedView').show();
-                $('#SVGEditorInputBox').removeClass('fullsize');
-            } else {
-                $('#SVGEditorParsed').hide();
-                $('#SVGEditorParsedView').hide();
-                $('#SVGEditorInputBox').addClass('fullsize');
-            }
-        });
-
-        $(document).on('input', '#SVGEditorInputText', function(e) {
-            raw = $(this).val();
-            undoStack(raw);
-            svgSyntaxHL();
-            renderInput();
-        });
-
-        $(document).on('keyup', '#SVGEditorInputText', function(e) {
-            let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
-            if (arrs.includes(e.keyCode)) {
-                braceMatch(this, null, 'gum', svgSyntaxHL);
-            }
-        });
-
-        $(document).on('focus', '#SVGEditorTag', function(e) {
-            $(this).removeClass('input_err');
-        });
-
-        $(document).on('click', '#SVGEditorCommit', async function(e) {
-            if (key = $('#SVGEditorTag').val()) {
-                let raw = $('#SVGEditorInputText').val();
-                let data = {'key': key, 'mime': 'image/svg+gum', 'raw': raw};
-                sendCommand('save_svg', data);
-                if (updatePara) {
-                    let pid = updatePara.attr('pid');
-                    await sendCommand('lock', {pid: pid, aid: config.aid});
-                    sendUpdatePara(updatePara, `![${key}]`, true);
-                }
-            } else {
-                $('#SVGEditorTag').addClass('input_err');
-            }
-        });
-
-        $(document).on('keydown', '#SVGEditorInputText', function(e) {
-            let input = $(this);
-            let key = e.key.toLowerCase();
-            let ctrl = e.ctrlKey;
-            e.altKey;
-            let meta = e.metaKey;
-            let tab = e.keyCode == 9;
-            let space = e.keyCode == 32;
-            let shift = e.shiftKey;
-            let raw, c;
-            if (tab) {
-                c = cur(e);
-                raw = input.val();
-                raw = raw.substring(0,c) + '\t' + raw.substring(c);
-                input.val(raw).trigger('input');
-                input[0].setSelectionRange(c+1,c+1);
-                return false;
-            } else if (key in brac_wraps) {
-                c = cur(e, true);
-                return textWrap(input, c, brac_wraps[key]);
-            } else if (key == 'backspace') {
-                let c = cur(e, true);
-                return textUnWrap(input, c, brac_wraps);
-            } else if (space) {
-                state.undoBreakpoint = true;
-            } else if (key == 'enter') {
-                return getindent(input, cur(e))
-            } else if ((ctrl || meta) && key == 'z') {
-                undo($('#SVGEditorInputBox'), 'gum', shift);
-                return false;
-            }
-        });
-
-        let mid = document.querySelector('#SVGWidthDisplay');
-        let left = document.querySelector('#SVGEditorBoxLeft');
-        let right = document.querySelector('#SVGEditorBoxRight');
-        let ipt = document.querySelector('#SVGEditorInputText');
-        let view = document.querySelector('#SVGEditorInputView');
-
-        function resizePane(e) {
-            let x = e.clientX;
-            let vw = window.innerWidth;
-            x = Math.max(x, 100);
-            x = Math.min(x, vw-300);
-            let perc = (x-2)*100/vw;
-            left.style.width = `${perc}%`;
-            right.style.width = `${100-perc}%`;
-        }
-
-        mid.addEventListener('mousedown', evt => {
-            document.addEventListener('mousemove', resizePane, false);
-        }, false);
-
-        document.addEventListener('mouseup', evt => {
-            document.removeEventListener('mousemove', resizePane, false);
-        }, false);
-
-        ipt.addEventListener('scroll', evt => {
-            view.scrollTop = evt.target.scrollTop;
-        }, false);
-    }
-}
-
-function hideSVGEditor(nav=true) {
-    state.SVGEditorOpen = false;
-    state.key = null;
-    $('#hoot').html('[201p // iamlemec]');
-    $('#logo').show();
-    $('#SVGEditorOuter').hide();
-    if (nav) {
-        history.back();
-        window.history.pushState({'SVGEditor': false}, null, window.location.href.split('?')[0]);
-    }
-}
+let prec0 = 2;
 let size0 = 500;
 
-function renderInput(src) {
-    if (src == null) {
-        src = $('#SVGEditorInputText').val();
+class SvgEditor {
+    constructor() {
+        let edit = document.querySelector('#svgEditorTextGum');
+        let view = document.querySelector('#svgEditorTextSvg');
+        let divi = document.querySelector('#svgWidthDisplay');
+        let tago = document.querySelector('#svgEditorTag');
+        let nvup = document.querySelector('#svgEditorNavUp');
+        let nvdn = document.querySelector('#svgEditorNavDown');
+
+        // init text editors
+        console.log('svg hi');
+        this.edit = new TextEditorNative(edit, {
+            lang: 'gum', edit: true, mini: false,
+            handler: (t, c, e) => { this.event(t, c, e); },
+        });
+        this.view = new TextEditorNative(view, {
+            lang: 'svg', edit: false, mini: false
+        });
+
+        // state params
+        this.prec = prec0;
+        this.size = size0;
+        this.show = false;
+        this.butts = {};
+
+        // custom buttons and toggles
+        let btog = createToggle('svgShow', 'Show SVG');
+        let bcom = createButton('svgEditorCommit', 'Commit', 'exp', this.butts);
+        let bdel = createButton('svgEditorDelete', 'Delete', 'delete', this.butts);
+        let bext = createButton('svgEditorExit', 'Exit', 'exit', this.butts);
+
+        nvup.innerHTML = btog;
+        nvdn.appendChild(bcom[0]);
+        nvdn.appendChild(bdel[0]);
+        nvdn.appendChild(bext[0]);
+        smallable_butt(this.butts);
+
+        let show = document.querySelector('#svgShow_check');
+        let exit = document.querySelector('#svgEditorExit');
+        let dele = document.querySelector('#svgEditorDelete');
+        let comt = document.querySelector('#svgEditorCommit');
+
+        window.addEventListener('popstate', e => {
+            this.close();
+        });
+
+        window.addEventListener('resize', e => {
+            smallable_butt(this.butts);
+        });
+
+        exit.addEventListener('click', e => {
+            let txt = 'Uncommited changes will be lost';
+            let exit = createButton('confirmExit', 'Exit', 'exit');
+            let action = () => { state.svg.close(); };
+            showConfirm(exit, action, txt);
+        });
+
+        dele.addEventListener('click', e => {
+            if (this.key != null) {
+                let txt = `Delete Image "${this.key}"?`;
+                let del = createButton('confirmDelete', 'Delete', 'delete');
+                let action = () => { deleteImage(key); };
+                showConfirm(del, action, txt);
+            }
+        });
+
+        show.addEventListener('change', e => {
+            if (show.matches(':checked')) {
+                view.style.display = 'block';
+                edit.classList.remove('fullsize');
+            } else {
+                view.style.display = 'none';
+                edit.classList.add('fullsize');
+            }
+        });
+
+        let that = this;
+        comt.addEventListener('click', async function(e) {
+            let key = tago.value;
+            if (key.length > 0) {
+                let raw = that.edit.getText();
+                let data = {key: key, mime: 'image/svg+gum', raw: raw};
+                sendCommand('save_svg', data);
+            } else {
+                tago.classList.add('input_err');
+            }
+        });
+
+        // center divider resize
+        let control = new AbortController();
+        divi.addEventListener('mousedown', e => {
+            document.addEventListener('mousemove', u => {
+                this.resizePane();
+            }, {signal: control.signal});
+        }, false);
+
+        document.addEventListener('mouseup', e => {
+            control.abort();
+        }, false);
     }
 
-    let right = $('#SVGEditorOutput');
-    let parsed = $('#SVGEditorParsedView');
-    let redraw = document.querySelector('#SVGEditorOutput');
-    let iac = document.querySelector('#interActiveControl');
+    async open(key, raw) {
+        let hoot = document.querySelector('#hoot');
+        let outr = document.querySelector('#svgEditorOuter');
+        let tago = document.querySelector('#svgEditorTag');
 
-    let ret = renderGum(src, size0, redraw);
-    if (ret.success) {
-        iac.innerHTML = '';
-        right.html(ret.svg);
-        parsed.html(SyntaxHL(ret.svg, 'svg'));
-        if (ret.anchors) {
-            iac.append(...ret.anchors);
-            $(iac).find('.slider_input').each((i,s) => {updateSliderValue(s);});
+        // check permissions
+        if (config.readonly) {
+            flash('SVG editor not available in readonly mode');
+            return;
         }
-    } else {
-        parsed.text(`parse error, line ${ret.line}: ${ret.message}`);
+
+        // get raw text
+        if (key == null) {
+            key = '';
+            raw = '';
+        } else if (raw == null) {
+            raw = await cache.img.get(key);
+            if (raw == null) {
+                flash(`gum image "${key}" does not exist`);
+                raw = '';
+            }
+        }
+
+        // handle back button
+        let [url] = window.location.href.split('?');
+        window.history.pushState({'svgEditor': true}, null, `${url}?svg_key=${key}`);
+
+        // update text
+        this.edit.setText(raw);
+        this.view.setText('');
+        tago.value = key;
+        this.render();
+
+        // show elements
+        hoot.innerHTML = '[201p // iamlemec] — gum.js';
+        outr.style.visibility = 'unset';
+
+        // update state
+        this.show = true;
+        this.key = key;
+    }
+
+    close() {
+        if (!this.show) {
+            return;
+        }
+
+        let hoot = document.querySelector('#hoot');
+        let outr = document.querySelector('#svgEditorOuter');
+
+        // handle back button
+        let [url] = window.location.href.split('?');
+        window.history.pushState({'svgEditor': false}, null, url);
+
+        // hide elements
+        hoot.innerHTML = '[201p // iamlemec]';
+        outr.style.visibility = 'hidden';
+
+        // update state
+        this.show = false;
+        this.key = null;
+    }
+
+    resize() {
+        let left = document.querySelector('#svgEditorBoxLeft');
+        let right = document.querySelector('#svgEditorBoxRight');
+
+        let x = e.clientX;
+        let vw = window.innerWidth;
+        x = Math.max(x, 100);
+        x = Math.min(x, vw - 300);
+        let perc = (x-2)*100/vw;
+
+        left.style.width = `${perc}%`;
+        right.style.width = `${100-perc}%`;
+    }
+
+    render() {
+        let outp = document.querySelector('#svgEditorOutput');
+        let iact = document.querySelector('#interActiveControl');
+
+        let raw = this.edit.getText();
+        let ret = renderGum(raw, this.size, outp);
+        if (ret.success) {
+            iact.innerHTML = '';
+            outp.innerHTML = ret.svg;
+            this.view.setText(ret.svg);
+            if (ret.anchors) {
+                iact.append(...ret.anchors);
+                iact.querySelectorAll('.slider_input').forEach(updateSliderValue);
+            }
+        } else {
+            this.view.setText(`parse error, line ${ret.line}: ${ret.message}`);
+        }
+    }
+
+    event(t, c, e) {
+        this.render();
     }
 }
 
@@ -286,66 +270,4 @@ function parseSVG(mime, src, size, redraw) {
     }
 }
 
-function svgSyntaxHL() {
-    let src = $('#SVGEditorInputText').val();
-    let out = SyntaxHL(src, 'gum');
-    $('#SVGEditorInputView').html(out);
-}
-
-///editor fucntions
-
-let brac_wraps = {
-    '[': ['[',']'],
-    '{': ['{','}'],
-    '(': ['(',')'],
-    '\'': ['\'','\'', true],
-    '\"': ['\"','\"', true],
-    '\`': ['\`','\`', true],
-    ']': ['',']', true],
-    '}': ['','}', true],
-    ')': ['',')', true],
-};
-
-function getindent(input,c) {
-    let raw = input.val();
-    let beg = raw.slice(0, c);
-    let line = beg.split('\n').at(-1);
-    let indent = line.match(/^([\t| ]*)(?:$|\S)/);
-    let out, loc;
-    indent = indent ? indent[1] : '';
-    if (raw[c-1] in brac_wraps && !brac_wraps[raw[c-1]][2]) {
-        if (raw[c] == brac_wraps[raw[c-1]][1]) {
-            out = beg + '\n\t' + indent + '\n' + indent + raw.slice(c);
-            loc = (beg + '\n\t' + indent).length;
-        } else {
-            out = beg + '\n\t' + indent + raw.slice(c);
-            loc = out.length - raw.slice(c).length;
-        }
-    } else {
-        out = beg + '\n' + indent + raw.slice(c);
-        loc = out.length - raw.slice(c).length;
-    }
-    input.val(out).trigger('input');
-    input[0].setSelectionRange(loc, loc);
-    return false;
-}
-
-async function openSVGFromKey(key) {
-    if (config.readonly) {
-        flash('SVGEditor not available in readonly mode');
-        return;
-    }
-    if (key == 'true') {
-        initSVGEditor($('#bg'), "", "", true);
-        return;
-    }
-    let ret = await cache.img.get(key);
-    ret = ret.data || ret;
-    if (ret) {
-        initSVGEditor($('#bg'), ret, key, true);
-    } else {
-        flash(`'${key}' is not an extant gum key`);
-    }
-}
-
-export { hideSVGEditor, initSVGEditor, openSVGFromKey, parseSVG };
+export { SvgEditor, parseSVG };

@@ -431,7 +431,7 @@ def getStyle(request, **kwargs):
         'theme': kwargs.get('theme') or request.args.get('theme') or request.cookies.get('theme') or config['default_theme'],
         'font': kwargs.get('font') or request.args.get('font') or request.cookies.get('font') or config['default_font'],
         'ssv': kwargs.get('ssv') or request.args.get('ssv') or request.cookies.get('ssv') or config['ssv_init'],
-        'SVGEditor': kwargs.get('SVGEditor') or request.args.get('SVGEditor') or False
+        'svg_key': kwargs.get('svg_key') or request.args.get('svg_key') or False
     }
 
 @app.route('/a/<title>', methods=['GET'])

@@ -1,20 +1,18 @@
 import { getPara, cooks, setCookie, getEnvParas, unEscCharCount, KeyCache } from './utils.js';
-import { updateConfig, config, cache, state, updateState } from './state.js';
+import { updateConfig, config, state, cache, updateState } from './state.js';
 import { connect, addHandler, sendCommand, schedTimeout, setTimeoutHandler } from './client.js';
 import { initUser } from './user.js';
-import { eventRender, elltwoHL, rawToRender, rawToTextarea, getRefTags, getTags, envClasses, barePara, innerPara, stateRender, initRender, doRenderRef, createTOC, troFromKey, popText, envGlobal } from './render.js';
-import { braceMatch } from './hl.js';
-import { makeActive, eventEditor, undoStack, resize, initEditor, initDrag, placeCursor, storeChange, lockParas, unlockParas, makeUnEditable } from './editor.js';
+import { eventRender, getEditor, rawToRender, rawToTextarea, getRefTags, getTags, envClasses, barePara, innerPara, makeEditor, stateRender, initRender, doRenderRef, createTOC, troFromKey, popText, envGlobal } from './render.js';
+import { makeActive, eventEditor, initEditor, initDrag, placeCursor, storeChange, lockParas, unlockParas, makeUnEditable } from './editor.js';
 import { connectDrops, promptUpload, uploadImage } from './drop.js';
 import { initExport } from './export.js';
 import { initHelp } from './help.js';
 import { createBibInfo } from './bib.js';
-import { openSVGFromKey, initSVGEditor } from './svg.js';
+import { SvgEditor } from './svg.js';
 import { renderKatex } from './math.js';
 import { tex_cmd } from '../libs/tex_cmd.js';
 
 /* main article entry point */
-
 
 // history
 let updateHistMap;
@@ -27,7 +25,6 @@ let default_config = {
     cmd: 'on', //
     timeout: 180, // para lock timeout
     max_size: 1024, // max image size
-    max_undo: 30, // max undo steps
     readonly: true, // is session readonly
     ssv_persist: false, // start in ssv mode
     edit_persist: false, // start in edit mode
@@ -48,6 +45,7 @@ let default_state = {
     writeable: false, // can we actually modify contents
     cc: false, // is there a command completion window open
     cb: [], // clipboard for cell copy
+    editors: new Map(), // pid → editor map
 };
 
 function stateArticle() {
@@ -160,9 +158,10 @@ function loadArticle(args) {
     $('#ssv_check').prop('checked', ssv0).change();
     $('#edit_check').prop('checked', edit0).change();
 
-    //open editor if necessary
-    if(config.SVGEditor){
-        openSVGFromKey(config.SVGEditor);
+    // open editor if necessary
+    state.svg = new SvgEditor();
+    if (config.svg_key) {
+        state.svg.open(config.svg_key);
     }
 }
 
@@ -172,9 +171,7 @@ function setSsvMode(val) {
     $('#content').toggleClass('ssv', val);
     $('.para:not(.folded):not(.folder)').each(function() {
         let para = $(this);
-        let input = para.children('.p_input');
-        elltwoHL(para);
-        resize(input[0]);
+        para.children('.p_input');
         placeCursor('end');
     });
 }
@@ -194,17 +191,17 @@ async function setWriteable() {
     if (state.rawtext) {
         let para = state.active_para;
         let pid = state.active_para.attr('pid');
-        let text = para.children('.p_input');
+        let editor = state.editors.get(pid);
 
         if (wr && !wr_old) {
             let data = {pid: pid, aid: config.aid};
             if (await sendCommand('lock', data)) {
-                text.prop('readonly', false);
+                editor.setEditable(true);
                 placeCursor('end');
                 schedTimeout();
             }
         } else if (!wr && wr_old) {
-            text.prop('readonly', true);
+            editor.setEditable(false);
             storeChange(para);
         }
     }
@@ -344,8 +341,7 @@ function eventArticle() {
         let para = upd.closest('.para');
         let key = para.attr('id');
         if (upd.hasClass('update_image/svg+gum')) {
-            let ret = await cache.img.get(key);
-            initSVGEditor($('#bg'), ret.data, key, true);
+            state.svg.open(key);
         } else {
             promptUpload(function(files) {
                 let file = files[0];
@@ -360,35 +356,24 @@ function eventArticle() {
 
     $(document).on('click', '.open_svg_editor', function() {
         let key = $(this).attr('key');
-        let pid = $(this).closest('.para');
-        initSVGEditor($('#bg'), "", key, true, pid);
+        $(this).closest('.para');
+        state.svg.open(key);
         return false;
     });
 
-
-
     // syntax highlighting and brace matching
     $(document).on('input', '.p_input:not(.svgE)', function(e) {
-        let cur = e.currentTarget.selectionStart;
+        e.currentTarget.selectionStart;
         let para = $(this).parent('.para');
-        let text = para.children('.p_input');
-        let view = para.children('.p_input_view');
-        let raw = text.val();
-        schedTimeout();
-        ccRefs(view, raw, cur, config.cmd);
-        elltwoHL(para);
-        undoStack(raw);
+        let editor = getEditor(para);
+        let raw = editor.getText();
+
+        // ccRefs(view, raw, cur, config.cmd); TODO: CC
         if (state.ssv_mode) {
             rawToRender(para, false, false, raw);
         }
-    });
 
-    $(document).on('keyup', '.p_input:not(.svgE)', function(e) {
-        let arrs = [37, 38, 39, 40, 48, 57, 219, 221];
-        if (arrs.includes(e.keyCode)) {
-            var para = $(this).parent('.para');
-            braceMatch(this, para);
-        }
+        schedTimeout();
     });
 
     $(document).on('change', '#ssv_check', function() {
@@ -461,12 +446,12 @@ async function deleteParas(pids) {
     }
 }
 async function movePara(dragPID, targPID) {
-        let drag = getPara(dragPID);
-        let targ = getPara(targPID);
-        drag.insertAfter(targ);
-        envClasses();
-        console.log('success: para moved');
-    }
+    let drag = getPara(dragPID);
+    let targ = getPara(targPID);
+    drag.insertAfter(targ);
+    envClasses();
+    console.log('success: para moved');
+}
 
 function insertParaRaw(pid, new_pid, raw='', after=true) {
     let para = getPara(pid);
@@ -494,6 +479,7 @@ function insertParaRaw(pid, new_pid, raw='', after=true) {
     }
 
     new_para.html(innerPara);
+    makeEditor(new_para);
     rawToTextarea(new_para);
 
     if (do_env) {
@@ -1123,9 +1109,6 @@ function responsivefy(svg) {
     }
 }
 
-
-
-
 /// reference completion
 
 function ccNext(dir) {
@@ -1140,15 +1123,16 @@ function ccNext(dir) {
 }
 
 function ccMake(cctxt=null, addText=false, offset_chars=0) {
-    if (cctxt===null){
+    if (cctxt === null) {
         cctxt = $('.cc_row').first().attr('ref');
         offset_chars=$('.cc_row').first().attr('offset_chars') || 0;
     }
-    let para = state.active_para;
-    let input = para.children('.p_input');
-    let raw = input.val();
 
-    let [l,u] = state.cc;
+    let para = state.active_para;
+    let editor = getEditor(para);
+    let raw = editor.getText();
+
+    let [l, u] = state.cc;
     let sel = raw.substring(l, u);
 
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?:\])?/;
@@ -1158,10 +1142,9 @@ function ccMake(cctxt=null, addText=false, offset_chars=0) {
 
     let cap;
     let iter = false; //true iterates the process (for ext art refs)
-    let at = "";
-    if (addText){
-        at = '|text=';
-    }    if (cap = open_ref.exec(sel)) {
+    let at = addText ? '|text=' : '';
+
+    if (cap = open_ref.exec(sel)) {
         l += cap.index;
         if (cap[3] && !cap[2]) { // start ext page
            sel = sel.replace(open_ref, function() {
@@ -1212,24 +1195,27 @@ function ccMake(cctxt=null, addText=false, offset_chars=0) {
             return out;
         });
     }
-    raw = raw.substring(0,state.cc[0]) + sel + raw.substring(u);
-    input.val(raw).trigger('input');
-    resize(input[0]);
-    elltwoHL(state.active_para);
+
+    raw = raw.substring(0, state.cc[0]) + sel + raw.substring(u);
+    editor.setText(raw);
+
     state.cc = false;
     $('#cc_pop').remove();
-    if(addText && !iter){
+
+    if (addText && !iter) {
         l -= 1;
     }
     l -= offset_chars;
-    input[0].setSelectionRange(l, l);
-    if(iter){
-        let view = para.children('.p_input_view');
-        ccRefs(view, raw, l);
+    editor.setCursorPos(l);
+
+    if (iter) {
+        ccRefs(editor.view, raw, l);
     }
+
     if (state.ssv_mode) {
-            rawToRender(para, false, false, raw);
+        rawToRender(para, false, false, raw);
     }
+
     return l;
 }
 
@@ -1241,7 +1227,7 @@ function getInternalRefs() {
                 });
 }
 
-function env_display_text(env, sym="") {
+function env_display_text(env, sym='') {
     let env_dict = {
         'equation': `<span class="syn_math">$$</span>`,
         'theorem': `<span class="syn_hl">>th</span>`,
@@ -1259,8 +1245,9 @@ function env_display_text(env, sym="") {
         'cmd': `<span class="syn_ref latex">${sym}</span>`,
         'cmd_opt': `<span class="syn_delimit latex">${sym}</span>`,
     };
-    return env_dict[env] || ''
+    return env_dict[env] || '';
 }
+
 
 function ccSearch(list, search, placement, selchars, env_display=false, targ=$('#bg')) {
     if(env_display){
@@ -1271,8 +1258,8 @@ function ccSearch(list, search, placement, selchars, env_display=false, targ=$('
         return b.startsWith(search) - a.startsWith(search)
         });
     } else {
-    list = list.filter(el => el.includes(search));
-    list = list.sort((a, b) => b.startsWith(search) - a.startsWith(search));
+        list = list.filter(el => el.includes(search));
+        list = list.sort((a, b) => b.startsWith(search) - a.startsWith(search));
     }
     if (list.length > 0) {
         state.cc = selchars;
@@ -1280,7 +1267,7 @@ function ccSearch(list, search, placement, selchars, env_display=false, targ=$('
         let pop = $('<div>', {id: 'cc_pop'});
         list.forEach(r => {
             let cc_row = $('<div>', {class: 'cc_row'});
-            if(env_display){
+            if (env_display) {
                 r.offset_chars || 0;
                 let disp_name = r.disp_name || r.name;
                 cc_row.text(disp_name).attr('ref', r.name).attr('offset_chars', r.offset_chars);
@@ -1290,7 +1277,8 @@ function ccSearch(list, search, placement, selchars, env_display=false, targ=$('
                 cc_row.prepend(env_disp);
             } else {
                 cc_row.text(r).attr('ref', r);
-            }            renderKatex(cc_row);
+            }
+            renderKatex(cc_row);
             pop.append(cc_row);
         });
         targ.append(pop);
@@ -1306,18 +1294,18 @@ function ccSearch(list, search, placement, selchars, env_display=false, targ=$('
 
 // show command completion popup for references (@[]) and article links ([[]])
 async function ccRefs(view, raw, cur, configCMD) {
-    if(configCMD === 'off'){
+    if (configCMD == 'off') {
         return false;
     }
     state.cc = false;
     $('#cc_pop').remove();
 
     let before = raw.substring(0,cur).split(/[\s\n\$]/).at(-1);
-    if(before.lastIndexOf('\\') > -1){ //in case there is no space between commands
-        before=before.substring(before.lastIndexOf('\\'));
+    if (before.lastIndexOf('\\') > -1) { // in case there is no space between commands
+        before = before.substring(before.lastIndexOf('\\'));
     }
     let after = raw.substring(cur).split(/[\s\n\$]/).at(0);
-    let sel = before+after;
+    let sel = before + after;
     let selchars = [cur - before.length, cur+after.length];
 
     let open_ref = /@(\[|@)?([\w-\|\=^]+)?(\:)?([\w-\|\=^]+)?(?:\])?(?:[\s\n]|$)/;
@@ -1327,7 +1315,7 @@ async function ccRefs(view, raw, cur, configCMD) {
     let cap;
     if (cap = open_ref.exec(sel)) {
         raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
-        view.html(raw);
+        view.innerHTML = raw;
         let off = $('#cc_pos').offset();
         let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
         if (cap[1] == '@') { // bib search
@@ -1359,42 +1347,42 @@ async function ccRefs(view, raw, cur, configCMD) {
         }
     } else if (cap = open_i_link.exec(sel)) {
         raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
-        view.html(raw);
+        view.innerHTML = raw;
         let off = $('#cc_pos').offset();
         let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
         let search = cap[1] || '';
         let ret = await cache.list.get('__art');
         ret = ret.map(x => {
-            return {name:x, type:'title'};
+            return {name: x, type: 'title'};
         });
         ccSearch(ret, search, p, selchars, true);
     } else if (cap = open_img.exec(sel)) {
         raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
-        view.html(raw);
+        view.innerHTML = raw;
         let off = $('#cc_pos').offset();
         let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
         let search = cap[2] || '';
         let ret = await cache.list.get('__img');
         ret = ret.map(x => {
-            return {name:x, type:'image'};
+            return {name: x, type: 'image'};
         });
         ccSearch(ret, search, p, selchars, true);
-        } else if (open_cmd.exec(sel) && configCMD === 'on') {
-            let dollars  = unEscCharCount(raw.slice(0, cur), '$');
-            if(dollars%2==1 || raw.startsWith('$$')){
-                cap = open_cmd.exec(sel);
-                raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
-                view.html(raw);
-                let off = $('#cc_pos').offset();
-                let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
-                let search = cap[1] || '';
-                let ret = tex_cmd.syms.map(x => {
-                    return {name:x, type:'cmd', sym:`\\${x}`,}
-                });
-                let ops = tex_cmd.ops;
-                ret = ret.concat(ops);
-                ccSearch(ret, search, p, selchars, true);
-            }
+    } else if (open_cmd.exec(sel) && configCMD === 'on') {
+        let dollars = unEscCharCount(raw.slice(0, cur), '$');
+        if (dollars % 2 == 1 || raw.startsWith('$$')) {
+            cap = open_cmd.exec(sel);
+            raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
+            view.innerHTML = raw;
+            let off = $('#cc_pos').offset();
+            let p = {'left': off.left, 'top': off.top + $('#cc_pos').height()};
+            let search = cap[1] || '';
+            let ret = tex_cmd.syms.map(x => {
+                return {name: x, type: 'cmd', sym: `\\${x}`};
+            });
+            let ops = tex_cmd.ops;
+            ret = ret.concat(ops);
+            ccSearch(ret, search, p, selchars, true);
+        }
     }
 }
 

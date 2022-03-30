@@ -13,7 +13,7 @@ import {
 import { SyntaxHL, braceMatch } from './hl.js'
 import { renderKatex } from './math.js'
 import {
-    initEditor, stateEditor, eventEditor, resize, makeActive, sendMakeEditable, placeCursor
+    initEditor, stateEditor, eventEditor, makeActive, sendMakeEditable, placeCursor
 } from './editor.js'
 import { ccRefs } from './article.js'
 
