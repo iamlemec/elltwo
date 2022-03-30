@@ -1,8 +1,9 @@
-import { updateState, state } from './state.js';
+import { state, updateState } from './state.js';
 import { ensureVisible } from './utils.js';
 import { connect, sendCommand } from './client.js';
 import { renderKatex } from './math.js';
 import { initUser } from './user.js';
+import { ccNext, ccSearch } from './article.js';
 
 /* home page and search */
 
@@ -11,6 +12,7 @@ let default_state = {
 };
 
 function initHome(args) {
+    state.tags = args.tags;
     updateState(default_state);
     connectHome();
     eventHome();
@@ -40,9 +42,16 @@ function eventHome() {
         createArt();
     });
 
+    $(document).on('input', '#query', function(e) {
+        dispTags();
+        let cur = e.currentTarget.selectionStart;
+        let raw = $(this).val();
+        ccTags(raw, cur);
+    });
+
     $(document).on('keydown', function(e) {
         let key = e.key.toLowerCase();
-        let real = String.fromCharCode(e.keyCode).match(/(\w|\s)/g);
+        let real = String.fromCharCode(e.keyCode).match(/[\w\s\]\[\(\)]/g);
         let andriod_is_fucking_stupid = e.keyCode == 229;
 
         let active = getActive();
@@ -52,7 +61,10 @@ function eventHome() {
         } else if (e.ctrlKey && (key == '`')) {
             $('#full_text_check').click();
         } else if (key == 'enter') {
-            if (active.length > 0) {
+            if (state.cc) { 
+                    tagComplete();
+                    return false;
+            }            if (active.length > 0) {
                 let url = active.attr('href');
                 window.location = url;
             }
@@ -71,17 +83,31 @@ function eventHome() {
                 setActive(prev);
             }
             return false;
-        }
-    });
+        } else if (key == 'arrowleft') {
+                if (state.cc) { // if there is an open command completion window
+                    ccNext('down');
+                    return false;
+                }        } else if (key == 'arrowright') {
+                if (state.cc) {
+                    ccNext('up');
+                    return false;
+                }        } else if (key == 'escape') {
+                if (state.cc) {
+                    state.cc = false;
+                    $('#cc_pop').remove();
+                }
+                return false;
+            }    });
 }
 
 let elltwo = `<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi mathvariant="normal">ℓ</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\ell^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height: 0.814108em; vertical-align: 0em;"></span><span class="mord"><span class="mord">ℓ</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height: 0.814108em;"><span class="" style="top: -3.063em; margin-right: 0.05em;"><span class="pstrut" style="height: 2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span>`;
 let blurb_img = `<div><div class="title">${elltwo} Image Library</div>Upload new images, or search and edit uploaded images.</div>`;
 let blurb_bib = `<div><div class="title">${elltwo} Bibliography</div>Enter new bibliographic citations manually or via a web search; search and edit existing citations.</div>`;
 
-async function searchTitle(query, last_url) {
-    let ret = await sendCommand('search_title', query);
-    let title_text = 'Search Results (Title)';
+async function searchTitle(query, last_url, tags="") {
+    let data = {query, tags};
+    let ret = await sendCommand('search_title', data);
+    let title_text = `Search Results, Title: ${query}`;
     let q = query.toLowerCase();
     if ('image library'.startsWith(q) || 'img'.startsWith(q) || 'elltwo'.startsWith(q)) {
         ret.push({
@@ -162,6 +188,12 @@ function buildBlurbs(response, last_url, title_text){
                 let btext = art.blurb || short;
                 let art_div = $('<a>', {class: 'result art_link', href: url});
                 let art_title = $('<div>', {class: 'blurb_name', text: short});
+                if(art.tags){
+                    art.tags.forEach(t => {
+                        let tag = $('<span>', {class: 'blurb_tag', text: t});
+                        art_title.append(tag);
+                    });
+                }
                 let art_blurb = $('<div>', {class: 'blurb', html: btext});
                 art_div.append([art_title, art_blurb]);
                 $('#results').append(art_div);
@@ -185,12 +217,13 @@ function runQuery() {
     let last_pid = active.attr('pid');
 
     let query = $('#query').val();
+    let tags = getTags();
     if (query.length > 0) {
         let full_text = $('#full_text_check').is(':checked');
         if (full_text) {
             searchText(query, last_url);
         } else {
-            searchTitle(query, last_pid);
+            searchTitle(query, last_pid, tags);
         }
     } else {
         searchRecent(last_url);
@@ -215,5 +248,75 @@ function setActive(res) {
     res.addClass('selected');
     ensureVisible(res);
 }
+
+async function ccTags(raw, cur) {
+    state.cc = false;
+    $('#cc_pop').remove();
+
+    let before = raw.substring(0,cur);
+    let hash = before.lastIndexOf('#');
+    if(hash < 0){ //no hash
+        return false;
+    }
+    before = before.substring(hash);
+    if (before.lastIndexOf(']') > 0){ //no open hash
+        return false;
+    }
+    if (before.charAt(1) == '[' || before.lastIndexOf(' ') < 0){ //open hash brack or no space
+        before = before.replace('#', "").replace('[', "");
+    } else {
+        return false
+    }
+
+    let selchars = [cur - before.length, cur];
+
+    //only display new suggestions
+    let alltags = state.tags;
+    let curtags = getTags();
+
+    alltags = alltags.filter(t => !curtags.includes(t));
+
+    ccSearch(alltags, before, false, selchars, false, $('#tags'));
+
+    }
+
+function dispTags(){
+    $('#tagdisp').remove();
+    let tagdisp = $('<div>', {id: 'tagdisp'});
+    let tags = getTags();
+    if(tags){
+        tags.forEach(t => {
+            let tag_row = $('<div>', {class: 'tag_row'});
+            tag_row.text(t);
+            tagdisp.append(tag_row);
+        });
+    $('#tags').prepend(tagdisp);
+    }
+}
+
+function getTags(){
+    let raw = $('#query').val();
+    let tagexp = /#(\[[\w| ]+\]|\w+)/g;
+    let tags = [...raw.matchAll(tagexp)];
+    return tags.map(t => t[1].replace(']',"")
+        .replace('[',"")
+        .replace('#',""))
+    .filter((v, i, a) => a.indexOf(v) === i);//unique els
+}
+
+function tagComplete(){
+    let q = $('#query');
+    let cctxt = $('.cc_row').first().attr('ref');
+    if (cctxt.lastIndexOf(' ') > 0){ //space
+        cctxt = `[${cctxt}]`;
+    }
+    let raw = q.val();
+    let [l,u] = state.cc;
+    raw = raw.substring(0, l) + cctxt + raw.substring(u);
+    l = l + cctxt.length;
+    q.val(raw).trigger('input');
+    q[0].setSelectionRange(l, l);
+    runQuery();
+    }
 
 export { initHome };

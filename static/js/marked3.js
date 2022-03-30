@@ -342,12 +342,13 @@ class BlockParser {
             let args = parseArgs(argsraw);
             let title = this.inline.output(cap[2]);
             let text = src.slice(cap[0].length);
+            let preamble = parsePreamble(text);
             this.env = {
                 type: 'env_one',
                 env: 'title',
                 args: args,
                 title: title,
-                preamble: text,
+                preamble: preamble,
             }
             return this.renderer.title(title);
         }
@@ -466,15 +467,16 @@ let inline = {
     in_comment: /^\/\/([^\n]*?)(?:\n|$)/,
     autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
     url: noop,
-    tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^'">])*?>/,
+    //tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^'">])*?>/,
     link: /^!?\[(inside)\]\(href\)/,
+    hash: /^#(\[[\w| ]+\]|\w+)/,
     ilink: /^\[\[([^\]]+)\]\]/,
     strong: /^__([\s\S]+?)__(?!_)|^\*\*([\s\S]+?)\*\*(?!\*)/,
     em: /^\b_((?:[^_]|__)+?)_\b|^\*((?:\*\*|[\s\S])+?)\*(?!\*)/,
     code: /^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/,
     br: /^ {2,}\n(?!\s*$)/,
     del: noop,
-    text: /^[\s\S]+?(?=[\/\\<!\[_*`\$\^@]| {2,}\n|$)/,
+    text: /^[\s\S]+?(?=[\/\\<!\[_*`\$\^@#]| {2,}\n|$)/,
     math: /^\$((?:\\\$|[\s\S])+?)\$/,
     ref: /^@\[([^\]]+)\]/,
     cite: /^@@\[([^\]]+)\]/,
@@ -639,17 +641,17 @@ class InlineParser {
                 continue;
             }
 
-            // tag
-            if (cap = this.rules.tag.exec(src)) {
-                if (!this.inLink && /^<a /i.test(cap[0])) {
-                    this.inLink = true;
-                } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
-                    this.inLink = false;
-                }
-                src = src.substring(cap[0].length);
-                out += cap[0];
-                continue;
-            }
+            // // tag
+            // if (cap = this.rules.tag.exec(src)) {
+            //     if (!this.inLink && /^<a /i.test(cap[0])) {
+            //         this.inLink = true;
+            //     } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
+            //         this.inLink = false;
+            //     }
+            //     src = src.substring(cap[0].length);
+            //     out += cap[0];
+            //     continue;
+            // }
 
             // link
             if (cap = this.rules.link.exec(src)) {
@@ -667,6 +669,13 @@ class InlineParser {
             if (cap = this.rules.strong.exec(src)) {
                 src = src.substring(cap[0].length);
                 out += this.renderer.strong(this.output(cap[2] || cap[1]));
+                continue;
+            }
+
+            // hash
+            if (cap = this.rules.hash.exec(src)) {
+                src = src.substring(cap[0].length);
+                out += this.renderer.hash(cap[1].replace('[', "").replace(']', ""));
                 continue;
             }
 
@@ -830,6 +839,10 @@ class DivRenderer {
 
     strong(text) {
         return `<span class="strong">${text}</span>`;
+    }
+
+    hash(text) {
+        return `<span class="hash">${text}</span>`;
     }
 
     em(text) {
@@ -1212,6 +1225,18 @@ function replace(regex, opt) {
         regex = regex.replace(name, val);
         return self;
     };
+}
+
+function parsePreamble(raw) {
+    let macros = {};
+    let macro_list = raw.split(/[\n,;]+/) // split on \n or comma
+        .filter(macraw => macraw.includes(':')) // is it a macro?
+        .map(macraw => macraw.split(':')) // split on :
+        .forEach(el => macros[el[0]] = el[1]); // save internal macros
+    let tags = raw.split(/[\n,;]+/)
+        .filter(t => t.match(/#(\[[\w| ]+\]|\w+)/)) // is it a tag?
+        .map(t => t.replace('[','').replace(']','').replace('#','')) // is it a tag?
+    return {macros, tags}
 }
 
 // dummy regex pattern

@@ -86,6 +86,18 @@ class ExtRef(Base):
     def __repr__(self):
         return f'{self.key} [{self.create_time} → {self.delete_time}]:\n{self.text}'
 
+class Tag(Base):
+    __tablename__ = 'tag'
+
+    tid = Column(Integer, primary_key=True)
+    aid = Column(Integer, ForeignKey('article.aid'), nullable=False)
+    tag = Column(Text, nullable=False)
+    create_time = Column(DateTime, default=datetime.utcnow)
+    delete_time = Column(DateTime)
+
+    def __repr__(self):
+        return f'{self.tag} [{self.create_time} → {self.delete_time}]'
+
 class Image(Base):
     __tablename__ = 'image'
 

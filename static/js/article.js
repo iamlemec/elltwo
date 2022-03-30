@@ -3,7 +3,7 @@
 export {
     loadArticle, insertParaRaw, insertPara, deleteParas, updatePara,
     updateParas, updateRefs, toggleHistMap, toggleSidebar, ccNext, ccMake,
-    ccRefs,
+    ccRefs, ccSearch
 }
 
 import {
@@ -20,7 +20,7 @@ import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
     envClasses, envGlobal, createTOC, troFromKey, popText, elltwoHL,
-    renderRefText, getRefTags, untrackRef, doRenderRef, barePara
+    renderRefText, getRefTags, getTags, untrackRef, doRenderRef, barePara
 } from './render.js'
 import { braceMatch } from './hl.js'
 import {
@@ -469,6 +469,11 @@ async function deleteParas(pids) {
         let old_ref = getRefTags(para);
         old_ref.forEach((key) => {
             cache.track.dec(key);
+        });
+
+        let old_tags = getTags(para);
+        old_tags.forEach((key) => {
+            cache.tags.dec(key);
         });
 
         para.remove();
@@ -1282,7 +1287,7 @@ function env_display_text(env, sym="") {
     return env_dict[env] || ''
 }
 
-function ccSearch(list, search, placement, selchars, env_display=false) {
+function ccSearch(list, search, placement, selchars, env_display=false, targ=$('#bg')) {
     if(env_display){
     list = list.filter(el => el.name.includes(search));
     list = list.sort((a, b) => {
@@ -1296,6 +1301,7 @@ function ccSearch(list, search, placement, selchars, env_display=false) {
     }
     if (list.length > 0) {
         state.cc = selchars;
+        console.log(state)
         let pop = $('<div>', {id: 'cc_pop'});
         list.forEach(r => {
             let cc_row = $('<div>', {class: 'cc_row'});
@@ -1313,12 +1319,14 @@ function ccSearch(list, search, placement, selchars, env_display=false) {
             renderKatex(cc_row)
             pop.append(cc_row);
         });
-        $('#bg').append(pop);
+        targ.append(pop);
 
-        pop.css({
-            'left': placement.left + 'px', // offset 10px for padding
-            'top': placement.top + 'px', // offset up by 35 px
-        });
+        if(placement){
+            pop.css({
+                'left': placement.left + 'px', // offset 10px for padding
+                'top': placement.top + 'px', // offset up by 35 px
+            });
+        }
     }
 }
 

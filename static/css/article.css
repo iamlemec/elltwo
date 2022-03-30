@@ -76,8 +76,8 @@
     border: 0;
     padding: 0;
     overflow-wrap: anywhere;
-    padding-right: 40px;
     scrollbar-width: none;
+    padding: 5px;
 }
 
 .container:not(.ssv) .p_input:not(.svgE) {
@@ -687,6 +687,10 @@ button {
 
 #bib_block .cite {
     display: block;
+}
+
+.hash{
+   color: var(--hl-col); 
 }
 
 .cite {

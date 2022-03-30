@@ -354,6 +354,21 @@ function syntaxParseInline(raw) {
     return html + endmath;
 }
 
+function syntaxParsePre(raw){
+
+let html = esc_html(raw);
+
+    html = html.replace(/\#(\w+)/, (a, b) =>
+        s('#', 'delimit') + s(b, 'math')
+    );
+    html = html.replace(/([\\\w]+):([\\\w]+)/, (a,b,c) =>
+        s(b, 'ref') + s(':', 'delimit') + s(c, 'ref')
+    );
+
+    return html
+
+}
+
 // uses lookbehinds, might not work on old ass-browsers
 // set = true is for non ref when seting ids
 
@@ -404,7 +419,7 @@ function syntaxParseBlock(raw) {
         let id = cap[2] ? s(fArgs(cap[2]), 'ref') : '';
         let tit = cap[4] ? syntaxParseInline(cap[4]) : '';
         let rest = raw.slice(cap[0].length);
-        let pre = syntaxParseInline(rest);
+        let pre = syntaxParsePre(rest);
         return s('#!', 'hl') + cap[1] + id + cap[3] + tit + cap[5] + s(pre, 'ref');
     }
 

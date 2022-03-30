@@ -2,7 +2,7 @@ import { getPara, cooks, setCookie, getEnvParas, unEscCharCount, KeyCache } from
 import { updateConfig, config, cache, state, updateState } from './state.js';
 import { connect, addHandler, sendCommand, schedTimeout, setTimeoutHandler } from './client.js';
 import { initUser } from './user.js';
-import { eventRender, elltwoHL, rawToRender, rawToTextarea, getRefTags, envClasses, barePara, innerPara, stateRender, initRender, doRenderRef, createTOC, troFromKey, popText, envGlobal } from './render.js';
+import { eventRender, elltwoHL, rawToRender, rawToTextarea, getRefTags, getTags, envClasses, barePara, innerPara, stateRender, initRender, doRenderRef, createTOC, troFromKey, popText, envGlobal } from './render.js';
 import { braceMatch } from './hl.js';
 import { makeActive, eventEditor, undoStack, resize, initEditor, initDrag, placeCursor, storeChange, lockParas, unlockParas, makeUnEditable } from './editor.js';
 import { connectDrops, promptUpload, uploadImage } from './drop.js';
@@ -446,6 +446,11 @@ async function deleteParas(pids) {
         let old_ref = getRefTags(para);
         old_ref.forEach((key) => {
             cache.track.dec(key);
+        });
+
+        let old_tags = getTags(para);
+        old_tags.forEach((key) => {
+            cache.tags.dec(key);
         });
 
         para.remove();
@@ -1257,7 +1262,7 @@ function env_display_text(env, sym="") {
     return env_dict[env] || ''
 }
 
-function ccSearch(list, search, placement, selchars, env_display=false) {
+function ccSearch(list, search, placement, selchars, env_display=false, targ=$('#bg')) {
     if(env_display){
     list = list.filter(el => el.name.includes(search));
     list = list.sort((a, b) => {
@@ -1271,6 +1276,7 @@ function ccSearch(list, search, placement, selchars, env_display=false) {
     }
     if (list.length > 0) {
         state.cc = selchars;
+        console.log(state);
         let pop = $('<div>', {id: 'cc_pop'});
         list.forEach(r => {
             let cc_row = $('<div>', {class: 'cc_row'});
@@ -1287,12 +1293,14 @@ function ccSearch(list, search, placement, selchars, env_display=false) {
             }            renderKatex(cc_row);
             pop.append(cc_row);
         });
-        $('#bg').append(pop);
+        targ.append(pop);
 
-        pop.css({
-            'left': placement.left + 'px', // offset 10px for padding
-            'top': placement.top + 'px', // offset up by 35 px
-        });
+        if(placement){
+            pop.css({
+                'left': placement.left + 'px', // offset 10px for padding
+                'top': placement.top + 'px', // offset up by 35 px
+            });
+        }
     }
 }
 
@@ -1390,4 +1398,4 @@ async function ccRefs(view, raw, cur, configCMD) {
     }
 }
 
-export { ccMake, ccNext, ccRefs, deleteParas, insertPara, insertParaRaw, loadArticle, toggleHistMap, toggleSidebar, updatePara, updateParas, updateRefs };
+export { ccMake, ccNext, ccRefs, ccSearch, deleteParas, insertPara, insertParaRaw, loadArticle, toggleHistMap, toggleSidebar, updatePara, updateParas, updateRefs };

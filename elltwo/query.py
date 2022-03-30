@@ -12,7 +12,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker, Query
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from .schema import Base, Article, Paragraph, Paralink, Bib, ExtRef, Image, User, TextShard
+from .schema import Base, Article, Paragraph, Paralink, Bib, ExtRef, Image, User, TextShard, Tag
 from .tools import Multimap
 
 ##
@@ -74,6 +74,7 @@ partime = partial(intime, klass=Paragraph)
 lintime = partial(intime, klass=Paralink)
 bibtime = partial(intime, klass=Bib)
 reftime = partial(intime, klass=ExtRef)
+tagtime = partial(intime, klass=Tag)
 imgtime = partial(intime, klass=Image)
 
 def find_start(links):
@@ -444,18 +445,26 @@ class ElltwoDB:
     def get_lid(self, lid):
         return self.session.query(Paralink).filter_by(lid=lid).one_or_none()
 
-    def search_title(self, words, thresh=0.25):
+    def search_title(self, words, taglist, thresh=0.25):
         now = datetime.utcnow()
         match = [
             i for i, s in self.search_index(words, dtype='title') if s > thresh
         ]
+        tag_rank = self.get_tag_rank(taglist)
+        #lexico sort on number of tag matchs, closeness of title, revesed here
+        aids = sorted(list(tag_rank.keys()),
+            key=lambda a: (len(tag_rank[a]), match.index(a) if a in match else -1),
+            reverse=True
+        )
+        aids += match
+
         arts = (self.session
             .query(Article)
-            .filter(Article.aid.in_(match))
+            .filter(Article.aid.in_(aids))
             .filter(arttime(now))
             .all()
         )
-        return sorted(arts, key=lambda a: match.index(a.aid))
+        return {'arts': sorted(arts, key=lambda a: aids.index(a.aid)), 'tags': tag_rank}
 
     def search_text(self, words, thresh=0.25):
         now = datetime.utcnow()
@@ -468,7 +477,8 @@ class ElltwoDB:
             .filter(partime(now))
             .all()
         )
-        return sorted(paras, key=lambda a: match.index(a.pid))
+        #reversed here
+        return sorted(paras, key=lambda a: match.index(a.pid), reverse=True)
 
     ##
     ## editing methods
@@ -929,6 +939,74 @@ class ElltwoDB:
         self.session.add(art)
         self.session.commit()
 
+    ## and tags
+
+    def get_tag(self, tag, aid, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        return (self.session
+            .query(Tag)
+            .filter_by(aid=aid)
+            .filter_by(tag=tag)
+            .filter(tagtime(time))
+            .one_or_none()
+        )
+
+    def get_tags(self, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        q = (self.session
+            .query(Tag.tag.distinct()
+            .label("tag"))
+            .all()
+            )
+        return [tag.tag for tag in q]
+
+    def tags_by_art(self, aid, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        q = (self.session
+            .query(Tag)
+            .filter_by(aid=aid)
+            .filter(tagtime(time))
+            .all()
+        )
+        return [t.tag for t in q]
+
+    def arts_by_tag(self, tag, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        return (self.session
+            .query(Tag)
+            .filter_by(tag=tag)
+            .filter(tagtime(time))
+            .all()
+        )
+
+    def create_tag(self, aid, tag, time=None):
+        if time is None:
+            time = datetime.utcnow()
+
+        if (tag0 := self.get_tag(tag, aid, time=time)) is not None:
+            return
+        
+        tag = Tag(
+            aid=aid, tag=tag, create_time=time
+        )
+        self.session.add(tag)
+        self.session.commit()
+
+    def delete_tag(self, aid, tag, time=None):
+        if time is None:
+            time = datetime.utcnow()
+
+        if (tag := self.get_ref(tag, aid)) is None:
+            return
+
+        tag.delete_time = time
+        self.session.add(tag)
+        self.session.commit()
+
     ##
     ## storing images
     ##
@@ -1223,5 +1301,20 @@ class ElltwoDB:
         if dtype is not None:
             sims = [(i, x) for (_, i), x in sims]
 
-        # return sorted decreasing
-        return sorted(sims, key=itemgetter(1), reverse=True)
+        # return sorted NO LONGER decreasing --- changed elsewhere
+        return sorted(sims, key=itemgetter(1))
+
+    def get_cur_tag(self, art, taglist):
+        q = (self.session
+                .query(Tag)
+                .filter_by(aid=art.aid)
+                .filter(Tag.tag.in_(taglist))
+                .all()
+                )
+        return [t.tag for t in q]
+
+    def get_tag_rank(self, taglist):
+        arts = self.get_arts()
+        arts = {art.aid: self.get_cur_tag(art, taglist) for art in arts if self.get_cur_tag(art, taglist)}
+        return arts
+

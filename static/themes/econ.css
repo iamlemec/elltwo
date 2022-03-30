@@ -191,6 +191,14 @@ button,
     background-color: var(--pop-bg-col);
 }
 
+#pop_ext_title {
+    color: var(--delimit-col);
+    opacity: .4;
+    font-weight: bold;
+    border: none;
+    font-size: 60%;
+}
+
 #cc_pop {
     color: var(--hl-col);
     background-color: var(--pop-bg-col);
@@ -272,8 +280,8 @@ button,
 
 /* home page */
 
-#query {
-  background-color: var(--bg-hl-col);
+#query, #tags {
+  background-color: var(--bg-hl-col) !important;
   color: var(--font-col);
 }
 

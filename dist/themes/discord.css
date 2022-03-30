@@ -241,6 +241,14 @@ button:hover {
     font-size: 80%;
 }
 
+#pop_ext_title {
+    color: rgba(0,0,0,.4) !important;
+    font-weight: bold;
+    border: none;
+    font-size: 60%;
+}
+
+
 .cc_row {
     padding: 3px 0px 3px 3px;
     border-top: 1px solid var(--math-col);

@@ -17,6 +17,7 @@ function stateRender() {
     state.macros = {}; // internal katex macros
     state.folded = []; // current folded pids
     cache.track = new RefCount(trackRef, untrackRef); // reference counting
+    cache.tags = new RefCount(tag, unTag); // tag counting
 }
 
 function initRender() {
@@ -224,6 +225,7 @@ function rawToRender(para, defer=false, track=true, raw=null) {
     let old_id = para.attr('id');
     let env_pid = para.attr('env_pid');
     let old_ref = getRefTags(para);
+    let old_tags = getTags(para);
 
     // render with markthree
     let mark_in = (raw === null) ? para.attr('raw') : raw;
@@ -252,7 +254,8 @@ function rawToRender(para, defer=false, track=true, raw=null) {
             setTitle(env_info.title);
         }
         if ('preamble' in env_info) {
-            parsePreamble(env_info.preamble);
+            state.macros = Object.assign({}, env_info.preamble.macros, config.macros); // merge internal and ext macros, overwrites internal
+            para.attr('preambleTags', env_info.preamble.tags);
         }
         if ('env' in env_info) {
             para.attr('env', env_info.env);
@@ -284,11 +287,16 @@ function rawToRender(para, defer=false, track=true, raw=null) {
 
     // track reference add/del
     let new_ref = getRefTags(para);
+    let new_tags = getTags(para);
     if (track) {
-        let net_add = new_ref.filter(x => !old_ref.includes(x));
-        let net_del = old_ref.filter(x => !new_ref.includes(x));
-        net_add.forEach(key => cache.track.inc(key));
-        net_del.forEach(key => cache.track.dec(key));
+        let net_ref_add = new_ref.filter(x => !old_ref.includes(x));
+        let net_ref_del = old_ref.filter(x => !new_ref.includes(x));
+        let net_tag_add = new_tags.filter(x => !old_tags.includes(x));
+        let net_tag_del = old_tags.filter(x => !new_tags.includes(x));
+        net_ref_add.forEach(key => cache.track.inc(key));
+        net_ref_del.forEach(key => cache.track.dec(key));
+        net_tag_add.forEach(key => cache.tags.inc(key));
+        net_tag_del.forEach(key => cache.tags.dec(key));
     }
 
     // call environment formatters and reference updates
@@ -757,16 +765,6 @@ let env_spec = {
     error: errorEnv,
 };
 
-//// KATEX
-
-function parsePreamble(raw) {
-    let int_macros = {}; // internal macros
-    raw.split(/[\n,]+/) // split on \n or comma
-        .filter(macraw => macraw.includes(':')) // is it a macro?
-        .map(macraw => macraw.split(':')) // split on :
-        .forEach(el => int_macros[el[0]] = el[1]); // save internal macros
-    state.macros = Object.assign({}, int_macros, config.macros); // merge internal and ext macros, overwrites internal
-}
 
 function setTitle(title) {
     if (state.title != null && state.title != title) {
@@ -1301,6 +1299,17 @@ function getRefTags(para) {
     return refs;
 }
 
+function getTags(para) {
+    if (para.attr('env') == 'title') {
+        let tags = para.attr('preambleTags');
+        return tags.split(',')
+    }
+    let tags = para.find('.hash').map(function() {
+        let tag = $(this);
+        return tag.text();
+    }).toArray();
+    return tags
+}
 function trackRef(tag) {
     console.log('trackRef', tag);
     sendCommand('track_ref', {key: tag});
@@ -1311,4 +1320,17 @@ function untrackRef(tag) {
     sendCommand('untrack_ref', {key: tag});
 }
 
-export { barePara, connectCallbacks, createTOC, doRenderRef, elltwoHL, envClasses, envGlobal, eventRender, getFoldLevel, getRefTags, initRender, innerPara, loadMarkdown, makePara, popText, rawToRender, rawToTextarea, renderFold, renderPop, renderRefText, s_env_spec, stateRender, trackRef, troFromKey, untrackRef };
+function tag(tag) {
+    //when init article, we dont want to recreate tags
+    if(config.tags.includes(tag)){
+        return
+    }
+    config.tags.push(tag);
+    sendCommand('tag', {aid: config.aid, tag: tag});
+}
+
+function unTag(tag) {
+    sendCommand('untag', {aid: config.aid, tag: tag});
+}
+
+export { barePara, connectCallbacks, createTOC, doRenderRef, elltwoHL, envClasses, envGlobal, eventRender, getFoldLevel, getRefTags, getTags, initRender, innerPara, loadMarkdown, makePara, popText, rawToRender, rawToTextarea, renderFold, renderPop, renderRefText, s_env_spec, stateRender, trackRef, troFromKey, untrackRef };

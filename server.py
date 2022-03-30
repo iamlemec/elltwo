@@ -240,10 +240,11 @@ if need_login:
 def Home():
     print('ROUTE: /home')
     style = getStyle(request)
+    tags = edb.get_tags()
     if args.demo:
         return render_template('index.html', **style, **chtml, login=False)
     else:
-        return render_template('home.html', **style, **chtml)
+        return render_template('home.html', tags=tags, **style, **chtml)
 
 @app.route('/create', methods=['POST'])
 @edit_decor
@@ -412,9 +413,10 @@ def GetArtData(title, edit, pid=None, **kwargs):
     if art:
         style = getStyle(request, **kwargs)
         paras = edb.get_paras(art.aid)
+        tags = edb.tags_by_art(art.aid)
         return render_template(
             'article.html', aid=art.aid, title=art.title, g_ref=art.g_ref, pid=pid, paras=paras,
-            readonly=not edit, **config, **style
+            tags=tags, readonly=not edit, **config, **style
         )
     else:
         flash(f'Article "{title}" does not exist.')
@@ -695,11 +697,13 @@ def set_blurb(data):
 @socketio.on('search_title')
 @view_decor
 def search_title(data):
-    results = edb.search_title(data)
+    query, taglist = data['query'], data['tags']
+    results = edb.search_title(query, taglist)
     return [{
         'short': 'a/' + art.short_title,
-        'blurb': art.blurb
-    } for art in results]
+        'blurb': art.blurb,
+        'tags': (results['tags'][art.aid] if art.aid in results['tags'] else None),
+    } for art in results['arts']]
 
 @socketio.on('recent_arts')
 @view_decor
@@ -707,7 +711,7 @@ def recent_arts(data):
     results = edb.get_recent_arts(n=5)
     return [{
         'short': 'a/' + art.short_title,
-        'blurb': art.blurb
+        'blurb': art.blurb,
     } for art in results]
 
 @socketio.on('search_text')
@@ -833,6 +837,20 @@ def get_link(data):
     title = data['title']
     if (art := edb.get_art_short(title)) is not None:
         return {'title': art.title, 'blurb': art.blurb}
+
+@socketio.on('tag')
+@edit_decor
+def tag(data):
+    tag = data['tag']
+    aid = data['aid']
+    edb.create_tag(aid,tag)
+
+@socketio.on('untag')
+@edit_decor
+def untag(data):
+    tag = data['tag']
+    aid = data['aid']
+    edb.delete_tag(aid,tag)
 
 ###
 ### locking
