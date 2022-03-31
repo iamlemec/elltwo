@@ -16,7 +16,7 @@ import { renderKatex } from './math.js'
 import { parseSVG } from './svg.js'
 import { SyntaxHL, esc_html } from './hl.js'
 import { exportMarkdown, exportLatex } from './export.js'
-import { TextEditorCM, TextEditorNative } from './text.js'
+import { TextEditorNative } from './text.js'
 
 // main rendering entry point (for all cases)
 
@@ -737,7 +737,7 @@ function svgEnv(ptxt, args, outer=true) {
 function quoteEnv(ptxt, args) {
     if (args.by != 'none') {
         var div = $('<div>', {class: 'env_add quote_by'});
-        div.text(args.by)
+        div.text(args.by);
         ptxt.last().append(div);
         renderKatex(ptxt.children('.quote_by'));
     }
@@ -745,7 +745,7 @@ function quoteEnv(ptxt, args) {
 
 function codeEnv(ptxt, args) {
     let pre = ptxt.find('.code');
-    let code = pre.attr('rawCode'); //cannot be html
+    let code = pre.attr('rawCode'); // cannot be html
 
     let js = args.lang == 'js' || args.lang == 'javascript' || args.lang == 'gum';
     let ell = args.lang == 'elltwo' || args.lang == 'l2' || args.lang == 'ell2';

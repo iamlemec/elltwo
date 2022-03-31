@@ -639,6 +639,9 @@ button {
     margin-left: 28px;
 }
 
+.para:not(.env__svg) .p_input_view .linenum {
+    display: none;
+}
 
 #bib_block {
     display: none;
@@ -656,7 +659,7 @@ button {
 }
 
 .hash{
-   color: var(--hl-col); 
+   color: var(--hl-col);
 }
 
 .cite {
@@ -807,11 +810,11 @@ button {
     stroke: var(--pop-fg-col);
 }
 
-#pop .code{
+#pop .code {
     color: var(--pop-fg-col);
 }
 
-#pop .linenum{
+#pop .linenum {
     color: var(--pop-fg-col);
     transform: translateX(12px);
 }
@@ -1330,12 +1333,11 @@ circle.commit.active {
 
 @media only screen and (max-width: 1000px) {
 
-
-:root{
+:root {
     --sb_off: 150px;
 }
 
-.container.sb_content.ssv .control{
+.container.sb_content.ssv .control {
     padding-right: 0px;
 }
 
@@ -1349,23 +1351,23 @@ circle.commit.active {
     padding: 3px;
 }
 
-.container.ssv .sidenote .ft_content{
+.container.ssv .sidenote .ft_content {
         display: none;
 }
 
-.container.ssv .sn_skinny{
+.container.ssv .sn_skinny {
         display: block;
 }
 
- #sidebar_inner{
-        font-size: 90%;
- }
+#sidebar_inner {
+    font-size: 90%;
+}
 
 }
 
 @media only screen and (max-width: 700px) {
 
-#sidebar .custom-select-wrapper{
+#sidebar .custom-select-wrapper {
     margin-top:0;
     width: 120px;
 }
@@ -1400,13 +1402,12 @@ circle.commit.active {
 
 @media only screen and (max-width: 600px) {
 
-
-.sidenote .ft_content{
-        display: none;
+.sidenote .ft_content {
+    display: none;
 }
 
-.sn_skinny{
-        display: block;
+.sn_skinny {
+    display: block;
 }
 
 }
@@ -1452,7 +1453,7 @@ circle.commit.active {
     border-radius: 3px;
 }
 
- .butgrp2, .butgrp1{
+ .butgrp2, .butgrp1 {
      display: flex;
  }
 
@@ -1469,11 +1470,11 @@ circle.commit.active {
     border-radius: 0 !important;
 }
 
-.sidenote .ft_content{
+.sidenote .ft_content {
       display: none;
 }
 
-.sn_skinny{
+.sn_skinny {
         display: block;
 }
 

@@ -435,9 +435,9 @@ function trueMakeEditable(rw=true, cursor='end') {
     if (rw) {
         placeCursor(cursor);
         schedTimeout();
-    } else {
-        editor.focus();
     }
+
+    editor.update();
 }
 
 async function sendMakeEditable(cursor='end') {

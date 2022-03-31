@@ -119,8 +119,8 @@
 }
 
 #svgEditorOuter .p_input_view {
-    background-color: var(--bg-col);
     counter-reset: line;
+    background-color: var(--bg-col);
     -webkit-box-shadow: inset 24px 0px 0px 0px var(--bg-hl-col), inset 25px 0px 0px 0px var(--bg-hl2-col);
 }
 
@@ -138,16 +138,32 @@
     width: 20px;
     left: 0;
     font-size: 100%;
-    opacity: .3;
-}
-
-.para .linenum {
-   width: 28px;
+    opacity: 0.3;
 }
 
 .linenum:before {
-  counter-increment: line;
-  content: counter(line);
+    counter-increment: line;
+    content: counter(line);
+}
+
+.para .p_input_view {
+    counter-reset: line;
+}
+
+.para.env__svg .p_input_view {
+    background-color: var(--bg-col);
+    -webkit-box-shadow: inset 29px 0px 0px 0px var(--bg-hl-col), inset 30px 0px 0px 0px var(--bg-hl2-col),
+                        inset 0px 1px 0px 0px var(--bg-hl2-col), inset 0px 0px 1px 0px var(--bg-hl2-col),
+                        inset 0px 0px 0px 1px var(--bg-hl2-col);
+}
+
+.para.env__svg .p_input_text,
+.para.env__svg .p_input_view {
+    padding: 5px 5px 5px 35px;
+}
+
+.para.env__svg .linenum {
+    width: 25px;
 }
 
 #svgEditorParsedView, #svgEditorParsed {
@@ -165,7 +181,6 @@
     padding-left: 35px;
     overflow: scroll;
     scrollbar-width: none;
-    counter-reset: line;
 }
 
 #svgEditorParsedView {

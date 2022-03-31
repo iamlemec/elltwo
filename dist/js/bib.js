@@ -245,7 +245,7 @@ function createBibInfo(cite) {
     let pubs = ['book', 'incollection'];
     let jns = ['article', 'techreport', 'unpublished'];
     let wild = [undefined];
-    let link = cite.DOI || cite.link;
+    let link = cite.DOI || cite.link || '';
     link = link.match(/^\d/) ? `https://www.doi.org/${link}` : link;
     link = !link.match(/^ht/) ? `https://${link}` : link;
     let doi = cite.DOI || cite.link ? ` <a class=DOI_link target="_blank" href="${link}">${createIcon('ext_link')}</a>` : '';

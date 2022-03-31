@@ -1223,8 +1223,8 @@ function ccMake(cctxt=null, addText=false, offset_chars=0) {
 
 function getInternalRefs() {
     return $('.para:not(.folder):is(.env_beg,.env_one)[id]').toArray().map(x => {
-                    return {name:x.id, type:x.getAttribute('env')}
-                });
+        return {name: x.id, type: x.getAttribute('env')};
+    });
 }
 
 function env_display_text(env, sym='') {
@@ -1248,14 +1248,13 @@ function env_display_text(env, sym='') {
     return env_dict[env] || '';
 }
 
-
 function ccSearch(list, search, placement, selchars, env_display=false, targ=$('#bg')) {
-    if(env_display){
-    list = list.filter(el => el.name.includes(search));
-    list = list.sort((a, b) => {
-        a = a.disp_name || a.name;
-        b = b.disp_name || b.name;
-        return b.startsWith(search) - a.startsWith(search)
+    if (env_display) {
+        list = list.filter(el => el.name.includes(search));
+        list = list.sort((a, b) => {
+            a = a.disp_name || a.name;
+            b = b.disp_name || b.name;
+            return b.startsWith(search) - a.startsWith(search)
         });
     } else {
         list = list.filter(el => el.includes(search));
@@ -1263,7 +1262,6 @@ function ccSearch(list, search, placement, selchars, env_display=false, targ=$('
     }
     if (list.length > 0) {
         state.cc = selchars;
-        console.log(state);
         let pop = $('<div>', {id: 'cc_pop'});
         list.forEach(r => {
             let cc_row = $('<div>', {class: 'cc_row'});

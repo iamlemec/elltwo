@@ -730,7 +730,7 @@ function quoteEnv(ptxt, args) {
 
 function codeEnv(ptxt, args) {
     let pre = ptxt.find('.code');
-    let code = pre.attr('rawCode'); //cannot be html
+    let code = pre.attr('rawCode'); // cannot be html
 
     let js = args.lang == 'js' || args.lang == 'javascript' || args.lang == 'gum';
     let ell = args.lang == 'elltwo' || args.lang == 'l2' || args.lang == 'ell2';

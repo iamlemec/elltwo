@@ -1,4 +1,3 @@
-import './marklez.js';
 import { SyntaxHL, braceMatch } from './hl.js';
 import { state, config } from './state.js';
 import { ccRefs } from './article.js';
@@ -108,6 +107,7 @@ class TextEditorNative {
             let cur = this.getCursorPos();
             this.undoStack.push(raw, cur);
             this.update();
+            this.complete();
             this.event('input', e);
         });
         this.text.addEventListener('keyup', e => {
@@ -174,14 +174,12 @@ class TextEditorNative {
         if (this.getEditable()) {
             this.text.focus();
         }
-        this.update();
     }
 
     update() {
         if (this.mini) {
             this.resize();
         }
-        this.complete();
         this.highlight();
     }
 
