@@ -66,7 +66,6 @@ let default_state = {
     writeable: false, // can we actually modify contents
     cc: false, // is there a command completion window open
     cb: [], // clipboard for cell copy
-    editors: new Map(), // pid → editor map
 };
 
 function stateArticle() {

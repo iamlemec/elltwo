@@ -17,6 +17,7 @@ function stateRender() {
     state.title = null; // document title
     state.macros = {}; // internal katex macros
     state.folded = []; // current folded pids
+    state.editors = new Map(), // pid → editor map
     cache.track = new RefCount(trackRef, untrackRef); // reference counting
     cache.tags = new RefCount(tag, unTag); // tag counting
 }
@@ -1309,7 +1310,7 @@ function getTags(para) {
         let tag = $(this);
         return tag.text();
     }).toArray();
-    return tags
+    return tags;
 }
 function trackRef(tag) {
     console.log('trackRef', tag);
@@ -1322,11 +1323,11 @@ function untrackRef(tag) {
 }
 
 function tag(tag) {
-    //when init article, we dont want to recreate tags
-    if(config.tags.includes(tag)){
-        return
+    // when init article, we dont want to recreate tags
+    if (cache.tags.has(tag)) {
+        return;
     }
-    config.tags.push(tag);
+    cache.tags.push(tag);
     sendCommand('tag', {aid: config.aid, tag: tag});
 }
 

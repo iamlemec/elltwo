@@ -160,6 +160,10 @@ class RefCount {
         this.destroy = destroy;
     }
 
+    has(key) {
+        return key in this.count;
+    }
+
     inc(key) {
         if (key in this.count) {
             this.count[key] += 1;
