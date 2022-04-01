@@ -118,6 +118,7 @@ function initArticle() {
 function loadArticle(args) {
     // load in server side config/cache
     updateConfig(default_config, args.config ?? {});
+    config.tags = new Set(config.tags);
 
     // initialize full state
     cacheArticle();
@@ -144,7 +145,7 @@ function loadArticle(args) {
     }
 
     // update button state (persistent)
-    let ssv0 =  config.ssv_init=='on' || (config.ssv_persist && cooks('ssv_mode'));
+    let ssv0 =  config.ssv_init == 'on' || (config.ssv_persist && cooks('ssv_mode'));
     let edit0 = config.edit_persist && (cooks('edit_mode') ?? config.edit_init);
 
     // realize hover policy

@@ -160,6 +160,7 @@ async function loadMarkdown(args) {
 
     stateRender();
     config.macros = args.macros ?? {};
+    config.tags = args.tags ?? new Set();
     updateCache(dummy_cache);
 
     let callbacks = merge(default_callbacks, args.callbacks ?? {});
@@ -1352,13 +1353,17 @@ function untrackRef(tag) {
 
 function tag(tag) {
     // when init article, we dont want to recreate tags
-    if (cache.tags.has(tag)) {
+    if (config.tags.has(tag)) {
         return;
     }
-    cache.tags.push(tag);
+    config.tags.add(tag);
     sendCommand('tag', {aid: config.aid, tag: tag});
 }
 
 function unTag(tag) {
+    if (!config.tags.has(tag)) {
+        return;
+    }
+    config.tags.delete(tag);
     sendCommand('untag', {aid: config.aid, tag: tag});
 }

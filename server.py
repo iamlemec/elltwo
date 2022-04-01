@@ -843,14 +843,16 @@ def get_link(data):
 def tag(data):
     tag = data['tag']
     aid = data['aid']
-    edb.create_tag(aid,tag)
+    print('tag', aid, tag)
+    edb.create_tag(aid, tag)
 
 @socketio.on('untag')
 @edit_decor
 def untag(data):
     tag = data['tag']
     aid = data['aid']
-    edb.delete_tag(aid,tag)
+    print('untag', aid, tag)
+    edb.delete_tag(aid, tag)
 
 ###
 ### locking
