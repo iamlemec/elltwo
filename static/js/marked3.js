@@ -842,7 +842,8 @@ class DivRenderer {
     }
 
     hash(text) {
-        return `<span class="hash">${text}</span>`;
+        let url = window.location.origin + '/t/' + text;
+        return `<a href=${url} class="hash">${text}</span>`;
     }
 
     em(text) {

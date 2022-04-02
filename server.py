@@ -480,7 +480,7 @@ def GetRef():
                 'title': art.title,
                 'text': ref.text,
             })
-        else :
+        else:
             return f"reference {key} not found in article {short}"
     return f"article {short} not found"
 
@@ -508,6 +508,19 @@ def Img():
         max_size=config['max_size'],
         max_imgs=config['max_imgs'],
         edit=edit,
+        **style,
+        **chtml,
+    )
+
+@app.route('/t/<taglist>', methods=['GET', 'POST'])
+@view_decor
+def TagPage(taglist):
+    taglist = taglist.split(',')
+    tagged = edb.get_tagged_arts(taglist)
+    print(tagged)
+    style = getStyle(request)
+    return render_template('tagged.html',
+        tagged=tagged,
         **style,
         **chtml,
     )

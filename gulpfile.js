@@ -19,6 +19,7 @@ gulp.task('js-core', () => {
             'static/js/img.js',
             'static/js/bib.js',
             'static/js/index.js',
+            'static/js/tagged.js',
         ],
         plugins: [
             resolve({

@@ -1,0 +1,50 @@
+{% extends "elltwo.html" %}
+
+{% block title %}Tag Index{% endblock %}
+
+{% block head %}
+
+{{ super() }}
+
+<link type="text/css" rel="stylesheet" href={{ url_for('static', filename='css/home.css') }} />
+
+<script src={{ url_for('static', filename='libs/socket.io.min.js') }} language="Javascript" type="text/javascript"></script>
+
+{% endblock %}
+
+{% block header %}
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<div class="notification">{{ messages[0] }}</div>
+{% endif %}
+{% endwith %}
+
+<div id="prompt">
+<a href="{{ url_for('Home') }}"><span id="title">{{ name | safe }}</span></a>
+<div id="desc">Tag Index</div>
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+<div id="results_outer"><div id="results">
+    
+    
+
+</div></div>
+
+{% endblock %}
+
+{% block init %}
+
+<script type="module">
+import { initTagged } from '{{ url_for('static', filename='js/tagged.js') }}'
+initTagged({{
+tagged | tojson
+}}
+);
+</script>
+
+{% endblock %}

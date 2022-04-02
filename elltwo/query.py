@@ -452,10 +452,11 @@ class ElltwoDB:
         ]
         tag_rank = self.get_tag_rank(taglist)
         #lexico sort on number of tag matchs, closeness of title, revesed here
-        aids = sorted(list(tag_rank.keys()),
+        arts = sorted(list(tag_rank.keys()),
             key=lambda a: (len(tag_rank[a]), match.index(a) if a in match else -1),
             reverse=True
         )
+        aids = [art.aid for art in arts]
         aids += match
 
         arts = (self.session
@@ -1315,6 +1316,12 @@ class ElltwoDB:
 
     def get_tag_rank(self, taglist):
         arts = self.get_arts()
-        arts = {art.aid: self.get_cur_tag(art, taglist) for art in arts if self.get_cur_tag(art, taglist)}
+        arts = {art: self.get_cur_tag(art, taglist) for art in arts if self.get_cur_tag(art, taglist)}
         return arts
 
+    def get_tagged_arts(self, taglist):
+        tag_rank = self.get_tag_rank(taglist)
+        tag_image = sorted(tag_rank.values(), key=len, reverse=True)
+        # create list of dicts {tags, arts}
+        tagged = [{'tagGrp': tags, 'arts': [{'short': 'a/' + art.short_title, 'blurb': art.blurb} for art in tag_rank if tag_rank[art] == tags]} for tags in tag_image]
+        return tagged

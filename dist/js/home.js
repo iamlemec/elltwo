@@ -171,10 +171,15 @@ async function searchText(query, last_pid) {
     sel.addClass('selected');
 }
 
-function buildBlurbs(response, last_url, title_text){
+function buildBlurbs(response, last_url, title_text, target=null){
+     
+     if(!target){
+
      $('#results').empty();
         let res_title = $('<div>', {class: 'res_title', text: title_text});
         $('#results').append(res_title);
+        target = $('#results');
+    }
 
         let nres = Object.keys(response).length;
         if (nres > 0) {
@@ -186,7 +191,7 @@ function buildBlurbs(response, last_url, title_text){
                     short = url.slice(2).replace('_', ' ');
                 }
                 let btext = art.blurb || short;
-                let art_div = $('<a>', {class: 'result art_link', href: url});
+                let art_div = $('<a>', {class: 'result art_link', href: window.location.origin + '/' + url});
                 let art_title = $('<div>', {class: 'blurb_name', text: short});
                 if(art.tags){
                     art.tags.forEach(t => {
@@ -196,7 +201,7 @@ function buildBlurbs(response, last_url, title_text){
                 }
                 let art_blurb = $('<div>', {class: 'blurb', html: btext});
                 art_div.append([art_title, art_blurb]);
-                $('#results').append(art_div);
+                target.append(art_div);
             }
 
             let sel;
@@ -319,4 +324,4 @@ function tagComplete(){
     runQuery();
     }
 
-export { initHome };
+export { buildBlurbs, initHome };
