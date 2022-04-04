@@ -415,7 +415,8 @@ button {
 }
 
 .list-item:before {
-    content: "\25CF";
+    content: "—";
+    font-weight: bold;
     color: var(--delimit-col);
     left: 4px;
     position: absolute;
