@@ -104,7 +104,7 @@ class SvgEditor {
         let control = new AbortController();
         divi.addEventListener('mousedown', e => {
             document.addEventListener('mousemove', u => {
-                this.resizePane();
+                this.resize(u);
             }, {signal: control.signal});
         }, false);
 
@@ -115,6 +115,7 @@ class SvgEditor {
 
     async open(key, raw) {
         let hoot = document.querySelector('#hoot');
+        let logo = document.querySelector('#logo');
         let outr = document.querySelector('#svgEditorOuter');
         let tago = document.querySelector('#svgEditorTag');
 
@@ -141,12 +142,13 @@ class SvgEditor {
         window.history.pushState({'svgEditor': true}, null, `${url}?svg_key=${key}`);
 
         // update text
-        this.edit.setText(raw);
+        this.edit.setText(raw.data);
         this.view.setText('');
         tago.value = key;
         this.render();
 
         // show elements
+        logo.style.visibility = 'hidden';
         hoot.innerHTML = '[201p // iamlemec] — gum.js';
         outr.style.visibility = 'unset';
 
@@ -161,6 +163,7 @@ class SvgEditor {
         }
 
         let hoot = document.querySelector('#hoot');
+        let logo = document.querySelector('#logo');
         let outr = document.querySelector('#svgEditorOuter');
 
         // handle back button
@@ -170,13 +173,15 @@ class SvgEditor {
         // hide elements
         hoot.innerHTML = '[201p // iamlemec]';
         outr.style.visibility = 'hidden';
+        logo.style.visibility = 'unset';
+
 
         // update state
         this.show = false;
         this.key = null;
     }
 
-    resize() {
+    resize(e) {
         let left = document.querySelector('#svgEditorBoxLeft');
         let right = document.querySelector('#svgEditorBoxRight');
 

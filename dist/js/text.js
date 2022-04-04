@@ -162,11 +162,17 @@ class TextEditorNative {
             this.braceMatch();
         });
 
+        //syntaxHL viewer
         this.view = document.createElement('div');
         this.view.classList.add('p_input_view');
 
+        //bracket match viewer
+        this.bView = document.createElement('div');
+        this.bView.classList.add('p_input_bView');
+
         this.setEditable(edit);
         parent.appendChild(this.view);
+        parent.appendChild(this.bView);
         parent.appendChild(this.text);
     }
 
@@ -185,7 +191,7 @@ class TextEditorNative {
 
     resize() {
         this.text.style.height = 'auto';
-        let height = `${this.text.scrollHeight}px`;
+        let height = `${this.text.scrollHeight + 4}px`;
         this.text.style.height = height;
         this.parent.style.setProperty('min-height', height);
     }
@@ -207,6 +213,7 @@ class TextEditorNative {
     setText(text, save=true) {
         this.text.value = text;
         this.update();
+        this.text.dispatchEvent(new Event('input', {bubbles:true}));
         if (save) {
             let raw = this.getText();
             let cur = this.getCursorPos();
@@ -258,13 +265,11 @@ class TextEditorNative {
     async braceMatch() {
         let text = this.getText();
         let cpos = this.getCursorPos();
-        let hled = braceMatch(text, cpos, this.lang);
-        if (hled != null) {
-            this.view.innerHTML = hled;
-            setTimeout(function() {
-                $('.brace').contents().unwrap();
-            }, 800);
-        }
+        let hled = braceMatch(text, cpos);
+        this.bView.innerHTML = hled;
+        setTimeout(function() {
+            $('.brace').contents().unwrap();
+        }, 800);
     }
 
     textWrap(wrap) {

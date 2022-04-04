@@ -7,12 +7,17 @@
     flex-direction: column;
     background: var(--bg-col);
     width: 100%;
-    height: calc(100% - 27.5px);
+    height: calc(100% - 30px);
     top: 0;
     left: 0;
     border-bottom: 1px solid gray;
     font-size: 125%;
     z-index: 2;
+}
+
+#svgEditorOuter.sb_content{
+    width: calc(100% - var(--sb_off));
+    left: var(--sb_off);
 }
 
 #svgWidthDisplay {
@@ -103,7 +108,8 @@
 }
 
 #svgEditorOuter .p_input_text,
-#svgEditorOuter .p_input_view {
+#svgEditorOuter .p_input_view,
+#svgEditorOuter .p_input_bView{
     width: 100%;
     height: 100%;
     padding: 5px;

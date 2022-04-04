@@ -1,13 +1,17 @@
 /* native editor */
 
-.p_input_text, .p_input_view {
+.p_input_text, .p_input_view, .p_input_bView {
     font-size: inherit;
     position: absolute;
     resize: none;
     overflow: hidden;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
-    padding: 0px;
+    min-height: 40px;
+}
+
+.p_input_bView{
+    color: rgba(0,0,0,0);
 }
 
 .p_input_text {
@@ -15,8 +19,12 @@
     background-color: rgba(0, 0, 0, 0);
 }
 
-.p_input_view {
+.p_input_view, .p_input_bView {
     font-family: monospace;
+}
+
+.container.ssv .p_input{
+    background-color: var(--bg-col);
 }
 
 /* line numbers */

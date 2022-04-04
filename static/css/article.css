@@ -69,6 +69,7 @@
     display: none;
 }
 
+.container:not(.ssv) .p_input_bView,
 .container:not(.ssv) .p_input_view,
 .container:not(.ssv) .p_input_text {
     width: calc(100% - 10px);
@@ -116,11 +117,11 @@
 
 .container.ssv .para {
     position: relative;
-    left: 55%;
-    width: 40%;
+    left: 56%;
+    width: 38%;
     height: auto;
     min-height: 55px;
-    margin-bottom: 5px;
+    margin-bottom: 25px;
     padding: 5px;
 }
 
@@ -138,9 +139,9 @@
     white-space: pre-wrap;
     position: absolute;
     top: 0;
-    width: calc(100% + 10px);
+    width: 100%;
     padding: 5px;
-    right: calc(115% - 10px);
+    right: calc(115% + 20px);
     min-height: 50px;
     font-size: 85%;
     overflow: hidden;
@@ -149,9 +150,24 @@
     line-height: 20px;
 }
 
-.container.ssv .controlBut {
-    width: 20px;
-    height: 20px;
+.container.ssv .p_input_text,
+.container.ssv .p_input_view,
+.container.ssv .p_input_bView{
+    width: 100%;
+}
+
+.container.ssv .control {
+    padding-right: 25px;
+}
+
+.container.sb_content.ssv .controlButs {
+    flex-direction: column;
+ }
+
+.container.sb_content.ssv .controlBut {
+    width: 18px;
+    height: 18px;
+    padding: 3px;
 }
 
 .para.active > .control {

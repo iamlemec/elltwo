@@ -98,7 +98,7 @@ button,
     border: 0;
 }
 
-.p_input_view,.p_input_text, .p_text{
+.p_input_bView, .p_input_view,.p_input_text, .p_text{
     padding: 1px 1px 1px 4px;
 }
 

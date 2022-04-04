@@ -24,16 +24,9 @@ function esc_md(raw) {
               .replace(/\!/g, '&#33;');
 }
 
-function esc_brace(raw) {
-    return raw.replace(/&!L&/g, '<span class="brace">')
-              .replace(/&!R&/g, '</span>');
-}
-
 function esc_html(raw, brace=true) {
-    raw = raw.replace(/\</g, '&lt;')
-             .replace(/\>/g, '&gt;');
-
-    return brace ? esc_brace(raw) : raw;
+    return raw.replace(/\</g, '&lt;')
+             .replace(/\>/g, '&gt;')
 }
 
 function fArgs(argsraw, set=true) {
@@ -71,8 +64,7 @@ function fArgs(argsraw, set=true) {
     });
 
     // swap out leading/trailing bracket highlight
-    return args.replace(/^&!L&/, '<span class="brace">')
-               .replace(/&!R&$/, '</span>');
+    return args
 }
 
 // GUM
@@ -89,7 +81,6 @@ let boolean = ['true', 'false', 'null', 'undefined', 'new'];
 let jschars = `\\|\\&\\>\\<\\!\\;\\.\\=\\:\\,\\(\\)\\{\\}\\[\\]`;
 
 let rules = {
-    brace: /^&!(R|L)&/,
     newline: /^(\n)/,
     string: /^(['|"]+)\s*([\s\S]*?[^'"])\s*\1(?!['|"])/,
     jskey: /^(squish)(?=\s|[jschars]|$)/,
@@ -144,12 +135,6 @@ class GumLexer {
         let l1 = this.renderer.newline('');
 
         while (src) {
-            // brace match (for hl, not blocks)
-            if (cap = this.rules.brace.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.brace(cap[0], (cap[1]=='L'));
-                continue;
-            }
 
             // newline (for line numbers)
             if (cap = this.rules.newline.exec(src)) {
@@ -221,14 +206,6 @@ class GumRenderer {
         this.options = options ?? {};
     }
 
-    brace(text, left) {
-        if (left) {
-            return '<span class="brace">';
-        } else {
-            return '</span>';
-        }
-    }
-
     basic(text, klass) {
         return s(text, klass);
     }
@@ -260,6 +237,7 @@ let inline = {
     link: /(!?)\[([^\]]+)\]\(([^\)]+)\)/g,
     em: /\*((?:\*\*|[\s\S])+?)\*(?!\*)/g,
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
+    hash:/#(\[[\w| ]+\]|\w+)/g
 };
 
 function mathHL(raw) {
@@ -348,6 +326,13 @@ function syntaxParseInline(raw) {
         s('*', 'delimit') + b + s('*', 'delimit')
     );
 
+    html = html.replace(inline.hash, (a, b) => {
+        b = b.replace('[', s('[', 'delimit'))
+             .replace(']', s(']', 'delimit'));
+        return s('#', 'ref') + b 
+        }
+    );
+
     return html + endmath;
 }
 
@@ -355,10 +340,10 @@ function syntaxParsePre(raw){
 
 let html = esc_html(raw);
 
-    html = html.replace(/\#(\w+)/, (a, b) =>
-        s('#', 'delimit') + s(b, 'math')
+    html = html.replace(/\#(\w+)/g, (a, b) =>
+        s('#', 'ref') + s(b, 'math')
     );
-    html = html.replace(/([\\\w]+):([\\\w]+)/, (a,b,c) =>
+    html = html.replace(/([\\\w]+):([\\\w]+)/g, (a,b,c) =>
         s(b, 'ref') + s(':', 'delimit') + s(c, 'ref')
     );
 
@@ -382,7 +367,7 @@ let block = {
     envend: /^\<\<( ?)/,
 };
 
-block._refargs = /((?:&!L&)?\[(?:[^\]]|(?<=\\)\])*\]?(?:&!R&)?)/;
+block._refargs = /(\[(?:[^\]]|(?<=\\)\])*\]?)/;
 
 block.title = replace(block.title)
     ('refargs', block._refargs)
@@ -533,41 +518,35 @@ function shittySVG(raw) {
     raw = raw.replace(SVGrules.newline, (a) => {
         return n + '\n';
     });
-    raw = esc_brace(raw);
     return n + raw;
 }
 
 /// BRACE MATACH
 
-function braceMatch(text, cpos, hl='elltwo') {
+function braceMatch(text, cpos) {
     let delimit = {'(': ')', '[': ']', '{': '}'};
     let rev_delimit = {')': '(', ']': '[', '}': '{'};
 
     let after = text[cpos];
     let before = text[cpos-1] || false;
+    let pos;
 
     if (after in delimit) {
-        let pos = getBracePos(text, after, delimit[after], cpos);
-        if (pos) {
-            return braceHL(text, pos, hl);
-        } else {
-            return null;
-        }
+        pos = getBracePos(text, after, delimit[after], cpos);
     } else if (before in delimit) {
-        let pos = getBracePos(text, before, delimit[before], cpos-1);
-        if (pos) {
-            return braceHL(text, pos, hl);
-        } else {
-            return null;
-        }
+        pos = getBracePos(text, before, delimit[before], cpos-1);
     } else if (before in rev_delimit) {
-        let pos = getBracePos(text, before, rev_delimit[before], cpos, true);
-        return braceHL(text, pos, hl);
+        pos = getBracePos(text, before, rev_delimit[before], cpos, true);
     } else if (after in rev_delimit) {
-        let pos = getBracePos(text, after, rev_delimit[after], cpos+1, true);
-        return braceHL(text, pos, hl);
+         pos = getBracePos(text, after, rev_delimit[after], cpos+1, true);
     } else {
         $('.brace').contents().unwrap();
+        return null;
+    }
+
+    if (pos) {
+        return braceHL(text, pos);
+    } else {
         return null;
     }
 }
@@ -611,16 +590,16 @@ function getBracePos(text, brace, match, cpos, rev=false) {
     }
 }
 
-function braceHL(text, pos, hl) {
+function braceHL(text, pos) {
     let new_text = [
         text.slice(0, pos['l']),
-        `\&\!L\&`,
+        `<span class='brace'>`,
         text.slice(pos['l'], pos['r']+1),
-        `\&\!R\&`,
+        `</span>`,
         text.slice(pos['r']+1)
     ].join('');
 
-    return HLs[hl](new_text);
+    return new_text;
 }
 
 function jsHL(src) {

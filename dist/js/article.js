@@ -166,14 +166,23 @@ function loadArticle(args) {
 }
 
 function setSsvMode(val) {
-    console.log('ssv', state.ssv_mode);
     state.ssv_mode = val;
     $('#content').toggleClass('ssv', val);
     $('.para:not(.folded):not(.folder)').each(function() {
         let para = $(this);
-        para.children('.p_input');
-        placeCursor('end');
+        if(val){
+        let editor = getEditor(para);
+        editor.highlight();
+        editor.resize();
+        equalizeHeights(para);
+        }
     });
+}
+
+function equalizeHeights(para) {
+    let inp_h = para.children('.p_input').height();
+    let outp_h = para.children('.p_text').height();
+    para.css('min-height', Math.max(inp_h, outp_h));
 }
 
 function setEditMode(ro) {
@@ -363,16 +372,13 @@ function eventArticle() {
 
     // syntax highlighting and brace matching
     $(document).on('input', '.p_input:not(.svgE)', function(e) {
-        e.currentTarget.selectionStart;
-        let para = $(this).parent('.para');
-        let editor = getEditor(para);
-        let raw = editor.getText();
-
-        // ccRefs(view, raw, cur, config.cmd); TODO: CC
         if (state.ssv_mode) {
+            let para = $(this).parent('.para');
+            let editor = getEditor(para);
+            let raw = editor.getText();
             rawToRender(para, false, false, raw);
+            equalizeHeights(para);
         }
-
         schedTimeout();
     });
 
@@ -677,6 +683,7 @@ function toggleSidebar() {
     $('#sidebar').animate({width: 'toggle'}, 100);
     $('#logo').toggleClass('opened');
     $('#content').toggleClass('sb_content');
+    $('#svgEditorOuter').toggleClass('sb_content');
     state.sidebar_show = !state.sidebar_show;
 }
 
