@@ -109,7 +109,7 @@
 
 #svgEditorOuter .p_input_text,
 #svgEditorOuter .p_input_view,
-#svgEditorOuter .p_input_bView{
+#svgEditorOuter .p_input_brace {
     width: 100%;
     height: 100%;
     padding: 5px;

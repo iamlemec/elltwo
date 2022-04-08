@@ -110,9 +110,6 @@ class TextEditorNative {
             this.complete();
             this.event('input', e);
         });
-        this.text.addEventListener('keyup', e => {
-            this.braceMatch();
-        });
         this.text.addEventListener('keydown', e => {
             let key = e.key.toLowerCase();
             let ctrl = e.ctrlKey;
@@ -124,6 +121,8 @@ class TextEditorNative {
             if (state.cc) {
                 return;
             }
+
+            this.braceMatch();
 
             if (key == 'arrowleft') {
                 return this.event('left', e);
@@ -167,12 +166,12 @@ class TextEditorNative {
         this.view.classList.add('p_input_view');
 
         //bracket match viewer
-        this.bView = document.createElement('div');
-        this.bView.classList.add('p_input_bView');
+        this.brace = document.createElement('div');
+        this.brace.classList.add('p_input_brace');
 
         this.setEditable(edit);
         parent.appendChild(this.view);
-        parent.appendChild(this.bView);
+        parent.appendChild(this.brace);
         parent.appendChild(this.text);
     }
 
@@ -259,6 +258,7 @@ class TextEditorNative {
     highlight() {
         let raw = this.text.value;
         let parsed = SyntaxHL(raw, this.lang);
+        console.log(parsed);
         this.view.innerHTML = parsed;
     }
 
@@ -266,7 +266,7 @@ class TextEditorNative {
         let text = this.getText();
         let cpos = this.getCursorPos();
         let hled = braceMatch(text, cpos);
-        this.bView.innerHTML = hled;
+        this.brace.innerHTML = hled;
         setTimeout(function() {
             $('.brace').contents().unwrap();
         }, 800);

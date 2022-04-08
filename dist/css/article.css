@@ -69,7 +69,7 @@
     display: none;
 }
 
-.container:not(.ssv) .p_input_bView,
+.container:not(.ssv) .p_input_brace,
 .container:not(.ssv) .p_input_view,
 .container:not(.ssv) .p_input_text {
     width: calc(100% - 10px);
@@ -152,7 +152,7 @@
 
 .container.ssv .p_input_text,
 .container.ssv .p_input_view,
-.container.ssv .p_input_bView{
+.container.ssv .p_input_brace {
     width: 100%;
 }
 

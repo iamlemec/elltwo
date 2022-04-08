@@ -237,7 +237,7 @@ let inline = {
     link: /(!?)\[([^\]]+)\]\(([^\)]+)\)/g,
     em: /\*((?:\*\*|[\s\S])+?)\*(?!\*)/g,
     strong: /\*\*([\s\S]+?)\*\*(?!\*)/g,
-    hash:/#(\[[\w| ]+\]|\w+)/g
+    hash: /(?<!&)#(\[[\w| ]+\]|\w+)/g
 };
 
 function mathHL(raw) {
@@ -255,17 +255,16 @@ function mathHL(raw) {
 }
 
 function syntaxParseInline(raw) {
+    let endmath = '';
 
-    let endmath = "";
-
-    let dollars = [...raw.matchAll(/(\\*)\$/g)] || []; //match dollars
-    dollars = dollars.filter(x => (x[0].length%2==1)); //filter out escaped dollars
-    if(dollars.length%2==1){
+    let dollars = [...raw.matchAll(/(\\*)\$/g)] || []; // match dollars
+    dollars = dollars.filter(x => (x[0].length%2==1)); // filter out escaped dollars
+    if (dollars.length % 2 == 1) {
         let ld = dollars.pop().index + 1;
         endmath = raw.substring(ld);
         raw = raw.substring(0,ld-1);
         endmath = esc_html(endmath);
-        endmath = s('$', 'delimit') + s(mathHL(endmath),'math');
+        endmath = s('$', 'delimit') + s(mathHL(endmath), 'math');
     }
 
     let html = esc_html(raw);
@@ -329,7 +328,7 @@ function syntaxParseInline(raw) {
     html = html.replace(inline.hash, (a, b) => {
         b = b.replace('[', s('[', 'delimit'))
              .replace(']', s(']', 'delimit'));
-        return s('#', 'ref') + b 
+        return s('#', 'ref') + b
         }
     );
 
