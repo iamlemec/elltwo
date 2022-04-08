@@ -258,7 +258,6 @@ class TextEditorNative {
     highlight() {
         let raw = this.text.value;
         let parsed = SyntaxHL(raw, this.lang);
-        console.log(parsed);
         this.view.innerHTML = parsed;
     }
 
