@@ -94,6 +94,7 @@ class TextEditorNative {
         this.parent = parent;
         this.handler = handler;
         this.undoStack = new UndoStack();
+        this.timeout = null;
 
         // editor config
         this.lang = lang ?? 'elltwo';
@@ -262,11 +263,16 @@ class TextEditorNative {
     }
 
     async braceMatch() {
+        if (this.timeout != null) {
+            clearTimeout(this.timeout);
+            this.timeout = null;
+        }
         let text = this.getText();
         let cpos = this.getCursorPos();
         let hled = braceMatch(text, cpos);
         this.brace.innerHTML = hled;
-        setTimeout(function() {
+        this.timeout = setTimeout(function() {
+            this.timeout = null;
             $('.brace').contents().unwrap();
         }, 800);
     }
