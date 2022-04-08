@@ -1,6 +1,6 @@
 /* native editor */
 
-.p_input_text, .p_input_view, .p_input_bView {
+.text_overlay {
     font-size: inherit;
     position: absolute;
     resize: none;
@@ -14,12 +14,12 @@
     color: rgba(0,0,0,0);
 }
 
-.p_input_text {
+.p_input_text, .p_input_acView{
     color: rgba(0, 0, 0, 0);
     background-color: rgba(0, 0, 0, 0);
 }
 
-.p_input_view, .p_input_bView {
+.text_overlay {
     font-family: monospace;
 }
 

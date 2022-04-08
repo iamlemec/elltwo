@@ -30,6 +30,7 @@ import {
 import { connectDrops, promptUpload, uploadImage } from './drop.js'
 import { initExport } from './export.js'
 import { initHelp } from './help.js'
+import { initAC } from './correct.js'
 import { createBibInfo } from './bib.js'
 import { SvgEditor, parseSVG } from './svg.js'
 import { renderKatex} from './math.js'
@@ -44,6 +45,7 @@ let default_config = {
     theme: 'classic', // theme to use
     font: 'default', // font to use
     cmd: 'on', //
+    ac: true, //autocorrect
     timeout: 180, // para lock timeout
     max_size: 1024, // max image size
     readonly: true, // is session readonly
@@ -135,6 +137,9 @@ function initArticle() {
     initHelp();
     initEditor();
     initDrag();
+    if(config.ac){
+        initAC();
+    }
 }
 
 function loadArticle(args) {

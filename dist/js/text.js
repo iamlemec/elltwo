@@ -100,7 +100,7 @@ class TextEditorNative {
         this.mini = mini ?? true;
 
         this.text = document.createElement('textarea');
-        this.text.classList.add('p_input_text');
+        this.text.classList.add('p_input_text','text_overlay');
         this.text.setAttribute('readonly', !edit);
         this.text.addEventListener('input', e => {
             let raw = this.getText();
@@ -144,6 +144,7 @@ class TextEditorNative {
                 this.textWrap(wraps['tab']);
                 e.preventDefault();
             } else if (key == 'backspace') {
+                this.clearCorrect();
                 if (this.textUnwrap()) {
                     e.preventDefault();
                 }
@@ -155,6 +156,7 @@ class TextEditorNative {
                     this.setCursorPos(cur);
                 }
             } else if (space) {
+                this.correct();
                 this.undoStack.break();
             }
         });
@@ -164,21 +166,30 @@ class TextEditorNative {
 
         //syntaxHL viewer
         this.view = document.createElement('div');
-        this.view.classList.add('p_input_view');
+        this.view.classList.add('p_input_view','text_overlay');
 
         //bracket match viewer
         this.bView = document.createElement('div');
-        this.bView.classList.add('p_input_bView');
+        this.bView.classList.add('p_input_bView','text_overlay');
+
 
         this.setEditable(edit);
         parent.appendChild(this.view);
         parent.appendChild(this.bView);
         parent.appendChild(this.text);
+
+        //ac viewer
+        if(config.ac){
+            this.acView = document.createElement('div');
+            this.acView.classList.add('p_input_acView','text_overlay');
+            parent.appendChild(this.acView);
+        }
     }
 
     focus() {
         if (this.getEditable()) {
             this.text.focus();
+            return this;
         }
     }
 
@@ -260,6 +271,51 @@ class TextEditorNative {
         let raw = this.text.value;
         let parsed = SyntaxHL(raw, this.lang);
         this.view.innerHTML = parsed;
+    }
+
+    correct() {
+        this.clearCorrect();
+        let cur = this.getSelection();
+        cur = (cur[0] == cur[1]) ? cur[0] : false;
+        if(!cur){
+            return;
+        }
+        let raw = this.text.value;
+        let last = raw.substring(0,cur).split(' ').pop();
+        let correction = state.ac.correct(last);
+        if(correction){
+            let len = cur-last.length;
+            let newtxt = raw.substring(0, len) + correction + raw.substring(cur);
+            let newwrap = raw.substring(0, len) + `<span id="correction" revert="${last}">${correction}</span>` + raw.substring(cur);
+            this.setText(newtxt);
+            this.acView.innerHTML = newwrap;
+            this.setCursorPos(len + correction.length);
+            document.getElementById('correction').addEventListener('click', () => this.unCorrect(), false);
+        }
+    }
+
+    unCorrect() {
+        //this is texteditor, overide event
+        let cur = this.getSelection();
+        cur = (cur[0] == cur[1]) ? cur[0] : false;
+        if(!cur){
+            return;
+        }
+        let view = this.acView;
+        let pre = view.innerHTML.split('<span')[0];
+        let correction = view.querySelector('#correction');
+        let revert = correction.getAttribute('revert');
+        let cl = correction.textContent.length;
+        let len = pre.length + cl;
+        let post = this.getText().substring(len);
+        this.setText(pre + revert + post);
+        this.clearCorrect();
+        cur += (revert.length - cl);
+        this.focus().setCursorPos(cur);
+    }
+
+    clearCorrect() {
+        this.acView.innerHTML = "";
     }
 
     async braceMatch() {

@@ -55,6 +55,11 @@ gulp.task('css-core', () => gulp.src(['./static/css/*.css'])
     .pipe(gulp.dest('./dist/css'))
 );
 
+// json
+gulp.task('json', () => gulp.src(['./static/json/*.json'])
+    .pipe(gulp.dest('./dist/json'))
+);
+
 // all css
 gulp.task('css', gulp.parallel('css-themes', 'css-core'))
 
@@ -74,7 +79,7 @@ gulp.task('feature', () => gulp.src('./static/features/*.gif')
 );
 
 // all assets
-gulp.task('asset', gulp.parallel('image', 'favicon', 'feature'));
+gulp.task('asset', gulp.parallel('image', 'favicon', 'feature', 'json'));
 
 // core fonts
 gulp.task('core-fonts', () => gulp.src(['./static/css/fonts/*'])
