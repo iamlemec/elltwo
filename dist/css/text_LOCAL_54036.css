@@ -7,15 +7,25 @@
     overflow: hidden;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
-    padding: 0px;
-    font-family: monospace;
+    min-height: 40px;
 }
 
-.p_input_text, .p_input_ac {
+.p_input_bView{
+    color: rgba(0,0,0,0);
+}
+
+.p_input_text, .p_input_acView{
     color: rgba(0, 0, 0, 0);
     background-color: rgba(0, 0, 0, 0);
 }
 
+.text_overlay {
+    font-family: monospace;
+}
+
+.container.ssv .p_input{
+    background-color: var(--bg-col);
+}
 
 /* line numbers */
 

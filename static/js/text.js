@@ -172,8 +172,8 @@ class TextEditorNative {
         this.view.classList.add('p_input_view','text_overlay');
 
         //bracket match viewer
-        this.bView = document.createElement('div');
-        this.bView.classList.add('p_input_bView','text_overlay');
+        this.brace = document.createElement('div');
+        this.brace.classList.add('p_input_brace','text_overlay');
 
         this.setEditable(edit);
         parent.appendChild(this.view);
@@ -182,9 +182,9 @@ class TextEditorNative {
 
         //ac viewer
         if(config.ac){
-            this.acView = document.createElement('div');
-            this.acView.classList.add('p_input_acView','text_overlay');
-            parent.appendChild(this.acView);
+            this.ac = document.createElement('div');
+            this.ac.classList.add('p_input_ac','text_overlay');
+            parent.appendChild(this.ac);
         }
     }
 
@@ -290,7 +290,7 @@ class TextEditorNative {
             let newtxt = raw.substring(0, len) + correction + raw.substring(cur);
             let newwrap = raw.substring(0, len) + `<span id="correction" revert="${last}">${correction}</span>` + raw.substring(cur);
             this.setText(newtxt);
-            this.acView.innerHTML = newwrap;
+            this.ac.innerHTML = newwrap;
             this.setCursorPos(len + correction.length);
             document.getElementById('correction').addEventListener('click', () => this.unCorrect(), false);
         }
@@ -303,7 +303,7 @@ class TextEditorNative {
         if(!cur){
             return;
         }
-        let view = this.acView;
+        let view = this.ac;
         let pre = view.innerHTML.split('<span')[0];
         let correction = view.querySelector('#correction');
         let revert = correction.getAttribute('revert');
@@ -317,7 +317,7 @@ class TextEditorNative {
     }
 
     clearCorrect() {
-        this.acView.innerHTML = "";
+        this.ac.innerHTML = "";
     }
 
     async braceMatch() {

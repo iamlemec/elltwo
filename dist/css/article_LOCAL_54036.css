@@ -11,7 +11,7 @@
    border-left: none;
 }
 
-.p_input_ac{
+.p_input_acView{
     pointer-events: none;
 }
 
@@ -72,7 +72,6 @@
 .container:not(.ssv) .p_input {
     display: none;
 }
-
 
 .container:not(.ssv) .text_overlay {
     width: calc(100% - 10px);

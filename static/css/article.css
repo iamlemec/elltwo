@@ -11,7 +11,7 @@
    border-left: none;
 }
 
-.p_input_acView{
+.p_input_ac{
     pointer-events: none;
 }
 
@@ -153,13 +153,7 @@
     line-height: 20px;
 }
 
-<<<<<<< HEAD
 .container.ssv .text_overlay{
-=======
-.container.ssv .p_input_text,
-.container.ssv .p_input_view,
-.container.ssv .p_input_brace {
->>>>>>> ceb9167bbbc0499cbfeba1642660b786275a6cfc
     width: 100%;
 }
 

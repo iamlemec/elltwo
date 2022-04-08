@@ -11,7 +11,7 @@
    border-left: none;
 }
 
-.p_input_ac{
+.p_input_acView{
     pointer-events: none;
 }
 
@@ -73,8 +73,13 @@
     display: none;
 }
 
-
+<<<<<<< HEAD
 .container:not(.ssv) .text_overlay {
+=======
+.container:not(.ssv) .p_input_brace,
+.container:not(.ssv) .p_input_view,
+.container:not(.ssv) .p_input_text {
+>>>>>>> ceb9167bbbc0499cbfeba1642660b786275a6cfc
     width: calc(100% - 10px);
     font-size: 80%;
 }
@@ -153,7 +158,13 @@
     line-height: 20px;
 }
 
+<<<<<<< HEAD
 .container.ssv .text_overlay{
+=======
+.container.ssv .p_input_text,
+.container.ssv .p_input_view,
+.container.ssv .p_input_brace {
+>>>>>>> ceb9167bbbc0499cbfeba1642660b786275a6cfc
     width: 100%;
 }
 

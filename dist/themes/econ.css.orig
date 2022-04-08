@@ -98,7 +98,11 @@ button,
     border: 0;
 }
 
+<<<<<<< HEAD
 .text_overlay, .p_text{
+=======
+.p_input_brace, .p_input_view,.p_input_text, .p_text{
+>>>>>>> ceb9167bbbc0499cbfeba1642660b786275a6cfc
     padding: 1px 1px 1px 4px;
 }
 

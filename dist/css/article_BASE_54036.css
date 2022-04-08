@@ -11,10 +11,6 @@
    border-left: none;
 }
 
-.p_input_ac{
-    pointer-events: none;
-}
-
 /* classic view paras */
 
 .container:not(.ssv) .para {
@@ -73,8 +69,9 @@
     display: none;
 }
 
-
-.container:not(.ssv) .text_overlay {
+.container:not(.ssv) .p_input_bView,
+.container:not(.ssv) .p_input_view,
+.container:not(.ssv) .p_input_text {
     width: calc(100% - 10px);
     font-size: 80%;
 }
@@ -153,7 +150,9 @@
     line-height: 20px;
 }
 
-.container.ssv .text_overlay{
+.container.ssv .p_input_text,
+.container.ssv .p_input_view,
+.container.ssv .p_input_bView{
     width: 100%;
 }
 
@@ -760,13 +759,6 @@ button {
 
 .cc_row:nth-child(-n+5) {
   display: block;
-}
-
-
-#correction{
-    pointer-events: auto;
-    -webkit-box-shadow: inset 0px -2px 0px 0px var(--hl-col); 
-    box-shadow: inset 0px -2px 0px 0px var(--hl-col);
 }
 
 .env_disp{

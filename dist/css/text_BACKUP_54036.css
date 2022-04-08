@@ -1,21 +1,39 @@
 /* native editor */
 
+<<<<<<< HEAD
 .text_overlay {
+=======
+.p_input_text, .p_input_view, .p_input_brace {
+>>>>>>> ceb9167bbbc0499cbfeba1642660b786275a6cfc
     font-size: inherit;
     position: absolute;
     resize: none;
     overflow: hidden;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
-    padding: 0px;
-    font-family: monospace;
+    min-height: 40px;
 }
 
-.p_input_text, .p_input_ac {
+.p_input_brace {
+    color: rgba(0,0,0,0);
+}
+
+.p_input_text, .p_input_acView{
     color: rgba(0, 0, 0, 0);
     background-color: rgba(0, 0, 0, 0);
 }
 
+<<<<<<< HEAD
+.text_overlay {
+=======
+.p_input_view, .p_input_brace {
+>>>>>>> ceb9167bbbc0499cbfeba1642660b786275a6cfc
+    font-family: monospace;
+}
+
+.container.ssv .p_input{
+    background-color: var(--bg-col);
+}
 
 /* line numbers */
 
