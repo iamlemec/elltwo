@@ -159,7 +159,9 @@ class TextEditorNative {
                     this.setCursorPos(cur);
                 }
             } else if (space) {
-                this.correct()
+                if(config.ac){
+                    this.correct()
+                }
                 this.undoStack.break();
             }
         });
@@ -266,7 +268,7 @@ class TextEditorNative {
     complete() {
         let raw = this.getText();
         let cur = this.getCursorPos();
-        ccRefs(this.view, raw, cur, config.cmd);
+        ccRefs(this.brace, raw, cur, config.cmd);
     }
 
     highlight() {

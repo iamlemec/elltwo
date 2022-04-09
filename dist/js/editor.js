@@ -448,8 +448,12 @@ function makeUnEditable(unlock=true) {
     $('#bg').removeClass('rawtext');
     $('#content').focus();
 
+    //remove cmd complete and autocomplete
     state.cc = false;
     $('#cc_pop').remove();
+    if(para.length > 0){
+        getEditor(para).clearCorrect();
+    }
 
     if (state.active_para && state.rawtext) {
         state.rawtext = false;

@@ -11,7 +11,7 @@
     font-family: monospace;
 }
 
-.p_input_text, .p_input_ac {
+.p_input_text, .p_input_ac, .p_input_brace {
     color: rgba(0, 0, 0, 0);
     background-color: rgba(0, 0, 0, 0);
 }

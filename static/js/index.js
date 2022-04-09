@@ -152,7 +152,7 @@ function eventIndex() {
     $(document).on('input', '.p_input', function(e) {
         let para = $(this).parent('.para');
         let text = para.children('.p_input');
-        let view = para.children('.p_input_view');
+        let view = para.children('.p_input_brace');
         let raw = text.val();
         let cur = e.target.selectionStart;
         ccRefs(view, raw, cur);

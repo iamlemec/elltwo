@@ -76,6 +76,14 @@ function stateArticle() {
     updateState(default_state);
 }
 
+// sidebar option menus
+let sb_opt = {
+    'font': setFont,
+    'theme': setTheme,
+    'cmd': setCmd,
+    'ac': setAc,
+}
+
 function cacheArticle() {
     // external references/popups
     cache.ext = new KeyCache('ext', async function(key) {
@@ -324,28 +332,13 @@ function eventArticle() {
     $(document).on('click', '#show_hist', toggleHistMap);
     $(document).on('click', '#revert_hist', revertHistory);
 
-    // sidebar
-    $(document).on('change', '#theme_select', function() {
-        let tselect = $(this);
-        let tchoice = tselect.children('option:selected').text();
-        if (tchoice != config.theme) {
-            setTheme(tchoice);
-        }
-    });
-
-    $(document).on('change', '#font_select', function() {
-        let fselect = $(this);
-        let fchoice = fselect.children('option:selected').text();
-        if (fchoice != config.font) {
-            setFont(fchoice);
-        }
-    });
-
-    $(document).on('change', '#cmd_select', function() {
-        let fselect = $(this);
-        let fchoice = fselect.children('option:selected').text();
-        if (fchoice != config.cmd) {
-            setCmd(fchoice);
+    //making selections
+    $(document).on('change', '.sb_opt', function() {
+        let select = $(this);
+        let choice = select.children('option:selected').text();
+        let opt = select.attr('name')
+        if (choice != config[opt]) {
+            sb_opt[opt](choice);
         }
     });
 
@@ -737,23 +730,26 @@ function setCmd(cmd) {
     setCookie('cmd', cmd);
 }
 
+function setAc(ac) {
+    ac = (ac=='on' || ac===true);
+    if(ac && !state.ac){ //if was primordially off
+        initAC();
+    }
+    if(!ac){
+        getEditor(state.active_para).clearCorrect();
+    }
+    config.ac = ac;
+    setCookie('ac', ac);
+}
+
 function initSidebar() {
-    let theme_select = $('#theme_select');
-    let font_select = $('#font_select');
-    let cmd_select = $('#cmd_select');
 
-    makeSelect(theme_select);
-    makeSelect(font_select);
-    makeSelect(cmd_select);
-
-    setSelect(theme_select, config.theme);
-    setSelect(font_select, config.font);
-    setSelect(cmd_select, config.cmd);
-
-
-    setTheme(config.theme);
-    setFont(config.font);
-    setCmd(config.cmd);
+    Object.entries(sb_opt).forEach(([opt,setFunc]) => {
+        let select = $(`#${opt}_select`);
+        makeSelect(select);
+        setSelect(select, config[opt]);
+        setFunc(config[opt]);
+    })
 }
 
 function showOption(sel1, opt) {
@@ -1245,7 +1241,7 @@ function ccMake(cctxt=null, addText=false, offset_chars=0) {
     editor.setCursorPos(l);
 
     if (iter) {
-        ccRefs(editor.view, raw, l);
+        ccRefs(editor.brace, raw, l);
     }
 
     if (state.ssv_mode) {
@@ -1348,6 +1344,7 @@ async function ccRefs(view, raw, cur, configCMD) {
     let open_cmd = /\\([\w-\|\=^]+)(?:[\s\n]|$)/;
     let cap;
     if (cap = open_ref.exec(sel)) {
+        console.log(view);
         raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
         view.innerHTML = raw;
         let off = $('#cc_pos').offset();

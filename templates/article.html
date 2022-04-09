@@ -28,7 +28,7 @@
 
 <div class="option">
 Theme
-<select id="theme_select" name="theme_select" class="sources" placeholder="default">
+<select id="theme_select" name="theme" class="sources sb_opt" placeholder="default">
     {% for t in themes %}
     <option value="{{t}}">{{t}}</option>
     {% endfor %}
@@ -37,7 +37,7 @@ Theme
 
 <div class="option">
 Font
-<select id="font_select" name="font_select" class="sources" placeholder="default">
+<select id="font_select" name="font" class="sources sb_opt" placeholder="default">
     <option value="default">default</option>
     <option value="serif">serif</option>
     <option value="sans-serif">sans</option>
@@ -48,9 +48,17 @@ Font
 
 <div class="option">
 Cmd Completion
-<select id="cmd_select" name="cc" class="sources" placeholder="on">
+<select id="cmd_select" name="cmd" class="sources sb_opt" placeholder="on">
     <option value="on">on</option>
     <option value="refonly">refs only</option>
+    <option value="off">off</option>
+</select>
+</div>
+
+<div class="option">
+Autocorrect
+<select id="ac_select" name="ac" class="sources sb_opt" placeholder="on">
+    <option value="on">on</option>
     <option value="off">off</option>
 </select>
 </div>
