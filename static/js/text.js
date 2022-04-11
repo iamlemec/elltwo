@@ -121,6 +121,7 @@ class TextEditorNative {
             let meta = e.metaKey;
             let shift = e.shiftKey;
             let space = e.keyCode == 32;
+            let ac_trigger = [32,59, 13, 222, 188, 190].includes(e.keyCode);
 
             if (state.cc) {
                 return;
@@ -158,11 +159,16 @@ class TextEditorNative {
                     this.setText(raw, false);
                     this.setCursorPos(cur);
                 }
+                return false;
             } else if (space) {
                 if(config.ac){
                     this.correct()
                 }
                 this.undoStack.break();
+            } else if (ac_trigger){
+                if(config.ac){
+                    this.correct()
+                }
             }
         });
         this.text.addEventListener('mouseup', e => {
@@ -228,8 +234,8 @@ class TextEditorNative {
     setText(text, save=true) {
         this.text.value = text;
         this.update();
-        this.text.dispatchEvent(new Event('input', {bubbles:true}));
         if (save) {
+            this.text.dispatchEvent(new Event('input', {bubbles:true}));
             let raw = this.getText();
             let cur = this.getCursorPos();
             this.undoStack.push(raw, cur);
@@ -278,28 +284,30 @@ class TextEditorNative {
     }
 
     correct() {
-        this.clearCorrect();
         let cur = this.getSelection()
         cur = (cur[0] == cur[1]) ? cur[0] : false;
         if(!cur){
             return;
         }
         let raw = this.text.value;
-        let last = raw.substring(0,cur).split(' ').pop();
-        let correction = state.ac.correct(last);
-        if(correction){
-            let len = cur-last.length;
-            let newtxt = raw.substring(0, len) + correction + raw.substring(cur);
-            let newwrap = raw.substring(0, len) + `<span id="correction" revert="${last}">${correction}</span>` + raw.substring(cur);
-            this.setText(newtxt);
-            this.ac.innerHTML = newwrap;
-            this.setCursorPos(len + correction.length);
-            document.getElementById('correction').addEventListener('click', () => this.unCorrect(), false);
+        let last = raw.substring(0,cur).split(/[ ,.;'\n]/).pop();
+        if(last){
+            this.clearCorrect();
+            let correction = state.ac.correct(last);
+            if(correction){
+                let len = cur-last.length;
+                let newtxt = raw.substring(0, len) + correction + raw.substring(cur);
+                let newwrap = raw.substring(0, len) + `<span id="correction" revert="${last}">${correction}</span>` + raw.substring(cur);
+                this.setText(newtxt);
+                this.ac.innerHTML = newwrap;
+                this.setCursorPos(len + correction.length);
+                document.getElementById('correction').addEventListener('click', () => this.unCorrect(), false);
+            }
         }
     }
 
     unCorrect() {
-        //this is texteditor, overide event
+        //this==texteditor, overide event "this"
         let cur = this.getSelection()
         cur = (cur[0] == cur[1]) ? cur[0] : false;
         if(!cur){
