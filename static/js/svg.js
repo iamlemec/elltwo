@@ -29,7 +29,7 @@ class SvgEditor {
         // init text editors
         console.log('svg hi');
         this.edit = new TextEditorNative(edit, {
-            lang: 'gum', edit: true, mini: false,
+            lang: 'gum', edit: true, mini: false, autocorrect:false,
             handler: (t, c, e) => { this.event(t, c, e); },
         });
         this.view = new TextEditorNative(view, {
@@ -58,6 +58,8 @@ class SvgEditor {
         let exit = document.querySelector('#svgEditorExit');
         let dele = document.querySelector('#svgEditorDelete');
         let comt = document.querySelector('#svgEditorCommit');
+
+        let ahh = document.querySelector('#svgEditorTextGum');
 
         window.addEventListener('popstate', e => {
             this.close();
@@ -106,19 +108,24 @@ class SvgEditor {
         });
 
         // center divider resize
-        let control = new AbortController();
+        let control;
         divi.addEventListener('mousedown', e => {
+            control = new AbortController();
             document.addEventListener('mousemove', u => {
                 this.resize(u);
             }, {signal: control.signal});
+
+            document.addEventListener('mouseup', function up() {
+                control.abort();
+                this.removeEventListener('mouseup', up)
+            }, false);
+
         }, false);
 
-        document.addEventListener('mouseup', e => {
-            control.abort();
-        }, false);
     }
 
     async open(key, raw) {
+
         let hoot = document.querySelector('#hoot');
         let logo = document.querySelector('#logo');
         let outr = document.querySelector('#svgEditorOuter');
@@ -153,7 +160,9 @@ class SvgEditor {
         this.render();
 
         // show elements
-        logo.style.visibility = 'hidden';
+        if(logo){
+            logo.style.visibility = 'hidden';
+        }
         hoot.innerHTML = '[201p // iamlemec] — gum.js';
         outr.style.visibility = 'unset';
 
@@ -178,7 +187,9 @@ class SvgEditor {
         // hide elements
         hoot.innerHTML = '[201p // iamlemec]';
         outr.style.visibility = 'hidden';
-        logo.style.visibility = 'unset';
+        if(logo){
+            logo.style.visibility = 'unset';
+        }
 
 
         // update state

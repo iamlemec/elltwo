@@ -51,7 +51,7 @@ function eventHome() {
 
     $(document).on('keydown', function(e) {
         let key = e.key.toLowerCase();
-        let real = String.fromCharCode(e.keyCode).match(/[\w\s\]\[\(\)]/g);
+        let real = key.match(/^[\w\s\]\[\(\)\!\@\$\%\^\&\*\\\?\.\,\`]$/);
         let andriod_is_fucking_stupid = e.keyCode == 229;
 
         let active = getActive();

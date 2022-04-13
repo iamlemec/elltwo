@@ -1,5 +1,5 @@
 import { SyntaxHL, braceMatch } from './hl.js';
-import { state, config } from './state.js';
+import { config, state } from './state.js';
 import { ccRefs } from './article.js';
 import { unEscCharCount } from './utils.js';
 
@@ -87,9 +87,10 @@ class UndoStack {
 
 class TextEditorNative {
     constructor(parent, opts) {
-        let { handler, lang, edit, mini } = opts ?? {};
+        let { handler, lang, edit, mini, autocorrect } = opts ?? {};
         edit = edit ?? false;
-
+        autocorrect = (autocorrect===undefined) ? config.ac : autocorrect;
+        
         // editor components
         this.parent = parent;
         this.handler = handler;
@@ -145,11 +146,11 @@ class TextEditorNative {
                 this.textWrap(wraps['tab']);
                 e.preventDefault();
             } else if (key == 'backspace') {
-                this.clearCorrect();
-                if (this.textUnwrap()) {
+                if(autocorrect){
+                    this.clearCorrect();
+                }                if (this.textUnwrap()) {
                     e.preventDefault();
-                }
-            } else if ((ctrl || meta) && key == 'z') {
+                }            } else if ((ctrl || meta) && key == 'z') {
                 let ret = this.undoStack.pop(shift);
                 if (ret != null) {
                     let [raw, cur] = ret;
@@ -158,12 +159,12 @@ class TextEditorNative {
                 }
                 return false;
             } else if (space) {
-                if(config.ac){
+                if(autocorrect){
                     this.correct();
                 }
                 this.undoStack.break();
             } else if (ac_trigger){
-                if(config.ac){
+                if(autocorrect){
                     this.correct();
                 }
             }
@@ -186,7 +187,7 @@ class TextEditorNative {
         parent.appendChild(this.text);
 
         //ac viewer
-        if(config.ac){
+        if(autocorrect){
             this.ac = document.createElement('div');
             this.ac.classList.add('p_input_ac','text_overlay');
             parent.appendChild(this.ac);

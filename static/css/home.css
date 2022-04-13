@@ -33,7 +33,8 @@
     width: 49%;
     display: flex;
     border-radius: 0;
-    background-color: var(--bg-hl2-col)
+    background-color: var(--bg-hl2-col);
+    overflow: hidden;
 }
 
 #cc_pop, #tagdisp{
@@ -41,6 +42,7 @@
     background-color: unset;
     font-size: unset;
     font-size: 60%;
+    flex-shrink: 0;
 }
 
 #cc_pop{
@@ -139,7 +141,7 @@
     position: fixed;
     font-size: 120%;
     left: 20%;
-    top: 240px;
+    top: 260px;
     width: 60%;
     height: calc(100% - 280px);
 }
@@ -153,6 +155,9 @@
 }
 
 .res_title{
+    position: fixed;
+    width: 60%;
+    transform: translateY(-30px);
     padding: 4px;
     font-size: 75%;
     text-align: center;
@@ -369,6 +374,11 @@
 	bottom: 1px;
 	height: 21px;
 }
+    
+.res_title{
+    position: fixed;
+    width: 80%;
+    transform: translateY(-25px);
     
 
 #results_outer.tagged{

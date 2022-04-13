@@ -56,7 +56,7 @@ function cacheImage() {
             if (ret == null) {
                 return null;
             } else if (ret.mime == 'image/svg+gum') {
-                return ret.data;
+                return {mime: ret.mime, data: ret.data};
             } else {
                 return new Blob([ret.data], {type: ret.mime});
             }
@@ -110,8 +110,9 @@ function eventImage() {
             state.key = key;
             let mime = img.attr('mime');
             let raw = img.attr('raw');
+            let data = {mime:mime, data:raw}
             let mode = mime.replace(/text\/svg\+(.+)/, '$1');
-            state.svg.open(key, raw);
+            state.svg.open(key, data);
         } else {
             let ks = $(e.target).closest('.keyspan');
             if (ks.length > 0) {
@@ -251,14 +252,14 @@ async function renderBox(elem, key, kws, mime) {
     if (mime == 'image/svg+gum') {
         let ret = await cache.img.get(key);
         let size = elem.height();
-        let svg = parseSVG(mime, ret, size);
+        let svg = parseSVG(mime, ret.data, size);
         if (!svg.success) {
             elem.html(svg.message);
         } else {
             elem.html(svg.svg);
             elem.addClass('svg');
             elem.attr('mime', mime);
-            elem.attr('raw', ret);
+            elem.attr('raw', ret.data);
         }
     } else {
         let img = $('<img>');
