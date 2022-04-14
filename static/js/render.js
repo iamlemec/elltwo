@@ -724,10 +724,10 @@ function svgEnv(ptxt, args, outer=true) {
     hdl.innerHTML = svg;
     fig.append(hdl);
     if (ret.anchors) {
-        let iac_wrap = $('<div>', {class: 'env_add fig_iac_wrap'});
+        let iac_wrap = $('<div>', {class: 'env_add fig_iac_wrap closed'});
         let iac = $('<div>', {class: 'env_add fig_iac'});
         let iac_tog = document.createElement('div');
-        iac_tog.className = 'iac_tog';
+        iac_tog.className = 'iac_tog closed';
         iac.append(...ret.anchors);
         iac_wrap.append(iac, iac_tog);
         fig.append(iac_wrap);

@@ -838,7 +838,8 @@ class DivRenderer {
     }
 
     hash(text) {
-        let url = window.location.origin + '/t/' + text;
+        let sfx = text.replaceAll(' ', '+');
+        let url = window.location.origin + '/t/' + sfx;
         return `<a href=${url} class="hash">${text}</a>`;
     }
 

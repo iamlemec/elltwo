@@ -262,6 +262,10 @@
     scrollbar-width: none;
 }
 
+.fig_iac{
+    display: none;
+}
+
 .var_cont {
     display: flex;
     flex-direction: column;

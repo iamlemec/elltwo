@@ -38,6 +38,7 @@ class UndoStack {
         this.pos = null;
         this.breakpoint = false;
         this.lastbreak = 0;
+        this.ac_state = null;
     }
 
     len() {
@@ -87,10 +88,11 @@ class UndoStack {
 
 class TextEditorNative {
     constructor(parent, opts) {
-        let { handler, lang, edit, mini, autocorrect } = opts ?? {};
+        let { handler, lang, edit, active, mini, autocorrect } = opts ?? {};
         edit = edit ?? false;
+        active = active ?? false;
         autocorrect = (autocorrect===undefined) ? config.ac : autocorrect;
-        
+
         // editor components
         this.parent = parent;
         this.handler = handler;
@@ -104,12 +106,15 @@ class TextEditorNative {
         this.text = document.createElement('textarea');
         this.text.classList.add('p_input_text','text_overlay');
         this.text.setAttribute('readonly', !edit);
+        this.active = active;
         this.text.addEventListener('input', e => {
-            let raw = this.getText();
-            let cur = this.getCursorPos();
-            this.undoStack.push(raw, cur);
-            this.update();
-            this.complete();
+            if(this.active){
+                let raw = this.getText();
+                let cur = this.getCursorPos();
+                this.undoStack.push(raw, cur);
+                this.update();
+                this.complete();
+            }
             this.event('input', e);
         });
         this.text.addEventListener('keydown', e => {
@@ -146,8 +151,9 @@ class TextEditorNative {
                 this.textWrap(wraps['tab']);
                 e.preventDefault();
             } else if (key == 'backspace') {
-                if(autocorrect){
-                    this.clearCorrect();
+                if(autocorrect && this.ac_state == 'corrected'){
+                    this.ac_state = 'ignore';
+                    this.unCorrect();
                 }                if (this.textUnwrap()) {
                     e.preventDefault();
                 }            } else if ((ctrl || meta) && key == 'z') {
@@ -159,7 +165,7 @@ class TextEditorNative {
                 }
                 return false;
             } else if (space) {
-                if(autocorrect){
+                if(autocorrect && this.ac_state != 'ignore'){
                     this.correct();
                 }
                 this.undoStack.break();
@@ -167,6 +173,8 @@ class TextEditorNative {
                 if(autocorrect){
                     this.correct();
                 }
+            } else {
+                this.ac_state = null;
             }
         });
         this.text.addEventListener('mouseup', e => {
@@ -296,6 +304,7 @@ class TextEditorNative {
                 let len = cur-last.length;
                 let newtxt = raw.substring(0, len) + correction + raw.substring(cur);
                 let newwrap = raw.substring(0, len) + `<span id="correction" revert="${last}">${correction}</span>` + raw.substring(cur);
+                this.ac_state = 'corrected';
                 this.setText(newtxt);
                 this.ac.innerHTML = newwrap;
                 this.setCursorPos(len + correction.length);

@@ -107,6 +107,7 @@ function eventEditor() {
                     return false;
                 }
             }
+
         } else if (state.active_para && state.rawtext && !state.svg.show) { // we are active and rawtext
             if (key == 'arrowup') {
                 if (state.cc) { // if there is an open command completion window
@@ -151,6 +152,9 @@ function eventEditor() {
                 if (state.writeable) {
                     sendInsertPara(state.active_para, true);
                 }
+                return false;
+            } else if ((ctrl || meta) && key == '\\') {
+                splitParas();
                 return false;
             }
         }
@@ -334,7 +338,7 @@ async function sendUpdatePara(para, text, rerender=false) {
     }
 }
 
-async function sendInsertPara(para, after=true) {
+async function sendInsertPara(para, after=true, text="") {
     let fold_pid = para.attr('fold_pid');
     let head;
     if (fold_pid) {
@@ -345,10 +349,10 @@ async function sendInsertPara(para, after=true) {
     }
     let pid = head.attr('pid');
 
-    let data = {aid: config.aid, pid: pid, after: after, edit: true, text: ''};
+    let data = {aid: config.aid, pid: pid, after: after, edit: true, text: text};
     let new_pid = await sendCommand('insert_para', data);
     if (new_pid !== undefined) {
-        let new_para = insertParaRaw(pid, new_pid, '', after);
+        let new_para = insertParaRaw(pid, new_pid, text, after);
         initDrag();
         makeActive(new_para);
         state.rawtext = true;
@@ -369,6 +373,17 @@ async function sendDeleteParas(paras) {
         }
         deleteParas(pids);
     }
+}
+
+function splitParas() {
+    let para = state.active_para;
+    let editor = getEditor(para);
+    let raw = editor.getText();
+    let cur = editor.getCursorPos();
+    let [raw0, raw1] = [raw.substring(0, cur), raw.substring(cur)];
+    editor.setText(raw0);
+    makeUnEditable(para);
+    sendInsertPara(para, true, raw1);
 }
 
 // revertChange?
@@ -407,6 +422,7 @@ function trueMakeEditable(rw=true, cursor='end') {
     let lang = detectLanguage(state.active_para);
     editor.setEditable(rw);
     editor.setLanguage(lang);
+    editor.active = true;
 
     if (rw) {
         placeCursor(cursor);
@@ -453,6 +469,7 @@ function makeUnEditable(unlock=true) {
     $('#cc_pop').remove();
     if(para.length > 0){
         getEditor(para).clearCorrect();
+        getEditor(para).active = false;
     }
 
     if (state.active_para && state.rawtext) {
@@ -693,7 +710,7 @@ function unfold() {
     renderFold();
 }
 
-/// confirm dialog
+// confirm dialog
 
 function showConfirm(button, action, text) {
     state.confirm = true;
