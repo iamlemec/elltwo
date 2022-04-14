@@ -89,8 +89,8 @@ class TextEditorNative {
     constructor(parent, opts) {
         let { handler, lang, edit, mini, autocorrect } = opts ?? {};
         edit = edit ?? false;
-        autocorrect = (autocorrect===undefined) ? config.ac : autocorrect;
-        
+        autocorrect = autocorrect ?? config.ac;
+
         // editor components
         this.parent = parent;
         this.handler = handler;
@@ -101,9 +101,12 @@ class TextEditorNative {
         this.lang = lang ?? 'elltwo';
         this.mini = mini ?? true;
 
+        // create text editor
         this.text = document.createElement('textarea');
         this.text.classList.add('p_input_text','text_overlay');
         this.text.setAttribute('readonly', !edit);
+
+        // updates on text input
         this.text.addEventListener('input', e => {
             let raw = this.getText();
             let cur = this.getCursorPos();
@@ -112,6 +115,13 @@ class TextEditorNative {
             this.complete();
             this.event('input', e);
         });
+
+        // brace matching (includes keyboard or mouse)
+        this.text.addEventListener('selectionchange', e => {
+            this.braceMatch();
+        });
+
+        // main editor interface
         this.text.addEventListener('keydown', e => {
             let key = e.key.toLowerCase();
             let ctrl = e.ctrlKey;
@@ -119,13 +129,11 @@ class TextEditorNative {
             let meta = e.metaKey;
             let shift = e.shiftKey;
             let space = e.keyCode == 32;
-            let ac_trigger = [32,59, 13, 222, 188, 190].includes(e.keyCode);
+            let ackey = [32, 59, 13, 222, 188, 190].includes(e.keyCode);
 
             if (state.cc) {
                 return;
             }
-
-            this.braceMatch();
 
             if (key == 'arrowleft') {
                 return this.event('left', e);
@@ -146,11 +154,13 @@ class TextEditorNative {
                 this.textWrap(wraps['tab']);
                 e.preventDefault();
             } else if (key == 'backspace') {
-                if(autocorrect){
+                if (autocorrect) {
                     this.clearCorrect();
-                }                if (this.textUnwrap()) {
+                }
+                if (this.textUnwrap()) {
                     e.preventDefault();
-                }            } else if ((ctrl || meta) && key == 'z') {
+                }
+            } else if ((ctrl || meta) && key == 'z') {
                 let ret = this.undoStack.pop(shift);
                 if (ret != null) {
                     let [raw, cur] = ret;
@@ -159,37 +169,35 @@ class TextEditorNative {
                 }
                 return false;
             } else if (space) {
-                if(autocorrect){
+                if (autocorrect) {
                     this.correct();
                 }
                 this.undoStack.break();
-            } else if (ac_trigger){
-                if(autocorrect){
+            } else if (ackey) {
+                if (autocorrect) {
                     this.correct();
                 }
             }
         });
-        this.text.addEventListener('mouseup', e => {
-            this.braceMatch();
-        });
 
-        //syntaxHL viewer
+        // syntaxHL viewer
         this.view = document.createElement('div');
-        this.view.classList.add('p_input_view','text_overlay');
+        this.view.classList.add('p_input_view', 'text_overlay');
 
-        //bracket match viewer
+        // bracket match viewer
         this.brace = document.createElement('div');
-        this.brace.classList.add('p_input_brace','text_overlay');
+        this.brace.classList.add('p_input_brace', 'text_overlay');
 
+        // assemble elements
         this.setEditable(edit);
         parent.appendChild(this.view);
         parent.appendChild(this.brace);
         parent.appendChild(this.text);
 
-        //ac viewer
-        if(autocorrect){
+        // autocorrect viewer
+        if (autocorrect) {
             this.ac = document.createElement('div');
-            this.ac.classList.add('p_input_ac','text_overlay');
+            this.ac.classList.add('p_input_ac', 'text_overlay');
             parent.appendChild(this.ac);
         }
     }
@@ -233,7 +241,8 @@ class TextEditorNative {
         this.text.value = text;
         this.update();
         if (save) {
-            this.text.dispatchEvent(new Event('input', {bubbles:true}));
+            let event = new Event('input', {bubbles: true});
+            this.text.dispatchEvent(event);
             let raw = this.getText();
             let cur = this.getCursorPos();
             this.undoStack.push(raw, cur);
@@ -325,18 +334,23 @@ class TextEditorNative {
     }
 
     clearCorrect() {
-        this.ac.innerHTML = "";
+        this.ac.innerHTML = '';
     }
 
     async braceMatch() {
+        // clear existing timeout
         if (this.timeout != null) {
             clearTimeout(this.timeout);
             this.timeout = null;
         }
+
+        // apply brace match
         let text = this.getText();
         let cpos = this.getCursorPos();
         let hled = braceMatch(text, cpos);
         this.brace.innerHTML = hled;
+
+        // set timeout for clearing
         this.timeout = setTimeout(function() {
             this.timeout = null;
             $('.brace').contents().unwrap();

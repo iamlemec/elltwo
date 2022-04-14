@@ -22,9 +22,8 @@ class SvgEditor {
         let nvdn = document.querySelector('#svgEditorNavDown');
 
         // init text editors
-        console.log('svg hi');
         this.edit = new TextEditorNative(edit, {
-            lang: 'gum', edit: true, mini: false, autocorrect:false,
+            lang: 'gum', edit: true, mini: false, autocorrect: false,
             handler: (t, c, e) => { this.event(t, c, e); },
         });
         this.view = new TextEditorNative(view, {
@@ -116,11 +115,9 @@ class SvgEditor {
             }, false);
 
         }, false);
-
     }
 
     async open(key, raw) {
-
         let hoot = document.querySelector('#hoot');
         let logo = document.querySelector('#logo');
         let outr = document.querySelector('#svgEditorOuter');
