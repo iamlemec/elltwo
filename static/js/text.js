@@ -5,7 +5,6 @@ import { config, state } from './state.js'
 import { ccRefs } from './article.js'
 import { unEscCharCount } from './utils.js'
 
-
 let wraps = {
     'i': ['*', '*'],
     'b': ['**', '**'],
@@ -41,7 +40,7 @@ class UndoStack {
         this.pos = null;
         this.breakpoint = false;
         this.lastbreak = 0;
-        this.ac_state = null;
+        this.correction = null;
     }
 
     len() {
@@ -94,7 +93,9 @@ class TextEditorNative {
         let { handler, lang, edit, active, mini, autocorrect } = opts ?? {};
         edit = edit ?? false;
         active = active ?? false;
+        //intentional: so ac will override confiig even if false
         autocorrect = (autocorrect===undefined) ? config.ac : autocorrect;
+        //autocorrect = autocorrect ?? config.ac;
 
         // editor components
         this.parent = parent;
@@ -106,10 +107,14 @@ class TextEditorNative {
         this.lang = lang ?? 'elltwo';
         this.mini = mini ?? true;
 
+        // create text editor
         this.text = document.createElement('textarea');
         this.text.classList.add('p_input_text','text_overlay');
         this.text.setAttribute('readonly', !edit);
         this.active = active;
+
+        // updates on text input
+
         this.text.addEventListener('input', e => {
             if(this.active){
                 let raw = this.getText();
@@ -120,6 +125,13 @@ class TextEditorNative {
             }
             this.event('input', e);
         });
+
+        // brace matching (includes keyboard or mouse)
+        this.text.addEventListener('selectionchange', e => {
+            this.braceMatch();
+        });
+
+        // main editor interface
         this.text.addEventListener('keydown', e => {
             let key = e.key.toLowerCase();
             let ctrl = e.ctrlKey;
@@ -127,13 +139,11 @@ class TextEditorNative {
             let meta = e.metaKey;
             let shift = e.shiftKey;
             let space = e.keyCode == 32;
-            let ac_trigger = [32,59, 13, 222, 188, 190].includes(e.keyCode);
+            let ackey = [32, 59, 13, 222, 188, 190].includes(e.keyCode);
 
             if (state.cc) {
                 return;
             }
-
-            this.braceMatch();
 
             if (key == 'arrowleft') {
                 return this.event('left', e);
@@ -154,13 +164,14 @@ class TextEditorNative {
                 this.textWrap(wraps['tab']);
                 e.preventDefault();
             } else if (key == 'backspace') {
-                if(autocorrect && this.ac_state == 'corrected'){
-                    this.ac_state = 'ignore';
+                if(autocorrect && this.correction){
+                    this.correction = null;
                     this.unCorrect();
+                    e.preventDefault(); 
                 };
                 if (this.textUnwrap()) {
                     e.preventDefault();
-                };
+                }
             } else if ((ctrl || meta) && key == 'z') {
                 let ret = this.undoStack.pop(shift);
                 if (ret != null) {
@@ -170,39 +181,37 @@ class TextEditorNative {
                 }
                 return false;
             } else if (space) {
-                if(autocorrect && this.ac_state != 'ignore'){
-                    this.correct()
-                }
-                this.undoStack.break();
-            } else if (ac_trigger){
                 if(autocorrect){
                     this.correct()
                 }
+                this.undoStack.break();
+            } else if (ackey) {
+                if (autocorrect) {
+                    this.correct();
+                }
             } else {
-                this.ac_state = null;
+                this.correction = null;
             }
         });
-        this.text.addEventListener('mouseup', e => {
-            this.braceMatch();
-        });
 
-        //syntaxHL viewer
+        // syntaxHL viewer
         this.view = document.createElement('div');
-        this.view.classList.add('p_input_view','text_overlay');
+        this.view.classList.add('p_input_view', 'text_overlay');
 
-        //bracket match viewer
+        // bracket match viewer
         this.brace = document.createElement('div');
-        this.brace.classList.add('p_input_brace','text_overlay');
+        this.brace.classList.add('p_input_brace', 'text_overlay');
 
+        // assemble elements
         this.setEditable(edit);
         parent.appendChild(this.view);
         parent.appendChild(this.brace);
         parent.appendChild(this.text);
 
-        //ac viewer
-        if(autocorrect){
+        // autocorrect viewer
+        if (autocorrect) {
             this.ac = document.createElement('div');
-            this.ac.classList.add('p_input_ac','text_overlay');
+            this.ac.classList.add('p_input_ac', 'text_overlay');
             parent.appendChild(this.ac);
         }
     }
@@ -246,7 +255,8 @@ class TextEditorNative {
         this.text.value = text;
         this.update();
         if (save) {
-            this.text.dispatchEvent(new Event('input', {bubbles:true}));
+            let event = new Event('input', {bubbles: true});
+            this.text.dispatchEvent(event);
             let raw = this.getText();
             let cur = this.getCursorPos();
             this.undoStack.push(raw, cur);
@@ -309,7 +319,7 @@ class TextEditorNative {
                 let len = cur-last.length;
                 let newtxt = raw.substring(0, len) + correction + raw.substring(cur);
                 let newwrap = raw.substring(0, len) + `<span id="correction" revert="${last}">${correction}</span>` + raw.substring(cur);
-                this.ac_state = 'corrected';
+                this.correction = true;
                 this.setText(newtxt);
                 this.ac.innerHTML = newwrap;
                 this.setCursorPos(len + correction.length);
@@ -339,18 +349,24 @@ class TextEditorNative {
     }
 
     clearCorrect() {
-        this.ac.innerHTML = "";
+        this.ac.innerHTML = '';
+        this.correction = null;
     }
 
     async braceMatch() {
+        // clear existing timeout
         if (this.timeout != null) {
             clearTimeout(this.timeout);
             this.timeout = null;
         }
+
+        // apply brace match
         let text = this.getText();
         let cpos = this.getCursorPos();
         let hled = braceMatch(text, cpos);
         this.brace.innerHTML = hled;
+
+        // set timeout for clearing
         this.timeout = setTimeout(function() {
             this.timeout = null;
             $('.brace').contents().unwrap();

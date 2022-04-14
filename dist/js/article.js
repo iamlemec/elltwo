@@ -123,7 +123,7 @@ function initArticle() {
     initHelp();
     initEditor();
     initDrag();
-    if(config.ac){
+    if (config.ac) {
         initAC();
     }
 }
@@ -708,10 +708,10 @@ function setCmd(cmd) {
 
 function setAc(ac) {
     ac = (ac=='on' || ac===true);
-    if(ac && !state.ac){ //if was primordially off
+    if (ac && !state.ac) { // if was primordially off
         initAC();
     }
-    if(!ac){
+    if (!ac) {
         getEditor(state.active_para).clearCorrect();
     }
     config.ac = ac;
@@ -719,8 +719,7 @@ function setAc(ac) {
 }
 
 function initSidebar() {
-
-    Object.entries(sb_opt).forEach(([opt,setFunc]) => {
+    Object.entries(sb_opt).forEach(([opt, setFunc]) => {
         let select = $(`#${opt}_select`);
         makeSelect(select);
         setSelect(select, config[opt]);
