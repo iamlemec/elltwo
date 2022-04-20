@@ -985,6 +985,7 @@ def update_img_key(data):
 @socketio.on('delete_image')
 @edit_decor
 def delete_image(data):
+    print('***\n'*10)
     key = data['key']
     edb.delete_image(key)
     socketio.emit('invalidateRef', ['list', '__img'])

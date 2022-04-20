@@ -435,12 +435,12 @@ button {
     content: "—";
     font-weight: bold;
     color: var(--delimit-col);
-    left: 4px;
+    left: 10px;
     position: absolute;
 }
 
 .list-item {
-   padding-left: 15px;
+   padding-left: 25px;
    margin-bottom: 3px;
 }
 
@@ -456,6 +456,10 @@ button {
 .list.ordered > .list-item:before {
     counter-increment: olist;
     content: counter(olist)". ";
+    text-align: right;
+    display:inline-block;
+    width: 25px;
+    left: 0px;
 }
 
 .strong {

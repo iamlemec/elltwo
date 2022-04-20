@@ -74,7 +74,7 @@ class SvgEditor {
             if (this.key != null) {
                 let txt = `Delete Image "${this.key}"?`;
                 let del = createButton('confirmDelete', 'Delete', 'delete');
-                let action = () => { deleteImage(key); };
+                let action = () => { deleteImage(this.key); };
                 showConfirm(del, action, txt);
             }
         });

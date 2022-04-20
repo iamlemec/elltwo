@@ -20,7 +20,7 @@ let brac_wraps = {
     '{': ['{', '}'],
     '(': ['(', ')'],
     '$': ['$', '$', true],
-    '\'': ['\'', '\'', true],
+    '\'': ['\'', '\''],
     '\"': ['\"', '\"', true],
     ']': ['', ']', true],
     '}': ['', '}', true],
@@ -383,6 +383,11 @@ class TextEditorNative {
 
         // ignore escaped
         if (raw.charAt(beg-1) == '\\') {
+            return false;
+        }
+
+        // ignore apostrophies
+        if (raw.charAt(beg-1).match(/\w/) && left == '\'') {
             return false;
         }
 
