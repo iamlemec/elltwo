@@ -986,7 +986,7 @@ function initHistory(data) {
         d3.select(this)
           .attr('r', radius)
 
-        // Select text by id and then remove
+        // Select text by id and then remove //
         d3.select(`#hp_${i}`).remove();  // Remove text location
     }
 
