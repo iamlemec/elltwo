@@ -467,9 +467,10 @@ function makeUnEditable(unlock=true) {
     //remove cmd complete and autocomplete
     state.cc = false;
     $('#cc_pop').remove();
-    if(para.length > 0){
-        getEditor(para).clearCorrect();
-        getEditor(para).active = false;
+    if (para.length > 0) {
+        let editor = getEditor(para);
+        editor.clearCorrect();
+        editor.active = false;
     }
 
     if (state.active_para && state.rawtext) {

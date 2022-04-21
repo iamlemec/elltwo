@@ -23,8 +23,8 @@ let updateHistMap;
 let default_config = {
     theme: 'classic', // theme to use
     font: 'default', // font to use
-    cmd: 'on', //
-    ac: true, //autocorrect
+    cmd: 'on', // command completion
+    ac: 'off', // autocorrect
     timeout: 180, // para lock timeout
     max_size: 1024, // max image size
     readonly: true, // is session readonly
@@ -707,23 +707,29 @@ function setCmd(cmd) {
 }
 
 function setAc(ac) {
-    ac = (ac=='on' || ac===true);
-    if (ac && !state.ac) { // if was primordially off
+    ac = (ac == 'on');
+    if (ac && !config.ac) { // if was primordially off
         initAC();
     }
     if (!ac) {
-        getEditor(state.active_para).clearCorrect();
+        let para = state.active_para;
+        if (para != null) {
+            let editor = getEditor(para);
+            editor.clearCorrect();
+        }
     }
-    config.ac = ac;
-    setCookie('ac', ac);
+    let sac = ac ? 'on' : 'off';
+    config.ac = sac;
+    setCookie('ac', sac);
 }
 
 function initSidebar() {
     Object.entries(sb_opt).forEach(([opt, setFunc]) => {
         let select = $(`#${opt}_select`);
+        let value = config[opt];
         makeSelect(select);
-        setSelect(select, config[opt]);
-        setFunc(config[opt]);
+        setSelect(select, value);
+        setFunc(value);
     });
 }
 
@@ -962,7 +968,7 @@ function initHistory(data) {
         d3.select(this)
           .attr('r', radius);
 
-        // Select text by id and then remove
+        // Select text by id and then remove //
         d3.select(`#hp_${i}`).remove();  // Remove text location
     }
 

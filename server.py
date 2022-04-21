@@ -69,6 +69,8 @@ config = {
     'always_hover': False, # hover bar in read-only mode
     'default_theme': 'white', # default theme
     'default_font': 'default', # default font
+    'default_cmd': 'on', # default command completion
+    'default_ac': 'off', # default autocorrect
     'demo_path': 'default/demo.md', # path to demo content
     'themes': themes, # all themes by default
     'macros': {}, # no latex macros by default
@@ -426,11 +428,16 @@ def ErrorPage(title='Error', message=''):
     style = getStyle(request)
     return render_template('error.html', title=title, message=message, **style)
 
+def getCookie(request, name):
+    return request.args.get(name) or request.cookies.get(name)
+
 def getStyle(request, **kwargs):
     return {
-        'theme': kwargs.get('theme') or request.args.get('theme') or request.cookies.get('theme') or config['default_theme'],
-        'font': kwargs.get('font') or request.args.get('font') or request.cookies.get('font') or config['default_font'],
-        'ssv': kwargs.get('ssv') or request.args.get('ssv') or request.cookies.get('ssv') or config['ssv_init'],
+        'theme': kwargs.get('theme') or getCookie(request, 'theme') or config['default_theme'],
+        'font': kwargs.get('font') or getCookie(request, 'font') or config['default_font'],
+        'cmd': kwargs.get('cmd') or getCookie(request, 'cmd') or config['default_cmd'],
+        'ac': kwargs.get('ac') or getCookie(request, 'ac') or config['default_ac'],
+        'ssv': kwargs.get('ssv') or getCookie(request, 'ssv') or config['ssv_init'],
         'svg_key': kwargs.get('svg_key') or request.args.get('svg_key') or False
     }
 

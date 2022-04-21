@@ -83,6 +83,10 @@ button,
 
 /* paras */
 
+.env__heading_h1 {
+  margin-top: 20px;
+}
+
 .env__title > .p_text {
     text-align: center;
     border-bottom: 2px solid black;

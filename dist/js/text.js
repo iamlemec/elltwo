@@ -1,5 +1,5 @@
 import { SyntaxHL, braceMatch } from './hl.js';
-import { config, state } from './state.js';
+import { state, config } from './state.js';
 import { ccRefs } from './article.js';
 import { unEscCharCount } from './utils.js';
 
@@ -91,9 +91,6 @@ class TextEditorNative {
         let { handler, lang, edit, active, mini, autocorrect } = opts ?? {};
         edit = edit ?? false;
         active = active ?? false;
-        //intentional: so ac will override confiig even if false
-        autocorrect = (autocorrect===undefined) ? config.ac : autocorrect;
-        //autocorrect = autocorrect ?? config.ac;
 
         // editor components
         this.parent = parent;
@@ -114,7 +111,7 @@ class TextEditorNative {
         // updates on text input
 
         this.text.addEventListener('input', e => {
-            if(this.active){
+            if (this.active) {
                 let raw = this.getText();
                 let cur = this.getCursorPos();
                 this.undoStack.push(raw, cur);
@@ -165,7 +162,7 @@ class TextEditorNative {
                 if(autocorrect && this.correction){
                     this.correction = null;
                     this.unCorrect();
-                    e.preventDefault(); 
+                    e.preventDefault();
                 }                if (this.textUnwrap()) {
                     e.preventDefault();
                 }
@@ -178,12 +175,12 @@ class TextEditorNative {
                 }
                 return false;
             } else if (space) {
-                if(autocorrect){
+                if (config.ac == 'on') {
                     this.correct();
                 }
                 this.undoStack.break();
             } else if (ackey) {
-                if (autocorrect) {
+                if (config.ac == 'on') {
                     this.correct();
                 }
             } else {
@@ -206,11 +203,9 @@ class TextEditorNative {
         parent.appendChild(this.text);
 
         // autocorrect viewer
-        if (autocorrect) {
-            this.ac = document.createElement('div');
-            this.ac.classList.add('p_input_ac', 'text_overlay');
-            parent.appendChild(this.ac);
-        }
+        this.ac = document.createElement('div');
+        this.ac.classList.add('p_input_ac', 'text_overlay');
+        parent.appendChild(this.ac);
     }
 
     focus() {
@@ -304,12 +299,12 @@ class TextEditorNative {
     correct() {
         let cur = this.getSelection();
         cur = (cur[0] == cur[1]) ? cur[0] : false;
-        if(!cur){
+        if (!cur) {
             return;
         }
         let raw = this.text.value;
         let last = raw.substring(0,cur).split(/[ ,.;'\n]/).pop();
-        if(last){
+        if (last) {
             this.clearCorrect();
             let correction = state.ac.correct(last);
             if(correction){
