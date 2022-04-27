@@ -160,11 +160,11 @@ button:hover {
     background-color: var(--bg-col);
 }
 
-.env__heading_h1 {
+.container:not(.ssv) .env__heading_h1 {
     margin-top: 50px;
 }
 
-.env__heading_h2 {
+.container:not(.ssv) .env__heading_h2 {
     margin-top: 40px;
 }
 

@@ -142,10 +142,16 @@
 .linenum {
     position: absolute;
     text-align: right;
-    width: 20px;
+    width: 28px;
     left: 0;
     font-size: 100%;
     opacity: 0.3;
+}
+
+.container.ssv .linenum {
+    width: 32px;
+    left: 0;
+    font-size: 75%;
 }
 
 .linenum:before {

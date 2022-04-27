@@ -3,7 +3,7 @@
 export {
     loadArticle, insertParaRaw, insertPara, deleteParas, updatePara,
     updateParas, updateRefs, toggleHistMap, toggleSidebar, ccNext, ccMake,
-    ccRefs, ccSearch
+    ccRefs, ccSearch,
 }
 
 import {
@@ -19,7 +19,7 @@ import {
 import { initUser } from './user.js'
 import {
     stateRender, initRender, eventRender, innerPara, rawToRender, rawToTextarea,
-    envClasses, envGlobal, createTOC, troFromKey, popText, elltwoHL, getTags,
+    envClasses, envGlobal, createTOC, troFromKey, popText, elltwoHL, getTags, getBlurb,
     renderRefText, getRefTags, untrackRef, doRenderRef, barePara, makeEditor, getEditor
 } from './render.js'
 import {
@@ -653,34 +653,6 @@ function updateRefs(para) {
             sendDeleteRef(old_id);
         }
     }
-}
-
-function getBlurb(len=200, max=5) {
-    let blurb = '';
-    let size = 0;
-    let npar = 0;
-    $('.para').not('.folder').each(function() {
-        let para = $(this);
-        let ptxt = para.children('.p_text').clone();
-        let core = ptxt.find('.katex-mathml, .eqnum, .img_update, .dropzone, img, svg').remove().end()
-                       .removeClass('p_text');
-
-        let text = core.text();
-        if (text.trim().length == 0) {
-            return true;
-        }
-
-        let html = core[0].outerHTML;
-        blurb += html + ' ';
-        size += text.length;
-        npar += 1;
-
-        if (size > len || npar > max) {
-            blurb += '...';
-            return false;
-        }
-    });
-    return blurb;
 }
 
 function setBlurb() {
@@ -1419,5 +1391,6 @@ async function ccRefs(view, raw, cur, configCMD) {
             ret = ret.concat(ops);
             ccSearch(ret, search, p, selchars, true);
         }
+
     }
 }

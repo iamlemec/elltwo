@@ -524,7 +524,6 @@ def Img():
 def TagPage(taglist):
     taglist = taglist.split(',')
     tagged = edb.get_tagged_arts(taglist)
-    print(tagged)
     style = getStyle(request)
     return render_template('tagged.html',
         tagged=tagged,

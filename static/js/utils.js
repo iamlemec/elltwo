@@ -357,11 +357,9 @@ function cur(e, full=false) {
 
 // scrolling
 
-let scrollSpeed = 0;
-let scrollFudge = 25;
 
-function scrollTo(elem, pos) {
-    if (scrollSpeed == 0) {
+function scrollTo(elem, pos, speed=0) {
+    if (speed == 0) {
         elem.scrollTop(pos);
     } else {
         elem.stop();
@@ -369,13 +367,25 @@ function scrollTo(elem, pos) {
     }
 }
 
-function ensureVisible(elem) {
+function ensureVisible(elem, opts) {
+
+    let { rel, scrollSpeed, scrollFudge } = opts ?? {};
+        rel = rel ?? false;
+        scrollSpeed = scrollSpeed ?? 0;
+        scrollFudge = scrollFudge ?? 0;
+
+
     let cont = elem.parent();
     let scroll = cont.scrollTop();
     let height = cont.height();
 
     let cell_top = scroll + elem.position().top;
+    if(rel){
+        //for somekinda fucked up relative positioning
+        cell_top =  elem.offset().top - cont.offset().top;
+    }
     let cell_bot = cell_top + elem.height();
+
 
     let page_top = scroll;
     let page_bot = page_top + height;
@@ -386,8 +396,7 @@ function ensureVisible(elem) {
     } else if (cell_bot > page_bot - scrollFudge) {
         targ = cell_bot - height + scrollFudge;
     }
-
-    scrollTo(cont, targ);
+    scrollTo(cont, targ, scrollSpeed);
 };
 
 // get json cookies

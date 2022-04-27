@@ -2,12 +2,12 @@
 
 export {
     stateRender, initRender, eventRender, loadMarkdown, innerPara, rawToRender, rawToTextarea,
-    envClasses, envGlobal, renderRefText, createTOC, troFromKey, popText, renderPop,
+    envClasses, envGlobal, renderRefText, createTOC, troFromKey, popText, renderPop, getBlurb,
     s_env_spec, getFoldLevel, renderFold, barePara, makePara, connectCallbacks, getRefTags, getTags,
     trackRef, untrackRef, doRenderRef, elltwoHL, exportMarkdown, exportLatex, makeEditor, getEditor
 }
 
-import { merge, cooks, getPara, RefCount, DummyCache, updateSliderValue } from './utils.js'
+import { merge, cooks, getPara, RefCount, DummyCache, updateSliderValue, ensureVisible } from './utils.js'
 import { config, cache, state, updateConfig, updateCache, updateState } from './state.js'
 import { sendCommand, schedTimeout, addDummy } from './client.js'
 import { markthree, replace, divInlineParser } from './marked3.js'
@@ -849,13 +849,47 @@ function createTOC(outer) {
         let head = para.children('.p_text');
         let level = para.attr('head_level');
         let text = head.html();
-        let id = $(this).attr('id');
-
-        let sec = id
-            ? $('<a>', {class: `toc_entry head_level${level}`, href: '#'+id, html: text})
-            : $('<span>', {class: `toc_entry head_level${level}`, html: text});
+        let pid = $(this).attr('pid');
+        let id = $(this).attr('id') || `pid-${pid}`;
+        let sec = $('<a>', {class: `toc_entry head_level${level}`, href: '#'+id, html: text, id: `toc__${pid}`})
         toc.append(sec);
     });
+
+    controlTOC()
+}
+
+/// TOC NAV
+
+let toc_callback = function (es) {
+    es.forEach(function (e) {
+        // entry.isIntersecting true if in viewport
+        let pid = e.target.getAttribute('pid');
+        if(e.isIntersecting){
+            let pid = e.target.getAttribute('pid');
+            let current = document.getElementById(`toc__${pid}`)
+
+            Array.from(document.querySelectorAll('.toc_entry'))
+                .forEach((el) => el.classList.remove('current_section'));
+            current.classList.add('current_section');
+            ensureVisible($(current), {rel:true, scrollFudge:75});
+        }
+    });
+};
+
+let toc_options = {
+    root: null,
+    rootMargin: '0px 0px 300px 0px',
+    threshold: 1,
+}
+
+let obTOC = new IntersectionObserver(toc_callback, toc_options);
+
+
+
+
+function controlTOC() {
+    let secs = document.querySelectorAll('.env__heading');
+    secs.forEach(s => obTOC.observe(s));
 }
 
 /// REFERENCING and CITATIONS
@@ -1112,6 +1146,45 @@ let ref_spec = {
  **  popup rendering
  **/
 
+ function getBlurb(start=null, len=200, max=5) {
+    let blurb = '';
+    let size = 0;
+    let npar = 0;
+    let paras;
+    if(start){
+        paras = start.nextAll('.para').addBack().not('.folder')
+    }else{
+        paras = $('.para').not('.folder')
+    }
+    paras.each(function() {
+        let para = $(this);
+
+        if(start && !para.is(start) && para.attr('env')=='heading'){
+            return false;
+        }
+
+        let ptxt = para.children('.p_text').clone();
+        let core = ptxt.find('.katex-mathml, .eqnum, .img_update, .dropzone, img, svg').remove().end()
+                       .removeClass('p_text');
+
+        let text = core.text();
+        if (text.trim().length == 0) {
+            return true;
+        }
+
+        let html = core[0].outerHTML;
+        blurb += html + ' ';
+        size += text.length;
+        npar += 1;
+
+        if (size > len || npar > max) {
+            blurb += '...';
+            return false;
+        }
+    });
+    return blurb;
+}
+
 function createPop(ref, html='', link=false, blurb=false,ext_title=undefined) {
     let pop = $('<div>', {id: 'pop', href: link, html: html});
     if(ext_title){
@@ -1208,7 +1281,8 @@ function popLink(text) {
 }
 
 function popSection(tro) {
-    return tro.children('.p_text').text();
+    let blurb = getBlurb(tro)
+    return blurb
 }
 
 function popEquation(tro) {

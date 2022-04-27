@@ -1316,12 +1316,19 @@ class ElltwoDB:
 
     def get_tag_rank(self, taglist):
         arts = self.get_arts()
-        arts = {art: self.get_cur_tag(art, taglist) for art in arts if self.get_cur_tag(art, taglist)}
+        arts = {art: tuple(self.get_cur_tag(art, taglist)) for art in arts if self.get_cur_tag(art, taglist)}
         return arts
 
     def get_tagged_arts(self, taglist):
         tag_rank = self.get_tag_rank(taglist)
-        tag_image = sorted(tag_rank.values(), key=len, reverse=True)
+        tag_image = set(tag_rank.values())
+        tag_image = sorted(tag_image, key=len, reverse=True)
+        print('*****\n'*10, tag_rank, taglist, tag_image)
         # create list of dicts {tags, arts}
         tagged = [{'tagGrp': tags, 'arts': [{'short': 'a/' + art.short_title, 'blurb': art.blurb} for art in tag_rank if tag_rank[art] == tags]} for tags in tag_image]
         return tagged
+
+
+
+
+

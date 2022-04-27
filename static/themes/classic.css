@@ -80,14 +80,6 @@ button:hover {
 
 /* paras */
 
-.container.ssv.sb_content {
-    background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 58%,var(--bg-hl2-col) 51%,var(--bg-hl2-col) 100%);
-}
-
-.container.ssv {
-    background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 47.5%,var(--bg-hl2-col) 42%,var(--bg-hl2-col) 100%);
-}
-
 .container.ssv .p_input_view {
     background-color: rgba(255, 255, 255, .3);
 }

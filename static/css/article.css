@@ -138,6 +138,7 @@
     line-height: 25px;
 }
 
+
 .container.ssv .p_input {
     white-space: pre-wrap;
     position: absolute;
@@ -359,26 +360,29 @@ button {
 }
 
 .env__quote .p_text {
-    padding: 0 30px 0 30px;
+    padding: 0 40px 0 40px;
     font-size: 90%
 }
 
 .env__quote .quote_by {
     text-align: right;
+    padding-right: 20px;
 }
 
 .env__quote.env_end .quote_by:before {
+    color: var(--hl-col);
+    font-weight: bold;
     content: "\2014  "
 }
 
-.env__quote.env_beg:before {
+.env__quote.env_beg:not(.rawtext):before {
     content: "\201c";
     display: block;
     font-size: 52px;
     line-height: 1;
     position: absolute;
-    top: -5px;
-    left: 5px;
+    top: 5px;
+    left: 15px;
     font-family: mono;
     color: var(--delimit-col);
 }
@@ -708,6 +712,10 @@ button {
     max-width: 400px;
 }
 
+#pop .env__heading_h1{
+    margin-top: 0;
+}
+
 #pop .DOI_link {
     display: none;
 }
@@ -887,7 +895,7 @@ button {
 
 #sidebar_inner {
     overflow: hidden;
-    height: 100%;
+    height: calc(100% - 35px);
     display: flex;
     flex-direction: column;
 }
@@ -908,29 +916,28 @@ button {
 
 .options {
     padding-left: 10px;
-    margin-top: 50px;
+    margin-top: 40px;
     padding-bottom: 0px;
 }
 
 .option {
-    margin-top: 20px;
-    margin-bottom: 40px;
+    font-size: 90%;
+    margin-top: 10px;
+    margin-bottom: 30px;
     white-space: nowrap;
-    padding-left: 10px;
+    padding-left: 5px;
 }
 
-#toc_wrap {
+
+#toc {
+    height: auto;
+    padding-bottom: 5px;
+    width: 100%;
     margin-top: 10px;
     flex:1;
     overflow-y: auto;
     min-height: 0;
     white-space: normal;
-}
-
-#toc {
-    height: auto;
-    padding-bottom: 45px;
-    width: 100%;
 
 }
 
@@ -940,6 +947,13 @@ button {
     border-top: 2px solid var(--font-col-int);
 }
 
+.current_section{
+-webkit-box-shadow: inset 3px 0px 0px 0px var(--delimit-col); 
+box-shadow: inset 3px 0px 0px 0px var(--delimit-col);
+  background-color: rgba(1,1,1,.1);
+  border-radius: 0 2px 2px 0
+}
+
 #sb_links {
     margin-bottom: 20px;
 }
@@ -947,20 +961,23 @@ button {
 #sb_links_title {
     padding-left: 10px;
     padding-top: 20px;
-    padding-bottom: 10px;
+    padding-bottom: 0px;
     border-top: 2px solid var(--font-col-int);
 }
 
 #sb_links > a {
     display: block;
     padding-left: 20px;
-    margin-top: 7px;
+    margin-top: 4px;
 }
 
 .toc_entry {
     display: block;
-    margin-top: 10px;
-    padding-left: 20px;
+    font-size: 90%;
+    margin-top: 3px;
+    padding: 2px 0px 2px 7px;
+    margin-left: 5px;
+    width: 90%;
 }
 
 .toc_entry.head_level2 {

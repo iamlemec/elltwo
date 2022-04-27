@@ -33,7 +33,7 @@ function getParaArray() {
 
 async function mdEnv(raw, env) {
     if (env.env == 'title') {
-        title = raw;
+        title = state.title;
     } else if (env.env == 'imagelocal') {
         let args = env.args;
         let image = args.image || args.img;
