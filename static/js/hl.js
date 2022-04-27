@@ -33,7 +33,8 @@ function esc_html(raw, brace=true) {
 }
 
 function fArgs(argsraw, set=true) {
-    let argmatch = /([\[\|\n\r])((?:[^\]\|\n\r]|(?<=\\)\||(?<=\\)\])*)/g;
+    console.log(argsraw)
+    let argmatch = /([\[\|\n\r])((?:(?:\[[\w:_-]*\])|[^\]\|\n\r]|(?<=\\)\||(?<=\\)\])*)/g;
     let illegal = /[^a-zA-Z\d\_\-]/;
     if (!set) {
         illegal = /[^a-zA-Z\d\_\-\:]/;
@@ -370,7 +371,8 @@ let block = {
     envend: /^\<\<( ?)/,
 };
 
-block._refargs = /(\[(?:[^\]]|(?<=\\)\])*\]?)/;
+//block._refargs = /(\[(?:[^\]]|(?<=\\)\])*\]?)/;
+block._refargs = /(\[(?:(?:[^\]\[\\]|\\.)+|\[(?:[^\]\[]+)*\])*\])/;
 
 block.title = replace(block.title)
     ('refargs', block._refargs)

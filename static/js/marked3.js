@@ -34,8 +34,8 @@ let block = {
 
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
-block._refargs = /(?:\[((?:[^\]]|(?<=\\)\])*)\])/;
-
+//block._refargs = /(?:\[((?:[^\]]|(?<=\\)\])*)\])/;
+block._refargs = /\[((?:(?:[^\]\[\\]|\\.)+|\[(?:[^\]\[]+)*\])*)\]/;
 block._bull = /(?:[*+-]|\d+\.)/;
 block._item = /^( *)(bull) ?/;
 
@@ -96,6 +96,7 @@ function parseArgs(argsraw, number=true, set=true) {
             'number': number
         };
     }
+    //argsraw = argsraw.slice(1,-1);
     let fst;
     let args = {};
     let rx = /[^a-zA-Z\d\_\-]/ //invalid chars for arg labels and id's

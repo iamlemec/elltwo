@@ -148,6 +148,10 @@
     opacity: 0.3;
 }
 
+#svgEditorOuter .linenum{
+    width: 20px;
+}
+
 .container.ssv .linenum {
     width: 32px;
     left: 0;

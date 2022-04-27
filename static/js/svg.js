@@ -151,7 +151,8 @@ class SvgEditor {
         window.history.pushState({'svgEditor': true}, null, `${url}?svg_key=${key}`);
 
         // update text
-        this.edit.setText(raw.data);
+        let initText = raw.data || ""
+        this.edit.setText(initText);
         this.view.setText('');
         tago.value = key;
         this.render();
