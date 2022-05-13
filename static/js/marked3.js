@@ -262,6 +262,21 @@ class BlockParser {
             return this.renderer.equation(text, multi);
         }
 
+        // imagelocal
+        if (cap = this.rules.imagelocal.exec(src)) {
+                        console.log('LOOOP')
+
+            let number = cap[1] == undefined;
+            let argsraw = cap[2] || '';
+            let args = parseArgs(argsraw, number);
+            this.env = {
+                type: 'env_one',
+                env: 'imagelocal',
+                args: args,
+            }
+            return this.renderer.imagelocal();
+        }
+
         // image
         if (cap = this.rules.image.exec(src)) {
             let env = cap[1] || 'image'
@@ -272,6 +287,7 @@ class BlockParser {
             let href = cap[4];
             if(env='yt'){
                 href = href.replace('watch?v=', 'embed/');
+                href = href.split('&')[0];
                 args.caption = args.caption || 'none';
                 args.figtype = args.figtype || 'none';
             }
@@ -280,20 +296,7 @@ class BlockParser {
                 env: env,
                 args: args,
             }
-            return this.renderer.image(href, env='yt');
-        }
-
-        // imagelocal
-        if (cap = this.rules.imagelocal.exec(src)) {
-            let number = cap[1] == undefined;
-            let argsraw = cap[2] || '';
-            let args = parseArgs(argsraw, number);
-            this.env = {
-                type: 'env_one',
-                env: 'imagelocal',
-                args: args,
-            }
-            return this.renderer.imagelocal();
+            return this.renderer.image('href', env=='yt');
         }
 
         // upload

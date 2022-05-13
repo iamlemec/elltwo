@@ -698,8 +698,9 @@ async function imgEnv(ptxt, args) {
             let url = URL.createObjectURL(ret.data);
             img.attr('src', url);
         }
-        let upd = $('<div>', {class: `env_add img_update update_${ret.mime}`});
-        let ico = $('<svg><use xlink:href="/dist/img/icons.svg#upload"></use></svg>');
+        let upd = $('<div>', {class: `env_add img_update update_${ret.mime}`, title:"update image"});
+        let icon = (ret.mime == 'image/svg+gum') ? 'edit' : 'upload';
+        let ico = $(`<svg><use xlink:href="/dist/img/icons.svg#${icon}"></use></svg>`);
         upd.append(ico);
         fig.append(upd);
     }

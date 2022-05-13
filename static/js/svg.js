@@ -215,6 +215,7 @@ class SvgEditor {
 
         let raw = this.edit.getText();
         let ret = renderGum(raw, this.size, outp);
+        this.edit.setText(raw, false);
 
         let msg;
         if (ret.success) {

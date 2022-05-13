@@ -33,7 +33,6 @@ function esc_html(raw, brace=true) {
 }
 
 function fArgs(argsraw, set=true) {
-    console.log(argsraw)
     let argmatch = /([\[\|\n\r])((?:(?:\[[\w:_-]*\])|[^\]\|\n\r]|(?<=\\)\||(?<=\\)\])*)/g;
     let illegal = /[^a-zA-Z\d\_\-]/;
     if (!set) {
