@@ -161,7 +161,7 @@ class TextEditorNative {
                 this.textWrap(wraps['tab']);
                 e.preventDefault();
             } else if (key == 'backspace') {
-                if(autocorrect && this.correction){
+                if(config.ac=='on', this.correction){
                     this.correction = null;
                     this.unCorrect();
                     e.preventDefault();

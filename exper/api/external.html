@@ -20,8 +20,7 @@
 
 <div id="bg">
 <div id="content" class="container">
-    <div class=elltwo base="http://localhost:5000" art="zzz" key="yyy"></div>
-    <div class=elltwo base="http://localhost:5000" art="zzz" key="eq"></div>
+    <div class=elltwo base="http://localhost:5000" art="test" key="zzz"></div>
 </div>
 </div>
 
@@ -58,14 +57,20 @@ window.onload = function(){
         art = el.getAttribute('art');
         key = el.getAttribute('key');
         let data = await getTRO(base, art, key);
-        data = JSON.parse(data)
+        data = JSON.parse(data);
         let para = document.createElement("div");
         para.classList.add("elltwoCont");
-        para.innerHTML = data.text;
-        let a = document.createElement('a');
-        a.href = `${base}/r/${art}#${key}`;
-        a.classList.add("elltwoLink");
-        el.appendChild(a).appendChild(para);
+        if(data.err){
+           para.innerHTML = data.err; 
+           el.appendChild(para);
+        } else{
+            para.innerHTML = data.text;
+            let a = document.createElement('a');
+            a.href = `${base}/r/${art}#${key}`;
+            a.classList.add("elltwoLink");
+            el.appendChild(a).appendChild(para);
+        }
+
     })
 }
 </script>

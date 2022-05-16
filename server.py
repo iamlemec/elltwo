@@ -104,8 +104,8 @@ app = Flask(__name__, static_folder='dist')
 app.config['DEBUG'] = args.debug
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.db}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-#cors = CORS(app)
-#app.config['CORS_HEADERS'] = 'Content-Type'
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # load user security config
 if args.auth is None:
@@ -475,9 +475,9 @@ def GetImage(key):
 def GetRef():
     short, key = request.args.get('art'), request.args.get('key')
     if short==None:
-        return "query parameter 'art' required"
+        return jsonify({'err': "query parameter 'art' required"})
     if key==None:
-        return "query parameter 'art' required"
+        return jsonify({'err': "query parameter 'art' required"})
     if (art := edb.get_art_short(short)) is not None:
         if (ref := edb.get_ref(key, art.aid)) is not None:
             return jsonify({
@@ -488,8 +488,8 @@ def GetRef():
                 'text': ref.text,
             })
         else:
-            return f"reference {key} not found in article {short}"
-    return f"article {short} not found"
+            return jsonify({'err': f"reference {key} not found in article {short}"})
+    return jsonify({'err': f"article {short} not found"})
 
 ##
 ## Libraries
