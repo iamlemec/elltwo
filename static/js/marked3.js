@@ -23,8 +23,8 @@ let block = {
     title: /^#! *(?:refargs)?\s*([^\n]*)\s*/,
     upload: /^!!(gum)? *(?:refargs)?\s*$/,
     svg: /^\!(svg|gum)(\*)? *(?:refargs)?\s*/,
-    image: /^!(yt|youtube)?(\*)? *(?:refargs)? *\(href\)\s*$/,
-    imagelocal: /^!(\*)? *(?:refargs)\s*$/,
+    image: /^!(yt|youtube)?(\*)? *(?:refargs)? *(?:\(href\))?\s*/,
+    // imagelocal: /^!(\*)? *(?:refargs)\s*$/,
     figtab: /^\| *(?:refargs)? *\n(?:table)/,
     envbeg: /^\>\>(\!)? *([\w-]+)(\*)? *(?:refargs)?\s*/,
     envend: /^\<\<\s*/,
@@ -48,9 +48,9 @@ block.upload = replace(block.upload)
     ('refargs', block._refargs)
     ();
 
-block.imagelocal = replace(block.imagelocal)
-    ('refargs', block._refargs)
-    ();
+// block.imagelocal = replace(block.imagelocal)
+//     ('refargs', block._refargs)
+//     ();
 
 block.heading = replace(block.heading)
     ('refargs', block._refargs)
@@ -262,30 +262,32 @@ class BlockParser {
             return this.renderer.equation(text, multi);
         }
 
-        // imagelocal
-        if (cap = this.rules.imagelocal.exec(src)) {
-                        console.log('LOOOP')
+        // // imagelocal
+        // if (cap = this.rules.imagelocal.exec(src)) {
+        //                 console.log('LOOOP')
 
-            let number = cap[1] == undefined;
-            let argsraw = cap[2] || '';
-            let args = parseArgs(argsraw, number);
-            this.env = {
-                type: 'env_one',
-                env: 'imagelocal',
-                args: args,
-            }
-            return this.renderer.imagelocal();
-        }
+        //     let number = cap[1] == undefined;
+        //     let argsraw = cap[2] || '';
+        //     let args = parseArgs(argsraw, number);
+        //     this.env = {
+        //         type: 'env_one',
+        //         env: 'imagelocal',
+        //         args: args,
+        //     }
+        //     return this.renderer.imagelocal();
+        // }
 
         // image
         if (cap = this.rules.image.exec(src)) {
+            src = src.slice(0, cap[0].length);
+            let href = cap[4];
+            if(href){
             let env = cap[1] || 'image'
-            env = env='youtube'?'yt':env;
+            env = (env=='youtube')?'yt':env;
             let number = cap[2] == undefined;
             let argsraw = cap[3] || '';
             let args = parseArgs(argsraw, number);
-            let href = cap[4];
-            if(env='yt'){
+            if(env=='yt'){
                 href = href.replace('watch?v=', 'embed/');
                 href = href.split('&')[0];
                 args.caption = args.caption || 'none';
@@ -296,7 +298,18 @@ class BlockParser {
                 env: env,
                 args: args,
             }
-            return this.renderer.image('href', env=='yt');
+            return this.renderer.image(href, env=='yt');
+            } else {
+                let number = cap[2] == undefined;
+                let argsraw = cap[3] || '';
+                let args = parseArgs(argsraw, number);
+                this.env = {
+                    type: 'env_one',
+                    env: 'imagelocal',
+                    args: args,
+                }
+                return this.renderer.imagelocal();
+            }
         }
 
         // upload
