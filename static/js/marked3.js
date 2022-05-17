@@ -262,6 +262,21 @@ class BlockParser {
             return this.renderer.equation(text, multi);
         }
 
+        // svg
+        if (cap = this.rules.svg.exec(src)) {
+            let number = cap[2] != '*';
+            let argsraw = cap[3] || '';
+            let args = parseArgs(argsraw, number);
+            args.mime = {svg: 'image/svg+xml', gum: 'image/svg+gum'}[cap[1]];
+            args.svg = src.slice(cap[0].length);
+            this.env = {
+                type: 'env_one',
+                env: 'svg',
+                args: args,
+            }
+            return this.renderer.svg();
+        }
+
         // // imagelocal
         // if (cap = this.rules.imagelocal.exec(src)) {
         //                 console.log('LOOOP')
@@ -368,21 +383,6 @@ class BlockParser {
                 preamble: preamble,
             }
             return this.renderer.title(title);
-        }
-
-        // svg
-        if (cap = this.rules.svg.exec(src)) {
-            let number = cap[2] != '*';
-            let argsraw = cap[3] || '';
-            let args = parseArgs(argsraw, number);
-            args.mime = {svg: 'image/svg+xml', gum: 'image/svg+gum'}[cap[1]];
-            args.svg = src.slice(cap[0].length);
-            this.env = {
-                type: 'env_one',
-                env: 'svg',
-                args: args,
-            }
-            return this.renderer.svg();
         }
 
         // heading
