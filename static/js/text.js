@@ -227,7 +227,7 @@ class TextEditorNative {
 
     resize() {
         this.text.style.height = 'auto';
-        let height = `${this.text.scrollHeight + 4}px`;
+        let height = `${this.text.scrollHeight}px`;
         this.text.style.height = height;
         this.parent.style.setProperty('min-height', height);
     }

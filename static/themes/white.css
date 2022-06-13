@@ -112,7 +112,8 @@ button, #export_options {
 /* other elements */
 
 #sidebar {
-    background-color: var(--bg-hl-col)
+    background-color: var(--bg-hl-col);
+    border-right: 1px solid var(--bg-hl2-col);
 }
 
 #logo_placeholder {

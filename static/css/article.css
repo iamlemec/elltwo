@@ -11,7 +11,7 @@
    border-left: none;
 }
 
-.p_input_ac{
+.p_input_ac {
     pointer-events: none;
 }
 
@@ -25,18 +25,6 @@
     margin-bottom: 5px;
     max-width: 800px !important;
     padding: 5px;
-}
-
-.container.sb_content:not(.ssv) {
-    transform: translateX(calc(0.5 * var(--sb_off)));
-}
-
-.container.sb_content.ssv {
-    transform: translateX(calc(0.5 * var(--sb_off) - 40px));
-}
-
-.container.ssv.sb_content .p_input, .container.ssv.sb_content .control {
-    transform: translateX(calc(0.5 * var(--sb_off) - 30px));
 }
 
 .container:not(.ssv) .para.active {
@@ -111,17 +99,13 @@
 /* side-by-side view paras */
 
 .container.ssv {
-    background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 47.5%,var(--bg-hl-col) 42%,var(--bg-hl-col) 100%);
-}
-
-.container.ssv.sb_content {
-    background:  linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) calc(47.5% - 25px),var(--bg-hl-col) calc(47.5% - 25px),var(--bg-hl-col) 100%); */
+    background: linear-gradient(to left, var(--bg-col) 0%,var(--bg-col) 50%,var(--bg-hl-col) 50%,var(--bg-hl-col) 100%);
 }
 
 .container.ssv .para {
     position: relative;
-    left: 56%;
-    width: 38%;
+    left: 55%;
+    width: 40%;
     height: auto;
     min-height: 55px;
     margin-bottom: 25px;
@@ -145,7 +129,7 @@
     top: 0;
     width: 100%;
     padding: 5px;
-    right: calc(115% + 20px);
+    right: 125%;
     min-height: 50px;
     font-size: 85%;
     overflow: hidden;
@@ -212,7 +196,7 @@
 }
 
 .container.ssv .control {
-    right: 215%;
+    right: 220%;
 }
 
 .controlZone {
@@ -352,6 +336,10 @@ button {
 .eqn_cite_ext::before {
     color: var(--font-col);
     content: '—';
+}
+
+.latex {
+    white-space: nowrap;
 }
 
 .env__equation > .p_text .latex {
@@ -777,7 +765,7 @@ button {
 
 #correction{
     pointer-events: auto;
-    -webkit-box-shadow: inset 0px -2px 0px 0px var(--hl-col); 
+    -webkit-box-shadow: inset 0px -2px 0px 0px var(--hl-col);
     box-shadow: inset 0px -2px 0px 0px var(--hl-col);
 }
 
@@ -948,7 +936,7 @@ button {
 }
 
 .current_section{
--webkit-box-shadow: inset 3px 0px 0px 0px var(--delimit-col); 
+-webkit-box-shadow: inset 3px 0px 0px 0px var(--delimit-col);
 box-shadow: inset 3px 0px 0px 0px var(--delimit-col);
   background-color: rgba(1,1,1,.1);
   border-radius: 0 2px 2px 0
