@@ -175,7 +175,8 @@
 }
 
 .para.env__svg .p_input_text,
-.para.env__svg .p_input_view {
+.para.env__svg .p_input_view,
+.para.env__svg .p_input_brace {
     padding: 5px 5px 5px 35px;
 }
 
