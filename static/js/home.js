@@ -2,12 +2,14 @@
 
 export { initHome, buildBlurbs }
 
-import { state, updateState } from './state.js'
-import { ensureVisible } from './utils.js'
+import { state, updateState, cache, updateCache } from './state.js'
+import { ensureVisible, KeyCache, } from './utils.js'
 import { connect, sendCommand } from './client.js'
 import { renderKatex } from './math.js'
 import { initUser } from './user.js'
 import { ccSearch, ccNext } from './article.js'
+import { renderRefText } from './render.js'
+
 
 let default_state = {
     timeout: null,
@@ -17,10 +19,22 @@ function initHome(args) {
     state.tags = args.tags
     updateState(default_state);
     connectHome();
+    cacheHome();
     eventHome();
     renderKatex();
     initUser();
     searchRecent();
+}
+
+function cacheHome() {
+
+    // article link/blurb
+    cache.link = new KeyCache('link', async function(key) {
+        let ret = await sendCommand('get_link', {title: key});
+        return (ret !== undefined) ? ret : null;
+    });
+
+
 }
 
 function connectHome() {
@@ -221,6 +235,9 @@ function buildBlurbs(response, last_url, title_text, target=null){
             }
             sel.addClass('selected');
         }
+
+        renderRefText();
+
 };
 
 function runQuery() {

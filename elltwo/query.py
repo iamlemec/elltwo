@@ -13,6 +13,7 @@ from sqlalchemy.orm import sessionmaker, Query
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from .schema import Base, Article, Paragraph, Paralink, Bib, ExtRef, Image, User, TextShard, Tag
+from .outer_schema import OuterBase
 from .tools import Multimap
 
 ##
@@ -172,6 +173,9 @@ def ces(v, σ=2):
 
 class ElltwoDB:
     def __init__(self, db=None, path='elltwo.db', uri=None, create=False, reindex=False):
+        
+        self.path = path
+
         if db is None:
             if uri is None:
                 uri = f'sqlite:///{path}'
@@ -1328,6 +1332,26 @@ class ElltwoDB:
         tagged = [{'tagGrp': tags, 'arts': [{'short': 'a/' + art.short_title, 'blurb': art.blurb} for art in tag_rank if tag_rank[art] == tags]} for tags in tag_image]
         return tagged
 
+
+class RepoDB:
+    def __init__(self, db=None, path='repo.db', uri=None, create=False):
+        
+        if db is None:
+            if uri is None:
+                uri = f'sqlite:///{path}'
+
+            self.engine = create_engine(uri)
+            Session = sessionmaker(bind=self.engine)
+            self.session = Session()
+        else:
+            self.engine = db.engine
+            self.session = db.session
+
+        if create:
+            self.create()
+
+    def create(self):
+        Base.metadata.create_all(bind=self.engine)
 
 
 

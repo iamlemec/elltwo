@@ -665,11 +665,12 @@ function setBlurb() {
 /// sidebar
 
 function themeLink(name) {
+    let domain = window.location.protocol + '//' + window.location.host.split('.').at(-1)
     return $('<link>', {
         id: 'theme',
         type: 'text/css',
         rel: 'stylesheet',
-        href: `/dist/themes/${name}.css`,
+        href: `${domain}/dist/themes/${name}.css`,
     });
 }
 

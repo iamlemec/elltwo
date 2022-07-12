@@ -231,9 +231,10 @@ class RefCount {
 // html constructors
 
 function createIcon(id) {
+let domain = window.location.protocol + '//' + window.location.host.split('.').at(-1)
     return `
 <svg>
-<use xlink:href="/dist/img/icons.svg#${id}"></use>
+<use xlink:href="${domain}/dist/img/icons.svg#${id}"></use>
 </svg>
 `.trim();
 }

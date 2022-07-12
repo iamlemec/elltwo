@@ -12,10 +12,11 @@ from itsdangerous import URLSafeTimedSerializer
 
 from flask import (
     Flask, Markup, make_response, request, redirect, url_for, render_template,
-    flash, send_file, abort, jsonify
+    flash, send_file, abort, jsonify, session
 )
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import Session
 from flask_mail import Mail, Message
 from flask_login import (
     LoginManager, current_user, login_user, logout_user, login_required
@@ -100,12 +101,15 @@ view_decor = login_required if args.private else (lambda f: f)
 ###
 
 # create flask app
-app = Flask(__name__, static_folder='dist')
+app = Flask(__name__, static_folder='dist',subdomain_matching=True)
 app.config['DEBUG'] = args.debug
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.db}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['SERVER_NAME'] = 'test:5000'
+
+
 
 # load user security config
 if args.auth is None:
@@ -125,9 +129,20 @@ if args.mail is not None:
 else:
     mail = None
 
+
 # load sqlalchemy
 db = SQLAlchemy(app)
 edb = ElltwoDB(db=db, reindex=args.reindex)
+
+repos = ['alt', 'elltwo'] #temp solution
+
+def getRepo(repo):
+    if repo in repos:
+        return ElltwoDB(db=None, path=f'{repo}.db', uri=None, reindex=False)
+    else:
+        return False
+
+
 
 # create socketio
 socketio = SocketIO(app)
@@ -151,6 +166,7 @@ def db_setup():
 @app.context_processor
 def inject_dict_for_all_templates():
     return dict(login=need_login)
+
 
 ###
 ### user related
@@ -240,13 +256,24 @@ if need_login:
 @app.route('/home')
 @view_decor
 def Home():
-    print('ROUTE: /home')
     style = getStyle(request)
     tags = edb.get_tags()
     if args.demo:
         return render_template('index.html', **style, **chtml, login=False)
     else:
         return render_template('home.html', tags=tags, **style, **chtml)
+
+
+###test
+@app.route('/', subdomain="<repo>")
+@view_decor
+def Alt(repo):
+    rdb = getRepo(repo) 
+    style = getStyle(request)
+    tags = rdb.get_tags()
+    chtml['tag'] = repo
+    return render_template('home.html', tags=tags, **style, **chtml)
+
 
 @app.route('/create', methods=['POST'])
 @edit_decor
@@ -409,13 +436,13 @@ else:
 ### Article
 ###
 
-def GetArtData(title, edit, pid=None, **kwargs):
+def GetArtData(title, edit, pid=None, rdb=edb, **kwargs):
     app.logger.debug(f'article [{pid}]: {title}')
-    art = edb.get_art_short(title)
+    art = rdb.get_art_short(title)
     if art:
         style = getStyle(request, **kwargs)
-        paras = edb.get_paras(art.aid)
-        tags = edb.tags_by_art(art.aid)
+        paras = rdb.get_paras(art.aid)
+        tags = rdb.tags_by_art(art.aid)
         return render_template(
             'article.html', aid=art.aid, title=art.title, g_ref=art.g_ref, pid=pid, paras=paras,
             tags=tags, readonly=not edit, **config, **style
@@ -441,15 +468,19 @@ def getStyle(request, **kwargs):
         'svg_key': kwargs.get('svg_key') or request.args.get('svg_key') or False
     }
 
-@app.route('/a/<title>', methods=['GET'])
+@app.route('/a/<title>', methods=['GET'], subdomain="<repo>")
 @view_decor
-def RenderArticle(title):
+def RenderArticle(title, repo):
+    rdb = getRepo(repo)
+    if not rdb:
+        flash(f'Elltwo "{repo}" does not exist.')
+        return redirect(url_for('Home'))
     style = getStyle(request)
     pid = request.args.get('pid')
     howto = args.demo and urlify(title) == 'howto' # hacky
     permit = not need_login or current_user.is_authenticated
     if permit and not howto:
-        return GetArtData(title, edit=True, pid=pid, **style)
+        return GetArtData(title, edit=True, pid=pid, rdb=rdb, **style)
     else:
         return redirect(url_for('RenderArticleRO', title=title))
 

@@ -197,6 +197,11 @@
     right: 5px;
 }
 
+.blurb .fig_cont{
+    width: 30%;
+    margin: auto;
+}
+
 .box {
     position: fixed;
     width: 40%;

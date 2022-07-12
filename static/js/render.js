@@ -1165,7 +1165,7 @@ let ref_spec = {
         }
 
         let ptxt = para.children('.p_text').clone();
-        let core = ptxt.find('.katex-mathml, .eqnum, .img_update, .dropzone, img, svg').remove().end()
+        let core = ptxt.find('.katex-mathml, .eqnum, .img_update, .fig_iac_wrap, .dropzone').remove().end()
                        .removeClass('p_text');
 
         let text = core.text();
