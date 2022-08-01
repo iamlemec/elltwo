@@ -239,7 +239,7 @@ async function setWriteable() {
         let editor = state.editors.get(pid);
 
         if (wr && !wr_old) {
-            let data = {pid: pid, aid: config.aid};
+            let data = {pid: pid, aid: config.aid, repo: config.repo};
             if (await sendCommand('lock', data)) {
                 editor.setEditable(true);
                 placeCursor('end');
@@ -255,7 +255,7 @@ async function setWriteable() {
 function connectServer() {
     let url = `//${document.domain}:${location.port}`;
     connect(url, async function() {
-        let paras = await sendCommand('join_room', {'room': config.aid, 'get_locked': true});
+        let paras = await sendCommand('join_room', {'room': config.repo +'#'+ config.aid, 'get_locked': true});
         lockParas(paras);
     });
 
@@ -356,7 +356,7 @@ function eventArticle() {
     connectDrops(async function(box, ret) {
         let para = box.closest('.para');
         let pid = para.attr('pid');
-        let data = {pid: pid, aid: config.aid};
+        let data = {pid: pid, aid: config.aid, repo: config.repo};
         if (await sendCommand('lock', data)) {
             let raw = `! [id=${ret.key}|caption=none]`;
             para.attr('raw', raw);
@@ -1091,7 +1091,7 @@ async function revertHistory() {
         return;
     }
     let data = act.datum();
-    let args = {aid: config.aid, date: data.commit};
+    let args = {aid: config.aid, date: data.commit, repo: config.repo};
     if (await sendCommand('revert_history', args)) {
         hideHistPreview();
         launchHistMap();

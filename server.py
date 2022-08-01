@@ -137,6 +137,8 @@ edb = ElltwoDB(db=db, reindex=args.reindex)
 repos = ['alt', 'elltwo'] #temp solution
 
 def getRepo(repo):
+    if repo is None:
+        return edb
     if repo in repos:
         return ElltwoDB(db=None, path=f'{repo}.db', uri=None, reindex=False)
     else:
@@ -296,16 +298,6 @@ def Demo():
     edb.import_markdown(art_name, demo_mark, index=False,)
     return redirect(url_for('RenderArticle', title=art_name))
 
-@app.route('/yc')
-@view_decor
-def YC():
-    hash_tag = secrets.token_hex(4)
-    art_name = f'yc_{hash_tag}'
-    with open('default/yc.md') as fid:
-        demo_mark = fid.read()
-    edb.import_markdown(art_name, demo_mark, index=False,)
-    return redirect(url_for('RenderArticle', title=art_name))
-
 @app.route('/index')
 @view_decor
 def Index():
@@ -436,7 +428,7 @@ else:
 ### Article
 ###
 
-def GetArtData(title, edit, pid=None, rdb=edb, **kwargs):
+def GetArtData(title, edit, repo, pid=None, rdb=edb, **kwargs):
     app.logger.debug(f'article [{pid}]: {title}')
     art = rdb.get_art_short(title)
     if art:
@@ -444,12 +436,12 @@ def GetArtData(title, edit, pid=None, rdb=edb, **kwargs):
         paras = rdb.get_paras(art.aid)
         tags = rdb.tags_by_art(art.aid)
         return render_template(
-            'article.html', aid=art.aid, title=art.title, g_ref=art.g_ref, pid=pid, paras=paras,
+            'article.html', repo=repo, aid=art.aid, title=art.title, g_ref=art.g_ref, pid=pid, paras=paras,
             tags=tags, readonly=not edit, **config, **style
         )
     else:
         flash(f'Article "{title}" does not exist.')
-        return redirect(url_for('Home'))
+        return redirect(url_for('.Alt', repo=repo))
 
 def ErrorPage(title='Error', message=''):
     style = getStyle(request)
@@ -480,7 +472,7 @@ def RenderArticle(title, repo):
     howto = args.demo and urlify(title) == 'howto' # hacky
     permit = not need_login or current_user.is_authenticated
     if permit and not howto:
-        return GetArtData(title, edit=True, pid=pid, rdb=rdb, **style)
+        return GetArtData(title, edit=True, repo=repo, pid=pid, rdb=rdb, **style)
     else:
         return redirect(url_for('RenderArticleRO', title=title))
 
@@ -614,11 +606,13 @@ def track_ref(data):
 @edit_decor
 def update_para(data):
     sid = request.sid
-    aid, pid, text = data['aid'], data['pid'], data['text']
-    said, spid = str(aid), str(pid)
+    repo, aid, pid, text = data['repo'], data['aid'], data['pid'], data['text']
+    rdb = getRepo(repo)
+    spid = str(pid)
+    room = str(repo)+'#'+str(aid)
     if locked.loc(spid) == sid:
-        edb.update_para(pid, text)
-        emit('updatePara', [pid, text], room=str(aid), include_self=False)
+        rdb.update_para(pid, text)
+        emit('updatePara', [pid, text], room=room, include_self=False)
         trueUnlock(aid, [pid], sid)
         return True
     else:
@@ -628,13 +622,15 @@ def update_para(data):
 @edit_decor
 def insert_para(data):
     sid = request.sid
-    aid, pid, after, edit, text = (
-        data['aid'], data['pid'], data['after'], data['edit'], data['text']
+    repo, aid, pid, after, edit, text = (
+        data['repo'], data['aid'], data['pid'], data['after'], data['edit'], data['text']
     )
-    insert_func = edb.insert_after if after else edb.insert_before
+    rdb = getRepo(repo)
+    insert_func = rdb.insert_after if after else rdb.insert_before
     par1 = insert_func(pid, text)
     new_pid = par1.pid
-    emit('insertPara', [pid, new_pid, text, after], room=str(aid), include_self=False)
+    room = str(repo)+'#'+str(aid)
+    emit('insertPara', [pid, new_pid, text, after], room=room, include_self=False)
     if edit:
         trueLock(aid, new_pid, sid)
     return new_pid
@@ -893,7 +889,6 @@ def get_link(data):
 def tag(data):
     tag = data['tag']
     aid = data['aid']
-    print('tag', aid, tag)
     edb.create_tag(aid, tag)
 
 @socketio.on('untag')
@@ -901,7 +896,6 @@ def tag(data):
 def untag(data):
     tag = data['tag']
     aid = data['aid']
-    print('untag', aid, tag)
     edb.delete_tag(aid, tag)
 
 ###
@@ -913,40 +907,47 @@ roomed = Multimap() # aid <-> [sid]
 locked = Multimap() # sid <-> [pid]
 
 def locked_by_aid(aid):
-    return sum([locked.get(s) for s in roomed.get(aid)], [])
+    #using stupid hacky repo#pid syntax
+    return [rpid.split('#')[1] for rpid in sum([locked.get(s) for s in roomed.get(aid)], [])]
 
 def locked_by_sid(sid):
     return roomed.loc(sid), locked.get(sid)
 
-def trueUnlock(aid, pids, sid):
-    said, spids = str(aid), [str(p) for p in pids]
+def trueUnlock(repo, aid, pids, sid):
+    repo, said, spids = str(repo), str(aid), [str(p) for p in pids]
     rpids = [p for p in spids if locked.loc(p) == sid]
-    for p in rpids:
+    room = repo + '#' + said
+    repo_rpids = [repo + '#' + p for p in rpids]
+    for p in repo_rpids:
         locked.pop(p)
     if len(rpids) > 0:
-        socketio.emit('unlock', rpids, room=said, include_self=False)
+        socketio.emit('unlock', rpids, room=room, include_self=False)
 
-def trueLock(aid, pid, sid):
-    said, spid = str(aid), str(pid)
-    if (own := locked.loc(spid)) is not None:
+def trueLock(repo, aid, pid, sid):
+    repo, said, spid = str(repo), str(aid), str(pid)
+    repo_pid = repo + '#' + spid
+    room = repo + '#' + said
+    if (own := locked.loc(repo_pid)) is not None:
         return own == sid
-    locked.add(sid, spid)
-    emit('lock', [spid], room=said, include_self=False)
+    locked.add(sid, repo_pid)
+    emit('lock', [spid], room=room, include_self=False)
     return True
+
+
 
 @socketio.on('lock')
 @edit_decor
 def lock(data):
     sid = request.sid # unique client id
-    aid, pid = data['aid'], data['pid']
-    return trueLock(aid, pid, sid)
+    repo, aid, pid = data['repo'], data['aid'], data['pid']
+    return trueLock(repo, aid, pid, sid)
 
 @socketio.on('unlock')
 @edit_decor
 def unlock(data):
     sid = request.sid # unique client id
-    aid, pid = data['aid'], data['pid']
-    trueUnlock(aid, [pid], sid)
+    repo, aid, pid = data['repo'], data['aid'], data['pid']
+    trueUnlock(repo, aid, [pid], sid)
 
 @socketio.on('timeout')
 @view_decor
@@ -1022,7 +1023,6 @@ def update_img_key(data):
 @socketio.on('delete_image')
 @edit_decor
 def delete_image(data):
-    print('***\n'*10)
     key = data['key']
     edb.delete_image(key)
     socketio.emit('invalidateRef', ['list', '__img'])

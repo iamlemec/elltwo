@@ -345,7 +345,7 @@ function applyChange(para, raw) {
 
 async function sendUpdatePara(para, text, rerender=false) {
     let pid = para.attr('pid');
-    let data = {aid: config.aid, pid: pid, text: text};
+    let data = {aid: config.aid, pid: pid, text: text, repo: config.repo};
     if (await sendCommand('update_para', data)) {
         applyChange(para, text);
         if (rerender) {
@@ -366,7 +366,7 @@ async function sendInsertPara(para, after=true, text="") {
     }
     let pid = head.attr('pid');
 
-    let data = {aid: config.aid, pid: pid, after: after, edit: true, text: text};
+    let data = {aid: config.aid, repo: config.repo, pid: pid, after: after, edit: true, text: text};
     let new_pid = await sendCommand('insert_para', data);
     if (new_pid !== undefined) {
         let new_para = insertParaRaw(pid, new_pid, text, after);
@@ -379,7 +379,7 @@ async function sendInsertPara(para, after=true, text="") {
 
 async function sendDeleteParas(paras) {
     let pids = attrArray(paras, 'pid');
-    let data = {aid: config.aid, pids: pids};
+    let data = {aid: config.aid, repo: config.repo, pids: pids};
     let next = getNextPara(paras.last());
     if (next.length == 0) {
         next = getPrevPara(paras.first());
@@ -468,7 +468,7 @@ async function sendMakeEditable(cursor='end') {
 
         if (state.writeable) {
             let pid = state.active_para.attr('pid');
-            let data = {pid: pid, aid: config.aid};
+            let data = {pid: pid, aid: config.aid, repo: config.repo};
             let rw = await sendCommand('lock', data);
             trueMakeEditable(rw, cursor);
         } else {
@@ -516,7 +516,7 @@ function lockParas(pids) {
 }
 
 function sendUnlockPara(pid) {
-    let data = {aid: config.aid, pid: pid};
+    let data = {aid: config.aid, pid: pid, repo: config.repo};
     sendCommand('unlock', data);
 }
 
@@ -853,7 +853,7 @@ function initDrag(){
         if(targPID == dragPID || nextPID == dragPID){
             console.log('no change')
         }else{
-            let data = {aid: config.aid, drag_pid: dragPID, targ_pid: targPID};
+            let data = {aid: config.aid, repo: config.repo, drag_pid: dragPID, targ_pid: targPID};
             sendCommand('move_para', data);
             }
     });

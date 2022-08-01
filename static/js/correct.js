@@ -97,7 +97,7 @@ let initAC = async function() {
         const response = await fetch(url);
         return response.json();
     }
-
-    const wordFreq = await getData('/dist/json/word_freq.json');
+    const domain = window.location.protocol + '//' + window.location.host.split('.').at(-1)
+    const wordFreq = await getData(`${domain}/dist/json/word_freq.json`);
     state.ac = new AutoCorrect(wordFreq);
 }
