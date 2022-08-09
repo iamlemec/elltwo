@@ -473,23 +473,21 @@ def GetImage(key):
 @view_decor
 @cross_origin()
 def GetRef():
-    short, key = request.args.get('art'), request.args.get('key')
-    if short==None:
-        return jsonify({'err': "query parameter 'art' required"})
-    if key==None:
-        return jsonify({'err': "query parameter 'art' required"})
-    if (art := edb.get_art_short(short)) is not None:
-        if (ref := edb.get_ref(key, art.aid)) is not None:
-            return jsonify({
-                'cite_type': ref.cite_type,
-                'cite_env': ref.cite_env,
-                'ref_text': ref.ref_text,
-                'title': art.title,
-                'text': ref.text,
-            })
-        else:
-            return jsonify({'err': f"reference {key} not found in article {short}"})
-    return jsonify({'err': f"article {short} not found"})
+    if (short := request.args.get('art')) is None:
+        return jsonify({'err': 'query parameter "art" required'})
+    if (key := request.args.get('key')) is None:
+        return jsonify({'err': 'query parameter "key" required'})
+    if (art := edb.get_art_short(short)) is None:
+        return jsonify({'err': f'article {short} not found'})
+    if (ref := edb.get_ref(key, art.aid)) is None:
+        return jsonify({'err': f"reference {key} not found in article {short}"})
+    return jsonify({
+        'cite_type': ref.cite_type,
+        'cite_env': ref.cite_env,
+        'ref_text': ref.ref_text,
+        'title': art.title,
+        'text': ref.text,
+    })
 
 ##
 ## Libraries
