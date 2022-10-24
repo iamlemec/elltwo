@@ -849,15 +849,15 @@ function createTOC(outer) {
 let toc_callback = function (es) {
     es.forEach(function (e) {
         // entry.isIntersecting true if in viewport
-        e.target.getAttribute('pid');
-        if(e.isIntersecting){
+        if (e.isIntersecting) {
             let pid = e.target.getAttribute('pid');
             let current = document.getElementById(`toc__${pid}`);
-
-            Array.from(document.querySelectorAll('.toc_entry'))
-                .forEach((el) => el.classList.remove('current_section'));
-            current.classList.add('current_section');
-            ensureVisible($(current), {rel:true, scrollFudge:75});
+            if (current != null) {
+                Array.from(document.querySelectorAll('.toc_entry'))
+                    .forEach((el) => el.classList.remove('current_section'));
+                current.classList.add('current_section');
+                ensureVisible($(current), {rel:true, scrollFudge:75});
+            }
         }
     });
 };

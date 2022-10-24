@@ -1,5 +1,4 @@
 import { rollup } from 'rollup'
-import { terser } from 'rollup-plugin-terser'
 import resolve from '@rollup/plugin-node-resolve'
 import gulp from 'gulp'
 import rename from 'gulp-rename'
@@ -25,7 +24,6 @@ gulp.task('js-core', () => {
             resolve({
                 preferBuiltins: false,
             }),
-            // terser(),
         ],
     }).then(bundle => {
         cache.esm = bundle.cache;

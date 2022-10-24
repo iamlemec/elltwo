@@ -1,6 +1,6 @@
 import { config } from './state.js';
 import { noop } from './utils.js';
-import { promisify } from '../node_modules/es6-promisify/dist/promisify.mjs.js';
+import { promisify } from '../node_modules/es6-promisify/dist/promisify.js';
 
 // socketio connection
 let socket = null;
