@@ -1,0 +1,419 @@
+@import './gum.css';
+
+#svgEditorOuter {
+    position: fixed;
+    display: flex;
+    visibility: hidden;
+    flex-direction: column;
+    background: var(--bg-col);
+    width: 100%;
+    height: calc(100% - 30px);
+    top: 0;
+    left: 0;
+    border-bottom: 1px solid gray;
+    font-size: 125%;
+    z-index: 2;
+}
+
+#svgEditorOuter.sb_content{
+    width: calc(100% - var(--sb_off));
+    left: var(--sb_off);
+}
+
+#svgWidthDisplay {
+    background-color: var(--bg-hl2-col);
+    width: 1px;
+}
+
+#svgWidthControl {
+    position: relative;
+    left: -10px;
+    width: 23px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 10;
+}
+
+#svgEditorBox {
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+#svgEditorNav {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100%;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 80%;
+    background-color: var(--bg-hl2-col);
+    font-family: 'Open Sans', sans-serif;
+}
+
+#svgEditorNav input {
+    border-radius: 2px;
+}
+
+#svgEditorNavUp, #svgEditorNavDown {
+    background: var(--bg-hl2-col);
+    width: 100%;
+    display: flex;
+    font-size: 80%;
+}
+
+#svgEditorNavUp {
+    padding-bottom: 5px;
+}
+
+#svgEditorTag, #svgEditorKw {
+    background-color: var(--bg-hl-col);
+    color: var(--font-col);
+    width: 60%;
+    margin-right: 5px;
+    flex-grow: 2;
+    height: 35px;
+}
+
+.toggle {
+    margin: 0 0px 0 4px;
+}
+
+#svgShow_label .toggle-track {
+    margin-left: 5px;
+}
+
+#svgEditorNav .foot_butt {
+    line-height: 20px;
+    margin-bottom: 0;
+    margin-left: 0;
+}
+
+#svgEditorNav .foot_butt:last-child {
+    margin-right: 0;
+}
+
+#svgEditorBoxLeft {
+    width: 50%;
+    height: 100%;
+}
+
+#svgEditorTextGum, #svgEditorTextSvg {
+    position: relative;
+    font-size: 55%;
+    width: 100%;
+    height: 50%;
+    overflow-y: scroll;
+}
+
+#svgEditorOuter .p_input_text,
+#svgEditorOuter .p_input_view,
+#svgEditorOuter .p_input_brace {
+    width: 100%;
+    min-height: 100%;
+    padding: 5px;
+    padding-left: 30px;
+}
+
+#svgEditorTextGum {
+    border-bottom: 1px solid var(--bg-hl2-col);
+}
+
+#svgEditorTextGum.fullsize {
+    height: 100%;
+}
+
+#svgEditorOuter .p_input_view {
+    counter-reset: line;
+    background-color: var(--bg-col);
+    -webkit-box-shadow: inset 24px 0px 0px 0px var(--bg-hl-col), inset 25px 0px 0px 0px var(--bg-hl2-col);
+}
+
+#svgEditorOuter .p_input_text {
+    z-index: 2;
+}
+
+.code:not(.numbered) .linenum {
+    display: none;
+}
+
+.linenum {
+    position: absolute;
+    text-align: right;
+    width: 28px;
+    left: 0;
+    font-size: 100%;
+    opacity: 0.3;
+}
+
+#svgEditorOuter .linenum{
+    width: 20px;
+}
+
+.container.ssv .linenum {
+    width: 32px;
+    left: 0;
+    font-size: 75%;
+}
+
+.linenum:before {
+    counter-increment: line;
+    content: counter(line);
+}
+
+.para .p_input_view {
+    counter-reset: line;
+}
+
+.para.env__svg .p_input_view {
+    background-color: var(--bg-col);
+    -webkit-box-shadow: inset 29px 0px 0px 0px var(--bg-hl-col), inset 30px 0px 0px 0px var(--bg-hl2-col),
+                        inset 0px 1px 0px 0px var(--bg-hl2-col), inset 0px 0px 1px 0px var(--bg-hl2-col),
+                        inset 0px 0px 0px 1px var(--bg-hl2-col);
+}
+
+.para.env__svg .p_input_text,
+.para.env__svg .p_input_view,
+.para.env__svg .p_input_brace {
+    padding: 5px 5px 5px 35px;
+}
+
+.para.env__svg .linenum {
+    width: 25px;
+}
+
+#svgEditorParsedView, #svgEditorParsed {
+    white-space: pre-wrap;
+    background-color: var(--bg-col);
+    color: var(--font-col);
+    border-top: 1px solid var(--bg-hl2-col);
+    font-family: monospace;
+    font-size: 55%;
+    position: relative;
+    top: 0%;
+    width: 100% !important;
+    height: 50% !important;
+    padding: 5px;
+    padding-left: 35px;
+    overflow: scroll;
+    scrollbar-width: none;
+}
+
+#svgEditorParsedView {
+    top: -50%;
+}
+
+#svgEditorOuter textarea::placeholder,
+#svgEditorOuter input::placeholder {
+    font-size: 100%;
+}
+
+.checkMark svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* RIGHT  */
+
+#svgEditorBoxRight {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    height: 100%;
+    padding: 20px;
+    background: var(--bg-hl-col);
+}
+
+#svgEditorOutput {
+    display: flex;
+    flex: 1 1 auto;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-height: 50%; /* works somehow */
+    margin-bottom: 20px;
+}
+
+#svgEditorOutput svg {
+    max-height: 80%;
+}
+
+#svgEditorOutput svg,
+.img_cont svg {
+    fill: none;
+    stroke: var(--font-col);
+    background-color: var(--bg-col);
+}
+
+.input_err {
+    border: 1px solid var(--hl2-col);
+}
+
+/* cursor lag hack for firefox */
+
+@-moz-document url-prefix() {
+    #svgEditorInputText {
+        color: rgba(0, 0, 0, 0.01);
+    }
+}
+
+/* IINTERACTIVE */
+
+#interActiveControl {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 40%;
+    overflow-y: scroll;
+    scrollbar-width: none;
+}
+
+.fig_iac{
+    display: none;
+}
+
+.var_cont {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% - 60px);
+    margin-left: 30px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    background-color: var(--bg-hl2-col);
+    color: var(--pop-fg-col);
+    border-radius: 10px;
+    height: auto;
+}
+
+.var_title {
+    position: relative;
+    font-family: monospace;
+    font-size: 60%;
+    line-height: 20px;
+    background-color: rgba(0,0,0,.1);
+    width: 100%;
+    text-indent: 30px;
+    border-radius: 10px 10px 0 0;
+}
+
+/* slider */
+
+.slider {
+    width: 80%;
+    margin-bottom: 15px;
+    margin-top: 20px;
+}
+
+input[type=range] {
+  position: relative;
+  -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+  width: 100%; /* Specific width is required for Firefox. */
+  background: transparent; /* Otherwise white in Chrome */
+}
+
+input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  visibility: hidden;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  background-color: red;
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
+/*   visibility: hidden; */
+    opacity: 0;
+}
+
+input[type=range]::-moz-range-thumb {
+/*   visibility: hidden; */
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  transform: translateY(8px);
+  opacity: 0;
+  cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    border: none;
+    height: 30px;
+    width: 30px;
+    cursor: pointer;
+    border-radius: 50%;
+    transform: translateY(-50%);
+}
+
+.phantom_track_wrap {
+    display: flex;
+    margin-bottom: -50px;
+    width: calc(100% + 30px);
+    transform: translateX(-15px);
+}
+
+.phantom_track {
+    width: 100%;
+    height: 1.5px;
+    background-color: var(--hl-col);
+}
+
+.min_lim, .max_lim {
+    color: var(--hl-col);
+    font-size: 10px;
+    line-height: 1.5px;
+}
+
+.min_lim {
+    text-align: right;
+    margin-right: 15px;
+}
+
+.max_lim {
+    text-align: left;
+    margin-left: 15px;
+}
+
+.slider_label {
+    position: relative;
+    transform-origin: center center;
+    display: block;
+    width: 30px;
+    height: 30px;
+    background: var(--bg-hl2-col);
+    border-radius: 50%;
+    line-height: 28px;
+    text-align: center;
+    box-sizing: border-box;
+    border: 1px solid var(--font-col-int);
+    top: 34px;
+    color: var(--hl-col);
+    font-size: 10px;
+    cursor: pointer;
+}
+
+/* toggle Interactive */
+
+.toggle_cont .toggle {
+    margin: 10px;
+}
+
+/* list interctive */
+
+.list_cont .custom-select-wrapper {
+    position: unset !important;
+}
+
+.list_cont .custom-select-trigger {
+    background-color: var(--brace-col);
+}

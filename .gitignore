@@ -26,5 +26,3 @@ config/local.toml
 package-lock.json
 exper/output
 
-#dist
-dist/

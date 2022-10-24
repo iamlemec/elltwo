@@ -1,0 +1,479 @@
+:root {
+    --bg-col: #fdf6e3;
+    --bg-hl-col: #eee8d5;
+    --bg-hl2-col: #93a1a1;
+    --bor-col: #6c71c4; /* border and link color */
+    --hl-col: #268bd2; /* highlight color */
+    --hl2-col: #cb4b16; /* highlight color */
+    --pop-fg-col: #eee8d5; /* popup text color */
+    --pop-bg-col: #073642; /* popup background color */
+    --bg-font: 15px; /* popup background color */
+    --font-col: #073642;
+    --font-col-int: #b58900;
+    --delimit-col: #859900;
+    --brace-col: rgba(0,0,0,.2);
+    --comment-col: rgb(120, 120, 120); /* comment text color */
+}
+
+@font-face {
+  font-family: 'Fira';
+  font-style: normal;
+  font-weight: 100;
+  src: url('fonts/FiraCode.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 100;
+    src: url('fonts/Montserrat-Thin.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 300;
+    src: url('fonts/Montserrat-Light.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 400;
+    src: url('fonts/Montserrat-Regular.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 700;
+    src: url('fonts/Montserrat-Bold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 900;
+    src: url('fonts/Montserrat-Black.ttf') format('truetype');
+}
+
+/*global */
+
+body {
+    font-family: Montserrat;
+    font-weight: 300;
+    font-size: 18px;
+    color: var(--font-col);
+    caret-color: var(--hl-col);
+}
+
+button {
+    background-color: var(--pop-bg-col);
+    color: var(--pop-fg-col);
+    border: none;
+    display:inline-block;
+    cursor:pointer;
+}
+
+button:hover {
+    background-color: darkgray;
+}
+
+.controlBut {
+    background-color: var(--pop-bg-col);
+}
+
+.controlBut:hover {
+    background-color: darkgray;
+}
+
+.controlBut svg {
+    fill: var(--pop-fg-col);
+    stroke: var(--pop-fg-col);
+}
+
+/* other elements */
+
+#sidebar {
+    background-color: var(--bg-hl2-col)
+}
+
+#logo_placeholder {
+}
+
+::-moz-placeholder { /* Firefox 19+ */
+    color: var(--col) !important;
+}
+
+::-webkit-input-placeholder {
+    color: var(--col) !important;
+}
+
+.toc_entry {
+    color: var(--font-col);
+}
+
+/* paras */
+
+.para {
+    max-width: 1000px !important;
+}
+
+.container:not(.ssv) .para.active {
+    box-shadow: -2px 0px 0px 0px var(--bor-col);
+    background-color: var(--pop-fg-col);
+}
+
+.container.ssv .para.active > .p_input_view {
+    box-shadow: -2px 0px 0px 0px var(--bor-col);
+}
+
+.container.ssv .p_input {
+    caret-color: var(--hl2-col);
+}
+
+.para.changed {
+    box-shadow: 2px 0px 0px 0px var(--hl-col);
+}
+
+.para.hl_change {
+    box-shadow: 2px 0px 0px 0px var(--hl-col);
+}
+
+.para.copy_sel{
+    background-color: var(--pop-fg-col);
+}
+
+/* text elements */
+
+.footnote > .num {
+    color: var(--hl-col);
+    background-color: var(--bg-hl-col);
+    border: 1px solid #AAA;
+    font-size: 70%;
+    padding: 3px 4px 1px 4px;
+    border-radius: 3px;
+    vertical-align: super;
+}
+
+.para.active .footnote > .num {
+    background-color: var(--bg-col);
+}
+
+.container:not(.ssv) .env__heading_h1 {
+    margin-top: 50px;
+}
+
+.container:not(.ssv) .env__heading_h2 {
+    margin-top: 40px;
+}
+
+.container:not(.ssv) .env__proof,
+.container:not(.ssv) .env__theorem,
+.container:not(.ssv) .env__axiom,
+.container:not(.ssv) .env__definition {
+    padding-top: 2px;
+    padding-bottom: 4px;
+}
+
+
+.env__proof.env_beg,
+.env__theorem.env_beg,
+.env__axiom.env_beg,
+.env__definition.env_beg {
+    border-top: .5px solid;
+}
+
+.env__proof.env_end,
+.env__theorem.env_end,
+.env__axiom.env_end,
+.env__definition.env_end {
+    border-bottom: .5px solid;
+    margin-bottom: 20px;
+}
+
+.env__proof,
+.env__proof.env_beg,
+.env__proof.env_end {
+    border-color: var(--font-col-int);
+}
+
+.env__theorem,
+.env__theorem.env_beg,
+.env__theorem.end_end {
+    border-color: var(--bg-hl2-col);
+}
+
+.env__axiom,
+.env__axiom.env_beg,
+.env__axiom.end_end,
+.env__definition,
+.env__definition.env_beg,
+.env__definition.env_end {
+    border-color: var(--delimit-col);
+}
+
+.empty {
+    color: var(--comment-col);
+}
+
+.empty::before {
+    content: '// empty cell';
+}
+
+.comment {
+    color: var(--comment-col);
+}
+
+.comment::before {
+    content: '// ';
+}
+
+.code {
+    font-family: Fira;
+    font-size: 90%;
+    color: var(--bor-col);
+    border-radius: 4px;
+    background-color: var(--pop-fg-col);
+}
+
+.para.active .code {
+/*     background-color: var(--bg-col); */
+}
+
+.ref_error {
+    background-color: var(--font-col);
+    color:  var(--hl2-col);
+    border-radius: 3px;
+    padding: 2px;
+}
+
+#pop {
+    color: var(--pop-fg-col);
+    background-color: var(--pop-bg-col);
+    opacity: .95;
+    border-radius: 5px;
+}
+
+#pop:after {
+  border: var(--pop-bg-col);
+}
+
+#pop .heading {
+    color: var(--hl-col)
+}
+
+#pop a {
+    color: teal;
+}
+
+#pop .code {
+    background-color: var(--pop-bg-col);
+}
+
+#cc_pop {
+    color: var(--bg-col);
+    background-color: var(--pop-bg-col);
+    opacity: .99;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 80%;
+}
+
+.cc_row {
+    padding: 3px 0px 3px 3px;
+}
+
+.cc_row:last-child {
+}
+
+.cc_row:first-child{
+    color: var(--hl2-col);
+    background-color: var(--bg-hl-col);
+
+}
+
+/* syntax highlighting */
+
+.syn_hl {
+    color: var(--hl-col);
+}
+
+.syn_math {
+    color: var(--hl2-col);
+}
+
+.syn_ref {
+    color: var(--delimit-col);
+}
+
+.syn_delimit {
+    color: var(--font-col-int);
+}
+
+.syn_comment_head {
+    color: var(--font-col-int);
+}
+
+.syn_comment {
+    color: var(--bg-hl2-col);
+}
+
+.syn_jschars {
+    color: var(--hl-col);
+}
+
+
+.syn_code {
+   background-color: var(--brace-col) !important;
+   border-radius: 3px;
+}
+
+.syn_err {
+    background-color: var(--font-col);
+    color:  var(--hl-col);
+    border-radius: 3px;
+}
+
+.brace {
+    background-color: var(--brace-col);
+}
+
+/* home page */
+
+#query {
+  background-color: var(--bg-hl2-col);
+}
+
+#new_art_id {
+  background-color: var(--bg-hl-col);
+  color: var(--font-col);
+}
+
+#submit {
+  background-color: var(--bg-hl-col);
+  border: none;
+  color: var(--font-col);
+}
+
+.result {
+  background-color: var(--bg-hl-col);
+}
+
+a.result {
+  color:  var(--font-col-int);
+}
+
+.blurb .title {
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--hl2-col);
+}
+
+.blurb {
+  color: var(--font-col);
+}
+
+.heading {
+  color: var(--hl2-col)
+}
+
+/* bib */
+
+#bib_input{
+  background-color: var(--bg-hl-col);
+}
+
+.cite > a{
+    color: var(--delimit-col);
+}
+
+#search_results {
+    background-color: var(--bg-col);
+}
+
+.cite {
+       background-color: var(--bg-hl-col);
+}
+
+.citekey {
+    color: var(--hl-col)
+}
+
+
+.custom-select-trigger:after{
+    border-bottom: 2px solid;
+    border-right: 2px solid;
+    border-color: var(--hl2-col);
+}
+
+.custom-select-trigger{
+        background: var(--pop-bg-col);
+    color: var(--pop-fg-col);
+}
+
+.custom-options{
+    background: var(--bg-col);
+}
+
+.custom-option{
+    border-bottom: 1px solid var(--pop-bg-col);
+}
+
+.custom-option{
+    background-color: var(--bor-col);
+        color: var(--pop-fg-col);
+
+}
+
+.custom-option:hover{
+    background-color: var(--pop-bg-col);
+}
+
+#foot {
+    background-color:  var(--pop-bg-col);
+    color: var(--pop-fg-col);
+}
+
+#hist {
+    background-color: var(--pop-bg-col);
+    border-top: 2px solid var(--pop-fg-col) !important;;
+}
+
+.foot_butt {
+    color: var(--font-col-int);
+    background-color: var(--bg-col);
+    border: none;
+    border-radius: 10px;
+    font-family: fira;
+}
+
+.foot_butt svg {
+    fill: var(--font-col-int);
+}
+
+.login-button {
+    background-color:  var(--font-col-int);
+}
+
+#locallogin > a, .notification > a {
+    color: var(--hl-col)
+}
+
+.export_butt {
+    background-color: var(--font-col-int);
+    border-radius: 10px;
+    font-family: fira;
+}
+
+.export_butt:hover {
+    background-color: darkgray;
+}
+
+.box {
+   color: var(--bg-col);
+}
+
+@media only screen and (max-width: 1000px) {
+
+}
