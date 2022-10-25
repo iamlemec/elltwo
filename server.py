@@ -102,10 +102,10 @@ view_decor = login_required if args.private else (lambda f: f)
 # create flask app
 app = Flask(__name__, static_folder='dist')
 app.config['DEBUG'] = args.debug
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{args.db}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+
+# cors stuff
+cors = CORS(app)
 
 # load user security config
 if args.auth is None:
@@ -126,8 +126,7 @@ else:
     mail = None
 
 # load sqlalchemy
-db = SQLAlchemy(app)
-edb = ElltwoDB(db=db, reindex=args.reindex)
+edb = ElltwoDB(path=args.db, reindex=args.reindex)
 
 # create socketio
 socketio = SocketIO(app)
