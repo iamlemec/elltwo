@@ -7,6 +7,7 @@ import { makeActive, eventEditor, initEditor, initDrag, placeCursor, storeChange
 import { connectDrops, promptUpload, uploadImage } from './drop.js';
 import { initExport } from './export.js';
 import { initHelp } from './help.js';
+import { searchTitle } from './home.js';
 import { initAC } from './correct.js';
 import { createBibInfo } from './bib.js';
 import { SvgEditor } from './svg.js';
@@ -37,6 +38,7 @@ let default_config = {
 
 let default_state = {
     sidebar_show: false, // is sidebar shown
+    localSearch: false, //local seachbar is shown
     help_show: false, // is help overlay on
     hist_show: false, // is history mode on
     ssv_mode: false, // whether we're in side-by-side mode
@@ -308,6 +310,7 @@ function eventArticle() {
     $(document).on('click', '#logo', toggleSidebar);
     $(document).on('click', '#show_hist', toggleHistMap);
     $(document).on('click', '#revert_hist', revertHistory);
+    $(document).on('click', '#axell', toggleSearch);
 
     //making selections
     $(document).on('change', '.sb_opt', function() {
@@ -396,6 +399,20 @@ function eventArticle() {
         $('#edit_text').text(text);
         setEditMode(val);
         setCookie('edit_mode', val);
+    });
+
+    $(document).on('input', '#localSearch', function(e) {
+        //dispTags();
+        e.currentTarget.selectionStart;
+        let query = $(this).val();
+        if (query) {
+            $('#results').show();
+            $('#bg').addClass('blur');
+        } else {
+            $('#results').hide();
+            $('#bg').removeClass('blur');
+        }
+        searchTitle(query);
     });
 }
 
@@ -1094,6 +1111,20 @@ function responsivefy(svg) {
     }
 }
 
+/// local search
+
+function toggleSearch() {
+        $('#foot').toggleClass('ls_content');
+        $('#localSearch').animate({width: 'toggle'}, 100)
+        .toggleClass('opened')
+        .val('')
+        .focus();
+        $('#results').hide()
+        .empty();
+        $('#bg').removeClass('blur');
+        state.localSearch = !state.localSearch;
+        return false; 
+}
 /// reference completion
 
 function ccNext(dir) {
@@ -1371,4 +1402,4 @@ async function ccRefs(view, raw, cur, configCMD) {
     }
 }
 
-export { ccMake, ccNext, ccRefs, ccSearch, deleteParas, insertPara, insertParaRaw, loadArticle, toggleHistMap, toggleSidebar, updatePara, updateParas, updateRefs };
+export { ccMake, ccNext, ccRefs, ccSearch, deleteParas, insertPara, insertParaRaw, loadArticle, toggleHistMap, toggleSearch, toggleSidebar, updatePara, updateParas, updateRefs };

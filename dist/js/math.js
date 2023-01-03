@@ -1,4 +1,4 @@
-import katex from '../node_modules/katex/dist/katex.js';
+import katex from '../node_modules/katex/dist/katex.mjs.js';
 
 /* math rendering */
 

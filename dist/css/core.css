@@ -48,6 +48,10 @@ textarea, input, .p_input_view, .p_input_brace {
     padding: 2px;
 }
 
+#localSearch{
+    display: none;
+}
+
 textarea:focus, input:focus {
     outline: none !important;
 }
@@ -84,7 +88,7 @@ textarea:focus, input:focus {
 }
 
 
-#bg.blur{
+#bg.blur, #content.blur{
    filter: grayscale(.6) blur(.7px);
 }
 
@@ -174,6 +178,10 @@ a.reference {
 
 #hoot {
     margin-right: 50px;
+}
+
+#foot.ls_content #hoot{
+    display: none;
 }
 
 #axell {

@@ -104,7 +104,7 @@ let elltwo = `<span class="katex"><span class="katex-mathml"><math xmlns="http:/
 let blurb_img = `<div><div class="title">${elltwo} Image Library</div>Upload new images, or search and edit uploaded images.</div>`;
 let blurb_bib = `<div><div class="title">${elltwo} Bibliography</div>Enter new bibliographic citations manually or via a web search; search and edit existing citations.</div>`;
 
-async function searchTitle(query, last_url, tags="") {
+async function searchTitle(query, last_url="", tags=[]) {
     let data = {query, tags};
     let ret = await sendCommand('search_title', data);
     let title_text = `Search Results, Title: ${query}`;
@@ -324,4 +324,4 @@ function tagComplete(){
     runQuery();
     }
 
-export { buildBlurbs, initHome };
+export { buildBlurbs, initHome, searchTitle };

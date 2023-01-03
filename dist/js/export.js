@@ -1,5 +1,5 @@
 import { attrArray, initToggleBox } from './utils.js';
-import { config, cache, state } from './state.js';
+import { cache, state, config } from './state.js';
 import { markthree } from './marked3.js';
 import { s_env_spec } from './render.js';
 import { latexTemplate } from './template.js';

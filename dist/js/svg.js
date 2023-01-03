@@ -1,4 +1,4 @@
-import { createButton, smallable_butt, flash, updateSliderValue, createToggle } from './utils.js';
+import { createToggle, createButton, smallable_butt, flash, updateSliderValue } from './utils.js';
 import { config, cache, state } from './state.js';
 import { sendCommand } from './client.js';
 import './marked3.js';
