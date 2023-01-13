@@ -216,9 +216,7 @@ class TextEditorNative {
     }
 
     update() {
-        if (this.mini) {
-            this.resize();
-        }
+        this.resize();
         this.highlight();
     }
 
@@ -226,7 +224,9 @@ class TextEditorNative {
         this.text.style.height = 'auto';
         let height = `${this.text.scrollHeight}px`;
         this.text.style.height = height;
-        this.parent.style.setProperty('min-height', height);
+        if(this.mini){
+            this.parent.style.setProperty('min-height', height);
+        }
     }
 
     event(c, e) {

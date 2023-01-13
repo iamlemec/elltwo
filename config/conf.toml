@@ -15,3 +15,5 @@ default_font = 'default' # default font
 [html]
 name = '<span class=latex>\ell^2</span>' # header name
 tag = 'Simple Beautiful Collaborative' # subheader text
+header = 'elltwo' # html header name
+

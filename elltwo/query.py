@@ -1323,7 +1323,6 @@ class ElltwoDB:
         tag_rank = self.get_tag_rank(taglist)
         tag_image = set(tag_rank.values())
         tag_image = sorted(tag_image, key=len, reverse=True)
-        print('*****\n'*10, tag_rank, taglist, tag_image)
         # create list of dicts {tags, arts}
         tagged = [{'tagGrp': tags, 'arts': [{'short': 'a/' + art.short_title, 'blurb': art.blurb} for art in tag_rank if tag_rank[art] == tags]} for tags in tag_image]
         return tagged

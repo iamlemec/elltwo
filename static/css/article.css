@@ -219,6 +219,37 @@
     display: inline;
 }
 
+#tags{
+    position: absolute;
+    left: 40px;
+    bottom: 34px;
+    width: 50%;
+    display: flex;
+    border-radius: 0;
+    background-color: var(--pop-bg-col);
+    overflow: hidden;
+    z-index: 2;
+}
+
+#tagdisp{
+    display: flex;
+    background-color: unset;
+    font-size: unset;
+    font-size: 60%;
+    flex-shrink: 0;
+    color: var(--pop-fg-col)
+}
+
+.tag_row{
+    padding: 3px;
+    border: none;
+}
+
+.tag_row::before{
+    content: '#';
+    color: var(--hl2-col)
+}
+
 .res_title{
     position: relative;
     width: 90%;
@@ -1494,6 +1525,14 @@ circle.commit.active {
    bottom: 39.2px;
     width: 60%;
     left: 70px;
+}
+    
+#tags{
+    position: absolute;
+    left: 70px;
+    bottom: 39.2px;
+    width: 60%;
+
 }
 
 .container.sb_content.ssv .control {

@@ -7,7 +7,7 @@ import { makeActive, eventEditor, initEditor, initDrag, placeCursor, storeChange
 import { connectDrops, promptUpload, uploadImage } from './drop.js';
 import { initExport } from './export.js';
 import { initHelp } from './help.js';
-import { searchTitle } from './home.js';
+import { getSearchTags, dispTags, searchTitle } from './home.js';
 import { initAC } from './correct.js';
 import { createBibInfo } from './bib.js';
 import { SvgEditor } from './svg.js';
@@ -402,17 +402,18 @@ function eventArticle() {
     });
 
     $(document).on('input', '#localSearch', function(e) {
-        //dispTags();
         e.currentTarget.selectionStart;
         let query = $(this).val();
         if (query) {
             $('#results').show();
             $('#bg').addClass('blur');
+            let tags = getSearchTags(query);
+            dispTags(query);
+            searchTitle(query, "", tags);
         } else {
             $('#results').hide();
             $('#bg').removeClass('blur');
         }
-        searchTitle(query);
     });
 }
 
@@ -1328,7 +1329,6 @@ async function ccRefs(view, raw, cur, configCMD) {
     let open_cmd = /\\([\w-\|\=^]+)(?:[\s\n]|$)/;
     let cap;
     if (cap = open_ref.exec(sel)) {
-        console.log(view);
         raw = raw.slice(0, cur) + '<span id="cc_pos"></span>' + raw.slice(cur);
         view.innerHTML = raw;
         let off = $('#cc_pos').offset();

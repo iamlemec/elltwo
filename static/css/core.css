@@ -180,7 +180,7 @@ a.reference {
     margin-right: 50px;
 }
 
-#foot.ls_content #hoot{
+#foot.ls_content #hoot, #foot.ls_content #toggle_ll, #foot.ls_content #locallogin{
     display: none;
 }
 
