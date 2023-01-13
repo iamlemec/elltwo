@@ -1,6 +1,6 @@
 /* home page and search */
 
-export { initHome, buildBlurbs }
+export { initHome, buildBlurbs, searchTitle, getSearchTags, dispTags }
 
 import { state, updateState } from './state.js'
 import { ensureVisible } from './utils.js'
@@ -110,7 +110,7 @@ let elltwo = `<span class="katex"><span class="katex-mathml"><math xmlns="http:/
 let blurb_img = `<div><div class="title">${elltwo} Image Library</div>Upload new images, or search and edit uploaded images.</div>`;
 let blurb_bib = `<div><div class="title">${elltwo} Bibliography</div>Enter new bibliographic citations manually or via a web search; search and edit existing citations.</div>`;
 
-async function searchTitle(query, last_url, tags="") {
+async function searchTitle(query, last_url="", tags=[]) {
     let data = {query, tags}
     let ret = await sendCommand('search_title', data);
     let title_text = `Search Results, Title: ${query}`;
@@ -229,7 +229,7 @@ function runQuery() {
     let last_pid = active.attr('pid');
 
     let query = $('#query').val();
-    let tags = getTags();
+    let tags = getSearchTags();
     if (query.length > 0) {
         let full_text = $('#full_text_check').is(':checked');
         if (full_text) {
@@ -284,7 +284,7 @@ async function ccTags(raw, cur) {
 
     //only display new suggestions
     let alltags = state.tags;
-    let curtags = getTags();
+    let curtags = getSearchTags();
 
     alltags = alltags.filter(t => !curtags.includes(t))
 
@@ -292,10 +292,10 @@ async function ccTags(raw, cur) {
 
     }
 
-function dispTags(){
+function dispTags(raw=null){
     $('#tagdisp').remove();
     let tagdisp = $('<div>', {id: 'tagdisp'});
-    let tags = getTags();
+    let tags = getSearchTags(raw);
     if(tags){
         tags.forEach(t => {
             let tag_row = $('<div>', {class: 'tag_row'});
@@ -306,8 +306,10 @@ function dispTags(){
     }
 }
 
-function getTags(){
-    let raw = $('#query').val();
+function getSearchTags(raw=null){
+    if(raw == null){
+        raw = $('#query').val();
+    }
     let tagexp = /#(\[[\w| ]+\]|\w+)/g;
     let tags = [...raw.matchAll(tagexp)];
     return tags.map(t => t[1].replace(']',"")

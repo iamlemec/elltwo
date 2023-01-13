@@ -16,6 +16,7 @@
 }
 
 /* classic view paras */
+/* classic view paras */
 
 .container:not(.ssv) .para {
     position: relative;
@@ -25,6 +26,18 @@
     margin-bottom: 5px;
     max-width: 800px !important;
     padding: 5px;
+}
+
+.container.sb_content:not(.ssv) {
+    transform: translateX(calc(0.5 * var(--sb_off)));
+}
+
+.container.sb_content.ssv {
+    transform: translateX(calc(0.5 * var(--sb_off) - 40px));
+}
+
+.container.ssv.sb_content .p_input, .container.ssv.sb_content .control {
+    transform: translateX(calc(0.5 * var(--sb_off) - 30px));
 }
 
 .container:not(.ssv) .para.active {
@@ -180,6 +193,138 @@
 .comment.fold_text::after {
     content: "env folded, [ ⇧ + f ] to unfold";
 }
+
+/* search */
+#results{
+    display: none;
+    position: absolute;
+    width: 50%;
+    bottom: 34px;
+    height: 75%;
+    overflow: scroll;
+    background-color: var(--pop-bg-col);
+    left: 40px;
+    border-radius: 10px 10px 0 0;
+    border-bottom: 2px solid var(--bor-col);
+    padding-bottom: 40px;
+}
+
+#localSearch{
+    position: absolute;
+    bottom: 8px;
+    left: 40px;
+}
+
+#results.opened{
+    display: inline;
+}
+
+#tags{
+    position: absolute;
+    left: 40px;
+    bottom: 34px;
+    width: 50%;
+    display: flex;
+    border-radius: 0;
+    background-color: var(--pop-bg-col);
+    overflow: hidden;
+    z-index: 2;
+}
+
+#tagdisp{
+    display: flex;
+    background-color: unset;
+    font-size: unset;
+    font-size: 60%;
+    flex-shrink: 0;
+    color: var(--pop-fg-col)
+}
+
+.tag_row{
+    padding: 3px;
+    border: none;
+}
+
+.tag_row::before{
+    content: '#';
+    color: var(--hl2-col)
+}
+
+.res_title{
+    position: relative;
+    width: 90%;
+    left: 5%;
+    padding: 4px;
+    font-size: 125%;
+    text-align: center;
+    color: var(--pop-fg-col);
+    border-bottom: 1px solid var(--pop-fg-col);
+    margin-bottom: 20px;
+}
+
+.blurb {
+    margin-bottom: 30px;
+    font-size: 80%;
+    background-color: var(--bg-hl2-col);
+    position: relative;
+    width: 90%;
+    left: 5%;
+    padding: 5px;
+}
+
+.blurb_tag{
+    margin-left: 3px;
+}
+
+.blurb .title, .blurb .env__heading_h1{
+    text-align: left;
+    font-size: 120%;
+}
+
+.blurb .fig_cont, .blurb .fig_cap{
+    display: none;
+}
+
+.blurb_tag::before{
+    content: '#';
+    color: var(--hl2-col);
+    opacity: .4;
+}
+
+.blurb_name::before{
+    content: '#!';
+    color: var(--hl2-col);
+    opacity: .4;
+}
+
+.par_title {
+    font-size: 60%;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.par_text {
+    font-family: monospace;
+    font-size: 60%;
+}
+
+.blurb_name {
+    position: absolute;
+    text-align: right;
+    color: var(--hl-col);
+    font-family: monospace;
+    font-size: 90%;
+    font-weight: bold;
+    margin-top: 5px;
+    right: 10%;
+    z-index: 2;
+}
+
+.art_link .blurb_name {
+    position: absolute;
+    right: 7%;
+}
+
 
 /* control buttons */
 
@@ -1369,6 +1514,25 @@ circle.commit.active {
 
 :root {
     --sb_off: 150px;
+}
+    
+  #localSearch{
+    bottom: 10px;
+    left: 70px;
+}
+    
+#results{
+   bottom: 39.2px;
+    width: 60%;
+    left: 70px;
+}
+    
+#tags{
+    position: absolute;
+    left: 70px;
+    bottom: 39.2px;
+    width: 60%;
+
 }
 
 .container.sb_content.ssv .control {

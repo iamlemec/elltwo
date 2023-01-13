@@ -3,7 +3,7 @@ import { createButton, copyText, flash, attrArray, ensureVisible, setCookie, coo
 import { sendCommand, schedTimeout } from './client.js';
 import { getEditor, getFoldLevel, renderFold, rawToRender, rawToTextarea } from './render.js';
 import './hl.js';
-import { toggleHistMap, toggleSidebar, ccNext, ccMake, insertParaRaw, deleteParas, updateRefs } from './article.js';
+import { toggleHistMap, toggleSearch, toggleSidebar, ccNext, ccMake, insertParaRaw, deleteParas, updateRefs } from './article.js';
 import { toggleHelp } from './help.js';
 
 ////// UI ///////
@@ -36,6 +36,9 @@ function eventEditor() {
             unfold();
         } else if (ctrl && key == 's') {
             return false;
+        } else if (ctrl && key == '/') {
+            toggleSearch();
+            return false;
         } else if (key == '§' || (ctrl && key == '`')) {
             toggleSidebar();
             return false;
@@ -45,6 +48,10 @@ function eventEditor() {
         } else if (key == 'escape') {
             if (state.help_show) {
                 toggleHelp();
+                return false;
+            }
+            if (state.localSearch) {
+                toggleSearch();
                 return false;
             }
             state.svg.close();

@@ -166,7 +166,14 @@ Autocorrect
 
 {% endblock %}
 
+{% block endmatter %}
+<input class="input" id="localSearch" type="text" name="localSearch" placeholder="Seach...">
+<div id="results_outer"><div id="tags"></div><div id="results"></div></div>
+{% endblock %}
+
+
 {% block init %}
+
 
 <script type="module">
 

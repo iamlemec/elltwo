@@ -40,12 +40,18 @@
         <div id="preview" class="container">
         </div>
 
+
         {% block post_content %}{% endblock %}
 
         <div id="foot">
-            <a id="axell" href="{{ url_for('Home') }}">
+<!--             <a id="axell" href="{{ url_for('Home') }}">
             <img src="{{ url_for('static', filename='favicon/elltwo.svg') }}" width="16" height="16"/>
-            </a>
+            </a> -->
+            <div id="axell">
+            <img src="{{ url_for('static', filename='favicon/elltwo.svg') }}" width="16" height="16"/>
+            </div>
+            
+
 
             <span id="hoot">[201p // iamlemec]</span>
 
@@ -82,6 +88,11 @@
         </div>
 
     </div>
+
+    {% block endmatter %}
+    {% endblock %}
+
+
     <div id=confirm_popup><div id="cp_inner"></div></div>
 
 

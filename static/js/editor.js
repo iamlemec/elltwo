@@ -18,7 +18,7 @@ import {
 import { SyntaxHL } from './hl.js'
 import {
     insertParaRaw, insertPara, deleteParas, updateRefs, toggleHistMap,
-    toggleSidebar, ccNext, ccMake,
+    toggleSidebar, ccNext, ccMake, toggleSearch
 } from './article.js'
 import { toggleHelp } from './help.js'
 
@@ -53,6 +53,9 @@ function eventEditor() {
             unfold();
         } else if (ctrl && key == 's') {
             return false;
+        } else if (ctrl && key == '/') {
+            toggleSearch()
+            return false;
         } else if (key == '§' || (ctrl && key == '`')) {
             toggleSidebar();
             return false;
@@ -62,6 +65,10 @@ function eventEditor() {
         } else if (key == 'escape') {
             if (state.help_show) {
                 toggleHelp();
+                return false;
+            }
+            if (state.localSearch) {
+                toggleSearch();
                 return false;
             }
             state.svg.close();

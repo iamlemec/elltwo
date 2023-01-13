@@ -81,6 +81,7 @@ chtml = {
     'name': '<span class=latex>\\ell^2</span>',
     'tag': 'Simple Beautiful Collaborative',
     'metatag': '',
+    'header': 'elltwo',
 }
 
 if args.conf is not None:
@@ -516,6 +517,18 @@ def Img():
         **chtml,
     )
 
+@app.route('/t', methods=['GET', 'POST'])
+@view_decor
+def TagPageEmpty():
+    style = getStyle(request)
+    taglist = edb.get_tags()
+    return render_template('tagged.html',
+        tagged=taglist,
+        empty=1,
+        **style,
+        **chtml,
+    )
+
 @app.route('/t/<taglist>', methods=['GET', 'POST'])
 @view_decor
 def TagPage(taglist):
@@ -524,6 +537,7 @@ def TagPage(taglist):
     style = getStyle(request)
     return render_template('tagged.html',
         tagged=tagged,
+        emprty=0,
         **style,
         **chtml,
     )
