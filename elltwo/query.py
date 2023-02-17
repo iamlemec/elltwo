@@ -422,6 +422,11 @@ class ElltwoDB:
             paras = [re.sub('\n{2,}', '\n', p).strip('\n') for p in paras]
         return '\n\n'.join(paras)
 
+    def get_art_tags(self, aid, time=None):
+        if time is None:
+            time = datetime.utcnow()
+        return [t.tag for t in self.get_tags(aid, time=time)]
+
     def get_para(self, pid, time=None):
         if time is None:
             time = datetime.utcnow()
@@ -445,41 +450,63 @@ class ElltwoDB:
     def get_lid(self, lid):
         return self.session.query(Paralink).filter_by(lid=lid).one_or_none()
 
-    def search_title(self, words, taglist, thresh=0.25):
-        now = datetime.utcnow()
-        match = [
-            i for i, s in self.search_index(words, dtype='title') if s > thresh
-        ]
-        tag_rank = self.get_tag_rank(taglist)
-        #lexico sort on number of tag matchs, closeness of title, revesed here
-        arts = sorted(list(tag_rank.keys()),
-            key=lambda a: (len(tag_rank[a]), match.index(a) if a in match else -1),
-            reverse=True
-        )
-        aids = [art.aid for art in arts]
-        aids += match
+    def search_title(self, words, taglist=None, thresh=0.25, time=None):
+        if time is None:
+            time = datetime.utcnow()
 
+        # get articles with matching titles
+        if len(words) > 0:
+            match_title = {
+                i: s for i, s in self.search_index(words, dtype='title') if s > thresh
+            }
+        else:
+            match_title = {}
+
+        # get number of matched tags by article
+        if taglist:
+            match_tags = dict(self.session
+                .query(Tag.aid, func.count(Tag.tid).label('count'))
+                .filter(Tag.tag.in_(taglist))
+                .filter(tagtime(time))
+                .group_by(Tag.aid)
+                .all()
+            )
+        else:
+            match_tags = {}
+
+        # lexico sort on number of tag matchs, closeness of title, revesed here
+        match_arts = sorted({*match_tags, *match_title},
+            key=lambda a: (match_tags.get(a, 0), match_title.get(a, 0)), reverse=True
+        )
+
+        # get resulting article entries
         arts = (self.session
             .query(Article)
-            .filter(Article.aid.in_(aids))
-            .filter(arttime(now))
+            .filter(Article.aid.in_(match_arts))
+            .filter(arttime(time))
             .all()
         )
-        return {'arts': sorted(arts, key=lambda a: aids.index(a.aid)), 'tags': tag_rank}
 
-    def search_text(self, words, thresh=0.25):
-        now = datetime.utcnow()
-        match = [
-            i for i, s in self.search_index(words, dtype='para') if s > thresh
-        ]
+        return arts
+
+    def search_text(self, words, thresh=0.25, time=None):
+        if time is None:
+            time = datetime.utcnow()
+
+        # get matching paragraph list
+        match = {
+            i: s for i, s in self.search_index(words, dtype='para') if s > thresh
+        }
+
+        # get resulting paragraph entries
         paras = (self.session
             .query(Paragraph)
             .filter(Paragraph.pid.in_(match))
-            .filter(partime(now))
+            .filter(partime(time))
             .all()
         )
-        #reversed here
-        return sorted(paras, key=lambda a: match.index(a.pid), reverse=True)
+
+        return sorted(paras, key=lambda a: match[a.pid], reverse=True)
 
     ##
     ## editing methods
@@ -942,28 +969,27 @@ class ElltwoDB:
 
     ## and tags
 
-    def get_tag(self, tag, aid, time=None):
+    def get_tag(self, aid, tag, time=None):
         if time is None:
             time = datetime.utcnow()
         return (self.session
             .query(Tag)
-            .filter_by(aid=aid)
-            .filter_by(tag=tag)
+            .filter_by(aid=aid, tag=tag)
             .filter(tagtime(time))
             .one_or_none()
         )
 
-    def get_tags(self, time=None):
+    def get_all_tags(self, time=None):
         if time is None:
             time = datetime.utcnow()
         q = (self.session
-            .query(Tag.tag.distinct()
-            .label("tag"))
+            .query(Tag.tag.distinct().label("tag"))
+            .filter(tagtime(time))
             .all()
-            )
-        return [tag.tag for tag in q]
+        )
+        return [t.tag for t in q]
 
-    def tags_by_art(self, aid, time=None):
+    def get_art_tags(self, aid, time=None):
         if time is None:
             time = datetime.utcnow()
         q = (self.session
@@ -974,15 +1000,40 @@ class ElltwoDB:
         )
         return [t.tag for t in q]
 
-    def arts_by_tag(self, tag, time=None):
+    def get_tag_arts(self, tag, time=None):
         if time is None:
             time = datetime.utcnow()
-        return (self.session
+        q = (self.session
             .query(Tag)
             .filter_by(tag=tag)
             .filter(tagtime(time))
             .all()
         )
+        return [a.aid for a in q]
+
+    def get_taglist_info(self, taglist, time=None):
+        if time is None:
+            time = datetime.utcnow()
+
+        # get matching articles
+        match = (self.session
+            .query(Tag)
+            .filter(Tag.tag.in_(taglist))
+            .filter(tagtime(time))
+            .all()
+        )
+
+        # fill in article info
+        match = [(t.tag, self.get_art(t.aid, time=time)) for t in match]
+        match = [(t, {'short': f'a/{a.short_title}', 'blurb': a.blurb}) for t, a in match]
+
+        # aggregate matches by aid
+        arts = defaultdict(list)
+        for t, a in match:
+            arts[t].append(a)
+
+        # return arts map
+        return arts
 
     def create_tag(self, aid, tag, time=None):
         if time is None:
@@ -1302,32 +1353,5 @@ class ElltwoDB:
         if dtype is not None:
             sims = [(i, x) for (_, i), x in sims]
 
-        # return sorted NO LONGER decreasing --- changed elsewhere
-        return sorted(sims, key=itemgetter(1))
-
-    def get_cur_tag(self, art, taglist):
-        q = (self.session
-                .query(Tag)
-                .filter_by(aid=art.aid)
-                .filter(Tag.tag.in_(taglist))
-                .all()
-                )
-        return [t.tag for t in q]
-
-    def get_tag_rank(self, taglist):
-        arts = self.get_arts()
-        arts = {art: tuple(self.get_cur_tag(art, taglist)) for art in arts if self.get_cur_tag(art, taglist)}
-        return arts
-
-    def get_tagged_arts(self, taglist):
-        tag_rank = self.get_tag_rank(taglist)
-        tag_image = set(tag_rank.values())
-        tag_image = sorted(tag_image, key=len, reverse=True)
-        # create list of dicts {tags, arts}
-        tagged = [{'tagGrp': tags, 'arts': [{'short': 'a/' + art.short_title, 'blurb': art.blurb} for art in tag_rank if tag_rank[art] == tags]} for tags in tag_image]
-        return tagged
-
-
-
-
-
+        # return sorted highest to lowest similarity
+        return sorted(sims, key=itemgetter(1), reverse=True)

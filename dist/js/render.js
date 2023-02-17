@@ -1,4 +1,4 @@
-import { DummyCache, merge, ensureVisible, RefCount, updateSliderValue, cooks, getPara } from './utils.js';
+import { merge, ensureVisible, RefCount, updateSliderValue, cooks, getPara, DummyCache } from './utils.js';
 import { config, updateCache, state, cache } from './state.js';
 import { sendCommand, addDummy } from './client.js';
 import { markthree, divInlineParser } from './marked3.js';

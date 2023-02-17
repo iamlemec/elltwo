@@ -251,11 +251,11 @@ class Index:
         self.edb.reindex_articles()
 
     def title(self, query):
-        arts = self.edb.search_title(query)
+        arts = self.edb.search_title(query)['arts']
         for a in arts:
             print(a)
 
-    def paras(self, query):
+    def text(self, query):
         paras = self.edb.search_text(query)
         for p in paras:
             print(p)

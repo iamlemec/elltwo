@@ -236,6 +236,11 @@ class SvgEditor {
     }
 }
 
+// the n-2 is to match internal line numbers, there must be a header on e.lines
+function errorGum(e) {
+    return {success: false, message: e.message, line: e.lineNumber - 2};
+}
+
 function renderGum(src, size, redraw) {
     size = size ?? size0;
 
@@ -247,8 +252,7 @@ function renderGum(src, size, redraw) {
     try {
         out = parseGum(src);
     } catch (e) {
-        // the n-2 is to match internal line numbers, there must be a header on e.lines
-        return {success: false, message: e.message, line: e.lineNumber - 2};
+        return errorGum(e);
     }
 
     if (out == null) {
@@ -258,8 +262,12 @@ function renderGum(src, size, redraw) {
     let svg;
     let anchors = null;
     if (out instanceof InterActive) {
-        anchors = out.createAnchors(redraw);
-        out = out.create(redraw);
+        try {
+            anchors = out.createAnchors(redraw);
+            out = out.create(redraw);
+        } catch (e) {
+            return errorGum(e);
+        }
     }
     if (out instanceof Element) {
         let args = {size: size};

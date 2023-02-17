@@ -242,7 +242,7 @@ if need_login:
 def Home():
     print('ROUTE: /home')
     style = getStyle(request)
-    tags = edb.get_tags()
+    tags = edb.get_all_tags()
     if args.demo:
         return render_template('index.html', **style, **chtml, login=False)
     else:
@@ -415,7 +415,7 @@ def GetArtData(title, edit, pid=None, **kwargs):
     if art:
         style = getStyle(request, **kwargs)
         paras = edb.get_paras(art.aid)
-        tags = edb.tags_by_art(art.aid)
+        tags = edb.get_art_tags(art.aid)
         return render_template(
             'article.html', aid=art.aid, title=art.title, g_ref=art.g_ref, pid=pid, paras=paras,
             tags=tags, readonly=not edit, **config, **style
@@ -508,38 +508,28 @@ def Img():
     style = getStyle(request)
     img = [(i.key, i.keywords) for i in edb.get_images()]
     img.reverse()
-    return render_template('img.html',
-        readonly=not edit,
-        max_size=config['max_size'],
-        max_imgs=config['max_imgs'],
-        edit=edit,
-        **style,
-        **chtml,
+    return render_template(
+        'img.html', readonly=not edit, max_size=config['max_size'],
+        max_imgs=config['max_imgs'], edit=edit, **style, **chtml
     )
 
-@app.route('/t', methods=['GET', 'POST'])
+@app.route('/tag', methods=['GET', 'POST'])
 @view_decor
 def TagPageEmpty():
     style = getStyle(request)
-    taglist = edb.get_tags()
-    return render_template('tagged.html',
-        tagged=taglist,
-        empty=1,
-        **style,
-        **chtml,
+    taglist = edb.get_all_tags()
+    return render_template(
+        'tagged.html', tagged=taglist, empty=1, **style, **chtml
     )
 
-@app.route('/t/<taglist>', methods=['GET', 'POST'])
+@app.route('/tag/<taglist>', methods=['GET', 'POST'])
 @view_decor
 def TagPage(taglist):
     taglist = taglist.split(',')
-    tagged = edb.get_tagged_arts(taglist)
+    tagged = edb.get_taglist_info(taglist)
     style = getStyle(request)
-    return render_template('tagged.html',
-        tagged=tagged,
-        emprty=0,
-        **style,
-        **chtml,
+    return render_template(
+        'tagged.html', tagged=tagged, emprty=0, **style, **chtml
     )
 
 ###
@@ -728,17 +718,7 @@ def set_blurb(data):
 @view_decor
 def search_title(data):
     query, taglist = data['query'], data['tags']
-    results = edb.search_title(query, taglist)
-    return [{
-        'short': 'a/' + art.short_title,
-        'blurb': art.blurb,
-        'tags': (results['tags'][art.aid] if art.aid in results['tags'] else None),
-    } for art in results['arts']]
-
-@socketio.on('recent_arts')
-@view_decor
-def recent_arts(data):
-    results = edb.get_recent_arts(n=5)
+    results = edb.search_title(query, taglist=taglist)
     return [{
         'short': 'a/' + art.short_title,
         'blurb': art.blurb,
@@ -758,6 +738,15 @@ def search_text(data):
         'short': titles[par.aid],
         'raw': par.text
     } for par in results]
+
+@socketio.on('recent_arts')
+@view_decor
+def recent_arts(data):
+    results = edb.get_recent_arts(n=5)
+    return [{
+        'short': 'a/' + art.short_title,
+        'blurb': art.blurb,
+    } for art in results]
 
 ###
 ### citations
@@ -1013,9 +1002,13 @@ def delete_image(data):
 ## run that babeee
 ##
 
+# announce server
+url = f'http://{args.ip}:{args.port}'
+print(f'Serving at: {url}')
+
 # launch browser maybe
 def launch_browser():
-    webbrowser.open_new(f'http://{args.ip}:{args.port}')
+    webbrowser.open_new(url)
 if not args.no_browser and not args.debug:
     thr = Timer(1, launch_browser)
     thr.start()

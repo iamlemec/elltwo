@@ -111,7 +111,7 @@ let blurb_img = `<div><div class="title">${elltwo} Image Library</div>Upload new
 let blurb_bib = `<div><div class="title">${elltwo} Bibliography</div>Enter new bibliographic citations manually or via a web search; search and edit existing citations.</div>`;
 
 async function searchTitle(query, last_url="", tags=[]) {
-    let data = {query, tags}
+    let data = {query, tags};
     let ret = await sendCommand('search_title', data);
     let title_text = `Search Results, Title: ${query}`;
     let q = query.toLowerCase();
@@ -178,50 +178,48 @@ async function searchText(query, last_pid) {
 }
 
 function buildBlurbs(response, last_url, title_text, target=null){
-     
-     if(!target){
-
-     $('#results').empty();
+    if (!target) {
+        $('#results').empty();
         let res_title = $('<div>', {class: 'res_title', text: title_text});
         $('#results').append(res_title);
         target = $('#results');
     }
 
-        let nres = Object.keys(response).length;
-        if (nres > 0) {
-            for (let idx in response) {
-                let art = response[idx];
-                let url = art.short;
-                let short = url;
-                if (short != 'img' && short != 'bib') {
-                    short = url.slice(2).replace('_', ' ');
-                }
-                let btext = art.blurb || short;
-                let art_div = $('<a>', {class: 'result art_link', href: window.location.origin + '/' + url});
-                let art_title = $('<div>', {class: 'blurb_name', text: short});
-                if(art.tags){
-                    art.tags.forEach(t => {
-                        let tag = $('<span>', {class: 'blurb_tag', text: t});
-                        art_title.append(tag);
-                    })
-                }
-                let art_blurb = $('<div>', {class: 'blurb', html: btext});
-                art_div.append([art_title, art_blurb]);
-                target.append(art_div);
+    let nres = Object.keys(response).length;
+    if (nres > 0) {
+        for (let idx in response) {
+            let art = response[idx];
+            let url = art.short;
+            let short = url;
+            if (short != 'img' && short != 'bib') {
+                short = url.slice(2).replace('_', ' ');
             }
-
-            let sel;
-            if (last_url == undefined) {
-                sel = $('.art_link').first();
-            } else {
-                sel = $(`.art_link[href="${last_url}"]`);
-                if (sel.length == 0) {
-                    sel = $('.art_link').first();
-                }
+            let btext = art.blurb || short;
+            let art_div = $('<a>', {class: 'result art_link', href: window.location.origin + '/' + url});
+            let art_title = $('<div>', {class: 'blurb_name', text: short});
+            if(art.tags){
+                art.tags.forEach(t => {
+                    let tag = $('<span>', {class: 'blurb_tag', text: t});
+                    art_title.append(tag);
+                })
             }
-            sel.addClass('selected');
+            let art_blurb = $('<div>', {class: 'blurb', html: btext});
+            art_div.append([art_title, art_blurb]);
+            target.append(art_div);
         }
-};
+
+        let sel;
+        if (last_url == undefined) {
+            sel = $('.art_link').first();
+        } else {
+            sel = $(`.art_link[href="${last_url}"]`);
+            if (sel.length == 0) {
+                sel = $('.art_link').first();
+            }
+        }
+        sel.addClass('selected');
+    }
+}
 
 function runQuery() {
     let active = $('.result.selected').first();
@@ -292,7 +290,7 @@ async function ccTags(raw, cur) {
 
     }
 
-function dispTags(raw=null){
+function dispTags(raw=null) {
     $('#tagdisp').remove();
     let tagdisp = $('<div>', {id: 'tagdisp'});
     let tags = getSearchTags(raw);
@@ -306,29 +304,28 @@ function dispTags(raw=null){
     }
 }
 
-function getSearchTags(raw=null){
-    if(raw == null){
+function getSearchTags(raw=null) {
+    if (raw == null) {
         raw = $('#query').val();
     }
     let tagexp = /#(\[[\w| ]+\]|\w+)/g;
     let tags = [...raw.matchAll(tagexp)];
-    return tags.map(t => t[1].replace(']',"")
-        .replace('[',"")
-        .replace('#',""))
-    .filter((v, i, a) => a.indexOf(v) === i);//unique els
+    return tags
+        .map(t => t[1].replace(/[\]\[#]/g, ''))
+        .filter((v, i, a) => a.indexOf(v) === i); //unique els
 }
 
-function tagComplete(){
+function tagComplete() {
     let q = $('#query');
     let cctxt = $('.cc_row').first().attr('ref');
-    if (cctxt.lastIndexOf(' ') > 0){ //space
-        cctxt = `[${cctxt}]`
+    if (cctxt.lastIndexOf(' ') > 0) { //space
+        cctxt = `[${cctxt}]`;
     }
-    let raw = q.val()
-    let [l,u] = state.cc
+    let raw = q.val();
+    let [l, u] = state.cc;
     raw = raw.substring(0, l) + cctxt + raw.substring(u);
-    l = l + cctxt.length
+    l = l + cctxt.length;
     q.val(raw).trigger('input');
     q[0].setSelectionRange(l, l);
     runQuery();
-    }
+}
