@@ -205,9 +205,9 @@ class ElltwoDB:
 
     def reset(self, time, klass=None):
         if klass is None:
-            reset(time, klass=Article)
-            reset(time, klass=Paragraph)
-            reset(time, klass=Paralink)
+            self.reset(time, klass=Article)
+            self.reset(time, klass=Paragraph)
+            self.reset(time, klass=Paralink)
         else:
             for k in self.session.query(klass).filter(klass.create_time > time).all():
                 self.session.delete(k)
@@ -1198,7 +1198,7 @@ class ElltwoDB:
 
         # generate diff info
         if diff is None:
-            diff = diff_article(aid, time, time1)
+            diff = self.diff_article(aid, time, time1)
 
         # insert new paras
         for pid, text in diff['para_add'].items():
