@@ -291,13 +291,14 @@ a.reference {
     display: block;
     width: 100%;
     min-width: 100px;
-    padding: 0 50% 0 5%;
+    padding: 0 50% 0 2%;
     line-height: 160%;
     border-radius: 0px;
     cursor: pointer;
+    border-radius: 2px;
 }
 
-.custom-select-trigger:after, #logo:after, .iac_tog:after {
+.custom-select-trigger:after, .iac_tog:after {
     position: absolute;
     display: block;
     content: '';

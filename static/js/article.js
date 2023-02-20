@@ -692,7 +692,7 @@ function themeLink(name) {
 }
 
 function toggleSidebar() {
-    $('#sidebar').animate({width: 'toggle'}, 100);
+    $('#sidebar').toggle();
     $('#logo').toggleClass('opened');
     $('#content').toggleClass('sb_content');
     $('#svgEditorOuter').toggleClass('sb_content');
@@ -1139,16 +1139,18 @@ function responsivefy(svg) {
 /// local search
 
 function toggleSearch() {
-        $('#foot').toggleClass('ls_content');
-        $('#localSearch').animate({width: 'toggle'}, 100)
+    $('#foot').toggleClass('ls_content');
+    $('#localSearch')
+        .animate({width: 'toggle'}, 100)
         .toggleClass('opened')
         .val('')
         .focus();
-        $('#results').hide()
+    $('#results')
+        .hide()
         .empty();
-        $('#bg').removeClass('blur');
-        state.localSearch = !state.localSearch;
-        return false; 
+    $('#bg').removeClass('blur');
+    state.localSearch = !state.localSearch;
+    return false; 
 };
 
 /// reference completion

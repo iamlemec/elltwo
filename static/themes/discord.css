@@ -115,6 +115,14 @@ button:hover {
     background-color: var(--bg-hl-col);
 }
 
+#logo {
+    background-color: var(--butt-bg-col);
+}
+
+#logo:hover {
+    background-color: var(--butt-fg-col);
+}
+
 #logo_placeholder {
     border-bottom: 1px solid rgb(61, 61, 61);
 }
