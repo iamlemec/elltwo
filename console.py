@@ -334,6 +334,10 @@ class Ingest:
             if ext == 'md':
                 self.markdown(f'{path}/{name}')
 
+class Export:
+    def __init__(self, edb):
+        self.edb = edb
+
 class Serve:
     def file(self, path, host='localhost', port=8000):
         with open(path) as fid:
@@ -356,6 +360,7 @@ class Main:
         self.reference = self.ref = Reference(edb=edb)
         self.backup = Backup(edb=edb)
         self.ingest = Ingest(edb=edb)
+        self.export = Export(edb=edb)
         self.serve = Serve()
 
 if __name__ == '__main__':
