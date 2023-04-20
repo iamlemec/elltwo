@@ -11,16 +11,30 @@ import { SyntaxHL, esc_html } from './hl.js'
 import { TextEditorNative } from './text.js'
 
 class Paragraph {
-    constructor(pid, src='', type=null) {
-        // should be immutable
+    constructor(pid, src='', type=null, name=null) {
         this.pid = pid;
         this.src = src;
         this.type = type;
+        this.name = name;
+    }
+}
 
-        // set on first render pass
-        this.env = null;
-        this.env_pid = null;
-        this.err = null;
+class EnvState {
+    constructor() {
+        reset();
+    }
+
+    reset() {
+        this.env_name = null;
+        this.env_args = null;
+        this.env_idx = null;
+        this.env_pids = [];
+    }
+
+    abort() {
+        let ei = this.env_idx;
+        this.reset();
+        return ei;
     }
 }
 
@@ -28,6 +42,7 @@ class Document {
     constructor() {
         this.paras = {};
         this.paraOrder = [];
+        this.envsInfo = [];
     }
 
     // add a paragraph to the document (at an index, after, or before a paragraph)
@@ -55,96 +70,82 @@ class Document {
         }
     }
 
-    stripEnvs() {
-        for (let pid of this.paraOrder) {
-            let para = this.paras[pid];
-            if (para.type == 'env_beg' || para.type == 'env_end' || para.type == 'env_one') {
-                // keep env name for later
-            } else {
-                para.type = null;
-                para.env = null;
-            }
-            para.err = null;
-        }
-    }
-
     // assign classes for environs
+    // maybe just create a list of (env_name, pids) then pass that to renderers?
     assignEnvs() {
-        console.log('envClasses', paras);
-        stripClasses();
+        console.log('assignEnvs', paras);
 
-        // env state
-        let env_name = null;
-        let env_pid = null;
-        let env_idx = null;
-        let env_paras = [];
-
-        function reset_state() {
-            env_name = null;
-            env_pid = null;
-            env_paras = [];
-        }
-
-        function abort_env(last, data) {
-            env_paras.push(last);
-            stripEnvs(env_paras);
-            let env_beg = env_paras[0];
-            env_beg.err = data;
-            reset_state();
-            return env_idx;
-        }
-
+        this.envsInfo = [];
+        let st = new EnvState();
+    
         // forward env pass
         for (i = 0; i < this.paraOrder.length; i++) {
             let pid = this.paraOrder[i];
             let para = this.paras[pid];
 
             // error: ending env while not in one
-            if (env_name == null && para.type == 'env_end') {
-                para.type = 'error';
+            if (st.env_name == null && para.type == 'env_end') {
+                let args = {code: 'close'};
+                let env = {name: 'error', pids: [para.pid], args};
+                this.envsInfo.push(env);
+                continue;
             }
 
             // error: starting env while already in one
-            if (env_name != null && para.type == 'env_beg') {
-                let new_env = para.env;
-                i = abort_env(para, {code: 'open', env: env_name, new_env: new_env});
+            if (st.env_name != null && para.type == 'env_beg') {
+                let args = {code: 'open', env_cur: env_name, env_new: para.env};
+                let env = {name: 'error', pids: [para.pid], args};
+                this.envsInfo.push(env);
+                i = st.abort();
                 continue;
             }
 
             // error: section heading inside env
-            if (env_name != null && para.type == 'env' && para.env == 'heading') {
-                i = abort_env(para, {code: 'heading', env: env_name})
+            if (st.env_name != null && para.type == 'env_one' && para.name == 'heading') {
+                let args = {code: 'heading', env_cur: env_name};
+                let env = {name: 'error', pids: [para.pid], args};
+                this.envsInfo.push(env);
+                i = st.abort();
                 continue;
             }
 
             // state: start new env
-            if (env_name == null && para.type == 'env_beg') {
-                env_name = para.env;
-                env_pid = para.pid;
-                env_idx = i;
+            if (st.env_name == null && (para.type == 'env_beg' || para.type == 'env_one')) {
+                st.env_name = para.name;
+                st.env_args = para.args;
+                st.env_pids = [];
+                st.env_idx = i;
             }
 
             // state: add to list of current env
-            if (env_name != null) {
-                env_paras.push(para);
+            if (st.env_name != null) {
+                st.env_pids.push(para.pid);
             }
 
             // render: completed non-singleton env
-            if (para.type == 'env_end') {
-                for (let p of env_paras) {
-                    p.env = env_name;
-                    p.env_pid = env_pid;
-                }
-                reset_state();
+            if (st.env_name != null && (para.type == 'env_end' || para.type == 'env_one')) {
+                let env = {name: st.env_name, pids: st.env_pids, args: st.env_args};
+                this.envsInfo.push(env);
+                st.reset();
             }
         }
 
-        // add error for open envs left at the end
+        // error: end of document inside env
         if (env_name !== null) {
             let env_beg = env_paras[0];
-            env_beg.err = {code: 'eof', env: env_name};
+            env_beg.err = {env: 'error', code: 'eof', env: env_name};
         }
     }
+}
+
+function renderToHTML(md, targ) {
+    // parse and insert html
+    let {src, env} = markthree(md);
+    let text = targ.querySelector('.p_text');
+    text.innerHTML = src;
+
+    // render math
+    renderKatex(text, state.macros);
 }
 
 /// low level rendering
