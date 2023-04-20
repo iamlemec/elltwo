@@ -10,31 +10,17 @@ import { parseSVG } from './svg.js'
 import { SyntaxHL, esc_html } from './hl.js'
 import { TextEditorNative } from './text.js'
 
-// main rendering entry point (for all cases)
-
 class Paragraph {
-    constructor(pid, src='') {
+    constructor(pid, src='', type=null) {
+        // should be immutable
         this.pid = pid;
         this.src = src;
-        this.type = null;
+        this.type = type;
+
+        // set on first render pass
         this.env = null;
+        this.env_pid = null;
         this.err = null;
-    }
-
-    hasClass(name) {
-        return this.cls.includes(name);
-    }
-
-    addClass(name) {
-        this.cls.push(name);
-    }
-
-    getAttr(name) {
-        return this.atr[name];
-    }
-
-    setAttr(name, value) {
-        this.atr[name] = value;
     }
 }
 
@@ -83,7 +69,7 @@ class Document {
     }
 
     // assign classes for environs
-    assignClasses() {
+    assignEnvs() {
         console.log('envClasses', paras);
         stripClasses();
 
@@ -91,14 +77,11 @@ class Document {
         let env_name = null;
         let env_pid = null;
         let env_idx = null;
-        let env_args = null;
         let env_paras = [];
 
         function reset_state() {
             env_name = null;
             env_pid = null;
-            env_idx = null;
-            env_args = null;
             env_paras = [];
         }
 
@@ -106,7 +89,6 @@ class Document {
             env_paras.push(last);
             stripEnvs(env_paras);
             let env_beg = env_paras[0];
-            env_beg.type == 'error';
             env_beg.err = data;
             reset_state();
             return env_idx;
@@ -137,163 +119,32 @@ class Document {
 
             // state: start new env
             if (env_name == null && para.type == 'env_beg') {
-                env_name = para.attr('env');
-                env_pid = para.attr('pid'); // changed to use PID so all envs have this
+                env_name = para.env;
+                env_pid = para.pid;
                 env_idx = i;
-                env_args = para.data('args');
-                if (env_pid != undefined) {
-                    para.attr('env_sel', `[env_pid="${env_pid}"]`);
-                }
             }
 
             // state: add to list of current env
-            if (env_name) {
-                env_paras.push(para[0]);
+            if (env_name != null) {
+                env_paras.push(para);
             }
 
             // render: completed non-singleton env
-            if (para.hasClass('env_end')) {
-                let env_all = $(env_paras);
-                let txt_all = env_all.children('.p_text');
-                env_all.addClass('env');
-                env_all.attr('env_pid', env_pid);
-                env_all.addClass(`env__${env_name}`);
-                if (state.folded.includes(env_pid)) {
-                    env_all.addClass('folded');
-                };
-                envFormat(txt_all, env_name, env_args);
+            if (para.type == 'env_end') {
+                for (let p of env_paras) {
+                    p.env = env_name;
+                    p.env_pid = env_pid;
+                }
                 reset_state();
             }
         }
 
         // add error for open envs left at the end
         if (env_name !== null) {
-            let env_beg = $(env_paras).first();
-            env_beg.addClass('env_err');
-            envFormat(env_beg, 'error', {code: 'eof', env: env_name});
+            let env_beg = env_paras[0];
+            env_beg.err = {code: 'eof', env: env_name};
         }
-
-        envGlobal();
-
     }
-}
-
-function eventRender() {
-    // popup previews split by mobile status
-    if (config.mobile) {
-        $(document).on('click', '.pop_anchor', async function(e) {
-            e.preventDefault();
-            $('#pop').remove();
-            let ref = $(this);
-            ref.data('show_pop', true);
-            let tro = await getTro(ref);
-            renderPop(ref, tro);
-            return false;
-        });
-
-        $(document).click(function(e) {
-            if ($(e.target).closest('#pop').length == 0) {
-                $('#pop').remove();
-            } else {
-                window.location = $('#pop').attr('href');
-                $('#pop').remove();
-            }
-        });
-    } else {
-        $(document).on({
-            mouseenter: async function() {
-                let ref = $(this);
-                if(!ref.hasClass('sidenote')) {
-                    ref.data('show_pop', true);
-                    let tro = await getTro(ref);
-                    renderPop(ref, tro);
-                }
-            },
-            mouseleave: function() {
-                let ref = $(this);
-                ref.data('show_pop', false);
-                $('#pop').remove();
-                $(window).unbind('mousemove');
-            },
-        }, '.pop_anchor');
-    }
-}
-
-/// for external readonly viewing
-
-function initMarkdown(markdown) {
-    let content = $('#content');
-    markdown.trim().split(/\n{2,}/).forEach((raw, pid) => {
-        let para = barePara(pid, raw);
-        content.append(para);
-    });
-}
-
-/// high level rendering
-
-// inner HTML for para structure. Included here for updating paras
-const innerPara = `
-<div class="p_text"></div>
-<div class="p_input"></div>
-<div class="control">
-<div class="controlZone"></div>
-<div class="controlButs">
-<div class="butgrp1">
-<div class="before controlBut" title='insert above'><svg>
-<use xlink:href="/dist/img/icons.svg#control_before"></use>
-</svg></div>
-<div class="after controlBut" title='insert below'><svg>
-<use xlink:href="/dist/img/icons.svg#control_after"></use>
-</svg></div>
-</div>
-<div class="butgrp2">
-<div class="delete controlBut" title='delete'><svg>
-<use xlink:href="/dist/img/icons.svg#control_delete"></use>
-</svg></div>
-<div class="copylink ro_but controlBut" title='copy link'><svg>
-<use xlink:href="/dist/img/icons.svg#control_link"></use>
-</svg></div>
-</div>
-</div>
-</div>
-<div class="lock_icon"></div>
-<div class="move_here_icon"><svg>
-<use xlink:href="/dist/img/icons.svg#move_here"></use>
-</svg></div>
-`;
-
-function barePara(pid, raw='') {
-    return $('<div>', {
-        class: 'para', pid: pid, raw: raw, fold_level: 0
-    });
-}
-
-function makeEditor(para) {
-    let [input] = para.children('.p_input');
-    let editor = new TextEditorNative(input, {handler: editorHandler});
-    let pid = para.attr('pid');
-    state.editors.set(pid, editor);
-}
-
-function getEditor(para) {
-    let pid = para.attr('pid');
-    return state.editors.get(pid);
-}
-
-function makePara(para, defer=true) {
-    para.html(innerPara);
-    makeEditor(para);
-    let anc = $('<span>', {id: `pid-${para.attr('pid')}`});
-    para.prepend(anc);
-    rawToTextarea(para);
-    rawToRender(para, defer); // postpone formatting
-}
-
-function renderParas() {
-    $('.para').each(function() {
-        let para = $(this);
-        makePara(para);
-    });
 }
 
 /// low level rendering
