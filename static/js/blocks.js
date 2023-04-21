@@ -1,14 +1,13 @@
 /// non-DOM block renderer
 
-import { merge, cooks, getPara, RefCount, DummyCache, updateSliderValue, ensureVisible } from './utils.js'
-import { config, cache, state, updateCache } from './state.js'
-import { sendCommand, addDummy } from './client.js'
+import { cooks, getPara, updateSliderValue, ensureVisible } from './utils.js'
+import { config, cache, state } from './state.js'
+import { sendCommand } from './client.js'
 import { markthree, divInlineParser } from './marked3.js'
-import { fold, editorHandler } from './editor.js'
+import { fold } from './editor.js'
 import { renderKatex } from './math.js'
 import { parseSVG } from './svg.js'
 import { SyntaxHL, esc_html } from './hl.js'
-import { TextEditorNative } from './text.js'
 
 class Paragraph {
     constructor(pid, src='', type=null, name=null) {
@@ -19,7 +18,7 @@ class Paragraph {
     }
 }
 
-class EnvState {
+class EnvScanState {
     constructor() {
         reset();
     }
@@ -71,12 +70,11 @@ class Document {
     }
 
     // assign classes for environs
-    // maybe just create a list of (env_name, pids) then pass that to renderers?
-    assignEnvs() {
-        console.log('assignEnvs', paras);
+    scanEnvs() {
+        console.log('scanEnvs', paras);
 
         this.envsInfo = [];
-        let st = new EnvState();
+        let st = new EnvScanState();
     
         // forward env pass
         for (i = 0; i < this.paraOrder.length; i++) {
