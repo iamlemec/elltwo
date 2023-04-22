@@ -22,7 +22,6 @@ let block = {
     upload: /^!!(gum)? *(?:refargs)?\s*$/,
     svg: /^\!(svg|gum)(\*)? *(?:refargs)?\s*/,
     image: /^!(yt|youtube)?(\*)? *(?:refargs)? *(?:\(href\))?\s*/,
-    // imagelocal: /^!(\*)? *(?:refargs)\s*$/,
     figtab: /^\| *(?:refargs)? *\n(?:table)/,
     envbeg: /^\>\>(\!)? *([\w-]+)(\*)? *(?:refargs)?\s*/,
     envend: /^\<\<\s*/,
@@ -32,7 +31,6 @@ let block = {
 
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
-//block._refargs = /(?:\[((?:[^\]]|(?<=\\)\])*)\])/;
 block._refargs = /\[((?:(?:[^\]\[\\]|\\.)+|\[(?:[^\]\[]+)*\])*)\]/;
 block._bull = /(?:[*+-]|\d+\.)/;
 block._item = /^( *)(bull) ?/;
@@ -45,10 +43,6 @@ block.image = replace(block.image)
 block.upload = replace(block.upload)
     ('refargs', block._refargs)
     ();
-
-// block.imagelocal = replace(block.imagelocal)
-//     ('refargs', block._refargs)
-//     ();
 
 block.heading = replace(block.heading)
     ('refargs', block._refargs)
@@ -94,13 +88,13 @@ function parseArgs(argsraw, number=true, set=true) {
             'number': number
         };
     }
-    //argsraw = argsraw.slice(1,-1);
+
     let fst;
     let args = {};
-    let rx = /[^a-zA-Z\d\_\-]/; //invalid chars for arg labels and id's
+    let rx = /[^a-zA-Z\d\_\-]/; // invalid chars for arg labels and id's
 
     if (!set) {
-        rx = /[^a-zA-Z\d\_\-\:]/; //allow : for references
+        rx = /[^a-zA-Z\d\_\-\:]/; // allow : for references
     }
 
     // using lookbehinds, might not work on old browsers.
@@ -115,10 +109,6 @@ function parseArgs(argsraw, number=true, set=true) {
                    }
                });
            });
-
-    // if ((Object.keys(args).length==0) && argsraw) {
-    //     args['id'] = argsraw;
-    // }
 
     if (!('id' in args)) {
         fst = argsraw.split(/(?<!\\)\||\n/)[0];
@@ -274,21 +264,6 @@ class BlockParser {
             };
             return this.renderer.svg();
         }
-
-        // // imagelocal
-        // if (cap = this.rules.imagelocal.exec(src)) {
-        //                 console.log('LOOOP')
-
-        //     let number = cap[1] == undefined;
-        //     let argsraw = cap[2] || '';
-        //     let args = parseArgs(argsraw, number);
-        //     this.env = {
-        //         type: 'env_one',
-        //         env: 'imagelocal',
-        //         args: args,
-        //     }
-        //     return this.renderer.imagelocal();
-        // }
 
         // image
         if (cap = this.rules.image.exec(src)) {
@@ -480,10 +455,9 @@ let inline = {
     special: /^(?<!\\)\\([\`\"\^\~])\{([A-z])\}/,
     escape: /^\\([\\/`*{}\[\]()#+\-.!_>\$%&])/,
     in_comment: /^\/\/([^\n]*?)(?:\n|$)/,
-    autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
+    autolink: /^<([^ >]+:\/[^ >]+)>/,
     url: noop,
-    //tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^'">])*?>/,
-    link: /^!?\[(inside)\]\(href\)/,
+    link: /^(!?)\[(inside)\]\(href\)/,
     hash: /^#(\[[\w| ]+\]|\w+)/,
     ilink: /^\[\[([^\]]+)\]\]/,
     strong: /^__([\s\S]+?)__(?!_)|^\*\*([\s\S]+?)\*\*(?!\*)/,
@@ -493,8 +467,7 @@ let inline = {
     del: noop,
     text: /^[\s\S]+?(?=[\/\\<!\[_*`\$\^@#]| {2,}\n|$)/,
     math: /^\$((?:\\\$|[\s\S])+?)\$/,
-    ref: /^@\[([^\]]+)\]/,
-    cite: /^@@\[([^\]]+)\]/,
+    refcite: /^(@{1,2})\[([^\]]+)\]/,
     footnote: /^\^(\!)?\[(inside)\]/,
 };
 
@@ -513,255 +486,20 @@ inline.footnote = replace(inline.footnote)
 
 // GFM Inline Grammar
 inline.gfm = merge({}, inline, {
-  escape: replace(inline.escape)('])', '~|])')(),
-  url: /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/,
-  del: /^~~(?=\S)([\s\S]*?\S)~~/,
-  text: replace(inline.text)
-    (']|', '~]|')
-    ('|', '|https?://|')
-    ()
+    escape: replace(inline.escape)('])', '~|])')(),
+    url: /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/,
+    del: /^~~(?=\S)([\s\S]*?\S)~~/,
+    text: replace(inline.text)
+        (']|', '~]|')
+        ('|', '|https?://|')
+        ()
 });
 
 // GFM + Line Breaks Inline Grammar
 inline.breaks = merge({}, inline.gfm, {
-  br: replace(inline.br)('{2,}', '*')(),
-  text: replace(inline.gfm.text)('{2,}', '*')()
+    br: replace(inline.br)('{2,}', '*')(),
+    text: replace(inline.gfm.text)('{2,}', '*')()
 });
-
-// Inline Parser
-class InlineParser {
-    constructor(renderer, options) {
-        this.renderer = renderer;
-        this.options = options ?? defaults;
-        this.rules = inline;
-
-        if (this.options.gfm) {
-            if (this.options.breaks) {
-                this.rules = inline.breaks;
-            } else {
-                this.rules = inline.gfm;
-            }
-        }
-    }
-
-    output(src) {
-        let out = ''
-          , text
-          , href
-          , cap
-          , tex
-          , esc
-          , acc
-          , letter
-          , argsraw
-          , args;
-
-        while (src) {
-
-            // special
-            if (cap = this.rules.special.exec(src)) {
-                src = src.substring(cap[0].length);
-                acc = cap[1];
-                letter = cap[2];
-                out += this.renderer.special(acc,letter);
-                continue;
-            }
-
-            // escape
-            if (cap = this.rules.escape.exec(src)) {
-                src = src.substring(cap[0].length);
-                esc = cap[1];
-                out += this.renderer.escape(esc);
-                continue;
-            }
-
-            // math
-            if (cap = this.rules.math.exec(src)) {
-                src = src.substring(cap[0].length);
-                tex = cap[1];
-                out += this.renderer.math(tex);
-                continue;
-            }
-
-            // comment
-            if (cap = this.rules.in_comment.exec(src)) {
-                src = src.substring(cap[0].length);
-                text = cap[1];
-                out += this.renderer.in_comment(text);
-                continue;
-            }
-
-            // ref
-            if (cap = this.rules.ref.exec(src)) {
-                src = src.substring(cap[0].length);
-                argsraw = cap[1];
-                args = parseArgs(argsraw, false, false);
-                text = args.text || args.txt || args.t || '';
-                out += this.renderer.ref(args, this.output(text));
-            }
-
-            // cite
-            if (cap = this.rules.cite.exec(src)) {
-                src = src.substring(cap[0].length);
-                argsraw = cap[1];
-                args = parseArgs(argsraw, false, false);
-                text = args.text || args.txt || args.t || '';
-                out += this.renderer.cite(args, this.output(text));
-            }
-
-            // footnote
-            if (cap = this.rules.footnote.exec(src)) {
-                src = src.substring(cap[0].length);
-                if (cap[1]) {
-                    out += this.renderer.sidenote(this.output(cap[2]));
-                } else {
-                    out += this.renderer.footnote(this.output(cap[2]));
-                }
-                continue;
-            }
-
-            // internal link
-            if (cap = this.rules.ilink.exec(src)) {
-                src = src.substring(cap[0].length);
-                argsraw = cap[1];
-                args = parseArgs(argsraw, false, false);
-                text = args.text || args.txt || args.t || '';
-                out += this.renderer.ilink(args, this.output(text));
-            }
-
-            // autolink
-            if (cap = this.rules.autolink.exec(src)) {
-                src = src.substring(cap[0].length);
-                if (cap[2] === '@') {
-                    text = cap[1].charAt(6) === ':'
-                    ? this.mangle(cap[1].substring(7))
-                    : this.mangle(cap[1]);
-                    href = this.mangle('mailto:') + text;
-                } else {
-                    text = cap[1];
-                    href = text;
-                }
-                out += this.renderer.link(href, null, text);
-                continue;
-            }
-
-            // url (gfm)
-            if (!this.inLink && (cap = this.rules.url.exec(src))) {
-                src = src.substring(cap[0].length);
-                text = cap[1];
-                href = text;
-                out += this.renderer.link(href, null, text);
-                continue;
-            }
-
-            // // tag
-            // if (cap = this.rules.tag.exec(src)) {
-            //     if (!this.inLink && /^<a /i.test(cap[0])) {
-            //         this.inLink = true;
-            //     } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
-            //         this.inLink = false;
-            //     }
-            //     src = src.substring(cap[0].length);
-            //     out += cap[0];
-            //     continue;
-            // }
-
-            // link
-            if (cap = this.rules.link.exec(src)) {
-                src = src.substring(cap[0].length);
-                this.inLink = true;
-                out += this.outputLink(cap, {
-                    href: cap[2],
-                    title: cap[3]
-                });
-                this.inLink = false;
-                continue;
-            }
-
-            // strong
-            if (cap = this.rules.strong.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.strong(this.output(cap[2] || cap[1]));
-                continue;
-            }
-
-            // hash
-            if (cap = this.rules.hash.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.hash(cap[1].replace('[', "").replace(']', ""));
-                continue;
-            }
-
-            // em
-            if (cap = this.rules.em.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.em(this.output(cap[2] || cap[1]));
-                continue;
-            }
-
-            // code
-            if (cap = this.rules.code.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.codespan(cap[2].trim());
-                continue;
-            }
-
-            // br
-            if (cap = this.rules.br.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.br();
-                continue;
-            }
-
-            // del (gfm)
-            if (cap = this.rules.del.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.del(this.output(cap[1]));
-                continue;
-            }
-
-            // text
-            if (cap = this.rules.text.exec(src)) {
-                src = src.substring(cap[0].length);
-                out += this.renderer.text(cap[0]);
-                continue;
-            }
-
-            if (src) {
-                throw new Error('Infinite loop on byte: ' + src.charCodeAt(0));
-            }
-        }
-
-        return out;
-    }
-
-    outputLink(cap, link) {
-        let href = escape(link.href)
-          , title = link.title ? escape(link.title) : null;
-
-        return cap[0].charAt(0) !== '!'
-            ? this.renderer.link(href, title, this.output(cap[1]))
-            : this.renderer.image(href, title, escape(cap[1]));
-    }
-
-    mangle(text) {
-        if (!this.options.mangle) return text;
-        let out = ''
-          , l = text.length
-          , i = 0
-          , ch;
-
-        for (; i < l; i++) {
-            ch = text.charCodeAt(i);
-            if (Math.random() > 0.5) {
-                ch = 'x' + ch.toString(16);
-            }
-            out += '&#' + ch + ';';
-        }
-
-        return out;
-    }
-}
 
 /**
  *  DIV Renderer
@@ -1268,7 +1006,6 @@ let defaults = {
     gfm: true,
     tables: true,
     breaks: true,
-    mangle: true,
 };
 
 /**

@@ -457,9 +457,9 @@ let inline = {
     special: /^(?<!\\)\\([\`\"\^\~])\{([A-z])\}/,
     escape: /^\\([\\/`*{}\[\]()#+\-.!_>\$%&])/,
     in_comment: /^\/\/([^\n]*?)(?:\n|$)/,
-    autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
+    autolink: /^<([^ >]+:\/[^ >]+)>/,
     url: noop,
-    link: /^!?\[(inside)\]\(href\)/,
+    link: /^(!?)\[(inside)\]\(href\)/,
     hash: /^#(\[[\w| ]+\]|\w+)/,
     ilink: /^\[\[([^\]]+)\]\]/,
     strong: /^__([\s\S]+?)__(?!_)|^\*\*([\s\S]+?)\*\*(?!\*)/,
@@ -469,8 +469,7 @@ let inline = {
     del: noop,
     text: /^[\s\S]+?(?=[\/\\<!\[_*`\$\^@#]| {2,}\n|$)/,
     math: /^\$((?:\\\$|[\s\S])+?)\$/,
-    ref: /^@\[([^\]]+)\]/,
-    cite: /^@@\[([^\]]+)\]/,
+    refcite: /^(@{1,2})\[([^\]]+)\]/,
     footnote: /^\^(\!)?\[(inside)\]/,
 };
 
@@ -505,12 +504,13 @@ inline.breaks = merge({}, inline.gfm, {
 });
 
 // parse markdown into `InlineElement`s
-function parseInline(src) {
-    let cap, mat, text, href, tex, esc, acc, letter, argsraw, args;
+function parseInline(src, ctx) {
+    ctx = ctx ?? {};
+    let cap, mat, text, href, tex, esc, acc, letter, argsraw,
+        args, inner, pre, cls, elem, text1, text2, delim;
+
     let out = [];
-
     while (src) {
-
         // special
         if (cap = this.rules.special.exec(src)) {
             [mat, acc, letter] = cap;
@@ -543,160 +543,133 @@ function parseInline(src) {
             continue;
         }
 
-        // ref
-        if (cap = this.rules.ref.exec(src)) {
-            src = src.substring(cap[0].length);
-            argsraw = cap[1];
+        // ref/cite
+        if (cap = this.rules.refcite.exec(src)) {
+            [mat, pre, argsraw] = cap;
+            cls = (pre == '@') ? RefElement : CiteElement;
             args = parseArgs(argsraw, false, false);
             text = args.text || args.txt || args.t || '';
-            out += this.renderer.ref(args, this.output(text));
+            inner = parseInline(text);
+            out.push(new cls(inner, args));
+            src = src.substring(mat.length);
+            continue;
         }
 
-        // cite
-        if (cap = this.rules.cite.exec(src)) {
-            src = src.substring(cap[0].length);
-            argsraw = cap[1];
-            args = parseArgs(argsraw, false, false);
-            text = args.text || args.txt || args.t || '';
-            out += this.renderer.cite(args, this.output(text));
-        }
-
-        // footnote
+        // footnote/sidenote
         if (cap = this.rules.footnote.exec(src)) {
-            src = src.substring(cap[0].length);
-            if (cap[1]) {
-                out += this.renderer.sidenote(this.output(cap[2]));
-            } else {
-                out += this.renderer.footnote(this.output(cap[2]));
-            }
+            [mat, pre, text] = cap;
+            cls = (pre == '!') ? 'sidenote' : 'footnote';
+            inner = parseInline(text);
+            out.push(new cls(inner));
+            src = src.substring(mat.length);
             continue;
         }
 
         // internal link
         if (cap = this.rules.ilink.exec(src)) {
-            src = src.substring(cap[0].length);
-            argsraw = cap[1];
+            [mat, argsraw] = cap;
             args = parseArgs(argsraw, false, false);
             text = args.text || args.txt || args.t || '';
-            out += this.renderer.ilink(args, this.output(text));
+            inner = parseInline(text);
+            out.push(new InternalLinkElement(inner, args));
+            src = src.substring(mat.length);
+            continue;
         }
 
         // autolink
         if (cap = this.rules.autolink.exec(src)) {
-            src = src.substring(cap[0].length);
-            if (cap[2] === '@') {
-                text = cap[1].charAt(6) === ':'
-                ? this.mangle(cap[1].substring(7))
-                : this.mangle(cap[1]);
-                href = this.mangle('mailto:') + text;
-            } else {
-                text = cap[1];
-                href = text;
-            }
-            out += this.renderer.link(href, null, text);
+            [mat, href] = cap;
+            out.push(new LinkElement(href));
+            src = src.substring(mat.length);
             continue;
         }
 
         // url (gfm)
-        if (!this.inLink && (cap = this.rules.url.exec(src))) {
-            src = src.substring(cap[0].length);
-            text = cap[1];
-            href = text;
-            out += this.renderer.link(href, null, text);
+        if (!ctx.inLink && (cap = this.rules.url.exec(src))) {
+            [mat, href] = cap;
+            out.push(new LinkElement(href));
+            src = src.substring(mat.length);
             continue;
         }
 
         // link
         if (cap = this.rules.link.exec(src)) {
-            src = src.substring(cap[0].length);
-            this.inLink = true;
-            out += this.outputLink(cap, {
-                href: cap[2],
-                title: cap[3]
-            });
-            this.inLink = false;
+            [mat, pre, text, href, title] = cap;
+            [href, title] = [escape(href), escape(title)];
+            if (pre == '!') {
+                elem = new ImageElement(href, text, title);
+            } else {
+                inner = parseInline(text, {...ctx, link: true});
+                elem = new LinkElement(href, inner, title);
+            }
+            out.push(elem);
+            src = src.substring(mat.length);
             continue;
         }
 
         // strong
         if (cap = this.rules.strong.exec(src)) {
-            src = src.substring(cap[0].length);
-            out += this.renderer.strong(this.output(cap[2] || cap[1]));
+            [mat, text1, text2] = cap;
+            text = text1 || text2;
+            inner = parseInline(text);
+            out.push(new BoldElement(inner));
+            src = src.substring(mat.length);
             continue;
         }
 
         // hash
         if (cap = this.rules.hash.exec(src)) {
-            src = src.substring(cap[0].length);
-            out += this.renderer.hash(cap[1].replace('[', "").replace(']', ""));
+            [mat, text] = cap;
+            tag = text.replace('[', '').replace(']', '');
+            out.push(new HashElement(tag));
+            src = src.substring(mat.length);
             continue;
         }
 
         // em
         if (cap = this.rules.em.exec(src)) {
-            src = src.substring(cap[0].length);
-            out += this.renderer.em(this.output(cap[2] || cap[1]));
+            [mat, text1, text2] = cap;
+            text = text1 || text2;
+            inner = parseInline(text);
+            out.push(new ItalicElement(inner));
+            src = src.substring(mat.length);
             continue;
         }
 
         // code
         if (cap = this.rules.code.exec(src)) {
-            src = src.substring(cap[0].length);
-            out += this.renderer.codespan(cap[2].trim());
+            [mat, delim, text] = cap;
+            out.push(new CodeElement(text));
+            src = src.substring(mat.length);
             continue;
         }
 
         // br
         if (cap = this.rules.br.exec(src)) {
-            src = src.substring(cap[0].length);
-            out += this.renderer.br();
+            out.push(new NewlineElement());
+            src = src.substring(mat.length);
             continue;
         }
 
         // del (gfm)
         if (cap = this.rules.del.exec(src)) {
-            src = src.substring(cap[0].length);
-            out += this.renderer.del(this.output(cap[1]));
+            [mat, text] = cap;
+            inner = parseInline(text);
+            out.push(new StrikeoutElement(inner));
+            src = src.substring(mat.length);
             continue;
         }
 
         // text
         if (cap = this.rules.text.exec(src)) {
-            src = src.substring(cap[0].length);
-            out += this.renderer.text(cap[0]);
+            out.push(new TextElement(cap));
+            src = src.substring(mat.length);
             continue;
         }
 
         if (src) {
             throw new Error('Infinite loop on byte: ' + src.charCodeAt(0));
         }
-    }
-
-    return out;
-}
-
-function outputLink(cap, link) {
-    let href = escape(link.href)
-        , title = link.title ? escape(link.title) : null;
-
-    return cap[0].charAt(0) !== '!'
-        ? this.renderer.link(href, title, this.output(cap[1]))
-        : this.renderer.image(href, title, escape(cap[1]));
-}
-
-function mangle(text) {
-    if (!this.options.mangle) return text;
-    let out = ''
-        , l = text.length
-        , i = 0
-        , ch;
-
-    for (; i < l; i++) {
-        ch = text.charCodeAt(i);
-        if (Math.random() > 0.5) {
-            ch = 'x' + ch.toString(16);
-        }
-        out += '&#' + ch + ';';
     }
 
     return out;
@@ -741,11 +714,11 @@ class CommentElement extends InlineElement {
 }
 
 class LinkElement extends InlineElement {
-    constructor(href, title, text) {
+    constructor(href, text, title) {
         super();
         this.href = href;
-        this.title = title;
-        this.text = text;
+        this.text = text ?? href;
+        this.title = title ?? null;
     }
 }
 
@@ -811,6 +784,26 @@ class MathElement extends InlineElement {
     constructor(tex) {
         super();
         this.tex = tex;
+    }
+}
+
+class HashElement extends InlineElement {
+    constructor(tag) {
+        super();
+        this.tag = tag;
+    }
+}
+
+class NewlineElement extends InlineElement {
+    constructor() {
+        super();
+    }
+}
+
+class StrikeoutElement extends InlineElement {
+    constructor(text) {
+        super();
+        this.text = text;
     }
 }
 
@@ -1334,7 +1327,6 @@ let defaults = {
     gfm: true,
     tables: true,
     breaks: true,
-    mangle: true,
 };
 
 /**
