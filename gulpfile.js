@@ -2,6 +2,7 @@ import { rollup } from 'rollup'
 import resolve from '@rollup/plugin-node-resolve'
 import gulp from 'gulp'
 import rename from 'gulp-rename'
+import connect from 'gulp-connect'
 
 // store values globally
 let cache = {};
@@ -118,10 +119,33 @@ gulp.task('fonts', gulp.parallel('core-fonts', 'gum-fonts', 'katex-fonts'));
 // full build
 gulp.task('build', gulp.parallel('js', 'css', 'fonts', 'asset'));
 
+// parser build
+gulp.task('parse', () => gulp.src(['./static/js/md_*.js'])
+    .pipe(gulp.dest('./dist/js'))
+);
+
 // development mode
 gulp.task('dev', () => {
     gulp.watch(['static/js/*'], gulp.series('js'));
     gulp.watch(['static/css/*', 'static/themes/*'], gulp.series('css'));
     gulp.watch(['static/css/fonts/*', 'static/themes/fonts/*'], gulp.series('fonts'));
     gulp.watch(['static/img/*', 'static/favicon/*', 'static/features/*'], gulp.series('asset'));
+});
+
+// reload index
+gulp.task('reload-parse', () => gulp.src(['exper/export.html'])
+    .pipe(connect.reload())
+);
+
+// parser development mode
+gulp.task('dev-parse', () => {
+    connect.server({
+        root: './exper',
+        port: 8000,
+        host: 'localhost',
+        livereload: true
+    });
+
+    gulp.watch(['exper/export.html'], gulp.series('reload-parse'));
+    gulp.watch(['static/js/md_*.js'], gulp.series('parse'));
 });

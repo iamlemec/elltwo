@@ -17,6 +17,7 @@
     "adm-zip": "^0.5.9",
     "codemirror": "^6.0.1",
     "es6-promisify": "^7.0.0",
+    "gulp-connect": "^5.7.0",
     "gum.js": "github:iamlemec/gum.js",
     "katex": "^0.16.3",
     "sqlite3": "^5.1.2"

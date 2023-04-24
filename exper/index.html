@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Parser</title>
+
+</head>
+
+<body>
+
+<div id="bg">
+<div id="content"></div>
+</div>
+
+<script type="module">
+
+import { parseInline, parseBlock } from './js/md_parse.js'
+
+let cont = document.getElementById('content');
+let tree = parseBlock('hello **world *yip***');
+let html = tree.renderHtml();
+cont.innerHTML = html;
+
+</script>
+
+</body>
+
+</html>

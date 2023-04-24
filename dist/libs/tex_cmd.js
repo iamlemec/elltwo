@@ -574,7 +574,7 @@ let syms = [
 'nwarrow',
 'leftharpoondown',
 'Rarr',
- ];
+ ]
 
  let ops = [
 {name:'operatorname{}', disp_name:'operatorname', type:'cmd_opt', sym:`\\ \\{\\cdot\\}`, offset_chars:1},
@@ -598,8 +598,8 @@ let syms = [
 {name:'cfrac{}{}', disp_name:'cfrac', type:'cmd_opt', sym:`\\dfrac {\\{\\cdot\\}}{\\{\\cdot\\}}`, offset_chars:3},
 
 
- ];
+ ]
 
- let tex_cmd  = {'syms': syms, 'ops': ops};
+ let tex_cmd  = {'syms': syms, 'ops': ops}
 
-export { tex_cmd };
+export{ tex_cmd }
