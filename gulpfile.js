@@ -120,7 +120,7 @@ gulp.task('fonts', gulp.parallel('core-fonts', 'gum-fonts', 'katex-fonts'));
 gulp.task('build', gulp.parallel('js', 'css', 'fonts', 'asset'));
 
 // parser build
-gulp.task('parse', () => gulp.src(['./static/js/md_*.js'])
+gulp.task('parse', () => gulp.src(['./static/js/markum.js'])
     .pipe(gulp.dest('./dist/js'))
 );
 
@@ -147,5 +147,5 @@ gulp.task('dev-parse', () => {
     });
 
     gulp.watch(['exper/export.html'], gulp.series('reload-parse'));
-    gulp.watch(['static/js/md_*.js'], gulp.series('parse'));
+    gulp.watch(['static/js/markum.js'], gulp.series('parse'));
 });

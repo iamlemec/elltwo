@@ -5,10 +5,7 @@
  *
  */
 
-export {
-    replace, parseArgs, escape_html, escape_latex, parseInline, parseBlock,
-    TextBlock, TextInline
-}
+export { parseInline, parseBlock, parseArgs }
 
 /**
  * Helper Functions
@@ -939,7 +936,7 @@ class TextBlock extends Container {
 
     renderHtml() {
         let inner = this.innerHtml();
-        return `<p class="text-block">${inner}</p>`;
+        return `<div class="text-block">${inner}</div>`;
     }
 }
 
@@ -950,7 +947,7 @@ class CommentBlock extends Element {
     }
 
     renderHtml() {
-        return `<p class="comment-block">${this.text}</p>`;
+        return `<div class="comment-block">${this.text}</div>`;
     }
 }
 
@@ -960,6 +957,11 @@ class TitleBlock extends Container {
         this.text = text;
         this.preamble = preamble ?? null;
     }
+
+    renderHtml() {
+        let inner = this.innerHtml();
+        return `<div class="title-block">${inner}</div>`;
+    }
 }
 
 class HeadingBlock extends Container {
@@ -968,11 +970,20 @@ class HeadingBlock extends Container {
         this.level = level;
         this.text = text;
     }
+
+    renderHtml() {
+        let inner = this.innerHtml();
+        return `<div class="heading-block h${this.level}-block">${inner}</div>`;
+    }
 }
 
 class RuleBlock extends Element {
     constructor() {
         super();
+    }
+
+    renderHtml() {
+        return `<div class="rule-block"><div/>`;
     }
 }
 
@@ -980,6 +991,10 @@ class QuoteBlock extends Element {
     constructor(text) {
         super();
         this.text = text;
+    }
+
+    renderHtml() {
+        return `<div class="quote-block">${this.text}</div>`;
     }
 }
 
@@ -990,6 +1005,11 @@ class CodeBlock extends Element {
         this.code = code;
         this.lang = lang ?? null;
     }
+
+    renderHtml() {
+        let lang = (this.lang != null) ? `code-lang-${this.lang}` : '';
+        return `<div class="code-block ${lang}">${this.code}</div>`;
+    }
 }
 
 class EquationBlock extends Element {
@@ -999,6 +1019,13 @@ class EquationBlock extends Element {
         this.tex = tex;
         this.number = number ?? true;
         this.multiline = multiline ?? false;
+    }
+
+    renderHtml() {
+        let tex = multiline ? `\\begin{aligned}${this.tex}\\end{aligned}` : this.tex;
+        let math = katex.renderToString(tex);
+        let number = this.number ? `<span class="equation-number">N</span>` : '';
+        return `<div class="equation-block>${math}${number}</div>`;
     }
 }
 
