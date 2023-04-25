@@ -137,6 +137,7 @@ gulp.task('parse-js', () => {
         cache: cache.esm,
         input: [
             'static/js/markum.js',
+            'static/js/quick.js',
         ],
         plugins: [
             resolve({
@@ -155,7 +156,7 @@ gulp.task('parse-js', () => {
 });
 
 // parser css
-gulp.task('parse-css', () => gulp.src(['./static/css/markum.css'])
+gulp.task('parse-css', () => gulp.src(['./static/css/markum.css', './static/css/quick.css'])
     .pipe(gulp.dest('./dist/css'))
 );
 
@@ -163,20 +164,20 @@ gulp.task('parse-css', () => gulp.src(['./static/css/markum.css'])
 gulp.task('parse', gulp.parallel('parse-js', 'parse-css'));
 
 // parser reload
-gulp.task('reload-parse', () => gulp.src(['exper/index.html'])
+gulp.task('reload-parse', () => gulp.src(['index.html'])
     .pipe(connect.reload())
 );
 
 // parser development mode
 gulp.task('dev-parse', () => {
     connect.server({
-        root: './exper',
+        root: '.',
         port: 8000,
         host: 'localhost',
         livereload: true
     });
 
-    gulp.watch(['exper/index.html'], gulp.series('reload-parse'));
-    gulp.watch(['static/js/markum.js'], gulp.series('parse-js'));
-    gulp.watch(['static/css/markum.css'], gulp.series('parse-css'));
+    gulp.watch(['index.html'], gulp.series('reload-parse'));
+    gulp.watch(['static/js/markum.js', 'static/js/quick.js'], gulp.series('parse-js'));
+    gulp.watch(['static/css/markum.css', 'static/css/quick.css'], gulp.series('parse-css'));
 });

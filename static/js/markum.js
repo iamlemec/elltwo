@@ -8,6 +8,7 @@
 export { parseInline, parseBlock, parseDocument }
 
 import katex from 'katex'
+import { renderGum } from 'gum.js'
 
 /**
  * Helper Functions
@@ -713,11 +714,13 @@ class Element {
     }
 
     renderHtml() {
-        raise(NotImplementedError());
+        console.log(`${this.constructor.name}: HTML renderer not implemented.`);
+        throw NotImplementedError();
     }
 
     renderLatex() {
-        raise(NotImplementedError());
+        console.log(`${this.constructor.name}: LaTeX renderer not implemented.`);
+        throw NotImplementedError();
     }
 }
 
@@ -1096,8 +1099,18 @@ class GumBlock extends Element {
         this.code = code;
         this.number = number ?? true;
         this.caption = caption ?? null;
-        this.width = width ?? null;
+        this.width = width ?? 50;
         this.pixel = pixel ?? null;
+    }
+
+    renderHtml() {
+        try {
+            let ret = renderGum(this.code, {size: this.pixel});
+            let style = this.width ? `style="width: ${this.width}%;"` : '';
+            return `<div class="block gum-block"><div class="gum-sizer" ${style}>${ret}</div></div>`;
+        } catch (e) {
+            return `<div class="block gum-block error-block">${e.message}</div>`;
+        }
     }
 }
 

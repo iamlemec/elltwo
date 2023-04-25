@@ -1,0 +1,47 @@
+body {
+    margin: 0;
+}
+
+#main {
+    position: fixed;
+    display: flex;
+    height: 100%;
+    width: 100%;
+}
+
+#left, #right {
+    height: 100%;
+}
+
+#left {
+    width: 50%;
+}
+
+#right {
+    width: 50%;
+    background-color: #EEE;
+    overflow-y: scroll;
+}
+
+#left .cm-editor {
+    height: 100%;
+    outline: 0;
+}
+
+/* resize bar */
+
+#mid {
+    width: 4px;
+    background-color: #DDD;
+    border-left: 1px solid #CCC;
+    border-right: 1px solid #CCC;
+    cursor: col-resize;
+}
+
+/* elltwo */
+
+.block {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px;
+}

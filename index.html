@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="dist/css/markum.css" />
+<link rel="stylesheet" href="dist/css/quick.css" />
+
+<title>Quick</title>
+
+</head>
+
+<body>
+
+<div id="main">
+
+<div id="left"></div>
+
+<div id="mid"></div>
+
+<div id="right"></div>
+
+</div>
+        
+<script type="module">
+
+import { parseInline, parseBlock, parseDocument } from './dist/js/markum.js'
+import { ElltwoEditor, enableResize } from './dist/js/quick.js'
+
+// global elements
+let left = document.querySelector('#left');
+let right = document.querySelector('#right');
+let mid = document.querySelector('#mid');
+
+// cookie tools
+function getCookie() {
+    let cookies = document.cookie.split(';').map(x => x.trim().split('='));
+    let cell2 = cookies.filter(([k, v]) => k == 'ell2').shift();
+    if (cell2 == null) {
+        return null;
+    } else {
+        let [_, vell2] = cell2;
+        return decodeURIComponent(vell2);
+    }
+}
+
+function setCookie(src) {
+    let ell2 = encodeURIComponent(src);
+    document.cookie = `ell2=${ell2}; SameSite=Lax`;
+}
+
+// resize panels
+enableResize(left, right, mid);
+
+// set a starting example
+let example0 = `
+# Hello
+
+Hello **world**. Here is some math: $x^3$
+
+$$ \\int_0^1 x^2 dx
+`.trim();
+
+// initial value
+let urlParams = new URLSearchParams(window.location.search);
+let source = urlParams.get('source');
+let cook = getCookie();
+let example = source ?? cook ?? example0;
+
+// make the actual editor
+let editor = new ElltwoEditor(left, right, setCookie);
+editor.setCode(example);
+
+</script>
+
+</body>
+
+</html>
