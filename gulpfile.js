@@ -7,7 +7,7 @@ import connect from 'gulp-connect'
 // store values globally
 let cache = {};
 
-// creates an ES module bundle
+// js-core for server framework
 gulp.task('js-core', () => {
     return rollup({
         cache: cache.esm,
@@ -119,11 +119,6 @@ gulp.task('fonts', gulp.parallel('core-fonts', 'gum-fonts', 'katex-fonts'));
 // full build
 gulp.task('build', gulp.parallel('js', 'css', 'fonts', 'asset'));
 
-// parser build
-gulp.task('parse', () => gulp.src(['./static/js/markum.js'])
-    .pipe(gulp.dest('./dist/js'))
-);
-
 // development mode
 gulp.task('dev', () => {
     gulp.watch(['static/js/*'], gulp.series('js'));
@@ -132,8 +127,43 @@ gulp.task('dev', () => {
     gulp.watch(['static/img/*', 'static/favicon/*', 'static/features/*'], gulp.series('asset'));
 });
 
-// reload index
-gulp.task('reload-parse', () => gulp.src(['exper/export.html'])
+/**
+ * pure parser and renderer
+ */
+
+// js-core for server framework
+gulp.task('parse-js', () => {
+    return rollup({
+        cache: cache.esm,
+        input: [
+            'static/js/markum.js',
+        ],
+        plugins: [
+            resolve({
+                preferBuiltins: false,
+            }),
+        ],
+    }).then(bundle => {
+        cache.esm = bundle.cache;
+        return bundle.write({
+            dir: './dist',
+            preserveModules: true,
+            preserveModulesRoot: 'static',
+            format: 'es',
+        });
+    });
+});
+
+// parser css
+gulp.task('parse-css', () => gulp.src(['./static/css/markum.css'])
+    .pipe(gulp.dest('./dist/css'))
+);
+
+// parser all
+gulp.task('parse', gulp.parallel('parse-js', 'parse-css'));
+
+// parser reload
+gulp.task('reload-parse', () => gulp.src(['exper/index.html'])
     .pipe(connect.reload())
 );
 
@@ -146,6 +176,7 @@ gulp.task('dev-parse', () => {
         livereload: true
     });
 
-    gulp.watch(['exper/export.html'], gulp.series('reload-parse'));
-    gulp.watch(['static/js/markum.js'], gulp.series('parse'));
+    gulp.watch(['exper/index.html'], gulp.series('reload-parse'));
+    gulp.watch(['static/js/markum.js'], gulp.series('parse-js'));
+    gulp.watch(['static/css/markum.css'], gulp.series('parse-css'));
 });

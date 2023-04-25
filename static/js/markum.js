@@ -5,7 +5,9 @@
  *
  */
 
-export { parseInline, parseBlock, parseArgs }
+export { parseInline, parseBlock, parseDocument }
+
+import katex from 'katex'
 
 /**
  * Helper Functions
@@ -226,6 +228,15 @@ inline.breaks = merge({}, inline.gfm, {
 });
 
 /**
+ * Document Parser
+ */
+
+function parseDocument(src) {
+    let blocks = src.split('\n\n').map(parseBlock);
+    return new Document(blocks);
+}
+
+/**
  * Block Parser
  */
 
@@ -236,6 +247,10 @@ function parsePrefix(pre) {
 
 // variable argument parser (inside []'s)
 function parseArgs(argsraw, number=true, set=true) {
+    if (argsraw == null) {
+        return {};
+    }
+
     let fst;
     let args = {};
     let rx = /[^a-zA-Z\d\_\-]/ // invalid chars for arg labels and id's
@@ -352,7 +367,7 @@ function parseBlock(src) {
     // empty cell (all whitespace)
     if (cap = block.empty.exec(src)) {
         let [_, text] = cap;
-        inner = parseInline(text);
+        let inner = parseInline(text);
         return new EmptyBlock(inner);
     }
 
@@ -519,8 +534,8 @@ function parseBlock(src) {
 // parse markdown into `InlineElement`s
 function parseInline(src, ctx) {
     ctx = ctx ?? {};
-    let cap, mat, text, href, tex, esc, acc, letter, argsraw,
-        args, inner, pre, cls, elem, text1, text2, delim;
+    let cap, mat, text, href, tex, esc, acc, letter, args,
+        inner, pre, cls, elem, text1, text2, delim;
 
     let out = [];
     while (src) {
@@ -558,9 +573,9 @@ function parseInline(src, ctx) {
 
         // ref/cite
         if (cap = inline.refcite.exec(src)) {
-            [mat, pre, argsraw] = cap;
+            [mat, pre, rargs] = cap;
             cls = (pre == '@') ? RefInline : CiteInline;
-            args = parseArgs(argsraw, false, false);
+            args = parseArgs(rargs, false, false);
             text = args.text || args.txt || args.t || '';
             inner = parseInline(text);
             out.push(new cls(inner, args));
@@ -580,8 +595,8 @@ function parseInline(src, ctx) {
 
         // internal link
         if (cap = inline.ilink.exec(src)) {
-            [mat, argsraw] = cap;
-            args = parseArgs(argsraw, false, false);
+            [mat, rargs] = cap;
+            args = parseArgs(rargs, false, false);
             text = args.text || args.txt || args.t || '';
             inner = parseInline(text);
             out.push(new LinkInline(inner, args));
@@ -690,7 +705,7 @@ function parseInline(src, ctx) {
 }
 
 /**
- * Inline Renderer
+ * Core Renderer
  */
 
 class Element {
@@ -715,6 +730,20 @@ class Container {
         return this.children.map(c => c.renderHtml()).join('');
     }
 }
+
+class Document extends Container {
+    constructor(children) {
+        super(children);
+    }
+
+    renderHtml() {
+        return this.innerHtml();
+    }
+}
+
+/**
+ * Inline Renderer
+ */
 
 class TextInline extends Element {
     constructor(text) {
@@ -889,7 +918,7 @@ class MathInline extends Element {
     }
 
     renderHtml() {
-        let math = katex.renderToString(this.tex);
+        let math = katex.renderToString(this.tex, {throwOnError: false});
         return `<span class="math-inline">${math}</span>`;
     }
 }
@@ -936,7 +965,7 @@ class TextBlock extends Container {
 
     renderHtml() {
         let inner = this.innerHtml();
-        return `<div class="text-block">${inner}</div>`;
+        return `<div class="block text-block">${inner}</div>`;
     }
 }
 
@@ -947,33 +976,31 @@ class CommentBlock extends Element {
     }
 
     renderHtml() {
-        return `<div class="comment-block">${this.text}</div>`;
+        return `<div class="block comment-block">${this.text}</div>`;
     }
 }
 
 class TitleBlock extends Container {
-    constructor(text, preamble, args) {
-        super();
-        this.text = text;
+    constructor(children, preamble, args) {
+        super(children);
         this.preamble = preamble ?? null;
     }
 
     renderHtml() {
         let inner = this.innerHtml();
-        return `<div class="title-block">${inner}</div>`;
+        return `<div class="block title-block">${inner}</div>`;
     }
 }
 
 class HeadingBlock extends Container {
-    constructor(level, text) {
-        super();
+    constructor(level, children) {
+        super(children);
         this.level = level;
-        this.text = text;
     }
 
     renderHtml() {
         let inner = this.innerHtml();
-        return `<div class="heading-block h${this.level}-block">${inner}</div>`;
+        return `<div class="block heading-block h${this.level}-block">${inner}</div>`;
     }
 }
 
@@ -983,7 +1010,7 @@ class RuleBlock extends Element {
     }
 
     renderHtml() {
-        return `<div class="rule-block"><div/>`;
+        return `<div class="block rule-block"><div/>`;
     }
 }
 
@@ -994,7 +1021,7 @@ class QuoteBlock extends Element {
     }
 
     renderHtml() {
-        return `<div class="quote-block">${this.text}</div>`;
+        return `<div class="block quote-block">${this.text}</div>`;
     }
 }
 
@@ -1008,7 +1035,7 @@ class CodeBlock extends Element {
 
     renderHtml() {
         let lang = (this.lang != null) ? `code-lang-${this.lang}` : '';
-        return `<div class="code-block ${lang}">${this.code}</div>`;
+        return `<div class="block code-block ${lang}">${this.code}</div>`;
     }
 }
 
@@ -1022,10 +1049,10 @@ class EquationBlock extends Element {
     }
 
     renderHtml() {
-        let tex = multiline ? `\\begin{aligned}${this.tex}\\end{aligned}` : this.tex;
-        let math = katex.renderToString(tex);
-        let number = this.number ? `<span class="equation-number">N</span>` : '';
-        return `<div class="equation-block>${math}${number}</div>`;
+        let tex = this.multiline ? `\\begin{aligned}${this.tex}\\end{aligned}` : this.tex;
+        let math = katex.renderToString(tex, {displayMode: true, throwOnError: false});
+        let number = this.number ? `<span class="equation-number"></span>` : '';
+        return `<div class="block equation-block">${math}${number}</div>`;
     }
 }
 

@@ -5,6 +5,21 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<link rel="stylesheet" href="dist/css/markum.css" />
+
+<style>
+#content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 10px;
+}
+.block {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px;
+}
+</style>
+
 <title>Parser</title>
 
 </head>
@@ -17,10 +32,16 @@
 
 <script type="module">
 
-import { parseInline, parseBlock } from './js/markum.js'
+import { parseInline, parseBlock, parseDocument } from './dist/js/markum.js'
 
 let cont = document.getElementById('content');
-let tree = parseBlock('hello **world *yip***');
+let tree = parseDocument(`
+# Hello
+
+hello **world**. here is some math: $x^3$
+
+$$ \\int_0^1 x^2 dx
+`.trim());
 let html = tree.renderHtml();
 cont.innerHTML = html;
 

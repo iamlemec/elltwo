@@ -5,9 +5,11 @@ export { renderKatex }
 import katex from 'katex'
 
 function renderKatex(para, macros) {
-    if (para == undefined) {
-        para = $('body');
-    }
+    // default to entire document
+    para = para ?? document.querySelector('body');
+    macros = macros ?? {};
+
+    // render inline latex
     para.find('span.latex').each(function() {
         let tex = $(this);
         let src = tex.text();
@@ -25,6 +27,8 @@ function renderKatex(para, macros) {
             tex.addClass('latex_error');
         }
     });
+
+    // render displaystyle latex
     para.find('div.latex').each(function() {
         let tex = $(this);
         let src = tex.text();

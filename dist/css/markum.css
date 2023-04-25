@@ -1,0 +1,24 @@
+/* markum css core */
+
+@import './katex.css';
+
+.block {
+    padding: 5px;
+}
+
+.bold-inline {
+    font-weight: bold;
+}
+
+.italic-inline {
+    font-style: italic;
+}
+
+.h1-block {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.equation-block {
+    text-align: center;
+}
