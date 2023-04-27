@@ -23,6 +23,5 @@ config/local.toml
 
 # node
 /node_modules
-package-lock.json
 exper/output
 
