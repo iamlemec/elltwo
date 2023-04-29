@@ -1,5 +1,5 @@
 import katex from '../node_modules/katex/dist/katex.js';
-import { renderGum } from '../node_modules/gum.js/js/gum.js';
+import { parseGum, SVG, Element as Element$1 } from '../node_modules/gum.js/js/gum.js';
 
 /**
  *
@@ -509,6 +509,26 @@ function parseBlock(src) {
 }
 
 /**
+ * Gum Wrapper
+ */
+
+function parseGumRobust(src, size) {
+    let elem;
+    try {
+        elem = parseGum(src);
+    } catch (err) {
+        return String(err.message);
+    }
+    if (elem instanceof SVG) {
+        return elem;
+    } else if (elem instanceof Element$1) {
+        return new SVG(elem, size);
+    } else {
+        return String(elem);
+    }
+}
+
+/**
  * Inline Parser
  */
 
@@ -694,13 +714,11 @@ class Element {
     }
 
     renderHtml() {
-        console.log(`${this.constructor.name}: HTML renderer not implemented.`);
-        throw NotImplementedError();
+        throw new Error(`${this.constructor.name}: HTML renderer not implemented.`);
     }
 
     renderLatex() {
-        console.log(`${this.constructor.name}: LaTeX renderer not implemented.`);
-        throw NotImplementedError();
+        throw new Error(`${this.constructor.name}: LaTeX renderer not implemented.`);
     }
 }
 
@@ -1068,7 +1086,12 @@ class SvgBlock extends Element {
         this.code = code;
         this.number = number ?? true;
         this.caption = caption ?? null;
-        this.width = width ?? null;
+        this.width = width ?? 50;
+    }
+
+    renderHtml() {
+        let style = this.width ? `style="width: ${this.width}%;"` : '';
+        return `<div class="block svg-block"><div class="svg-sizer" ${style}>${this.code}</div></div>`;
     }
 }
 
@@ -1076,16 +1099,15 @@ class GumBlock extends Element {
     constructor(code, args) {
         let {number, caption, width, pixel} = args ?? {};
         super();
-        this.code = code;
         this.number = number ?? true;
         this.caption = caption ?? null;
         this.width = width ?? 50;
-        this.pixel = pixel ?? null;
+        this.gum = parseGumRobust(code, pixel);
     }
 
     renderHtml() {
         try {
-            let ret = renderGum(this.code, {size: this.pixel});
+            let ret = (typeof(this.gum) == 'string') ? this.gum : this.gum.svg();
             let style = this.width ? `style="width: ${this.width}%;"` : '';
             return `<div class="block gum-block"><div class="gum-sizer" ${style}>${ret}</div></div>`;
         } catch (e) {

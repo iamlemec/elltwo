@@ -1,6 +1,7 @@
 /* markum css core */
 
 @import './katex.css';
+@import './gum.css';
 
 .block {
     padding: 5px;
@@ -12,6 +13,10 @@
 
 .italic-inline {
     font-style: italic;
+}
+
+.code-inline {
+    font-family: monospace;
 }
 
 .title-block {
@@ -29,6 +34,12 @@
 }
 
 .gum-block {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.svg-block {
     display: flex;
     justify-content: center;
     align-items: center;
