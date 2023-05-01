@@ -728,6 +728,26 @@ function parseInline(src, ctx) {
 }
 
 /**
+ * Render Tools
+ */
+
+// capitalize first letter of string
+function capitalize(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// make a caption element
+function makeCaption(type, caption, args) {
+    let {title} = args ?? {};
+    title = title ?? capitalize(type);
+    if (caption != null) {
+        return `<div class="figure-caption ${type}-caption"><span class="caption-title">${title}</span>: ${caption}</div>`;
+    } else {
+        return '';
+    }
+}
+
+/**
  * Core Renderer
  */
 
@@ -1139,7 +1159,10 @@ class SvgBlock extends Element {
 
     renderHtml() {
         let style = this.width ? `style="width: ${this.width}%;"` : '';
-        return `<div class="block svg-block"><div class="svg-sizer" ${style}>${this.code}</div></div>`;
+        let caption = (this.caption != null) ? makeCaption('figure', this.caption) : '';
+        let classes = ['block', 'figure-block', 'svg-block'];
+        let inner = `<div class="svg-sizer" ${style}>${this.code}</div>`;
+        return `<div class="${classes.join(' ')}">${inner}${caption}</div>`;
     }
 }
 
@@ -1154,13 +1177,18 @@ class GumBlock extends Element {
     }
 
     renderHtml() {
+        let style = this.width ? `style="width: ${this.width}%;"` : '';
+        let caption = (this.caption != null) ? makeCaption('figure', this.caption) : '';
+        let classes = ['block', 'figure-block', 'gum-block'];
+        let inner;
         try {
             let ret = (typeof(this.gum) == 'string') ? this.gum : this.gum.svg();
-            let style = this.width ? `style="width: ${this.width}%;"` : '';
-            return `<div class="block gum-block"><div class="gum-sizer" ${style}>${ret}</div></div>`;
+            inner = `<div class="gum-sizer" ${style}>${ret}</div>`;
         } catch (e) {
-            return `<div class="block gum-block error-block">${e.message}</div>`;
+            inner = e.message;
+            classes.push('gum-error');
         }
+        return `<div class="${classes.join(' ')}">${inner}${caption}</div>`;
     }
 }
 

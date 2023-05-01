@@ -57,3 +57,13 @@
     justify-content: center;
     align-items: center;
 }
+
+.figure-block {
+    display: flex;
+    flex-direction: column  ;
+    justify-content: center;
+}
+
+.figure-caption {
+    margin-top: 20px;
+}
