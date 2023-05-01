@@ -235,7 +235,7 @@ inline.breaks = merge({}, inline.gfm, {
  */
 
 function parseDocument(src) {
-    let blocks = src.split('\n\n').map(parseBlock);
+    let blocks = src.split(/\n{2,}/).map(parseBlock);
     return new Document(blocks);
 }
 
@@ -306,7 +306,7 @@ function parseList(src) {
         return new ListItemElement(inner);
     });
 
-    return new ListBlock(body, {order});
+    return new ListBlock(body, {ordered});
 }
 
 function parseAlign(a) {
@@ -967,6 +967,17 @@ class NewlineInline extends Element {
     }
 }
 
+class ListItemElement extends Container {
+    constructor(children) {
+        super(children);
+    }
+
+    renderHtml() {
+        let inner = this.innerHtml();
+        return `<li class="listitem-inline">${inner}</li>`;
+    }
+}
+
 /**
  * Block Renderer
  */
@@ -999,7 +1010,7 @@ class CommentBlock extends Element {
     }
 
     renderHtml() {
-        return `<div class="block comment-block">${this.text}</div>`;
+        return `<div class="block comment-block"><span>${this.text}</span></div>`;
     }
 }
 
@@ -1059,6 +1070,21 @@ class CodeBlock extends Element {
     renderHtml() {
         let lang = (this.lang != null) ? `code-lang-${this.lang}` : '';
         return `<div class="block code-block ${lang}">${this.code}</div>`;
+    }
+}
+
+
+class ListBlock extends Container {
+    constructor(children, args) {
+        let {ordered} = args ?? {};
+        super(children);
+        this.ordered = ordered ?? false;
+    }
+
+    renderHtml() {
+        let inner = this.innerHtml();
+        let tag = this.ordered ? 'ol' : 'ul';
+        return `<div class="block list-block"><${tag}>${inner}</${tag}></div>`;
     }
 }
 

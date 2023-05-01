@@ -29,6 +29,19 @@
     font-weight: bold;
 }
 
+.list-block > ul,
+.list-block > ol {
+    padding-left: 30px;
+}
+
+.comment-block > span {
+    color: #999;
+}
+
+.comment-block > span::before {
+    content: '// ';
+}
+
 .equation-block {
     text-align: center;
 }
