@@ -112,7 +112,8 @@ let block = {
 
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
-block._refargs = /\[((?:(?:[^\]\[\\]|\\.)+|\[(?:[^\]\[]+)*\])*)\]/;
+block._refargs = /(?:\[((?:[^\]]|(?<=\\)\])*)\])/;
+// block._refargs = /\[((?:(?:[^\]\[\\]|\\.)+|\[(?:[^\]\[]+)*\])*)\]/;
 block._bull = /(?:[*+-]|\d+\.)/;
 block._item = /^( *)(bull) ?/;
 
@@ -749,6 +750,10 @@ class Container {
 
     innerHtml() {
         return this.children.map(c => c.renderHtml()).join('');
+    }
+
+    innerLatex() {
+        return this.children.map(c => c.renderLatex()).join(' ');
     }
 }
 

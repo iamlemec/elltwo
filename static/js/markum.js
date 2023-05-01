@@ -125,7 +125,8 @@ let block = {
 
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
-block._refargs = /\[((?:(?:[^\]\[\\]|\\.)+|\[(?:[^\]\[]+)*\])*)\]/;
+block._refargs = /(?:\[((?:[^\]]|(?<=\\)\])*)\])/;
+// block._refargs = /\[((?:(?:[^\]\[\\]|\\.)+|\[(?:[^\]\[]+)*\])*)\]/;
 block._bull = /(?:[*+-]|\d+\.)/;
 block._item = /^( *)(bull) ?/;
 
@@ -772,6 +773,10 @@ class Container {
     innerHtml() {
         return this.children.map(c => c.renderHtml()).join('');
     }
+
+    innerLatex() {
+        return this.children.map(c => c.renderLatex()).join(' ');
+    }
 }
 
 class Document extends Container {
@@ -781,6 +786,46 @@ class Document extends Container {
 
     renderHtml() {
         return this.innerHtml();
+    }
+}
+
+/**
+ * Figures
+ */
+
+class FigureCaption extends Container {
+    constructor(children, args) {
+        let {ftype, title} = args ?? {};
+        super(children);
+        this.ftype = ftype ?? 'figure';
+        this.title = title ?? capitalize(ftype);
+    }
+
+    title() {
+        return this.title;
+    }
+
+    renderHtml() {
+        let title = this.title();
+        let inner = this.innerHtml();
+        return `<div class="figure-caption"><span class="caption-title">${title}</span>${inner}</div>`;
+    }
+}
+
+class FigureBlock extends Container {
+    constructor(child, args) {
+        let {ftype, title, caption} = args ?? {};
+        let children = [child];
+        if (caption != null) {
+            let figcap = new FigureCaption(caption, {ftype, title});
+            children.push(figcap);
+        }
+        super(children);
+    }
+
+    renderHtml() {
+        let inner = this.innerHtml();
+        return `<div class="block figure-block">${inner}</div>`;
     }
 }
 
