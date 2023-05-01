@@ -74,7 +74,7 @@ class ElltwoEditor {
 
     updateView(src) {
         let tree = parseDocument(src);
-        let html = tree.renderHtml();
+        let html = tree.html();
         this.setDisplay(html);
     }
 }

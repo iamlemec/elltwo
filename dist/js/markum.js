@@ -371,10 +371,11 @@ function parseBlock(src) {
         let [mat, sog, pargs, rargs] = cap;
         let cls = (sog == 'gum') ? GumBlock : SvgBlock;
         pargs = parsePrefix(pargs);
-        let args = {
-            number: !pargs.includes('*'),
-            ...parseArgs(rargs)
-        };
+        rargs = parseArgs(rargs);
+        if (rargs.caption != null) {
+            rargs.caption = parseInline(rargs.caption);
+        }
+        let args = {number: !pargs.includes('*'), ...rargs};
         let code = src.slice(mat.length);
         return new cls(code, args);
     }
@@ -715,17 +716,6 @@ function capitalize(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-// make a caption element
-function makeCaption(type, caption, args) {
-    let {title} = args ?? {};
-    title = title ?? capitalize(type);
-    if (caption != null) {
-        return `<div class="figure-caption ${type}-caption"><span class="caption-title">${title}</span>: ${caption}</div>`;
-    } else {
-        return '';
-    }
-}
-
 /**
  * Core Renderer
  */
@@ -734,11 +724,11 @@ class Element {
     constructor() {
     }
 
-    renderHtml() {
+    html() {
         throw new Error(`${this.constructor.name}: HTML renderer not implemented.`);
     }
 
-    renderLatex() {
+    latex() {
         throw new Error(`${this.constructor.name}: LaTeX renderer not implemented.`);
     }
 }
@@ -749,11 +739,11 @@ class Container {
     }
 
     innerHtml() {
-        return this.children.map(c => c.renderHtml()).join('');
+        return this.children.map(c => c.html()).join('');
     }
 
     innerLatex() {
-        return this.children.map(c => c.renderLatex()).join(' ');
+        return this.children.map(c => c.latex()).join(' ');
     }
 }
 
@@ -762,8 +752,31 @@ class Document extends Container {
         super(children);
     }
 
-    renderHtml() {
+    html() {
         return this.innerHtml();
+    }
+}
+
+/**
+ * Figures
+ */
+
+class FigureCaption extends Container {
+    constructor(children, args) {
+        let {ftype, title} = args ?? {};
+        super(children);
+        this.ftype = ftype ?? 'figure';
+        this.title = title ?? capitalize(this.ftype);
+    }
+
+    prefix() {
+        return this.title;
+    }
+
+    html() {
+        let title = this.prefix();
+        let inner = this.innerHtml();
+        return `<div class="figure-caption"><span class="caption-title">${title}</span>: ${inner}</div>`;
     }
 }
 
@@ -777,7 +790,7 @@ class TextInline extends Element {
         this.text = text;
     }
 
-    renderHtml() {
+    html() {
         return this.text;
     }
 }
@@ -789,7 +802,7 @@ class SpecialInline extends Element {
         this.letter = letter;
     }
 
-    renderHtml() {
+    html() {
         return special(this.acc, this.letter);
     }
 }
@@ -800,7 +813,7 @@ class EscapeInline extends Element {
         this.text = text;
     }
 
-    renderHtml() {
+    html() {
         return escape_html(this.text);
     }
 }
@@ -811,7 +824,7 @@ class CommentInline extends Element {
         this.text = text;
     }
 
-    renderHtml() {
+    html() {
         return `<span class="comment-inline">${this.text}</span>`;
     }
 }
@@ -823,7 +836,7 @@ class LinkInline extends Element {
         this.href = href;
     }
 
-    renderHtml() {
+    html() {
         let inner = this.innerHtml();
         return `<a href="${this.href}" class="link-inline">${inner}</a>`;
     }
@@ -836,7 +849,7 @@ class ImageInline extends Element {
         this.alt = alt ?? null;
     }
 
-    renderHtml() {
+    html() {
         let alt = (this.alt != null) ? `alt="${this.alt}"` : '';
         return `<img src="${this.href}" ${alt} class="image-inline" />`;
     }
@@ -847,7 +860,7 @@ class BoldInline extends Container {
         super(children);
     }
 
-    renderHtml() {
+    html() {
         let inner = this.innerHtml();
         return `<span class="bold-inline">${inner}</span>`;
     }
@@ -858,7 +871,7 @@ class ItalicInline extends Container {
         super(children);
     }
 
-    renderHtml() {
+    html() {
         let inner = this.innerHtml();
         return `<span class="italic-inline">${inner}</span>`;
     }
@@ -870,7 +883,7 @@ class CodeInline extends Element {
         this.text = text;
     }
 
-    renderHtml() {
+    html() {
         return `<span class="code-inline">${this.text}</span>`;
     }
 }
@@ -880,7 +893,7 @@ class StrikeoutInline extends Container {
         super(children);
     }
 
-    renderHtml() {
+    html() {
         let inner = this.innerHtml();
         return `<span class="strikeout-inline">${inner}</span>`;
     }
@@ -893,7 +906,7 @@ class RefInline extends Element {
     }
 
     // pull this from context
-    renderHtml() {
+    html() {
         return `<a href="#${this.tag}" class="ref-inline">#${this.tag}</a>`;
     }
 }
@@ -905,7 +918,7 @@ class CiteInline extends Element {
     }
 
     // pull this from context
-    renderHtml() {
+    html() {
         return `<a href="" class="cite-inline">@${this.tag}</a>`;
     }
 }
@@ -916,7 +929,7 @@ class FootnoteInline extends Container {
     }
 
     // get number from context
-    renderHtml() {
+    html() {
         let inner = this.innerHtml();
         let popup = `<div class="footnote-popup">${inner}</div>`;
         return `<span class="footnote-inline">N</span>\n${popup}\n`;
@@ -930,7 +943,7 @@ class SidenoteInline extends Element {
     }
 
     // get number from context
-    renderHtml() {
+    html() {
         let inner = this.innerHtml();
         let popup = `<div class="sidenote-popup">${inner}</div>`;
         return `<span class="sidenote-inline">N</span>\n${popup}\n`;
@@ -943,7 +956,7 @@ class MathInline extends Element {
         this.tex = tex;
     }
 
-    renderHtml() {
+    html() {
         let math = katex.renderToString(this.tex, {throwOnError: false});
         return `<span class="math-inline">${math}</span>`;
     }
@@ -955,7 +968,7 @@ class HashInline extends Element {
         this.tag = tag;
     }
 
-    renderHtml() {
+    html() {
         return `<a href="/h/#${this.tag}" class="hash-inline">#${this.tag}</span>`;
     }
 }
@@ -965,7 +978,7 @@ class NewlineInline extends Element {
         super();
     }
 
-    renderHtml() {
+    html() {
         return `<br class="newline-inline" />`;
     }
 }
@@ -975,7 +988,7 @@ class ListItemElement extends Container {
         super(children);
     }
 
-    renderHtml() {
+    html() {
         let inner = this.innerHtml();
         return `<li class="listitem-inline">${inner}</li>`;
     }
@@ -990,7 +1003,7 @@ class EmptyBlock extends Element {
         super();
     }
 
-    renderHtml() {
+    html() {
         return '';
     }
 }
@@ -1000,7 +1013,7 @@ class TextBlock extends Container {
         super(children);
     }
 
-    renderHtml() {
+    html() {
         let inner = this.innerHtml();
         return `<div class="block text-block">${inner}</div>`;
     }
@@ -1012,7 +1025,7 @@ class CommentBlock extends Element {
         this.text = text;
     }
 
-    renderHtml() {
+    html() {
         return `<div class="block comment-block"><span>${this.text}</span></div>`;
     }
 }
@@ -1023,7 +1036,7 @@ class TitleBlock extends Container {
         this.preamble = preamble ?? null;
     }
 
-    renderHtml() {
+    html() {
         let inner = this.innerHtml();
         return `<div class="block title-block">${inner}</div>`;
     }
@@ -1035,7 +1048,7 @@ class HeadingBlock extends Container {
         this.level = level;
     }
 
-    renderHtml() {
+    html() {
         let inner = this.innerHtml();
         return `<div class="block heading-block h${this.level}-block">${inner}</div>`;
     }
@@ -1046,7 +1059,7 @@ class RuleBlock extends Element {
         super();
     }
 
-    renderHtml() {
+    html() {
         return `<div class="block rule-block"><div/>`;
     }
 }
@@ -1057,7 +1070,7 @@ class QuoteBlock extends Element {
         this.text = text;
     }
 
-    renderHtml() {
+    html() {
         return `<div class="block quote-block">${this.text}</div>`;
     }
 }
@@ -1070,7 +1083,7 @@ class CodeBlock extends Element {
         this.lang = lang ?? null;
     }
 
-    renderHtml() {
+    html() {
         let lang = (this.lang != null) ? `code-lang-${this.lang}` : '';
         return `<div class="block code-block ${lang}">${this.code}</div>`;
     }
@@ -1084,7 +1097,7 @@ class ListBlock extends Container {
         this.ordered = ordered ?? false;
     }
 
-    renderHtml() {
+    html() {
         let inner = this.innerHtml();
         let tag = this.ordered ? 'ol' : 'ul';
         return `<div class="block list-block"><${tag}>${inner}</${tag}></div>`;
@@ -1100,7 +1113,7 @@ class EquationBlock extends Element {
         this.multiline = multiline ?? false;
     }
 
-    renderHtml() {
+    html() {
         let tex = this.multiline ? `\\begin{aligned}${this.tex}\\end{aligned}` : this.tex;
         let math = katex.renderToString(tex, {displayMode: true, throwOnError: false});
         let number = this.number ? `<span class="equation-number"></span>` : '';
@@ -1136,13 +1149,13 @@ class SvgBlock extends Element {
         super();
         this.code = code;
         this.number = number ?? true;
-        this.caption = caption ?? null;
+        this.caption = (caption != null) ? new FigureCaption(caption) : null;
         this.width = width ?? 50;
     }
 
-    renderHtml() {
+    html() {
         let style = this.width ? `style="width: ${this.width}%;"` : '';
-        let caption = (this.caption != null) ? makeCaption('figure', this.caption) : '';
+        let caption = (this.caption != null) ? this.caption.html() : '';
         let classes = ['block', 'figure-block', 'svg-block'];
         let inner = `<div class="svg-sizer" ${style}>${this.code}</div>`;
         return `<div class="${classes.join(' ')}">${inner}${caption}</div>`;
@@ -1154,14 +1167,14 @@ class GumBlock extends Element {
         let {number, caption, width, pixel} = args ?? {};
         super();
         this.number = number ?? true;
-        this.caption = caption ?? null;
+        this.caption = (caption != null) ? new FigureCaption(caption) : null;
         this.width = width ?? 50;
         this.gum = parseGumRobust(code, pixel);
     }
 
-    renderHtml() {
+    html() {
         let style = this.width ? `style="width: ${this.width}%;"` : '';
-        let caption = (this.caption != null) ? makeCaption('figure', this.caption) : '';
+        let caption = (this.caption != null) ? this.caption.html() : '';
         let classes = ['block', 'figure-block', 'gum-block'];
         let inner;
         try {
