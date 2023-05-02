@@ -9,7 +9,7 @@ export { parseInline, parseBlock, parseDocument }
 
 import katex from 'katex'
 import {
-    parseGum, Element as GumElement, SVG as GumSVG
+    parseGum, Element as GumElement, SVG as GumSVG, props_repr
 } from 'gum.js'
 
 /**
@@ -445,11 +445,9 @@ function parseBlock(src) {
     // title
     if (cap = block.title.exec(src)) {
         let [mat, rargs, text] = cap;
-        let rest = src.slice(mat.length);
         let args = parseArgs(rargs);
         let title = parseInline(text);
-        let preamble = parsePreamble(rest);
-        return new TitleBlock(title, preamble, args);
+        return new TitleBlock(title, args);
     }
 
     // heading
@@ -707,7 +705,7 @@ function parseInline(src, ctx) {
         // text
         if (cap = inline.text.exec(src)) {
             let [mat] = cap;
-            out.push(new TextInline(mat));
+            out.push(mat);
             src = src.substring(mat.length);
             continue;
         }
@@ -729,15 +727,13 @@ function capitalize(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-// make a caption element
-function makeCaption(type, caption, args) {
-    let {title} = args ?? {};
-    title = title ?? capitalize(type);
-    if (caption != null) {
-        return `<div class="figure-caption ${type}-caption"><span class="caption-title">${title}</span>: ${caption}</div>`;
-    } else {
-        return '';
-    }
+// merge attributes accounting for lists
+function mergeAttr(...args) {
+    let classes0 = args.filter(a => 'class' in a).map(x => x['class']);
+    let classes = classes0.join(' ').split(/ +/).join(' ');
+    let attrs = Object.assign({}, ...args);
+    attrs['class'] = classes;
+    return attrs;
 }
 
 /**
@@ -745,27 +741,50 @@ function makeCaption(type, caption, args) {
  */
 
 class Element {
-    constructor() {
+    constructor(tag, unary, attr) {
+        this.tag = tag ?? 'div';
+        this.unary = unary ?? false;
+        this.attr = attr ?? {};
+    }
+
+    props() {
+        return this.attr;
+    }
+
+    inner() {
+        return '';
     }
 
     html() {
-        throw new Error(`${this.constructor.name}: HTML renderer not implemented.`);
+        // collect all properties
+        let pvals = this.props();
+        let props = props_repr(pvals);
+        let pre = props.length > 0 ? ' ' : '';
+
+        // return final html
+        if (this.unary) {
+            return `<${this.tag}${pre}${props} />`;
+        } else {
+            let ivals = this.inner();
+            return `<${this.tag}${pre}${props}>${ivals}</${this.tag}>`;
+        }
     }
 }
 
-class Container {
-    constructor(children) {
+class Container extends Element {
+    constructor(tag, children, args) {
+        super(tag, false, args);
         this.children = children;
     }
 
     inner() {
-        return this.children.map(c => c.html()).join('');
+        return this.children.map(c => (c instanceof Element) ? c.html() : c).join('');
     }
 }
 
 class Document extends Container {
-    constructor(children) {
-        super(children);
+    constructor(children, args) {
+        super('div', children, args);
     }
 
     html() {
@@ -777,22 +796,27 @@ class Document extends Container {
  * Figures
  */
 
+// this will handle counters for figures, equations, etc
+class Counter extends Element {
+    constructor(name) {
+        super('span', false, {'class': 'counter'});
+        this.name = name;
+    }
+
+    inner() {
+        return 'N';
+    }
+}
+
 class FigureCaption extends Container {
-    constructor(children, args) {
-        let {ftype, title} = args ?? {};
-        super(children);
-        this.ftype = ftype ?? 'figure';
-        this.title = title ?? capitalize(this.ftype);
-    }
-
-    prefix() {
-        return this.title;
-    }
-
-    html() {
-        let title = this.prefix();
-        let inner = this.inner();
-        return `<div class="figure-caption"><span class="caption-title">${title}</span>: ${inner}</div>`;
+    constructor(caption, args) {
+        let {ftype, title, ...attr} = args ?? {};
+        title = title ?? capitalize(ftype);
+        let prefix = new Container([
+            `${title} `, new Counter(ftype), ': ',
+        ], {'class': 'caption-prefix'});
+        let attr1 = mergeAttr(attr, {'class': 'figure-caption'});
+        super('div', children, attr1);
     }
 }
 
@@ -801,117 +825,90 @@ class FigureCaption extends Container {
  */
 
 class TextInline extends Element {
-    constructor(text) {
-        super();
+    constructor(text, args) {
+        let attr = args ?? {};
+        super('span', false, attr);
         this.text = text;
     }
 
-    html() {
+    inner() {
         return this.text;
     }
 }
 
-class SpecialInline extends Element {
-    constructor(acc, letter) {
-        super();
-        this.acc = acc;
-        this.letter = letter;
-    }
-
-    html() {
-        return special(this.acc, this.letter);
+class SpecialInline extends TextInline {
+    constructor(acc, letter, args) {
+        let attr = args ?? {};
+        let text = special(acc, letter);
+        let attr1 = mergeAttr(attr, {class: 'special-inline'});
+        super(text, attr1);
     }
 }
 
-class EscapeInline extends Element {
-    constructor(text) {
-        super();
-        this.text = text;
-    }
-
-    html() {
-        return escape_html(this.text);
+class EscapeInline extends TextInline {
+    constructor(esc, args) {
+        let attr = args ?? {};
+        let text = escape_html(esc);
+        let attr1 = mergeAttr(attr, {class: 'escape-inline'});
+        super(text, attr1);
     }
 }
 
-class CommentInline extends Element {
-    constructor(text) {
-        super();
-        this.text = text;
-    }
-
-    html() {
-        return `<span class="comment-inline">${this.text}</span>`;
+class CommentInline extends TextInline {
+    constructor(comm, args) {
+        let attr = args ?? {};
+        let text = `// ${comm}`;
+        let attr1 = mergeAttr(attr, {class: 'comment-inline'});
+        super(text, attr1);
     }
 }
 
-class LinkInline extends Element {
-    constructor(href, text) {
+class LinkInline extends Container {
+    constructor(href, text, args) {
+        let attr = args ?? {};
         let children = text ?? [TextInline(href)];
-        super(children);
-        this.href = href;
-    }
-
-    html() {
-        let inner = this.inner();
-        return `<a href="${this.href}" class="link-inline">${inner}</a>`;
+        let attr1 = mergeAttr(attr, {class: 'link-inline'});
+        super('a', children, attr1);
     }
 }
 
 class ImageInline extends Element {
-    constructor(href, alt) {
-        super();
-        this.href = href;
-        this.alt = alt ?? null;
-    }
-
-    html() {
-        let alt = (this.alt != null) ? `alt="${this.alt}"` : '';
-        return `<img src="${this.href}" ${alt} class="image-inline" />`;
+    constructor(src, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {src, class: 'image-inline'});
+        super('img', true, attr1);
     }
 }
 
 class BoldInline extends Container {
-    constructor(children) {
-        super(children);
-    }
-
-    html() {
-        let inner = this.inner();
-        return `<span class="bold-inline">${inner}</span>`;
+    constructor(children, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'bold-inline'});
+        super('span', children, attr1);
     }
 }
 
 class ItalicInline extends Container {
-    constructor(children) {
-        super(children);
-    }
-
-    html() {
-        let inner = this.inner();
-        return `<span class="italic-inline">${inner}</span>`;
-    }
-}
-
-class CodeInline extends Element {
-    constructor(text) {
-        super();
-        this.text = text;
-    }
-
-    html() {
-        return `<span class="code-inline">${this.text}</span>`;
+    constructor(children, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'italic-inline'});
+        super('span', children, attr1);
     }
 }
 
 class StrikeoutInline extends Container {
-    constructor(children) {
-        super(children);
+    constructor(children, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'strikeout-inline'});
+        super('span', children, attr1);
     }
+}
 
-    html() {
-        let inner = this.inner();
-        return `<span class="strikeout-inline">${inner}</span>`;
+class CodeInline extends TextInline {
+    constructor(text, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'code-inline'});
+        super(text, attr1);
     }
 }
 
@@ -967,46 +964,44 @@ class SidenoteInline extends Element {
 }
 
 class MathInline extends Element {
-    constructor(tex) {
-        super();
+    constructor(tex, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'math-inline'});
+        super('span', false, attr1);
         this.tex = tex;
     }
 
-    html() {
-        let math = katex.renderToString(this.tex, {throwOnError: false});
-        return `<span class="math-inline">${math}</span>`;
+    inner() {
+        return katex.renderToString(this.tex, {throwOnError: false});
     }
 }
 
-class HashInline extends Element {
-    constructor(tag) {
-        super();
-        this.tag = tag;
-    }
-
-    html() {
-        return `<a href="/h/#${this.tag}" class="hash-inline">#${this.tag}</span>`;
+class HashInline extends LinkInline {
+    constructor(tag, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'hash-inline'});
+        let href = `#${tag}`;
+        super(href, attr1);
     }
 }
 
 class NewlineInline extends Element {
-    constructor() {
-        super();
-    }
-
-    html() {
-        return `<br class="newline-inline" />`;
+    constructor(args) {
+        super('br', true, args);
     }
 }
 
 class ListItemElement extends Container {
-    constructor(children) {
-        super(children);
+    constructor(children, args) {
+        super('li', children, args);
     }
+}
 
-    html() {
-        let inner = this.inner();
-        return `<li class="listitem-inline">${inner}</li>`;
+class ListElement extends Container {
+    constructor(children, args) {
+        let {ordered, ...attr} = args ?? {};
+        let tag = ordered ? 'ol' : 'ul';
+        super(tag, children, attr);
     }
 }
 
@@ -1014,126 +1009,107 @@ class ListItemElement extends Container {
  * Block Renderer
  */
 
-class EmptyBlock extends Element {
+class Block extends Container {
+    constructor(children, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'block'});
+        super('div', children, attr1);
+    }
+}
+
+class EmptyBlock extends Block {
+    constructor(args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'empty-block'});
+        super([], attr1);
+    }
+}
+
+class TextBlock extends Block {
+    constructor(children, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'text-block'});
+        super(children, attr1);
+    }
+}
+
+class CommentBlock extends Block {
+    constructor(comm, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'comment-block'});
+        let text = `// ${comm}`;
+        super([text], attr1);
+    }
+}
+
+class TitleBlock extends Block {
+    constructor(children, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'title-block'});
+        super(children, attr1);
+    }
+}
+
+class HeadingBlock extends Block {
+    constructor(level, children, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: `heading-block heading-${level}`});
+        let num = new Counter(`heading-${level}`);
+        super([num, ' ', ...children], attr1);
+    }
+}
+
+class RuleBlock extends Block {
     constructor() {
-        super();
-    }
-
-    html() {
-        return '';
+        let rule = new Element('hr', true);
+        super([rule]);
     }
 }
 
-class TextBlock extends Container {
-    constructor(children) {
-        super(children);
-    }
-
-    html() {
-        let inner = this.inner();
-        return `<div class="block text-block">${inner}</div>`;
+class QuoteBlock extends Block {
+    constructor(children, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'quote-block'});
+        super(children, attr1);
     }
 }
 
-class CommentBlock extends Element {
-    constructor(text) {
-        super();
-        this.text = text;
-    }
-
-    html() {
-        return `<div class="block comment-block"><span>${this.text}</span></div>`;
-    }
-}
-
-class TitleBlock extends Container {
-    constructor(children, preamble, args) {
-        super(children);
-        this.preamble = preamble ?? null;
-    }
-
-    html() {
-        let inner = this.inner();
-        return `<div class="block title-block">${inner}</div>`;
-    }
-}
-
-class HeadingBlock extends Container {
-    constructor(level, children) {
-        super(children);
-        this.level = level;
-    }
-
-    html() {
-        let inner = this.inner();
-        return `<div class="block heading-block h${this.level}-block">${inner}</div>`;
-    }
-}
-
-class RuleBlock extends Element {
-    constructor() {
-        super();
-    }
-
-    html() {
-        return `<div class="block rule-block"><div/>`;
-    }
-}
-
-class QuoteBlock extends Element {
-    constructor(text) {
-        super();
-        this.text = text;
-    }
-
-    html() {
-        return `<div class="block quote-block">${this.text}</div>`;
-    }
-}
-
-class CodeBlock extends Element {
-    constructor(code, args) {
-        let {lang} = args ?? {};
-        super();
+class CodeBlock extends Block {
+    constructor(children, args) {
+        let {lang, ...attr} = args ?? {};
+        let attr1 = mergeAttr(attr, {class: `code-block code-${lang}`});
+        super(children, attr1);
         this.code = code;
         this.lang = lang ?? null;
     }
 
-    html() {
-        let lang = (this.lang != null) ? `code-lang-${this.lang}` : '';
-        return `<div class="block code-block ${lang}">${this.code}</div>`;
+    // highlight here
+    inner() {
+        return this.code;
     }
 }
 
-
-class ListBlock extends Container {
+class ListBlock extends Block {
     constructor(children, args) {
-        let {ordered} = args ?? {};
-        super(children);
-        this.ordered = ordered ?? false;
-    }
-
-    html() {
-        let inner = this.inner();
-        let tag = this.ordered ? 'ol' : 'ul';
-        return `<div class="block list-block"><${tag}>${inner}</${tag}></div>`;
+        let {ordered, ...attr} = args ?? {};
+        let list = new ListElement(children, {ordered});
+        let attr1 = mergeAttr(attr, {class: 'list-block'});
+        super([list], attr1);
     }
 }
 
-class EquationBlock extends Element {
+class EquationBlock extends Block {
     constructor(tex, args) {
-        let {number, multiline} = args ?? {};
-        super();
+        let {number, multiline, ...attr} = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'equation-block'});
+        super([], attr1);
         this.tex = tex;
-        this.number = number ?? true;
         this.multiline = multiline ?? false;
     }
 
-    html() {
+    inner() {
         let tex = this.multiline ? `\\begin{aligned}${this.tex}\\end{aligned}` : this.tex;
-        let math = katex.renderToString(tex, {displayMode: true, throwOnError: false});
-        let number = this.number ? `<span class="equation-number"></span>` : '';
-        return `<div class="block equation-block">${math}${number}</div>`;
+        return katex.renderToString(tex, {displayMode: true, throwOnError: false});
     }
 }
 
@@ -1161,15 +1137,15 @@ class VideoBlock extends Element {
 
 class SvgBlock extends Element {
     constructor(code, args) {
-        let {number, caption, width} = args ?? {};
-        super();
-        this.code = code;
-        this.number = number ?? true;
+        let {number, caption, width, ...attr} = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'svg-block'});
+        super([], attr1);
         this.caption = (caption != null) ? new FigureCaption(caption) : null;
         this.width = width ?? 50;
+        this.code = code;
     }
 
-    html() {
+    inner() {
         let style = this.width ? `style="width: ${this.width}%;"` : '';
         let caption = (this.caption != null) ? this.caption.html() : '';
         let classes = ['block', 'figure-block', 'svg-block'];
@@ -1178,17 +1154,17 @@ class SvgBlock extends Element {
     }
 }
 
-class GumBlock extends Element {
+class GumBlock extends Block {
     constructor(code, args) {
-        let {number, caption, width, pixel} = args ?? {};
-        super();
-        this.number = number ?? true;
+        let {caption, width, pixel, ...attr} = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'gum-block'});
+        super([], attr1);
         this.caption = (caption != null) ? new FigureCaption(caption) : null;
         this.width = width ?? 50;
         this.gum = parseGumRobust(code, pixel);
     }
 
-    html() {
+    inner() {
         let style = this.width ? `style="width: ${this.width}%;"` : '';
         let caption = (this.caption != null) ? this.caption.html() : '';
         let classes = ['block', 'figure-block', 'gum-block'];

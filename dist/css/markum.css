@@ -24,9 +24,20 @@
     font-weight: bold;
 }
 
-.h1-block {
-    font-size: 24px;
+.heading-block {
     font-weight: bold;
+}
+
+.heading-1 {
+    font-size: 24px;
+}
+
+.heading-2 {
+    font-size: 20px;
+}
+
+.heading-3 {
+    font-size: 16px;
 }
 
 .list-block > ul,
@@ -34,12 +45,8 @@
     padding-left: 30px;
 }
 
-.comment-block > span {
+.comment-block {
     color: #999;
-}
-
-.comment-block > span::before {
-    content: '// ';
 }
 
 .equation-block {
