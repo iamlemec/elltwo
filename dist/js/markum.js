@@ -727,10 +727,6 @@ class Element {
     html() {
         throw new Error(`${this.constructor.name}: HTML renderer not implemented.`);
     }
-
-    latex() {
-        throw new Error(`${this.constructor.name}: LaTeX renderer not implemented.`);
-    }
 }
 
 class Container {
@@ -738,12 +734,8 @@ class Container {
         this.children = children;
     }
 
-    innerHtml() {
+    inner() {
         return this.children.map(c => c.html()).join('');
-    }
-
-    innerLatex() {
-        return this.children.map(c => c.latex()).join(' ');
     }
 }
 
@@ -753,7 +745,7 @@ class Document extends Container {
     }
 
     html() {
-        return this.innerHtml();
+        return this.inner();
     }
 }
 
@@ -775,7 +767,7 @@ class FigureCaption extends Container {
 
     html() {
         let title = this.prefix();
-        let inner = this.innerHtml();
+        let inner = this.inner();
         return `<div class="figure-caption"><span class="caption-title">${title}</span>: ${inner}</div>`;
     }
 }
@@ -837,7 +829,7 @@ class LinkInline extends Element {
     }
 
     html() {
-        let inner = this.innerHtml();
+        let inner = this.inner();
         return `<a href="${this.href}" class="link-inline">${inner}</a>`;
     }
 }
@@ -861,7 +853,7 @@ class BoldInline extends Container {
     }
 
     html() {
-        let inner = this.innerHtml();
+        let inner = this.inner();
         return `<span class="bold-inline">${inner}</span>`;
     }
 }
@@ -872,7 +864,7 @@ class ItalicInline extends Container {
     }
 
     html() {
-        let inner = this.innerHtml();
+        let inner = this.inner();
         return `<span class="italic-inline">${inner}</span>`;
     }
 }
@@ -894,7 +886,7 @@ class StrikeoutInline extends Container {
     }
 
     html() {
-        let inner = this.innerHtml();
+        let inner = this.inner();
         return `<span class="strikeout-inline">${inner}</span>`;
     }
 }
@@ -930,7 +922,7 @@ class FootnoteInline extends Container {
 
     // get number from context
     html() {
-        let inner = this.innerHtml();
+        let inner = this.inner();
         let popup = `<div class="footnote-popup">${inner}</div>`;
         return `<span class="footnote-inline">N</span>\n${popup}\n`;
     }
@@ -944,7 +936,7 @@ class SidenoteInline extends Element {
 
     // get number from context
     html() {
-        let inner = this.innerHtml();
+        let inner = this.inner();
         let popup = `<div class="sidenote-popup">${inner}</div>`;
         return `<span class="sidenote-inline">N</span>\n${popup}\n`;
     }
@@ -989,7 +981,7 @@ class ListItemElement extends Container {
     }
 
     html() {
-        let inner = this.innerHtml();
+        let inner = this.inner();
         return `<li class="listitem-inline">${inner}</li>`;
     }
 }
@@ -1014,7 +1006,7 @@ class TextBlock extends Container {
     }
 
     html() {
-        let inner = this.innerHtml();
+        let inner = this.inner();
         return `<div class="block text-block">${inner}</div>`;
     }
 }
@@ -1037,7 +1029,7 @@ class TitleBlock extends Container {
     }
 
     html() {
-        let inner = this.innerHtml();
+        let inner = this.inner();
         return `<div class="block title-block">${inner}</div>`;
     }
 }
@@ -1049,7 +1041,7 @@ class HeadingBlock extends Container {
     }
 
     html() {
-        let inner = this.innerHtml();
+        let inner = this.inner();
         return `<div class="block heading-block h${this.level}-block">${inner}</div>`;
     }
 }
@@ -1098,7 +1090,7 @@ class ListBlock extends Container {
     }
 
     html() {
-        let inner = this.innerHtml();
+        let inner = this.inner();
         let tag = this.ordered ? 'ol' : 'ul';
         return `<div class="block list-block"><${tag}>${inner}</${tag}></div>`;
     }
