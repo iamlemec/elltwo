@@ -773,12 +773,28 @@ class Element {
 
 class Container extends Element {
     constructor(tag, children, args) {
+        // handle singleton case
+        if (!Array.isArray(children)) {
+            children = [children];
+        }
         super(tag, false, args);
         this.children = children;
     }
 
     inner() {
         return this.children.map(c => (c instanceof Element) ? c.html() : c).join('');
+    }
+}
+
+class Div extends Container {
+    constructor(children, args) {
+        super('div', children, args);
+    }
+}
+
+class Span extends Container {
+    constructor(children, args) {
+        super('span', children, args);
     }
 }
 
@@ -789,6 +805,40 @@ class Document extends Container {
 
     html() {
         return this.inner();
+    }
+}
+
+/**
+ * gum.js bridge
+ */
+
+class GumBox extends Element {
+    constructor(code, args) {
+        let {pixel} = args ?? {};
+        super('div', false); // this is overridden
+        try {
+            this.gum = parseGum(code);
+            if (this.gum instanceof GumSVG) {
+            } else if (this.gum instanceof GumElement) {
+                this.gum = new GumSVG(this.gum, {pixel});
+            }
+        } catch (err) {
+            this.gum = new Span(err.message, {class: 'gum-error'});
+        }
+    }
+
+    html() {
+        if (this.gum instanceof GumElement) {
+            try {
+                return this.gum.svg();
+            } catch (err) {
+                return `<span class="gum-error">${err.message}</div>`;
+            }    
+        } else if (this.gum instanceof Element) {
+            return this.gum.html();
+        } else {
+            return this.gum;
+        }
     }
 }
 
@@ -808,15 +858,17 @@ class Counter extends Element {
     }
 }
 
-class FigureCaption extends Container {
+class FigureCaption extends Div {
     constructor(caption, args) {
         let {ftype, title, ...attr} = args ?? {};
+        ftype = ftype ?? 'figure';
         title = title ?? capitalize(ftype);
-        let prefix = new Container([
+        let prefix = new Span([
             `${title} `, new Counter(ftype), ': ',
         ], {'class': 'caption-prefix'});
+        let children = [prefix, ...caption];
         let attr1 = mergeAttr(attr, {'class': 'figure-caption'});
-        super('div', children, attr1);
+        super(children, attr1);
     }
 }
 
@@ -1135,48 +1187,30 @@ class VideoBlock extends Element {
     }
 }
 
-class SvgBlock extends Element {
+class SvgBlock extends Block {
     constructor(code, args) {
         let {number, caption, width, ...attr} = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'svg-block'});
-        super([], attr1);
-        this.caption = (caption != null) ? new FigureCaption(caption) : null;
-        this.width = width ?? 50;
-        this.code = code;
-    }
-
-    inner() {
-        let style = this.width ? `style="width: ${this.width}%;"` : '';
-        let caption = (this.caption != null) ? this.caption.html() : '';
-        let classes = ['block', 'figure-block', 'svg-block'];
-        let inner = `<div class="svg-sizer" ${style}>${this.code}</div>`;
-        return `<div class="${classes.join(' ')}">${inner}${caption}</div>`;
+        let sizer = new Div(code, {class: 'svg-sizer', style: `width: ${width}%`});
+        let attr1 = mergeAttr(attr, {class: 'figure-block svg-block'});
+        let children = [sizer];
+        if (caption != null) {
+            children.push(new FigureCaption(caption));
+        }
+        super(children, attr1);
     }
 }
 
 class GumBlock extends Block {
     constructor(code, args) {
-        let {caption, width, pixel, ...attr} = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'gum-block'});
-        super([], attr1);
-        this.caption = (caption != null) ? new FigureCaption(caption) : null;
-        this.width = width ?? 50;
-        this.gum = parseGumRobust(code, pixel);
-    }
-
-    inner() {
-        let style = this.width ? `style="width: ${this.width}%;"` : '';
-        let caption = (this.caption != null) ? this.caption.html() : '';
-        let classes = ['block', 'figure-block', 'gum-block'];
-        let inner;
-        try {
-            let ret = (typeof(this.gum) == 'string') ? this.gum : this.gum.svg();
-            inner = `<div class="gum-sizer" ${style}>${ret}</div>`;
-        } catch (e) {
-            inner = e.message;
-            classes.push('gum-error');
+        let {number, caption, width, pixel, ...attr} = args ?? {};
+        let gum = new GumBox(code, {pixel});
+        let sizer = new Div(gum, {class: 'gum-sizer', style: `width: ${width}%`});
+        let attr1 = mergeAttr(attr, {class: 'figure-block gum-block'});
+        let children = [sizer];
+        if (caption != null) {
+            children.push(new FigureCaption(caption));
         }
-        return `<div class="${classes.join(' ')}">${inner}${caption}</div>`;
+        super(children, attr1);
     }
 }
 
