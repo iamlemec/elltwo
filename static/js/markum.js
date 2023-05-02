@@ -227,7 +227,9 @@ inline.breaks = merge({}, inline.gfm, {
  */
 
 function parseDocument(src) {
-    let blocks = src.split(/\n{2,}/).map(parseBlock);
+    let blocks = src.split(/\n{2,}/)
+        .map(parseBlock)
+        .map(b => new Block(b));
     return new Document(blocks);
 }
 
@@ -295,10 +297,10 @@ function parseList(src) {
 
     let body = rows.map(row => {
         let inner = parseInline(row);
-        return new ListItemElement(inner);
+        return new ListItem(inner);
     });
 
-    return new ListBlock(body, {ordered});
+    return new List(body, {ordered});
 }
 
 function parseAlign(a) {
@@ -324,28 +326,28 @@ function parseTable(header, align, cells) {
 
     // head
     let hcells = header.map(c =>
-        new TableCellElement(parseInline(c), {header: true})
+        new TableCell(parseInline(c), {header: true})
     );
-    let head = new TableRowElement(hcells);
+    let head = new TableRow(hcells);
 
     // body
     let body = cells.map(r => {
         let rcells = r.map(c =>
-            new TableCellElement(parseInline(c))
+            new TableCell(parseInline(c))
         );
-        return new TableRowElement(rcells);
+        return new TableRow(rcells);
     });
 
-    return new TableBlock(head, body, align);
+    return new Table(head, body, align);
 }
 
 function parseBiblio(id, text) {
     text = text.split('\n').map(line => line.includes(':'));
     let bibs = text.map(line => {
         let [key, val] = line.split(':', 1).map(s => s.trim());
-        return new BiblioElement(key, val);
+        return new BiblioItem(key, val);
     });
-    return new BiblioBlock(id, bibs);
+    return new Biblio(id, bibs);
 }
 
 // parse a block of text — usually main entry point
@@ -363,7 +365,7 @@ function parseBlock(src) {
     if (cap = block.empty.exec(src)) {
         let [_, text] = cap;
         let inner = parseInline(text);
-        return new EmptyBlock(inner);
+        return new Block([]);
     }
 
     // equation
@@ -371,18 +373,19 @@ function parseBlock(src) {
         let [mat, pargs, rargs] = cap;
         pargs = parsePrefix(pargs);
         let args = {
+            display: true,
             number: !pargs.includes('*'),
             multiline: pargs.includes('&'),
             ...parseArgs(rargs)
         };
         let text = src.slice(mat.length);
-        return new EquationBlock(text, args);
+        return new Math(text, args);
     }
 
     // svg/gum
     if (cap = block.svg.exec(src)) {
         let [mat, sog, pargs, rargs] = cap;
-        let cls = (sog == 'gum') ? GumBlock : SvgBlock;
+        let cls = (sog == 'gum') ? Gum : Svg;
         pargs = parsePrefix(pargs);
         rargs = parseArgs(rargs);
         if (rargs.caption != null) {
@@ -397,7 +400,7 @@ function parseBlock(src) {
     if (cap = block.image.exec(src)) {
         let [_, vid, pargs, rargs, href] = cap;
         pargs = parsePrefix(pargs);
-        let cls = (vid != null) ? VideoBlock : ImageBlock;
+        let cls = (vid != null) ? Video : Image;
         let args = {
             number: !pargs.includes('*'),
             ...parseArgs(rargs)
@@ -412,7 +415,7 @@ function parseBlock(src) {
             gum: pargs == 'gum',
             ...parseArgs(rargs)
         };
-        return new UploadBlock(id, args);
+        return new Upload(id, args);
     }
 
     // figure table
@@ -427,7 +430,7 @@ function parseBlock(src) {
     if (cap = block.comment.exec(src)) {
         let [mat] = cap;
         let text = src.slice(mat.length);
-        return new CommentBlock(text);
+        return new Comment(text);
     }
 
     // code
@@ -439,7 +442,7 @@ function parseBlock(src) {
             ...parseArgs(rargs)
         };
         let text = src.slice(mat.length);
-        return new CodeBlock(text, args);
+        return new Code(text, args);
     }
 
     // title
@@ -447,7 +450,7 @@ function parseBlock(src) {
         let [mat, rargs, text] = cap;
         let args = parseArgs(rargs);
         let title = parseInline(text);
-        return new TitleBlock(title, args);
+        return new Title(title, args);
     }
 
     // heading
@@ -460,13 +463,13 @@ function parseBlock(src) {
             number: pargs.includes('*'),
             ...parseArgs(rargs)
         };
-        return new HeadingBlock(level, text, args);
+        return new Heading(level, text, args);
     }
 
     // envbeg
     if (cap = block.envbeg.exec(src)) {
         let [mat, pargs, env, rargs] = cap;
-        let cls = pargs.includes('!') ? EnvSingleBlock : EnvBeginBlock;
+        let cls = pargs.includes('!') ? EnvSingle : EnvBegin;
         let args = {
             number: !pargs.includes('*'),
             ...parseArgs(rargs)
@@ -481,7 +484,7 @@ function parseBlock(src) {
         let [mat] = cap;
         let text = src.slice(mat.length);
         let inner = parseInline(text);
-        return new EnvEndBlock(inner);
+        return new EnvEnd(inner);
     }
 
     // lheading
@@ -489,19 +492,19 @@ function parseBlock(src) {
         let [_, body, bar] = cap;
         let text = parseInline(body);
         let depth = (bar == '=') ? 1 : 2;
-        return new HeadingBlock(depth, text);
+        return new Heading(depth, text);
     }
 
     // hrule
     if (cap = block.hrule.exec(src)) {
-        return new RuleBlock();
+        return new Rule();
     }
 
     // blockquote
     if (cap = block.blockquote.exec(src)) {
         let [mat] = cap;
         let text = src.slice(mat.length);
-        return new QuoteBlock(text);
+        return new Blockquote(text);
     }
 
     // list
@@ -517,8 +520,7 @@ function parseBlock(src) {
     }
 
     // top-level paragraph (fallback)
-    let inner = parseInline(src);
-    return new TextBlock(inner);
+    return parseInline(src);
 }
 
 /**
@@ -545,7 +547,7 @@ function parseGumRobust(src, size) {
  * Inline Parser
  */
 
-// parse markdown into `InlineElement`s
+// parse markdown into `Element`s
 function parseInline(src, ctx) {
     ctx = ctx ?? {};
     let cap, mat, text, href, tex, esc, acc, letter, args,
@@ -556,7 +558,7 @@ function parseInline(src, ctx) {
         // special
         if (cap = inline.special.exec(src)) {
             [mat, acc, letter] = cap;
-            out.push(new SpecialInline(acc, letter));
+            out.push(new Special(acc, letter));
             src = src.substring(mat.length);
             continue;
         }
@@ -564,7 +566,7 @@ function parseInline(src, ctx) {
         // escape
         if (cap = inline.escape.exec(src)) {
             [mat, esc] = cap;
-            out.push(new EscapeInline(esc));
+            out.push(new Escape(esc));
             src = src.substring(mat.length);
             continue;
         }
@@ -572,7 +574,7 @@ function parseInline(src, ctx) {
         // math
         if (cap = inline.math.exec(src)) {
             [mat, tex] = cap;
-            out.push(new MathInline(tex));
+            out.push(new Math(tex));
             src = src.substring(mat.length);
             continue;
         }
@@ -580,7 +582,7 @@ function parseInline(src, ctx) {
         // comment
         if (cap = inline.in_comment.exec(src)) {
             [mat, text] = cap;
-            out.push(new CommentInline(text));
+            out.push(new Comment(text));
             src = src.substring(mat.length);
             continue;
         }
@@ -588,7 +590,7 @@ function parseInline(src, ctx) {
         // ref/cite
         if (cap = inline.refcite.exec(src)) {
             [mat, pre, rargs] = cap;
-            cls = (pre == '@') ? RefInline : CiteInline;
+            cls = (pre == '@') ? Reference : Citation;
             args = parseArgs(rargs, false, false);
             text = args.text || args.txt || args.t || '';
             inner = parseInline(text);
@@ -600,7 +602,7 @@ function parseInline(src, ctx) {
         // footnote/sidenote
         if (cap = inline.footnote.exec(src)) {
             [mat, pre, text] = cap;
-            cls = (pre == '!') ? SidenoteInline : FootnoteInline;
+            cls = (pre == '!') ? Sidenote : Footnote;
             inner = parseInline(text);
             out.push(new cls(inner));
             src = src.substring(mat.length);
@@ -613,7 +615,7 @@ function parseInline(src, ctx) {
             args = parseArgs(rargs, false, false);
             text = args.text || args.txt || args.t || '';
             inner = parseInline(text);
-            out.push(new LinkInline(inner, args));
+            out.push(new Link(inner, args));
             src = src.substring(mat.length);
             continue;
         }
@@ -621,7 +623,7 @@ function parseInline(src, ctx) {
         // autolink
         if (cap = inline.autolink.exec(src)) {
             [mat, href] = cap;
-            out.push(new LinkInline(href));
+            out.push(new Link(href));
             src = src.substring(mat.length);
             continue;
         }
@@ -629,7 +631,7 @@ function parseInline(src, ctx) {
         // url (gfm)
         if (!ctx.inLink && (cap = inline.url.exec(src))) {
             [mat, href] = cap;
-            out.push(new LinkInline(href));
+            out.push(new Link(href));
             src = src.substring(mat.length);
             continue;
         }
@@ -639,10 +641,10 @@ function parseInline(src, ctx) {
             [mat, pre, text, href, title] = cap;
             [href, title] = [escape_html(href), escape_html(title)];
             if (pre == '!') {
-                elem = new ImageInline(href, text);
+                elem = new Image(href, text);
             } else {
                 inner = parseInline(text, {...ctx, link: true});
-                elem = new LinkInline(href, inner);
+                elem = new Link(href, inner);
             }
             out.push(elem);
             src = src.substring(mat.length);
@@ -654,7 +656,7 @@ function parseInline(src, ctx) {
             [mat, text1, text2] = cap;
             text = text1 || text2;
             inner = parseInline(text);
-            out.push(new BoldInline(inner));
+            out.push(new Bold(inner));
             src = src.substring(mat.length);
             continue;
         }
@@ -663,7 +665,7 @@ function parseInline(src, ctx) {
         if (cap = inline.hash.exec(src)) {
             [mat, text] = cap;
             tag = text.replace('[', '').replace(']', '');
-            out.push(new HashInline(tag));
+            out.push(new Hash(tag));
             src = src.substring(mat.length);
             continue;
         }
@@ -673,7 +675,7 @@ function parseInline(src, ctx) {
             [mat, text1, text2] = cap;
             text = text1 || text2;
             inner = parseInline(text);
-            out.push(new ItalicInline(inner));
+            out.push(new Italic(inner));
             src = src.substring(mat.length);
             continue;
         }
@@ -681,14 +683,14 @@ function parseInline(src, ctx) {
         // code
         if (cap = inline.code.exec(src)) {
             [mat, delim, text] = cap;
-            out.push(new CodeInline(text));
+            out.push(new Monospace(text));
             src = src.substring(mat.length);
             continue;
         }
 
         // br
         if (cap = inline.br.exec(src)) {
-            out.push(new NewlineInline());
+            out.push(new Newline());
             src = src.substring(mat.length);
             continue;
         }
@@ -697,7 +699,7 @@ function parseInline(src, ctx) {
         if (cap = inline.del.exec(src)) {
             [mat, text] = cap;
             inner = parseInline(text);
-            out.push(new StrikeoutInline(inner));
+            out.push(new Strikeout(inner));
             src = src.substring(mat.length);
             continue;
         }
@@ -812,7 +814,9 @@ class Document extends Container {
  * gum.js bridge
  */
 
-class GumBox extends Element {
+// this will return an Element or String
+// contingent upon the idiotic number of possible return types
+class GumWrap extends Element {
     constructor(code, args) {
         let {pixel} = args ?? {};
         super('div', false); // this is overridden
@@ -858,7 +862,7 @@ class Counter extends Element {
     }
 }
 
-class FigureCaption extends Div {
+class Caption extends Div {
     constructor(caption, args) {
         let {ftype, title, ...attr} = args ?? {};
         ftype = ftype ?? 'figure';
@@ -867,7 +871,7 @@ class FigureCaption extends Div {
             `${title} `, new Counter(ftype), ': ',
         ], {'class': 'caption-prefix'});
         let children = [prefix, ...caption];
-        let attr1 = mergeAttr(attr, {'class': 'figure-caption'});
+        let attr1 = mergeAttr(attr, {'class': 'caption'});
         super(children, attr1);
     }
 }
@@ -876,7 +880,7 @@ class FigureCaption extends Div {
  * Inline Renderer
  */
 
-class TextInline extends Element {
+class Text extends Element {
     constructor(text, args) {
         let attr = args ?? {};
         super('span', false, attr);
@@ -888,168 +892,168 @@ class TextInline extends Element {
     }
 }
 
-class SpecialInline extends TextInline {
+class Special extends Text {
     constructor(acc, letter, args) {
         let attr = args ?? {};
         let text = special(acc, letter);
-        let attr1 = mergeAttr(attr, {class: 'special-inline'});
+        let attr1 = mergeAttr(attr, {class: 'special'});
         super(text, attr1);
     }
 }
 
-class EscapeInline extends TextInline {
+class Escape extends Text {
     constructor(esc, args) {
         let attr = args ?? {};
         let text = escape_html(esc);
-        let attr1 = mergeAttr(attr, {class: 'escape-inline'});
+        let attr1 = mergeAttr(attr, {class: 'escape'});
         super(text, attr1);
     }
 }
 
-class CommentInline extends TextInline {
+class Comment extends Text {
     constructor(comm, args) {
         let attr = args ?? {};
         let text = `// ${comm}`;
-        let attr1 = mergeAttr(attr, {class: 'comment-inline'});
+        let attr1 = mergeAttr(attr, {class: 'comment'});
         super(text, attr1);
     }
 }
 
-class LinkInline extends Container {
+class Link extends Container {
     constructor(href, text, args) {
         let attr = args ?? {};
-        let children = text ?? [TextInline(href)];
-        let attr1 = mergeAttr(attr, {class: 'link-inline'});
+        let children = text ?? href;
+        let attr1 = mergeAttr(attr, {class: 'link'});
         super('a', children, attr1);
     }
 }
 
-class ImageInline extends Element {
+class Image extends Element {
     constructor(src, args) {
         let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {src, class: 'image-inline'});
+        let attr1 = mergeAttr(attr, {src, class: 'image'});
         super('img', true, attr1);
     }
 }
 
-class BoldInline extends Container {
+class Bold extends Span {
     constructor(children, args) {
         let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'bold-inline'});
-        super('span', children, attr1);
+        let attr1 = mergeAttr(attr, {class: 'bold'});
+        super(children, attr1);
     }
 }
 
-class ItalicInline extends Container {
+class Italic extends Span {
     constructor(children, args) {
         let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'italic-inline'});
-        super('span', children, attr1);
+        let attr1 = mergeAttr(attr, {class: 'italic'});
+        super(children, attr1);
     }
 }
 
-class StrikeoutInline extends Container {
+class Strikeout extends Span {
     constructor(children, args) {
         let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'strikeout-inline'});
-        super('span', children, attr1);
+        let attr1 = mergeAttr(attr, {class: 'strikeout'});
+        super(children, attr1);
     }
 }
 
-class CodeInline extends TextInline {
+class Monospace extends Text {
     constructor(text, args) {
         let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'code-inline'});
+        let attr1 = mergeAttr(attr, {class: 'monospace'});
         super(text, attr1);
     }
 }
 
-class RefInline extends Element {
-    constructor(tag) {
-        super();
-        this.tag = tag;
-    }
-
-    // pull this from context
-    html() {
-        return `<a href="#${this.tag}" class="ref-inline">#${this.tag}</a>`;
-    }
-}
-
-class CiteInline extends Element {
-    constructor(tag) {
-        super();
-        this.tag = tag;
-    }
-
-    // pull this from context
-    html() {
-        return `<a href="" class="cite-inline">@${this.tag}</a>`;
-    }
-}
-
-class FootnoteInline extends Container {
-    constructor(children) {
-        super(children);
-    }
-
-    // get number from context
-    html() {
-        let inner = this.inner();
-        let popup = `<div class="footnote-popup">${inner}</div>`;
-        return `<span class="footnote-inline">N</span>\n${popup}\n`;
-    }
-}
-
-class SidenoteInline extends Element {
-    constructor(text) {
-        super();
-        this.text = text;
-    }
-
-    // get number from context
-    html() {
-        let inner = this.inner();
-        let popup = `<div class="sidenote-popup">${inner}</div>`;
-        return `<span class="sidenote-inline">N</span>\n${popup}\n`;
-    }
-}
-
-class MathInline extends Element {
-    constructor(tex, args) {
+class Reference extends Div {
+    constructor(tag, args) {
         let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'math-inline'});
-        super('span', false, attr1);
-        this.tex = tex;
+        let link = new Link(`#${tag}`, `@${tag}`);
+        let attr1 = mergeAttr(attr, {class: 'reference'});
+        super(link, attr1);
+    }
+
+    // pull popup from context
+    // html() {}
+}
+
+class Citation extends Div {
+    constructor(tag, args) {
+        let attr = args ?? {};
+        let link = new Link('', `@@${tag}`);
+        let attr1 = mergeAttr(attr, {class: 'citation'});
+        super(link, attr1);
+    }
+
+    // pull popup from context
+    // html() {}
+}
+
+class Footnote extends Div {
+    constructor(children, args) {
+        let attr = args ?? {};
+        let link = new Link('', 'N');
+        let attr1 = mergeAttr(attr, {class: 'footnote'});
+        super(link, attr1);
+    }
+
+    // get number from context
+    // html() {}
+}
+
+class Sidenote extends Div {
+    constructor(children, args) {
+        let attr = args ?? {};
+        let link = new Link('', 'N');
+        let attr1 = mergeAttr(attr, {class: 'sidenote'});
+        super(link, attr1);
+    }
+
+    // get number from context
+    // html() {}
+}
+
+class Math extends Element {
+    constructor(tex, args) {
+        let {display, multiline, ...attr} = args ?? {};
+        display = display ?? false;
+        let tag = display ? 'div' : 'span';
+        let attr1 = mergeAttr(attr, {class: 'math'});
+        super(tag, false, attr1);
+        this.tex = this.multiline ? `\\begin{aligned}${tex}\\end{aligned}` : tex;
+        this.display = display;
     }
 
     inner() {
-        return katex.renderToString(this.tex, {throwOnError: false});
+        return katex.renderToString(this.tex, {displayMode: this.display, throwOnError: false});
     }
 }
 
-class HashInline extends LinkInline {
+class Hash extends Link {
     constructor(tag, args) {
         let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'hash-inline'});
+        let attr1 = mergeAttr(attr, {class: 'hash'});
         let href = `#${tag}`;
         super(href, attr1);
     }
 }
 
-class NewlineInline extends Element {
+class Newline extends Element {
     constructor(args) {
         super('br', true, args);
     }
 }
 
-class ListItemElement extends Container {
+class ListItem extends Container {
     constructor(children, args) {
         super('li', children, args);
     }
 }
 
-class ListElement extends Container {
+class List extends Container {
     constructor(children, args) {
         let {ordered, ...attr} = args ?? {};
         let tag = ordered ? 'ol' : 'ul';
@@ -1061,76 +1065,52 @@ class ListElement extends Container {
  * Block Renderer
  */
 
-class Block extends Container {
+class Block extends Div {
     constructor(children, args) {
         let attr = args ?? {};
         let attr1 = mergeAttr(attr, {class: 'block'});
-        super('div', children, attr1);
-    }
-}
-
-class EmptyBlock extends Block {
-    constructor(args) {
-        let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'empty-block'});
-        super([], attr1);
-    }
-}
-
-class TextBlock extends Block {
-    constructor(children, args) {
-        let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'text-block'});
         super(children, attr1);
     }
 }
 
-class CommentBlock extends Block {
-    constructor(comm, args) {
-        let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'comment-block'});
-        let text = `// ${comm}`;
-        super([text], attr1);
-    }
-}
-
-class TitleBlock extends Block {
+class Title extends Div {
     constructor(children, args) {
         let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'title-block'});
+        let attr1 = mergeAttr(attr, {class: 'title'});
         super(children, attr1);
     }
 }
 
-class HeadingBlock extends Block {
+class Heading extends Div {
     constructor(level, children, args) {
         let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: `heading-block heading-${level}`});
+        let attr1 = mergeAttr(attr, {class: `heading heading-${level}`});
         let num = new Counter(`heading-${level}`);
         super([num, ' ', ...children], attr1);
     }
 }
 
-class RuleBlock extends Block {
-    constructor() {
-        let rule = new Element('hr', true);
-        super([rule]);
+class Rule extends Element {
+    constructor(args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'rule'});
+        super('hr', true, attr1);
     }
 }
 
-class QuoteBlock extends Block {
+class Blockquote extends Div {
     constructor(children, args) {
         let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'quote-block'});
+        let attr1 = mergeAttr(attr, {class: 'blockquote'});
         super(children, attr1);
     }
 }
 
-class CodeBlock extends Block {
+class Code extends Element {
     constructor(children, args) {
         let {lang, ...attr} = args ?? {};
-        let attr1 = mergeAttr(attr, {class: `code-block code-${lang}`});
-        super(children, attr1);
+        let attr1 = mergeAttr(attr, {class: `code code-${lang}`});
+        super('div', false, attr1);
         this.code = code;
         this.lang = lang ?? null;
     }
@@ -1138,30 +1118,6 @@ class CodeBlock extends Block {
     // highlight here
     inner() {
         return this.code;
-    }
-}
-
-class ListBlock extends Block {
-    constructor(children, args) {
-        let {ordered, ...attr} = args ?? {};
-        let list = new ListElement(children, {ordered});
-        let attr1 = mergeAttr(attr, {class: 'list-block'});
-        super([list], attr1);
-    }
-}
-
-class EquationBlock extends Block {
-    constructor(tex, args) {
-        let {number, multiline, ...attr} = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'equation-block'});
-        super([], attr1);
-        this.tex = tex;
-        this.multiline = multiline ?? false;
-    }
-
-    inner() {
-        let tex = this.multiline ? `\\begin{aligned}${this.tex}\\end{aligned}` : this.tex;
-        return katex.renderToString(tex, {displayMode: true, throwOnError: false});
     }
 }
 
@@ -1187,28 +1143,28 @@ class VideoBlock extends Element {
     }
 }
 
-class SvgBlock extends Block {
+class Svg extends Div {
     constructor(code, args) {
         let {number, caption, width, ...attr} = args ?? {};
         let sizer = new Div(code, {class: 'svg-sizer', style: `width: ${width}%`});
-        let attr1 = mergeAttr(attr, {class: 'figure-block svg-block'});
         let children = [sizer];
         if (caption != null) {
-            children.push(new FigureCaption(caption));
+            children.push(new Caption(caption));
         }
+        let attr1 = mergeAttr(attr, {class: 'figure svg'});
         super(children, attr1);
     }
 }
 
-class GumBlock extends Block {
+class Gum extends Div {
     constructor(code, args) {
         let {number, caption, width, pixel, ...attr} = args ?? {};
-        let gum = new GumBox(code, {pixel});
+        let gum = new GumWrap(code, {pixel});
         let sizer = new Div(gum, {class: 'gum-sizer', style: `width: ${width}%`});
-        let attr1 = mergeAttr(attr, {class: 'figure-block gum-block'});
+        let attr1 = mergeAttr(attr, {class: 'figure gum'});
         let children = [sizer];
         if (caption != null) {
-            children.push(new FigureCaption(caption));
+            children.push(new Caption(caption));
         }
         super(children, attr1);
     }

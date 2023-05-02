@@ -7,24 +7,24 @@
     padding: 5px;
 }
 
-.bold-inline {
+.bold {
     font-weight: bold;
 }
 
-.italic-inline {
+.italic {
     font-style: italic;
 }
 
-.code-inline {
+.code {
     font-family: monospace;
 }
 
-.title-block {
+.title {
     font-size: 32px;
     font-weight: bold;
 }
 
-.heading-block {
+.heading {
     font-weight: bold;
 }
 
@@ -40,26 +40,26 @@
     font-size: 16px;
 }
 
-.list-block > ul,
-.list-block > ol {
+.list > ul,
+.list > ol {
     padding-left: 30px;
 }
 
-.comment-block {
+.comment {
     color: #999;
 }
 
-.equation-block {
+div.math {
     text-align: center;
 }
 
-.figure-block {
+.figure {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
-.figure-caption {
+.caption {
     margin-top: 20px;
 }
