@@ -876,6 +876,17 @@ class Caption extends Div {
     }
 }
 
+class Figure extends Div {
+    constructor(children, args) {
+        let {ftype, title, ...attr} = args ?? {};
+        ftype = ftype ?? 'figure';
+        title = title ?? capitalize(ftype);
+        let caption = new Caption(children, {ftype, title});
+        let attr1 = mergeAttr(attr, {'class': ftype});
+        super([children, caption], attr1);
+    }
+}
+
 /**
  * Inline Renderer
  */
@@ -1121,18 +1132,7 @@ class Code extends Element {
     }
 }
 
-class ImageBlock extends Element {
-    constructor(src, args) {
-        let {number, caption, width} = args ?? {};
-        super();
-        this.src = src;
-        this.number = number ?? true;
-        this.caption = caption ?? null;
-        this.width = width ?? null;
-    }
-}
-
-class VideoBlock extends Element {
+class Video extends Element {
     constructor(src, args) {
         let {number, caption, width} = args ?? {};
         super();
@@ -1170,7 +1170,7 @@ class Gum extends Div {
     }
 }
 
-class UploadBlock extends Element {
+class Upload extends Element {
     constructor(id, args) {
         let {gum} = args ?? {};
         super();
@@ -1179,7 +1179,7 @@ class UploadBlock extends Element {
     }
 }
 
-class EnvBeginBlock extends Container {
+class EnvBegin extends Container {
     constructor(name, args) {
         let {number} = args ?? {};
         super();
@@ -1188,7 +1188,7 @@ class EnvBeginBlock extends Container {
     }
 }
 
-class EnvSingleBlock extends Container {
+class EnvSingle extends Container {
     constructor(name, args) {
         let {number} = args ?? {};
         super();
@@ -1197,7 +1197,7 @@ class EnvSingleBlock extends Container {
     }
 }
 
-class EnvEndBlock extends Container {
+class EnvEnd extends Container {
     constructor() {
         super();
     }

@@ -1076,6 +1076,17 @@ class Code extends Element {
     }
 }
 
+class Video extends Element {
+    constructor(src, args) {
+        let {number, caption, width} = args ?? {};
+        super();
+        this.src = src;
+        this.number = number ?? false;
+        this.caption = caption ?? null;
+        this.width = width ?? null;
+    }
+}
+
 class Svg extends Div {
     constructor(code, args) {
         let {number, caption, width, ...attr} = args ?? {};
@@ -1100,6 +1111,39 @@ class Gum extends Div {
             children.push(new Caption(caption));
         }
         super(children, attr1);
+    }
+}
+
+class Upload extends Element {
+    constructor(id, args) {
+        let {gum} = args ?? {};
+        super();
+        this.id = id;
+        this.gum = gum ?? false;
+    }
+}
+
+class EnvBegin extends Container {
+    constructor(name, args) {
+        let {number} = args ?? {};
+        super();
+        this.name = name;
+        this.number = number ?? true;
+    }
+}
+
+class EnvSingle extends Container {
+    constructor(name, args) {
+        let {number} = args ?? {};
+        super();
+        this.name = name;
+        this.number = number ?? true;
+    }
+}
+
+class EnvEnd extends Container {
+    constructor() {
+        super();
     }
 }
 
