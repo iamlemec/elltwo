@@ -53,6 +53,8 @@ div.math {
     text-align: center;
 }
 
+/* figures */
+
 .figure, .table {
     display: flex;
     flex-direction: column;
@@ -64,6 +66,8 @@ div.math {
     margin-top: 10px;
 }
 
+/* tables */
+
 table {
     border-collapse: collapse;
 }
@@ -71,4 +75,18 @@ table {
 table th {
     border-bottom: 2px solid black;
     padding: 5px;
+}
+
+/* references */
+
+a.reference {
+    text-decoration: none;
+}
+
+a.reference, a.reference:visited {
+    color: blue;
+}
+
+a.reference.fail {
+    color: red;
 }

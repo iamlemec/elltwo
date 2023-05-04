@@ -227,9 +227,8 @@ inline.breaks = merge({}, inline.gfm, {
  */
 
 function parseDocument(src) {
-    let blocks = src.split(/\n{2,}/)
-        .map(parseBlock)
-        .map(b => new Block(b));
+    let blocks = src.split(/\n{2,}/).map(parseBlock);
+    blocks = blocks.map(b => new Block(b));
     return new Document(blocks);
 }
 
@@ -376,11 +375,11 @@ function parseBlock(src) {
         let cls = (sog == 'gum') ? Gum : Svg;
         pargs = parsePrefix(pargs);
         let number = !pargs.includes('*');
-        let {caption, ...args} = parseArgs(rargs);
+        let {id, caption, ...args} = parseArgs(rargs);
         caption = parseInline(caption);
         let code = src.slice(mat.length);
         let child = new cls(code, args);
-        return new Figure(child, {caption, number});
+        return new Figure(child, {id, caption, number});
     }
 
     // table
@@ -584,8 +583,7 @@ function parseInline(src) {
             let [mat, pre, rargs] = cap;
             let cls = (pre == '@') ? Reference : Citation;
             let {id, ...args} = parseArgs(rargs, false, false);
-            let inner = parseInline(id);
-            out.push(new cls(inner, args));
+            out.push(new cls(id, args));
             src = src.substring(mat.length);
             continue;
         }
@@ -730,7 +728,7 @@ function mergeAttr(...args) {
 }
 
 class DefaultCounter {
-    constructor(defaultInit) {
+    constructor() {
         this.values = new Map();
     }
 
@@ -747,11 +745,28 @@ class DefaultCounter {
 
 class Context {
     constructor() {
+        this.resetNum();
+        this.reference = new Map();
+    }
+
+    resetNum() {
         this.counters = new DefaultCounter();
     }
 
-    next(key) {
+    nextNum(key) {
         return this.counters.inc(key);
+    }
+
+    addRef(id, label) {
+        this.reference.set(id, label);
+    }
+
+    getRef(id) {
+        return this.reference.get(id);
+    }
+
+    hasRef(id) {
+        return this.reference.has(id);
     }
 }
 
@@ -828,6 +843,8 @@ class Document extends Container {
 
     html() {
         let ctx = new Context();
+        this.inner(ctx); // populate reference
+        ctx.resetNum(); // reset counters
         return this.inner(ctx);
     }
 }
@@ -841,7 +858,7 @@ class Document extends Container {
 class GumWrap extends Element {
     constructor(code, args) {
         let {pixel} = args ?? {};
-        super('div', false); // this is overridden
+        super('svg', false); // this is overridden
         try {
             this.gum = parseGum(code);
             if (this.gum instanceof GumSVG) {
@@ -872,27 +889,40 @@ class GumWrap extends Element {
  * Figures
  */
 
-// this will handle counters for figures, equations, etc
-class Counter extends Element {
-    constructor(name) {
-        super('span', false, {'class': 'counter'});
-        this.name = name;
+// this will handle counters for figures
+class Target extends Element {
+    constructor(ftype, title, id) {
+        super('span', false, {'class': 'target'});
+        this.ftype = ftype;
+        this.title = title;
+        this.id = id;
     }
 
     inner(ctx) {
-        return ctx.next(this.name);
+        let label;
+        if (this.title == null) {
+            let num = ctx.nextNum(this.ftype);
+            let title = capitalize(this.ftype);
+            label = `${title} ${num}`;
+        } else {
+            label = this.title;
+        }
+        if (this.id != null) {
+            ctx.addRef(this.id, label);
+        }
+        return label;
     }
 }
 
 class Caption extends Div {
     constructor(caption, args) {
-        let {ftype, title, ...attr} = args ?? {};
+        let {ftype, title, number, id, ...attr} = args ?? {};
         ftype = ftype ?? 'figure';
-        title = title ?? capitalize(ftype);
-        let prefix = new Span([
-            `${title} `, new Counter(ftype), ': ',
-        ], {'class': 'caption-prefix'});
-        let children = [prefix, ...caption];
+        let children = caption;
+        if (number) {
+            let counter = new Target(ftype, title, id);
+            children.unshift(counter, ': ');
+        }
         let attr1 = mergeAttr(attr, {'class': 'caption'});
         super(children, attr1);
     }
@@ -900,11 +930,10 @@ class Caption extends Div {
 
 class Figure extends Div {
     constructor(child, args) {
-        let {ftype, title, caption, ...attr} = args ?? {};
+        let {ftype, title, id, number, caption, ...attr} = args ?? {};
         ftype = ftype ?? 'figure';
-        title = title ?? capitalize(ftype);
-        caption = (caption != null) ? new Caption(caption, {ftype, title}) : null;
-        let attr1 = mergeAttr(attr, {'class': ftype});
+        caption = (caption != null) ? new Caption(caption, {ftype, title, number, id}) : null;
+        let attr1 = mergeAttr(attr, {'class': ftype, id});
         super([child, caption], attr1);
     }
 }
@@ -956,7 +985,7 @@ class Link extends Container {
     constructor(href, text, args) {
         let attr = args ?? {};
         let children = text ?? href;
-        let attr1 = mergeAttr(attr, {class: 'link'});
+        let attr1 = mergeAttr(attr, {href, class: 'link'});
         super('a', children, attr1);
     }
 }
@@ -1009,16 +1038,23 @@ class Monospace extends Text {
     }
 }
 
-class Reference extends Span {
-    constructor(tag, args) {
+class Reference extends Element {
+    constructor(id, args) {
         let attr = args ?? {};
-        let link = new Link(`#${tag}`, `@${tag}`);
         let attr1 = mergeAttr(attr, {class: 'reference'});
-        super(link, attr1);
+        super('span', false, attr1);
+        this.id = id;
     }
 
-    // pull popup from context
-    // html(ctx) {}
+    // pull ref/popup from context
+    html(ctx) {
+        if (ctx.hasRef(this.id)) {
+            let ref = ctx.getRef(this.id);
+            return `<a href="#${this.id}" class="reference">${ref}</a>`;
+        } else {
+            return `<a class="reference fail">@${this.id}</a>`;
+        }
+    }
 }
 
 class Citation extends Div {
@@ -1029,7 +1065,7 @@ class Citation extends Div {
         super(link, attr1);
     }
 
-    // pull popup from context
+    // pull ref/popup from context
     // html(ctx) {}
 }
 
@@ -1159,7 +1195,7 @@ class Blockquote extends Div {
 }
 
 class Code extends Element {
-    constructor(children, args) {
+    constructor(code, args) {
         let {lang, ...attr} = args ?? {};
         let attr1 = mergeAttr(attr, {class: `code code-${lang}`});
         super('div', false, attr1);

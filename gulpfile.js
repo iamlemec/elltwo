@@ -132,7 +132,7 @@ gulp.task('dev', () => {
  */
 
 // js-core for server framework
-gulp.task('parse-js', () => {
+gulp.task('spirit-js', () => {
     return rollup({
         cache: cache.esm,
         input: [
@@ -155,21 +155,21 @@ gulp.task('parse-js', () => {
     });
 });
 
-// parser css
-gulp.task('parse-css', () => gulp.src(['./static/css/markum.css', './static/css/quick.css'])
+// spirit css
+gulp.task('spirit-css', () => gulp.src(['./static/css/markum.css', './static/css/quick.css'])
     .pipe(gulp.dest('./dist/css'))
 );
 
-// parser all
-gulp.task('parse', gulp.parallel('parse-js', 'parse-css'));
+// spirit all
+gulp.task('spirit-build', gulp.parallel('spirit-js', 'spirit-css'));
 
-// parser reload
-gulp.task('reload-parse', () => gulp.src(['index.html'])
+// spirit reload
+gulp.task('spirit-reload', () => gulp.src(['index.html'])
     .pipe(connect.reload())
 );
 
-// parser development mode
-gulp.task('dev-parse', () => {
+// spirit serve
+gulp.task('spirit-serve', () => {
     connect.server({
         root: '.',
         port: 8000,
@@ -177,7 +177,10 @@ gulp.task('dev-parse', () => {
         livereload: true
     });
 
-    gulp.watch(['index.html'], gulp.series('reload-parse'));
-    gulp.watch(['static/js/markum.js', 'static/js/quick.js'], gulp.series('parse-js'));
-    gulp.watch(['static/css/markum.css', 'static/css/quick.css'], gulp.series('parse-css'));
+    gulp.watch(['index.html'], gulp.series('spirit-reload'));
+    gulp.watch(['static/js/markum.js', 'static/js/quick.js'], gulp.series('spirit-js'));
+    gulp.watch(['static/css/markum.css', 'static/css/quick.css'], gulp.series('spirit-css'));
 });
+
+// spirit devel mode
+gulp.task('spirit-devel', gulp.series(['spirit-build', 'spirit-serve']));
