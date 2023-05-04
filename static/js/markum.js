@@ -9,7 +9,7 @@ export { parseInline, parseBlock, parseDocument }
 
 import katex from 'katex'
 import {
-    parseGum, Element as GumElement, SVG as GumSVG, props_repr
+    parseGum, Element as GumElement, SVG as GumSVG, props_repr, zip
 } from 'gum.js'
 
 /**
@@ -103,11 +103,11 @@ let block = {
     blockquote: /^q*>\s*\n?/,
     code: /^``(\*)? *(?:refargs)?(?:\n)?(?: |\n)?/,
     equation: /^\$\$(\*|&|\*&|&\*)? *(?:refargs)?\s*/,
-    title: /^#! *(?:refargs)?\s*([^\n]*)\s*/,
-    upload: /^!!(gum)? *(?:refargs)?\s*$/,
+    title: /^#\! *(?:refargs)?\s*([^\n]*)\s*/,
+    upload: /^\!\!(gum)? *(?:refargs)?\s*$/,
     svg: /^\!(svg|gum)(\*)? *(?:refargs)?\s*/,
-    image: /^!(yt|youtube)?(\*)? *(?:refargs)? *(?:\(href\))?\s*/,
-    figtab: /^\| *(?:refargs)?\s*\n/,
+    image: /^\!(yt|youtube)?(\*)? *(?:refargs)? *(?:\(href\))?\s*/,
+    figtab: /^\!tab *(?:refargs)?\s*\n(?:table)/,
     envbeg: /^\>\>(\!|\*|\!\*|\*\!)? *([\w-]+) *(?:refargs)?\s*/,
     envend: /^\<\<\s*/,
     list: /^((?: *(?:bull) [^\n]*(?:\n|$))+)\s*$/,
@@ -295,10 +295,7 @@ function parseList(src) {
         return item.slice(mat.length);
     });
 
-    let body = rows.map(row => {
-        let inner = parseInline(row);
-        return new ListItem(inner);
-    });
+    let body = rows.map(parseInline);
 
     return new List(body, {ordered});
 }
@@ -316,29 +313,20 @@ function parseAlign(a) {
 }
 
 // this only passes align info to top level table
-function parseTable(header, align, cells) {
+function parseTable(header, align, cells, args) {
     // unpack cells
     header = header.trim().split(/ *\| */);
-    align = align.trim().split(/ *\| */)
-        .map(parseAlign);
-    cells = cells.trim().split('\n')
-        .map(c => c.trim().split(/ *\| */));
-
-    // head
-    let hcells = header.map(c =>
-        new TableCell(parseInline(c), {header: true})
+    align = align.trim().split(/ *\| */).map(parseAlign);
+    cells = cells.trim().split('\n').map(c =>
+        c.replace(/^ *\| *| *\| *$/g, '').split(/ *\| */)
     );
-    let head = new TableRow(hcells);
 
-    // body
-    let body = cells.map(r => {
-        let rcells = r.map(c =>
-            new TableCell(parseInline(c))
-        );
-        return new TableRow(rcells);
-    });
+    // parse cells
+    let head = header.map(parseInline);
+    let body = cells.map(r => r.map(parseInline));
 
-    return new Table(head, body, align);
+    // return table
+    return new Table(head, body, {align, ...args});
 }
 
 function parseBiblio(id, text) {
@@ -387,25 +375,21 @@ function parseBlock(src) {
         let [mat, sog, pargs, rargs] = cap;
         let cls = (sog == 'gum') ? Gum : Svg;
         pargs = parsePrefix(pargs);
-        rargs = parseArgs(rargs);
-        if (rargs.caption != null) {
-            rargs.caption = parseInline(rargs.caption);
-        }
-        let args = {number: !pargs.includes('*'), ...rargs};
+        let number = !pargs.includes('*');
+        let {caption, ...args} = parseArgs(rargs);
+        caption = parseInline(caption);
         let code = src.slice(mat.length);
-        return new cls(code, args);
+        let child = new cls(code, args);
+        return new Figure(child, {caption, number});
     }
 
-    // image
-    if (cap = block.image.exec(src)) {
-        let [_, vid, pargs, rargs, href] = cap;
-        pargs = parsePrefix(pargs);
-        let cls = (vid != null) ? Video : Image;
-        let args = {
-            number: !pargs.includes('*'),
-            ...parseArgs(rargs)
-        };
-        return new cls(href, args);
+    // table
+    if (cap = block.figtab.exec(src)) {
+        let [mat, rargs, header, align, cells] = cap;
+        let {caption, number, ...args} = parseArgs(rargs);
+        let table = src.slice(mat.length);
+        let child = parseTable(header, align, cells, args);
+        return new Figure(child, {caption, number, ftype: 'table'});
     }
 
     // upload
@@ -417,13 +401,16 @@ function parseBlock(src) {
         };
         return new Upload(id, args);
     }
-
-    // figure table
-    if (cap = block.figtab.exec(src)) {
-        let [mat, rargs] = cap;
-        let args = parseArgs(rargs);
-        let table = src.slice(mat.length);
-        return this.parseTable(table, args);
+    
+    // image/video
+    if (cap = block.image.exec(src)) {
+        let [_, vid, pargs, rargs, href] = cap;
+        pargs = parsePrefix(pargs);
+        let number = !pargs.includes('*');
+        let {caption, ...args} = parseArgs(rargs);
+        let cls = (vid != null) ? Video : Image;
+        let child = new cls(href, args);
+        return new Figure(child, {caption, number});
     }
 
     // comment
@@ -549,12 +536,21 @@ function parseGumRobust(src, size) {
 
 // parse markdown into `Element`s
 function parseInline(src, ctx) {
+    if (src == null) {
+        return null;
+    }
+
     ctx = ctx ?? {};
     let cap, mat, text, href, tex, esc, acc, letter, args,
         inner, pre, cls, elem, text1, text2, delim;
 
     let out = [];
     while (src) {
+        // detect empty early
+        if (src.length == 0) {
+            break;
+        }
+
         // special
         if (cap = inline.special.exec(src)) {
             [mat, acc, letter] = cap;
@@ -712,7 +708,7 @@ function parseInline(src, ctx) {
             continue;
         }
 
-        if (src) {
+        if (src.length > 0) {
             throw new Error('Infinite loop on byte: ' + src.charCodeAt(0));
         }
     }
@@ -800,6 +796,14 @@ class Span extends Container {
     }
 }
 
+class Block extends Div {
+    constructor(children, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'block'});
+        super(children, attr1);
+    }
+}
+
 class Document extends Container {
     constructor(children, args) {
         super('div', children, args);
@@ -877,13 +881,13 @@ class Caption extends Div {
 }
 
 class Figure extends Div {
-    constructor(children, args) {
-        let {ftype, title, ...attr} = args ?? {};
+    constructor(child, args) {
+        let {ftype, title, caption, ...attr} = args ?? {};
         ftype = ftype ?? 'figure';
         title = title ?? capitalize(ftype);
-        let caption = new Caption(children, {ftype, title});
+        caption = (caption != null) ? new Caption(caption, {ftype, title}) : null;
         let attr1 = mergeAttr(attr, {'class': ftype});
-        super([children, caption], attr1);
+        super([child, caption], attr1);
     }
 }
 
@@ -944,6 +948,14 @@ class Image extends Element {
         let attr = args ?? {};
         let attr1 = mergeAttr(attr, {src, class: 'image'});
         super('img', true, attr1);
+    }
+}
+
+class Video extends Element {
+    constructor(src, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {src, class: 'video'});
+        super('video', true, attr1);
     }
 }
 
@@ -1058,31 +1070,42 @@ class Newline extends Element {
     }
 }
 
-class ListItem extends Container {
-    constructor(children, args) {
-        super('li', children, args);
-    }
-}
-
 class List extends Container {
     constructor(children, args) {
         let {ordered, ...attr} = args ?? {};
         let tag = ordered ? 'ol' : 'ul';
+        children = children.map(i => new Container('li', i));
         super(tag, children, attr);
     }
 }
 
-/**
- * Block Renderer
- */
+function make_cell(cell, align=null, header=false) {
+    let tag = header ? 'th' : 'td';
+    let style = (align != null) ? `text-align: ${align}` : null;
+    return new Container(tag, cell, {style});
+}
 
-class Block extends Div {
-    constructor(children, args) {
-        let attr = args ?? {};
-        let attr1 = mergeAttr(attr, {class: 'block'});
-        super(children, attr1);
+// this takes a list of header elements, and a list of body elements, and optional align flags
+class Table extends Container {
+    constructor(head, body, args) {
+        let {align, ...attr} = args ?? {};
+        head = new Container('thead',
+            new Container('tr',
+                zip(head, align).map(([c, a]) => make_cell(c, a, true))
+            )
+        );
+        body = new Container('tbody',
+            body.map(r => new Container('tr',
+                zip(r, align).map(([c, a]) => make_cell(c, a))
+            ))
+        );
+        super('table', [head, body], attr);
     }
 }
+
+/**
+ * Block Level Elements
+ */
 
 class Title extends Div {
     constructor(children, args) {
@@ -1132,41 +1155,20 @@ class Code extends Element {
     }
 }
 
-class Video extends Element {
-    constructor(src, args) {
-        let {number, caption, width} = args ?? {};
-        super();
-        this.src = src;
-        this.number = number ?? false;
-        this.caption = caption ?? null;
-        this.width = width ?? null;
-    }
-}
-
 class Svg extends Div {
     constructor(code, args) {
-        let {number, caption, width, ...attr} = args ?? {};
-        let sizer = new Div(code, {class: 'svg-sizer', style: `width: ${width}%`});
-        let children = [sizer];
-        if (caption != null) {
-            children.push(new Caption(caption));
-        }
-        let attr1 = mergeAttr(attr, {class: 'figure svg'});
-        super(children, attr1);
+        let {number, width, ...attr} = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'svg', style: `width: ${width}%`});
+        super(code, attr1);
     }
 }
 
 class Gum extends Div {
     constructor(code, args) {
-        let {number, caption, width, pixel, ...attr} = args ?? {};
+        let {number, width, pixel, ...attr} = args ?? {};
         let gum = new GumWrap(code, {pixel});
-        let sizer = new Div(gum, {class: 'gum-sizer', style: `width: ${width}%`});
-        let attr1 = mergeAttr(attr, {class: 'figure gum'});
-        let children = [sizer];
-        if (caption != null) {
-            children.push(new Caption(caption));
-        }
-        super(children, attr1);
+        let attr1 = mergeAttr(attr, {class: 'gum', style: `width: ${width}%`});
+        super(gum, attr1);
     }
 }
 

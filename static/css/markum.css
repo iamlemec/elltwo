@@ -53,7 +53,7 @@ div.math {
     text-align: center;
 }
 
-.figure {
+.figure, .table {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -61,5 +61,14 @@ div.math {
 }
 
 .caption {
-    margin-top: 20px;
+    margin-top: 10px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+table th {
+    border-bottom: 2px solid black;
+    padding: 5px;
 }
