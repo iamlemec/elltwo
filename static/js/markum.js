@@ -535,16 +535,12 @@ function parseGumRobust(src, size) {
  */
 
 // parse markdown into `Element`s
-function parseInline(src, ctx) {
+function parseInline(src) {
     if (src == null) {
         return null;
     }
 
-    ctx = ctx ?? {};
-    let cap, mat, text, href, tex, esc, acc, letter, args,
-        inner, pre, cls, elem, text1, text2, delim;
-
-    let out = [];
+    let cap, out = [];
     while (src) {
         // detect empty early
         if (src.length == 0) {
@@ -553,7 +549,7 @@ function parseInline(src, ctx) {
 
         // special
         if (cap = inline.special.exec(src)) {
-            [mat, acc, letter] = cap;
+            let [mat, acc, letter] = cap;
             out.push(new Special(acc, letter));
             src = src.substring(mat.length);
             continue;
@@ -561,7 +557,7 @@ function parseInline(src, ctx) {
 
         // escape
         if (cap = inline.escape.exec(src)) {
-            [mat, esc] = cap;
+            let [mat, esc] = cap;
             out.push(new Escape(esc));
             src = src.substring(mat.length);
             continue;
@@ -569,7 +565,7 @@ function parseInline(src, ctx) {
 
         // math
         if (cap = inline.math.exec(src)) {
-            [mat, tex] = cap;
+            let [mat, tex] = cap;
             out.push(new Math(tex));
             src = src.substring(mat.length);
             continue;
@@ -577,7 +573,7 @@ function parseInline(src, ctx) {
 
         // comment
         if (cap = inline.in_comment.exec(src)) {
-            [mat, text] = cap;
+            let [mat, text] = cap;
             out.push(new Comment(text));
             src = src.substring(mat.length);
             continue;
@@ -585,11 +581,10 @@ function parseInline(src, ctx) {
 
         // ref/cite
         if (cap = inline.refcite.exec(src)) {
-            [mat, pre, rargs] = cap;
-            cls = (pre == '@') ? Reference : Citation;
-            args = parseArgs(rargs, false, false);
-            text = args.text || args.txt || args.t || '';
-            inner = parseInline(text);
+            let [mat, pre, rargs] = cap;
+            let cls = (pre == '@') ? Reference : Citation;
+            let {id, ...args} = parseArgs(rargs, false, false);
+            let inner = parseInline(id);
             out.push(new cls(inner, args));
             src = src.substring(mat.length);
             continue;
@@ -597,9 +592,9 @@ function parseInline(src, ctx) {
 
         // footnote/sidenote
         if (cap = inline.footnote.exec(src)) {
-            [mat, pre, text] = cap;
-            cls = (pre == '!') ? Sidenote : Footnote;
-            inner = parseInline(text);
+            let [mat, pre, text] = cap;
+            let cls = (pre == '!') ? Sidenote : Footnote;
+            let inner = parseInline(text);
             out.push(new cls(inner));
             src = src.substring(mat.length);
             continue;
@@ -607,10 +602,9 @@ function parseInline(src, ctx) {
 
         // internal link
         if (cap = inline.ilink.exec(src)) {
-            [mat, rargs] = cap;
-            args = parseArgs(rargs, false, false);
-            text = args.text || args.txt || args.t || '';
-            inner = parseInline(text);
+            let [mat, rargs] = cap;
+            let {id, ...args} = parseArgs(rargs, false, false);
+            let inner = parseInline(id);
             out.push(new Link(inner, args));
             src = src.substring(mat.length);
             continue;
@@ -618,15 +612,15 @@ function parseInline(src, ctx) {
 
         // autolink
         if (cap = inline.autolink.exec(src)) {
-            [mat, href] = cap;
+            let [mat, href] = cap;
             out.push(new Link(href));
             src = src.substring(mat.length);
             continue;
         }
 
         // url (gfm)
-        if (!ctx.inLink && (cap = inline.url.exec(src))) {
-            [mat, href] = cap;
+        if (cap = inline.url.exec(src)) {
+            let [mat, href] = cap;
             out.push(new Link(href));
             src = src.substring(mat.length);
             continue;
@@ -634,12 +628,13 @@ function parseInline(src, ctx) {
 
         // link
         if (cap = inline.link.exec(src)) {
-            [mat, pre, text, href, title] = cap;
+            let [mat, pre, text, href, title] = cap;
             [href, title] = [escape_html(href), escape_html(title)];
+            let elem;
             if (pre == '!') {
                 elem = new Image(href, text);
             } else {
-                inner = parseInline(text, {...ctx, link: true});
+                inner = parseInline(text);
                 elem = new Link(href, inner);
             }
             out.push(elem);
@@ -649,9 +644,9 @@ function parseInline(src, ctx) {
 
         // strong
         if (cap = inline.strong.exec(src)) {
-            [mat, text1, text2] = cap;
-            text = text1 || text2;
-            inner = parseInline(text);
+            let [mat, text1, text2] = cap;
+            let text = text1 || text2;
+            let inner = parseInline(text);
             out.push(new Bold(inner));
             src = src.substring(mat.length);
             continue;
@@ -659,8 +654,8 @@ function parseInline(src, ctx) {
 
         // hash
         if (cap = inline.hash.exec(src)) {
-            [mat, text] = cap;
-            tag = text.replace('[', '').replace(']', '');
+            let [mat, text] = cap;
+            let tag = text.replace('[', '').replace(']', '');
             out.push(new Hash(tag));
             src = src.substring(mat.length);
             continue;
@@ -668,9 +663,9 @@ function parseInline(src, ctx) {
 
         // em
         if (cap = inline.em.exec(src)) {
-            [mat, text1, text2] = cap;
-            text = text1 || text2;
-            inner = parseInline(text);
+            let [mat, text1, text2] = cap;
+            let text = text1 || text2;
+            let inner = parseInline(text);
             out.push(new Italic(inner));
             src = src.substring(mat.length);
             continue;
@@ -678,8 +673,17 @@ function parseInline(src, ctx) {
 
         // code
         if (cap = inline.code.exec(src)) {
-            [mat, delim, text] = cap;
+            let [mat, delim, text] = cap;
             out.push(new Monospace(text));
+            src = src.substring(mat.length);
+            continue;
+        }
+
+        // del (gfm)
+        if (cap = inline.del.exec(src)) {
+            let [mat, text] = cap;
+            let inner = parseInline(text);
+            out.push(new Strikeout(inner));
             src = src.substring(mat.length);
             continue;
         }
@@ -690,16 +694,7 @@ function parseInline(src, ctx) {
             src = src.substring(mat.length);
             continue;
         }
-
-        // del (gfm)
-        if (cap = inline.del.exec(src)) {
-            [mat, text] = cap;
-            inner = parseInline(text);
-            out.push(new Strikeout(inner));
-            src = src.substring(mat.length);
-            continue;
-        }
-
+        
         // text
         if (cap = inline.text.exec(src)) {
             let [mat] = cap;
@@ -734,9 +729,31 @@ function mergeAttr(...args) {
     return attrs;
 }
 
+class DefaultCounter {
+    constructor(defaultInit) {
+        this.values = new Map();
+    }
+
+    inc(key) {
+        let val = !this.values.has(key) ? 1 : this.values.get(key) + 1;
+        this.values.set(key, val);
+        return val;
+    }
+}
+
 /**
  * Core Renderer
  */
+
+class Context {
+    constructor() {
+        this.counters = new DefaultCounter();
+    }
+
+    next(key) {
+        return this.counters.inc(key);
+    }
+}
 
 class Element {
     constructor(tag, unary, attr) {
@@ -745,17 +762,17 @@ class Element {
         this.attr = attr ?? {};
     }
 
-    props() {
+    props(ctx) {
         return this.attr;
     }
 
-    inner() {
+    inner(ctx) {
         return '';
     }
 
-    html() {
+    html(ctx) {
         // collect all properties
-        let pvals = this.props();
+        let pvals = this.props(ctx);
         let props = props_repr(pvals);
         let pre = props.length > 0 ? ' ' : '';
 
@@ -763,7 +780,7 @@ class Element {
         if (this.unary) {
             return `<${this.tag}${pre}${props} />`;
         } else {
-            let ivals = this.inner();
+            let ivals = this.inner(ctx);
             return `<${this.tag}${pre}${props}>${ivals}</${this.tag}>`;
         }
     }
@@ -779,8 +796,8 @@ class Container extends Element {
         this.children = children;
     }
 
-    inner() {
-        return this.children.map(c => (c instanceof Element) ? c.html() : c).join('');
+    inner(ctx) {
+        return this.children.map(c => (c instanceof Element) ? c.html(ctx) : c).join('');
     }
 }
 
@@ -810,7 +827,8 @@ class Document extends Container {
     }
 
     html() {
-        return this.inner();
+        let ctx = new Context();
+        return this.inner(ctx);
     }
 }
 
@@ -835,7 +853,7 @@ class GumWrap extends Element {
         }
     }
 
-    html() {
+    html(ctx) {
         if (this.gum instanceof GumElement) {
             try {
                 return this.gum.svg();
@@ -861,8 +879,8 @@ class Counter extends Element {
         this.name = name;
     }
 
-    inner() {
-        return 'N';
+    inner(ctx) {
+        return ctx.next(this.name);
     }
 }
 
@@ -902,7 +920,7 @@ class Text extends Element {
         this.text = text;
     }
 
-    inner() {
+    inner(ctx) {
         return this.text;
     }
 }
@@ -991,7 +1009,7 @@ class Monospace extends Text {
     }
 }
 
-class Reference extends Div {
+class Reference extends Span {
     constructor(tag, args) {
         let attr = args ?? {};
         let link = new Link(`#${tag}`, `@${tag}`);
@@ -1000,7 +1018,7 @@ class Reference extends Div {
     }
 
     // pull popup from context
-    // html() {}
+    // html(ctx) {}
 }
 
 class Citation extends Div {
@@ -1012,7 +1030,7 @@ class Citation extends Div {
     }
 
     // pull popup from context
-    // html() {}
+    // html(ctx) {}
 }
 
 class Footnote extends Div {
@@ -1024,7 +1042,7 @@ class Footnote extends Div {
     }
 
     // get number from context
-    // html() {}
+    // html(ctx) {}
 }
 
 class Sidenote extends Div {
@@ -1036,7 +1054,7 @@ class Sidenote extends Div {
     }
 
     // get number from context
-    // html() {}
+    // html(ctx) {}
 }
 
 class Math extends Element {
@@ -1050,7 +1068,7 @@ class Math extends Element {
         this.display = display;
     }
 
-    inner() {
+    inner(ctx) {
         return katex.renderToString(this.tex, {displayMode: this.display, throwOnError: false});
     }
 }
@@ -1150,7 +1168,7 @@ class Code extends Element {
     }
 
     // highlight here
-    inner() {
+    inner(ctx) {
         return this.code;
     }
 }
