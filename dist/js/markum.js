@@ -91,7 +91,7 @@ let block = {
     upload: /^\!\!(gum)? *(?:refargs)?\s*$/,
     svg: /^\!(svg|gum)(\*)? *(?:refargs)?\s*/,
     image: /^\!(yt|youtube)?(\*)? *(?:refargs)? *(?:\(href\))?\s*/,
-    figtab: /^\!tab *(?:refargs)?\s*\n(?:table)/,
+    figtab: /^\!tab(\*)? *(?:refargs)?\s*\n(?:table)/,
     envbeg: /^\>\>(\!|\*|\!\*|\*\!)? *([\w-]+) *(?:refargs)?\s*/,
     envend: /^\<\<\s*/,
     list: /^((?: *(?:bull) [^\n]*(?:\n|$))+)\s*$/,
@@ -358,11 +358,13 @@ function parseBlock(src) {
 
     // table
     if (cap = block.figtab.exec(src)) {
-        let [mat, rargs, header, align, cells] = cap;
-        let {caption, number, ...args} = parseArgs(rargs);
-        src.slice(mat.length);
-        let child = parseTable(header, align, cells, args);
-        return new Figure(child, {caption, number, ftype: 'table'});
+        let [_, pargs, rargs, header, align, cells] = cap;
+        pargs = parsePrefix(pargs);
+        let number = !pargs.includes('*');
+        let {id, caption, ...args} = parseArgs(rargs);
+        caption = parseInline(caption);
+        let table = parseTable(header, align, cells, args);
+        return new Figure(table, {id, caption, number, ftype: 'table'});
     }
 
     // upload
@@ -694,7 +696,7 @@ class DefaultCounter {
 }
 
 /**
- * Core Renderer
+ * Core Elements
  */
 
 class Context {
@@ -924,6 +926,14 @@ class Figure extends Div {
         caption = (caption != null) ? new Caption(caption, {ftype, title, number, id}) : null;
         let attr1 = mergeAttr(attr, {'class': ftype, id});
         super([child, caption], attr1);
+        this.id = id;
+    }
+
+    refs(ctx) {
+        super.refs(ctx);
+        if (this.id != null) {
+            ctx.addPop(this.id, this);
+        }
     }
 }
 

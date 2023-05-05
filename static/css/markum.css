@@ -122,11 +122,12 @@ a.reference.fail {
 .popup {
     display: none;
     position: absolute;
-    bottom: calc(100% + 5px);
-    left: -100px;
-    width: 200px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, calc(-100% - 15px));
+    min-width: 200px;
     border-radius: 5px;
-    padding: 5px;
+    padding: 10px;
     color: white;
     background-color: black;
     opacity: 0.95;
@@ -140,6 +141,19 @@ a.reference.fail {
 
 .popper:hover .popup {
     display: block;
+}
+
+.popup .popup {
+    display: none !important;
+}
+
+.popup .gum svg,
+.popup .svg svg {
+    stroke: white;
+}
+
+.popup .table th {
+    border-bottom: 2px solid white;
 }
 
 /* footnote */
