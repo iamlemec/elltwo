@@ -3,6 +3,11 @@
 @import './katex.css';
 @import './gum.css';
 
+:root {
+    --neon-blue: rgb(31, 111, 241);
+    --neon-red: rgb(255, 13, 87);
+}
+
 .block {
     padding: 5px;
 }
@@ -110,11 +115,11 @@ a.reference {
 }
 
 a.reference, a.reference:visited {
-    color: blue;
+    color: var(--neon-blue);
 }
 
 a.reference.fail {
-    color: red;
+    color: var(--neon-red);
 }
 
 /* popups */
@@ -125,12 +130,12 @@ a.reference.fail {
     left: 50%;
     top: 50%;
     transform: translate(-50%, calc(-100% - 15px));
-    min-width: 200px;
+    min-width: 250px;
     border-radius: 5px;
     padding: 10px;
     color: white;
     background-color: black;
-    opacity: 0.95;
+    opacity: 0.9;
     font-family: unset;
     z-index: 1;
 }

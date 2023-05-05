@@ -23,6 +23,7 @@ function readWriteEditor(parent, update) {
                     ...historyKeymap,
                 ]),
                 syntaxHighlighting(defaultHighlightStyle),
+                EditorView.lineWrapping,
                 EditorView.updateListener.of(update),
             ],
         }),
