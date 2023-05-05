@@ -1235,7 +1235,7 @@ class Heading extends Div {
     constructor(level, children, args) {
         let attr = args ?? {};
         let attr1 = mergeAttr(attr, {class: `heading heading-${level}`});
-        let num = new Counter(`heading-${level}`);
+        let num = new Number(`heading-${level}`);
         super([num, ' ', ...children], attr1);
     }
 }
