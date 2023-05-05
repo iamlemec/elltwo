@@ -49,7 +49,23 @@
     color: #999;
 }
 
-div.math {
+/* equations */
+
+.equation {
+    position: relative;
+}
+
+.equation .number {
+    cursor: default;
+    font-family: monospace;
+    border: 1px solid black;
+    border-radius: 3px;
+    position: absolute;
+    right: 10px;
+    bottom: calc(50% - 10px);
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
     text-align: center;
 }
 
@@ -64,6 +80,16 @@ div.math {
 
 .caption {
     margin-top: 10px;
+}
+
+/* lists */
+
+ul, ol {
+    padding-left: 30px;
+}
+
+li {
+    list-style: square;
 }
 
 /* tables */
@@ -89,4 +115,41 @@ a.reference, a.reference:visited {
 
 a.reference.fail {
     color: red;
+}
+
+/* popups */
+
+.popup {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 5px);
+    left: -100px;
+    width: 200px;
+    border-radius: 5px;
+    padding: 5px;
+    color: white;
+    background-color: black;
+    opacity: 0.95;
+    font-family: unset;
+    z-index: 1;
+}
+
+.popper {
+    position: relative;
+}
+
+.popper:hover .popup {
+    display: block;
+}
+
+/* footnote */
+
+.footnote .number {
+    cursor: default;
+    font-family: monospace;
+    border: 1px solid black;
+    border-radius: 3px;
+    padding: 1px 6px;
+    vertical-align: 1px;
+    font-size: 110%;
 }

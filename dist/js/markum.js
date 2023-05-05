@@ -211,7 +211,7 @@ inline.breaks = merge({}, inline.gfm, {
  */
 
 function parseDocument(src) {
-    let blocks = src.split(/\n{2,}/).map(parseBlock);
+    let blocks = src.trim().split(/\n{2,}/).map(parseBlock);
     blocks = blocks.map(b => new Block(b));
     return new Document(blocks);
 }
@@ -335,13 +335,12 @@ function parseBlock(src) {
         let [mat, pargs, rargs] = cap;
         pargs = parsePrefix(pargs);
         let args = {
-            display: true,
             number: !pargs.includes('*'),
             multiline: pargs.includes('&'),
             ...parseArgs(rargs)
         };
         let text = src.slice(mat.length);
-        return new Math(text, args);
+        return new Equation(text, args);
     }
 
     // svg/gum
@@ -700,28 +699,37 @@ class DefaultCounter {
 
 class Context {
     constructor() {
-        this.resetNum();
-        this.reference = new Map();
-    }
-
-    resetNum() {
-        this.counters = new DefaultCounter();
+        this.count = new DefaultCounter();
+        this.refer = new Map();
+        this.popup = new Map();
     }
 
     nextNum(key) {
-        return this.counters.inc(key);
+        return this.count.inc(key);
     }
 
     addRef(id, label) {
-        this.reference.set(id, label);
+        this.refer.set(id, label);
     }
 
     getRef(id) {
-        return this.reference.get(id);
+        return this.refer.get(id);
     }
 
     hasRef(id) {
-        return this.reference.has(id);
+        return this.refer.has(id);
+    }
+
+    addPop(id, elem) {
+        this.popup.set(id, elem);
+    }
+
+    getPop(id) {
+        return this.popup.get(id);
+    }
+
+    hasPop(id) {
+        return this.popup.has(id);
     }
 }
 
@@ -730,6 +738,9 @@ class Element {
         this.tag = tag ?? 'div';
         this.unary = unary ?? false;
         this.attr = attr ?? {};
+    }
+
+    refs(ctx) {
     }
 
     props(ctx) {
@@ -766,6 +777,10 @@ class Container extends Element {
         this.children = children;
     }
 
+    refs(ctx) {
+        this.children.forEach(c => (c instanceof Element) ? c.refs(ctx) : null);
+    }
+
     inner(ctx) {
         return this.children.map(c => (c instanceof Element) ? c.html(ctx) : c).join('');
     }
@@ -798,14 +813,13 @@ class Document extends Container {
 
     html() {
         let ctx = new Context();
-        this.inner(ctx); // populate reference
-        ctx.resetNum(); // reset counters
+        this.refs(ctx);
         return this.inner(ctx);
     }
 }
 
 /**
- * gum.js bridge
+ * gum.js and katex bridges
  */
 
 // this will return an Element or String
@@ -840,32 +854,52 @@ class GumWrap extends Element {
     }
 }
 
+class Math extends Element {
+    constructor(tex, args) {
+        let {display, multiline, ...attr} = args ?? {};
+        display = display ?? false;
+        let tag = display ? 'div' : 'span';
+        let attr1 = mergeAttr(attr, {class: 'math'});
+        super(tag, false, attr1);
+        this.tex = this.multiline ? `\\begin{aligned}${tex}\\end{aligned}` : tex;
+        this.display = display;
+    }
+
+    html(ctx) {
+        return katex.renderToString(this.tex, {displayMode: this.display, throwOnError: false});
+    }
+}
+
 /**
- * Figures
+ * Figures and Numbering
  */
 
-// this will handle counters for figures
-class Target extends Element {
-    constructor(ftype, title, id) {
-        super('span', false, {'class': 'target'});
-        this.ftype = ftype;
+// handles counters for footnotes/equations/figures
+class Number extends Element {
+    constructor(name, args) {
+        let {title, id, bare} = args ?? {};
+        super('span', false, {class: 'number'});
+        this.name = name;
         this.title = title;
         this.id = id;
+        this.bare = bare ?? true;
+    }
+
+    refs(ctx) {
+        if (this.title == null) {
+            this.num = ctx.nextNum(this.name);
+            let title = capitalize(this.name);
+            this.label = `${title} ${this.num}`;
+        } else {
+            this.label = this.title;
+        }
+        if (this.id != null) {
+            ctx.addRef(this.id, this.label);
+        }
     }
 
     inner(ctx) {
-        let label;
-        if (this.title == null) {
-            let num = ctx.nextNum(this.ftype);
-            let title = capitalize(this.ftype);
-            label = `${title} ${num}`;
-        } else {
-            label = this.title;
-        }
-        if (this.id != null) {
-            ctx.addRef(this.id, label);
-        }
-        return label;
+        return this.bare ? this.num : this.label;
     }
 }
 
@@ -875,7 +909,7 @@ class Caption extends Div {
         ftype = ftype ?? 'figure';
         let children = caption;
         if (number) {
-            let counter = new Target(ftype, title, id);
+            let counter = new Number(ftype, {title, id, bare: false});
             children.unshift(counter, ': ');
         }
         let attr1 = mergeAttr(attr, {'class': 'caption'});
@@ -890,6 +924,25 @@ class Figure extends Div {
         caption = (caption != null) ? new Caption(caption, {ftype, title, number, id}) : null;
         let attr1 = mergeAttr(attr, {'class': ftype, id});
         super([child, caption], attr1);
+    }
+}
+
+class Equation extends Div {
+    constructor(tex, args) {
+        let {multiline, number, id, tag, ...attr} = args ?? {};
+        let math = new Math(tex, {multiline, display: true});
+        let num = (number != null) ? new Number('equation', {title: tag, id}) : null;
+        let attr1 = mergeAttr(attr, {class: 'equation', id});
+        super([math, num], attr1);
+        this.id = id;
+        this.math = math;
+    }
+
+    refs(ctx) {
+        super.refs(ctx);
+        if (this.id != null) {
+            ctx.addPop(this.id, this.math);
+        }
     }
 }
 
@@ -997,15 +1050,17 @@ class Reference extends Element {
     constructor(id, args) {
         let attr = args ?? {};
         let attr1 = mergeAttr(attr, {class: 'reference'});
-        super('span', false, attr1);
+        super('a', false, attr1);
         this.id = id;
     }
 
     // pull ref/popup from context
     html(ctx) {
+        let targ = ctx.hasPop(this.id) ? ctx.getPop(this.id).html() : '';
         if (ctx.hasRef(this.id)) {
             let ref = ctx.getRef(this.id);
-            return `<a href="#${this.id}" class="reference">${ref}</a>`;
+            let pop = targ ? `<div class="popup">${targ}</div>` : '';
+            return `<span class="popper"><a href="#${this.id}" class="reference">${ref}</a>${pop}</span>`;
         } else {
             return `<a class="reference fail">@${this.id}</a>`;
         }
@@ -1024,43 +1079,39 @@ class Citation extends Div {
     // html(ctx) {}
 }
 
-class Footnote extends Div {
+class Popup extends Div {
     constructor(children, args) {
         let attr = args ?? {};
-        let link = new Link('', 'N');
-        let attr1 = mergeAttr(attr, {class: 'footnote'});
-        super(link, attr1);
+        let attr1 = mergeAttr(attr, {class: 'popup'});
+        super(children, attr1);
     }
-
-    // get number from context
-    // html(ctx) {}
 }
 
-class Sidenote extends Div {
+class Sidebar extends Div {
     constructor(children, args) {
         let attr = args ?? {};
-        let link = new Link('', 'N');
+        let attr1 = mergeAttr(attr, {class: 'sidebar'});
+        super(children, attr1);
+    }
+}
+
+class Footnote extends Span {
+    constructor(children, args) {
+        let attr = args ?? {};
+        let num = new Number('footnote');
+        let pop = new Popup(children);
+        let attr1 = mergeAttr(attr, {class: 'footnote popper'});
+        super([num, pop], attr1);
+    }
+}
+
+class Sidenote extends Span {
+    constructor(children, args) {
+        let attr = args ?? {};
+        let num = new Number('footnote');
+        let pop = new Sidebar(children);
         let attr1 = mergeAttr(attr, {class: 'sidenote'});
-        super(link, attr1);
-    }
-
-    // get number from context
-    // html(ctx) {}
-}
-
-class Math extends Element {
-    constructor(tex, args) {
-        let {display, multiline, ...attr} = args ?? {};
-        display = display ?? false;
-        let tag = display ? 'div' : 'span';
-        let attr1 = mergeAttr(attr, {class: 'math'});
-        super(tag, false, attr1);
-        this.tex = this.multiline ? `\\begin{aligned}${tex}\\end{aligned}` : tex;
-        this.display = display;
-    }
-
-    inner(ctx) {
-        return katex.renderToString(this.tex, {displayMode: this.display, throwOnError: false});
+        super([num, pop], attr1);
     }
 }
 
