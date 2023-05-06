@@ -738,6 +738,10 @@ class DefaultCounter {
         this.values.set(key, val);
         return val;
     }
+
+    get(key) {
+        return this.values.get(key);
+    }
 }
 
 /**
@@ -751,8 +755,12 @@ class Context {
         this.popup = new Map();
     }
 
-    nextNum(key) {
+    incNum(key) {
         return this.count.inc(key);
+    }
+
+    getNum(key) {
+        return this.count.get(key);
     }
 
     addRef(id, label) {
@@ -918,7 +926,7 @@ class Math extends Element {
 }
 
 /**
- * Figures and Numbering
+ * Numbering
  */
 
 // handles counters for footnotes/equations/figures
@@ -933,9 +941,8 @@ class Number extends Element {
     }
 
     refs(ctx) {
-        let label;
         if (this.title == null) {
-            this.num = ctx.nextNum(this.name);
+            this.num = ctx.incNum(this.name);
             let title = capitalize(this.name);
             this.label = `${title} ${this.num}`;
         } else {
@@ -950,6 +957,35 @@ class Number extends Element {
         return this.bare ? this.num : this.label;
     }
 }
+
+class NestedNumber extends Element {
+    constructor(name, level, args) {
+        let attr = args ?? {};
+        let attr1 = mergeAttr(attr, {class: 'nested-number'});
+        super('span', false, attr1);
+        this.name = name;
+        this.level = level;
+    }
+
+    refs(ctx) {
+        let acc = [];
+        let tag = this.name;
+        for (let i = 1; i < this.level; i++) {
+            let num = ctx.getNum(tag) ?? 0;
+            acc.push(num);
+            tag = `${tag}-${num}`;
+        }
+        let fin = ctx.incNum(tag);
+        acc.push(fin);
+        this.num = acc.join('.');
+    }
+
+    inner(ctx) {
+        return this.num;
+    }
+}
+
+/* Figures and Equations */
 
 class Caption extends Div {
     constructor(caption, args) {
@@ -1235,7 +1271,7 @@ class Heading extends Div {
     constructor(level, children, args) {
         let attr = args ?? {};
         let attr1 = mergeAttr(attr, {class: `heading heading-${level}`});
-        let num = new Number(`heading-${level}`);
+        let num = new NestedNumber('heading', level);
         super([num, ' ', ...children], attr1);
     }
 }
