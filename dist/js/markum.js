@@ -1273,6 +1273,7 @@ class Svg extends Div {
 class Gum extends Div {
     constructor(code, args) {
         let {number, width, pixel, ...attr} = args ?? {};
+        width = width ?? 65;
         let gum = new GumWrap(code, {pixel});
         let attr1 = mergeAttr(attr, {class: 'gum', style: `width: ${width}%`});
         super(gum, attr1);

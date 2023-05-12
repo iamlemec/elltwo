@@ -35,14 +35,14 @@ let right = document.querySelector('#right');
 let mid = document.querySelector('#mid');
 
 // cookie tools
-function getCookie() {
+function getCookie(key) {
     let cookies = document.cookie.split(';').map(x => x.trim().split('='));
-    let cell2 = cookies.filter(([k, v]) => k == 'ell2').shift();
-    if (cell2 == null) {
+    let cell = cookies.filter(([k, v]) => k == key).shift();
+    if (cell == null) {
         return null;
     } else {
-        let [_, vell2] = cell2;
-        return decodeURIComponent(vell2);
+        let [_, val] = cell;
+        return decodeURIComponent(val);
     }
 }
 
@@ -60,7 +60,7 @@ let example0 = `
 
 Here is some inline math: $x^3$. Here is a block equation:
 
-$$ [eq] \sqrt{\pi} = \int_0^1 \exp(-x^2) dx
+$$ [eq] \\sqrt{\\pi} = \\int_0^1 \\exp(-x^2) dx
 
 And now we reference it @[eq].
 
@@ -75,8 +75,9 @@ Now we can reference this figure too @[gum].
 // initial value
 let urlParams = new URLSearchParams(window.location.search);
 let source = urlParams.get('source');
-let cook = getCookie();
-let example = source ?? cook ?? example0;
+let reset = urlParams.get('reset');
+let source0 = source ?? getCookie('ell2');
+let example = (reset != null || source0 == null)  ? example0 : source0;
 
 // make the actual editor
 let editor = new ElltwoEditor(left, right, setCookie);
