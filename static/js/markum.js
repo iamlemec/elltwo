@@ -57,6 +57,10 @@ function replace(regex, opt) {
     };
 }
 
+function ensureArray(x) {
+    return Array.isArray(x) ? x : [x];
+}
+
 function parsePreamble(raw) {
     let macros = {};
     let macro_list = raw.split(/[\n,;]+/) // split on \n or comma
@@ -104,26 +108,21 @@ let block = {
     code: /^``(\*)? *(?:refargs)?(?:\n)?(?: |\n)?/,
     equation: /^\$\$(\*|&|\*&|&\*)? *(?:refargs)?\s*/,
     title: /^#\! *(?:refargs)?\s*([^\n]*)\s*/,
+    figure: /^\!([a-z]*)?(\*)? *(?:refargs)?\s*/,
     upload: /^\!\!(gum)? *(?:refargs)?\s*$/,
-    svg: /^\!(svg|gum)(\*)? *(?:refargs)?\s*/,
-    image: /^\!(yt|youtube)?(\*)? *(?:refargs)? *(?:\(href\))?\s*/,
-    figtab: /^\!tab(\*)? *(?:refargs)?\s*\n(?:table)/,
     envbeg: /^\>\>(\!|\*|\!\*|\*\!)? *([\w-]+) *(?:refargs)?\s*/,
     envend: /^\<\<\s*/,
     list: /^((?: *(?:bull) [^\n]*(?:\n|$))+)\s*$/,
-    table: /^\|([^\n]+)\| *\n *\|( *[-:]+[-| :]*)\| *\n((?: *\|[^\n]*\| *(?:\n|$))*)\s*$/,
 };
 
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 block._refid = /\[([\w-]+)\]/;
 block._refargs = /(?:\[((?:[^\]]|(?<=\\)\])*)\])/;
-// block._refargs = /\[((?:(?:[^\]\[\\]|\\.)+|\[(?:[^\]\[]+)*\])*)\]/;
 block._bull = /(?:[*+-]|\d+\.)/;
 block._item = /^( *)(bull) ?/;
 
-block.image = replace(block.image)
+block.figure = replace(block.figure)
     ('refargs', block._refargs)
-    ('href', block._href)
     ();
 
 block.upload = replace(block.upload)
@@ -146,21 +145,12 @@ block.title = replace(block.title)
     ('refargs', block._refargs)
     ();
 
-block.svg = replace(block.svg)
-    ('refargs', block._refargs)
-    ();
-
 block.envbeg = replace(block.envbeg)
     ('refargs', block._refargs)
     ();
 
 block.list = replace(block.list)
     (/bull/g, block._bull)
-    ();
-
-block.figtab = replace(block.figtab)
-    ('refargs', block._refargs)
-    ('table', block.table)
     ();
 
 block._item = replace(block._item)
@@ -312,7 +302,9 @@ function parseAlign(a) {
 }
 
 // this only passes align info to top level table
-function parseTable(header, align, cells, args) {
+function parseTable(source, args) {
+    let [header, align, cells] = source.trim().split('\n');
+
     // unpack cells
     header = header.trim().split(/ *\| */);
     align = align.trim().split(/ *\| */).map(parseAlign);
@@ -368,30 +360,6 @@ function parseBlock(src) {
         return new Equation(text, args);
     }
 
-    // svg/gum
-    if (cap = block.svg.exec(src)) {
-        let [mat, sog, pargs, rargs] = cap;
-        let cls = (sog == 'gum') ? Gum : Svg;
-        pargs = parsePrefix(pargs);
-        let number = !pargs.includes('*');
-        let {id, caption, ...args} = parseArgs(rargs);
-        caption = parseInline(caption);
-        let code = src.slice(mat.length);
-        let child = new cls(code, args);
-        return new Figure(child, {id, caption, number});
-    }
-
-    // table
-    if (cap = block.figtab.exec(src)) {
-        let [_, pargs, rargs, header, align, cells] = cap;
-        pargs = parsePrefix(pargs);
-        let number = !pargs.includes('*');
-        let {id, caption, ...args} = parseArgs(rargs);
-        caption = parseInline(caption);
-        let table = parseTable(header, align, cells, args);
-        return new Figure(table, {id, caption, number, ftype: 'table'});
-    }
-
     // upload
     if (cap = block.upload.exec(src)) {
         let [_, pargs, rargs] = cap;
@@ -402,15 +370,31 @@ function parseBlock(src) {
         return new Upload(id, args);
     }
     
-    // image/video
-    if (cap = block.image.exec(src)) {
-        let [_, vid, pargs, rargs, href] = cap;
+    // figure: image/video/figure/table
+    if (cap = block.figure.exec(src)) {
+        let [mat, ftype, pargs, rargs] = cap;
+        ftype = ftype ?? 'fig';
         pargs = parsePrefix(pargs);
         let number = !pargs.includes('*');
-        let {caption, ...args} = parseArgs(rargs);
-        let cls = (vid != null) ? Video : Image;
-        let child = new cls(href, args);
-        return new Figure(child, {caption, number});
+        let {id, caption, ...args} = parseArgs(rargs);
+        caption = parseInline(caption);
+        let body = src.slice(mat.length);
+        let child;
+        if (ftype == 'fig') {
+            let children = parseInline(body);
+            child = new Div(children);
+        } else if (ftype == 'tab') {
+            child = parseTable(body, args);
+        } else if (ftype == 'img') {
+            child = new Image(body, args);
+        } else if (ftype == 'video') {
+            child = new Video(body, args);
+        } else if (ftype == 'svg') {
+            child = new Svg(body, args);
+        } else if (ftype == 'gum') {
+            child = new Gum(body, args);
+        }
+        return new Figure(child, {id, caption, number});
     }
 
     // comment
@@ -424,10 +408,7 @@ function parseBlock(src) {
     if (cap = block.code.exec(src)) {
         let [mat, pargs, rargs] = cap;
         pargs = parsePrefix(pargs);
-        let args = {
-            number: !pargs.includes('*'),
-            ...parseArgs(rargs)
-        };
+        let args = parseArgs(rargs);
         let text = src.slice(mat.length);
         return new Code(text, args);
     }
@@ -498,12 +479,6 @@ function parseBlock(src) {
     if (cap = block.list.exec(src)) {
         let [mat] = cap;
         return parseList(mat);
-    }
-
-    // table (gfm)
-    if (cap = block.table.exec(src)) {
-        let [mat, head, spec, body] = cap;
-        return parseTable(head, spec, body);
     }
 
     // top-level paragraph (fallback)
@@ -824,12 +799,8 @@ class Element {
 
 class Container extends Element {
     constructor(tag, children, args) {
-        // handle singleton case
-        if (!Array.isArray(children)) {
-            children = [children];
-        }
         super(tag, false, args);
-        this.children = children;
+        this.children = ensureArray(children);
     }
 
     refs(ctx) {
