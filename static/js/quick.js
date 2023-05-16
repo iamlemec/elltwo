@@ -1,8 +1,9 @@
-import { EditorView, drawSelection, keymap, lineNumbers } from '@codemirror/view'
+import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirror/view'
 import { EditorState } from '@codemirror/state'
-import { defaultKeymap, indentWithTab, history, historyKeymap } from '@codemirror/commands'
-import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language'
+import { defaultKeymap, indentWithTab, historyKeymap } from '@codemirror/commands'
+import { bracketMatching } from '@codemirror/language'
 import { javascript } from '@codemirror/lang-javascript'
+import { minimalSetup } from 'codemirror'
 import { parseDocument } from './markum.js'
 
 export { ElltwoEditor, enableResize }
@@ -12,17 +13,16 @@ function readWriteEditor(parent, update) {
         state: EditorState.create({
             doc: '',
             extensions: [
-                // javascript(),
-                history(),
-                drawSelection(),
+                minimalSetup,
                 lineNumbers(),
                 bracketMatching(),
+                highlightActiveLine(),
                 keymap.of([
                     indentWithTab,
                     ...defaultKeymap,
                     ...historyKeymap,
                 ]),
-                syntaxHighlighting(defaultHighlightStyle),
+                javascript(),
                 EditorView.lineWrapping,
                 EditorView.updateListener.of(update),
             ],

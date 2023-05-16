@@ -1,7 +1,9 @@
-import { EditorView, drawSelection, lineNumbers, keymap } from '../node_modules/@codemirror/view/dist/index.js';
+import { EditorView, lineNumbers, highlightActiveLine, keymap } from '../node_modules/@codemirror/view/dist/index.js';
 import { EditorState } from '../node_modules/@codemirror/state/dist/index.js';
-import { history, indentWithTab, defaultKeymap, historyKeymap } from '../node_modules/@codemirror/commands/dist/index.js';
-import { bracketMatching, syntaxHighlighting, defaultHighlightStyle } from '../node_modules/@codemirror/language/dist/index.js';
+import { indentWithTab, defaultKeymap, historyKeymap } from '../node_modules/@codemirror/commands/dist/index.js';
+import { bracketMatching } from '../node_modules/@codemirror/language/dist/index.js';
+import { javascript } from '../node_modules/@codemirror/lang-javascript/dist/index.js';
+import { minimalSetup } from '../node_modules/codemirror/dist/index.js';
 import { parseDocument } from './markum.js';
 
 function readWriteEditor(parent, update) {
@@ -9,17 +11,16 @@ function readWriteEditor(parent, update) {
         state: EditorState.create({
             doc: '',
             extensions: [
-                // javascript(),
-                history(),
-                drawSelection(),
+                minimalSetup,
                 lineNumbers(),
                 bracketMatching(),
+                highlightActiveLine(),
                 keymap.of([
                     indentWithTab,
                     ...defaultKeymap,
                     ...historyKeymap,
                 ]),
-                syntaxHighlighting(defaultHighlightStyle),
+                javascript(),
                 EditorView.lineWrapping,
                 EditorView.updateListener.of(update),
             ],

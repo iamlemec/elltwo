@@ -10,26 +10,26 @@
     "dev": "npx gulp dev"
   },
   "dependencies": {
-    "@codemirror/basic-setup": "^0.20.0",
-    "@codemirror/commands": "^6.2.3",
+    "@codemirror/commands": "^6.2.4",
+    "@codemirror/lang-markdown": "^6.1.1",
     "@codemirror/language": "^6.6.0",
     "@codemirror/state": "^6.2.0",
-    "@codemirror/view": "^6.10.0",
-    "@sequelize/core": "^7.0.0-alpha.10",
-    "@zip.js/zip.js": "~2.4.26",
-    "adm-zip": "^0.5.9",
+    "@codemirror/view": "^6.11.2",
+    "@sequelize/core": "^7.0.0-alpha.23",
+    "@zip.js/zip.js": "~2.7.13",
+    "adm-zip": "^0.5.10",
     "codemirror": "^6.0.1",
     "es6-promisify": "^7.0.0",
     "gulp-connect": "^5.7.0",
     "gum.js": "github:iamlemec/gum.js",
-    "katex": "^0.16.3",
-    "sqlite3": "^5.1.2"
+    "katex": "^0.16.7",
+    "sqlite3": "^5.1.6"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-node-resolve": "^15.0.2",
     "gulp": "^4.0.2",
     "gulp-cli": "^2.3.0",
     "gulp-rename": "^2.0.0",
-    "rollup": "^3.2.3"
+    "rollup": "^3.21.8"
   }
 }
