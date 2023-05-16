@@ -3,6 +3,7 @@ import { EditorState } from '@codemirror/state'
 import { defaultKeymap, indentWithTab, historyKeymap } from '@codemirror/commands'
 import { bracketMatching } from '@codemirror/language'
 import { javascript } from '@codemirror/lang-javascript'
+import { markdown } from '@codemirror/lang-markdown'
 import { minimalSetup } from 'codemirror'
 import { parseDocument } from './markum.js'
 
@@ -17,12 +18,12 @@ function readWriteEditor(parent, update) {
                 lineNumbers(),
                 bracketMatching(),
                 highlightActiveLine(),
+                markdown({defaultCodeLanguage: javascript()}),
                 keymap.of([
                     indentWithTab,
                     ...defaultKeymap,
                     ...historyKeymap,
                 ]),
-                javascript(),
                 EditorView.lineWrapping,
                 EditorView.updateListener.of(update),
             ],
