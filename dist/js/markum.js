@@ -57,10 +57,6 @@ function ensureArray(x) {
     return Array.isArray(x) ? x : [x];
 }
 
-// dummy regex pattern
-function noop() {}
-noop.exec = noop;
-
 /**
  * Block Regex
  */
@@ -1046,7 +1042,7 @@ class Reference extends Element {
 
     // pull ref/popup from context
     html(ctx) {
-        let targ = '';
+        let targ = null;
         if (!ctx.inPopup && ctx.hasPop(this.id)) {
             // don't recurse
             ctx.innPop();
@@ -1055,7 +1051,7 @@ class Reference extends Element {
         }
         if (ctx.hasRef(this.id)) {
             let ref = ctx.getRef(this.id);
-            let pop = targ ? `<div class="popup">${targ}</div>` : '';
+            let pop = (targ != null) ? `<div class="popup">${targ}</div>` : '';
             return `<span class="popper"><a href="#${this.id}" class="reference">${ref}</a>${pop}</span>`;
         } else {
             return `<a class="reference fail">@${this.id}</a>`;

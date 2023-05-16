@@ -73,27 +73,6 @@ function parsePreamble(raw) {
     return {macros, tags}
 }
 
-// dummy regex pattern
-function noop() {}
-noop.exec = noop;
-
-function merge(obj) {
-    let i = 1
-      , target
-      , key;
-
-    for (; i < arguments.length; i++) {
-        target = arguments[i];
-        for (key in target) {
-            if (Object.prototype.hasOwnProperty.call(target, key)) {
-                obj[key] = target[key];
-            }
-        }
-    }
-
-    return obj;
-}
-
 /**
  * Block Regex
  */
@@ -722,6 +701,14 @@ class Context {
     hasPop(id) {
         return this.popup.has(id);
     }
+
+    innPop() {
+        this.inPopup = true;
+    }
+
+    outPop() {
+        this.inPopup = false;
+    }
 }
 
 class Element {
@@ -1080,10 +1067,16 @@ class Reference extends Element {
 
     // pull ref/popup from context
     html(ctx) {
-        let targ = ctx.hasPop(this.id) ? ctx.getPop(this.id).html() : '';
+        let targ = null;
+        if (!ctx.inPopup && ctx.hasPop(this.id)) {
+            // don't recurse
+            ctx.innPop();
+            targ = ctx.getPop(this.id).html(ctx);
+            ctx.outPop();
+        }
         if (ctx.hasRef(this.id)) {
             let ref = ctx.getRef(this.id);
-            let pop = targ ? `<div class="popup">${targ}</div>` : '';
+            let pop = (targ != null) ? `<div class="popup">${targ}</div>` : '';
             return `<span class="popper"><a href="#${this.id}" class="reference">${ref}</a>${pop}</span>`;
         } else {
             return `<a class="reference fail">@${this.id}</a>`;
