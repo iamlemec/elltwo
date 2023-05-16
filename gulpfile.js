@@ -137,7 +137,7 @@ gulp.task('spirit-js', () => {
         cache: cache.esm,
         input: [
             'static/js/markum.js',
-            'static/js/quick.js',
+            'static/js/spirit.js',
         ],
         plugins: [
             resolve({
@@ -156,7 +156,7 @@ gulp.task('spirit-js', () => {
 });
 
 // spirit css
-gulp.task('spirit-css', () => gulp.src(['./static/css/markum.css', './static/css/quick.css'])
+gulp.task('spirit-css', () => gulp.src(['./static/css/markum.css', './static/css/spirit.css'])
     .pipe(gulp.dest('./dist/css'))
 );
 
@@ -178,8 +178,8 @@ gulp.task('spirit-serve', () => {
     });
 
     gulp.watch(['index.html'], gulp.series('spirit-reload'));
-    gulp.watch(['static/js/markum.js', 'static/js/quick.js'], gulp.series('spirit-js'));
-    gulp.watch(['static/css/markum.css', 'static/css/quick.css'], gulp.series('spirit-css'));
+    gulp.watch(['static/js/markum.js', 'static/js/spirit.js'], gulp.series('spirit-js'));
+    gulp.watch(['static/css/markum.css', 'static/css/spirit.css'], gulp.series('spirit-css'));
 });
 
 // spirit devel mode
