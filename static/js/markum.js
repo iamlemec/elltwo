@@ -116,7 +116,6 @@ let block = {
 };
 
 block._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
-block._refid = /\[([\w-]+)\]/;
 block._refargs = /(?:\[((?:[^\]]|(?<=\\)\])*)\])/;
 block._bull = /(?:[*+-]|\d+\.)/;
 block._item = /^( *)(bull) ?/;
@@ -157,7 +156,6 @@ block._item = replace(block._item)
     ('bull', block._bull)
     ();
 
-
 /**
  * Inline Regex
  */
@@ -167,16 +165,16 @@ let inline = {
     escape: /^\\([\\/`*{}\[\]()#+\-.!_>\$%&])/,
     in_comment: /^\/\/([^\n]*?)(?:\n|$)/,
     autolink: /^<([^ >]+:\/[^ >]+)>/,
-    url: noop,
+    url: /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/,
     link: /^(!?)\[(inside)\]\(href\)/,
     hash: /^#(\[[\w| ]+\]|\w+)/,
     ilink: /^\[\[([^\]]+)\]\]/,
     strong: /^__([\s\S]+?)__(?!_)|^\*\*([\s\S]+?)\*\*(?!\*)/,
     em: /^\b_((?:[^_]|__)+?)_\b|^\*((?:\*\*|[\s\S])+?)\*(?!\*)/,
     code: /^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/,
-    br: /^ {2,}\n(?!\s*$)/,
-    del: noop,
-    text: /^[\s\S]+?(?=[\/\\<!\[_*`\$\^@#]| {2,}\n|$)/,
+    br: /^ *\n/,
+    del: /^~~(?=\S)([\s\S]*?\S)~~/,
+    text: /^[\s\S]+?(?=[\/\\<!\[_*`\$\^@#~]|https?:\/\/| *\n|$)/,
     math: /^\$((?:\\\$|[\s\S])+?)\$/,
     refcite: /^(@{1,2})\[([^\]]+)\]/,
     footnote: /^\^(\!)?\[(inside)\]/,
@@ -184,7 +182,6 @@ let inline = {
 
 inline._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
 inline._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
-inline._refid = /\[([\w-]+)\]/;
 
 inline.link = replace(inline.link)
     ('inside', inline._inside)
@@ -194,23 +191,6 @@ inline.link = replace(inline.link)
 inline.footnote = replace(inline.footnote)
     ('inside', inline._inside)
     ();
-
-// GFM Inline Grammar
-inline.gfm = merge({}, inline, {
-    escape: replace(inline.escape)('])', '~|])')(),
-    url: /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/,
-    del: /^~~(?=\S)([\s\S]*?\S)~~/,
-    text: replace(inline.text)
-        (']|', '~]|')
-        ('|', '|https?://|')
-        ()
-});
-
-// GFM + Line Breaks Inline Grammar
-inline.breaks = merge({}, inline.gfm, {
-    br: replace(inline.br)('{2,}', '*')(),
-    text: replace(inline.gfm.text)('{2,}', '*')()
-});
 
 /**
  * Document Parser
@@ -486,26 +466,6 @@ function parseBlock(src) {
 }
 
 /**
- * Gum Wrapper
- */
-
-function parseGumRobust(src, size) {
-    let elem;
-    try {
-        elem = parseGum(src);
-    } catch (err) {
-        return String(err.message);
-    }
-    if (elem instanceof GumSVG) {
-        return elem;
-    } else if (elem instanceof GumElement) {
-        return new GumSVG(elem, size);
-    } else {
-        return String(elem);
-    }
-}
-
-/**
  * Inline Parser
  */
 
@@ -664,6 +624,7 @@ function parseInline(src) {
 
         // br
         if (cap = inline.br.exec(src)) {
+            let [mat] = cap;
             out.push(new Newline());
             src = src.substring(mat.length);
             continue;

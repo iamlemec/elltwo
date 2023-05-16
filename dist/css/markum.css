@@ -24,6 +24,10 @@
     font-family: monospace;
 }
 
+.strikeout {
+    text-decoration: line-through;
+}
+
 .title {
     font-size: 32px;
     font-weight: bold;
