@@ -109,7 +109,10 @@ table {
 
 table th {
     border-bottom: 2px solid black;
-    padding: 5px;
+}
+
+table th, table td {
+    padding: 5px 5px 0px 5px;
 }
 
 /* references */

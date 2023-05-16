@@ -260,18 +260,16 @@ function parseAlign(a) {
     }
 }
 
+function splitCells(row) {
+    return row.replace(/^ *\| *| *\| *$/g, '').split(/ *\| */);
+}
+
 // this only passes align info to top level table
 function parseTable(source, args) {
-    let [header, align, cells] = source.trim().split('\n');
-
-    // unpack cells
-    header = header.trim().split(/ *\| */);
-    align = align.trim().split(/ *\| */).map(parseAlign);
-    cells = cells.trim().split('\n').map(c =>
-        c.replace(/^ *\| *| *\| *$/g, '').split(/ *\| */)
-    );
+    let [header, align0, ...cells] = source.trim().split('\n').map(splitCells);
 
     // parse cells
+    let align = align0.map(parseAlign);
     let head = header.map(parseInline);
     let body = cells.map(r => r.map(parseInline));
 
@@ -331,29 +329,34 @@ function parseBlock(src) {
     
     // figure: image/video/figure/table
     if (cap = block.figure.exec(src)) {
-        let [mat, ftype, pargs, rargs] = cap;
-        ftype = ftype ?? 'fig';
+        let [mat, tag, pargs, rargs] = cap;
+        tag = tag ?? 'fig';
         pargs = parsePrefix(pargs);
         let number = !pargs.includes('*');
-        let {id, caption, ...args} = parseArgs(rargs);
+        let {id, caption, title, ...args} = parseArgs(rargs);
         caption = parseInline(caption);
         let body = src.slice(mat.length);
-        let child;
-        if (ftype == 'fig') {
+        let child, ftype = 'figure';
+        if (tag == 'fig') {
             let children = parseInline(body);
             child = new Div(children);
-        } else if (ftype == 'tab') {
-            child = parseTable(body, args);
-        } else if (ftype == 'img') {
+        } else if (tag == 'tab') {
+            ftype = 'table';
+            try {
+                child = parseTable(body, args);
+            } catch (e) {
+                child = new Div(e.message);
+            }
+        } else if (tag == 'img') {
             child = new Image(body, args);
-        } else if (ftype == 'video') {
+        } else if (tag == 'vid') {
             child = new Video(body, args);
-        } else if (ftype == 'svg') {
+        } else if (tag == 'svg') {
             child = new Svg(body, args);
-        } else if (ftype == 'gum') {
+        } else if (tag == 'gum') {
             child = new Gum(body, args);
         }
-        return new Figure(child, {id, caption, number});
+        return new Figure(child, {ftype, id, caption, title, number});
     }
 
     // comment
