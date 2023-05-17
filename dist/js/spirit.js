@@ -1,4 +1,4 @@
-import { EditorView, lineNumbers, highlightActiveLine, keymap } from '../node_modules/@codemirror/view/dist/index.js';
+import { EditorView, lineNumbers, keymap } from '../node_modules/@codemirror/view/dist/index.js';
 import { EditorState } from '../node_modules/@codemirror/state/dist/index.js';
 import { indentWithTab, defaultKeymap, historyKeymap } from '../node_modules/@codemirror/commands/dist/index.js';
 import { bracketMatching } from '../node_modules/@codemirror/language/dist/index.js';
@@ -15,7 +15,6 @@ function readWriteEditor(parent, update) {
                 minimalSetup,
                 lineNumbers(),
                 bracketMatching(),
-                highlightActiveLine(),
                 markdown({defaultCodeLanguage: javascript()}),
                 keymap.of([
                     indentWithTab,
